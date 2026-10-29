@@ -1,7 +1,7 @@
 {
   "environment": "production",
   "projectRef": "ooclsrndeygojtofuyte",
-  "sourceHash": "5cf807e3f41314af0e39c033e43faedf3f811a035edb7fd72f420014e8893e7d",
-  "version": "20cb1fee08ae64b1e647",
-  "releaseVersion": "1.1.1"
+  "sourceHash": "3e1ad988d0ceac21eedca79ec84705313812c8aca338a34027257d5eb5cc31b8",
+  "version": "38d725f9055a3e5932ee",
+  "releaseVersion": "1.4.1"
 }
