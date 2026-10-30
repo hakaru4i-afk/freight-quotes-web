@@ -1,7 +1,7 @@
 {
   "environment": "staging",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "sourceHash": "d4837f39e57f09b5ac895358dbf06c07e7eb7cfdc0abfd0767adb1d0c838d15b",
-  "version": "dc920d9afce5ed206874",
-  "releaseVersion": "1.4.2"
+  "sourceHash": "23f854b7bccbbba3bb8b06121380e217fff83f907b8b918254f46d925872431c",
+  "version": "66ce600db84c9380a12c",
+  "releaseVersion": "1.5.0"
 }
