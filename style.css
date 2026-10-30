@@ -59,4 +59,28 @@
 
 .sw-cabinet{display:grid;grid-template-columns:250px minmax(0,1fr);min-height:80vh;background:#f1f5f3}.sw-sidebar{background:#143e35;color:white;padding:24px;display:flex;flex-direction:column;gap:14px}.sw-sidebar h2{font-size:21px;color:white}.sw-sidebar .btn{background:white;color:#143e35}.sw-cabinet main{min-width:0;width:100%;padding:24px}.sw-slot{border:1px solid #dbe6e1;border-radius:12px;padding:18px}.sw-slot h4{margin-top:0}.sw-slot a{display:block;overflow-wrap:anywhere;margin:8px 0}.sw-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.sw-upload{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}.sw-upload input{max-width:100%;min-width:0}.sw-notification{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 0;border-bottom:1px solid #dbe6e1}.sw-workflow .tablewrap{max-width:100%}@media(max-width:760px){.sw-cabinet{grid-template-columns:1fr}.sw-sidebar{flex-direction:row;flex-wrap:wrap;padding:16px}.sw-sidebar h2{width:100%}.sw-checklist{grid-template-columns:1fr}.sw-cabinet main{padding:12px}}
 
+/* Keep the existing route photograph; give the shared portal a larger welcome. */
+.auth-layout{width:calc(100% - 64px);max-width:1320px;min-height:760px;margin:48px auto 0;grid-template-columns:1.1fr 1fr;border-radius:30px}
+.auth-story{padding:42px 44px}
+.auth-story .brand{font-size:19px}
+.auth-story .brand-caption{font-size:9px;letter-spacing:1.4px;line-height:1.8}
+.auth-story-body{margin:54px 0 28px}
+.auth-story .eyebrow{font-size:11px;letter-spacing:1.8px;line-height:1.7}
+.auth-story h2{font-size:clamp(42px,4.1vw,60px);letter-spacing:-2px;line-height:1.08;margin:22px 0}
+.auth-story-body>p{font-size:17px;line-height:1.7;max-width:510px}
+.auth-story-body .route-visual{min-height:160px;height:160px}
+.auth-features{gap:22px;padding-top:22px}
+.auth-features>div{font-size:13px}
+.auth-features span{font-size:11px}
+.auth-story-footer{font-size:13px;line-height:1.6}
+.auth-form-wrap{padding:58px 52px}
+.auth-card h1{font-size:36px;line-height:1.16}
+.auth-card>.small{font-size:15px;line-height:1.7;margin-bottom:30px}
+.auth-card .field{font-size:14px}
+.auth-card input{min-height:52px;font-size:16px}
+.auth-card form>.btn{min-height:52px;font-size:15px}
+.auth-private,.help-login{font-size:12px;line-height:1.7}
+@media(max-width:1100px){.auth-layout{width:calc(100% - 40px);margin-top:30px}.auth-story{padding:34px}.auth-form-wrap{padding:40px 34px}.auth-story h2{font-size:44px}.auth-story-body>p{font-size:16px}.auth-story .brand{font-size:17px}}
+@media(max-width:760px){.auth-layout{display:flex;width:calc(100% - 24px);margin:18px auto 0;min-height:0;border-radius:22px}.auth-story{padding:28px}.auth-story-body{margin:30px 0 0}.auth-story h2{font-size:38px;letter-spacing:-1.2px;line-height:1.1}.auth-story h2 br{display:block}.auth-story-body>p{font-size:15px;line-height:1.65}.auth-story .brand-caption{font-size:8px;letter-spacing:1px}.auth-story-body .route-visual{display:none}.auth-form-wrap{padding:32px 28px}.auth-card h1{font-size:30px}.auth-card>.small{font-size:14px}.auth-story .eyebrow{font-size:10px}}
+
 #carrier-service table{font-size:13px}.notice table{width:100%}.section textarea{min-height:84px}
