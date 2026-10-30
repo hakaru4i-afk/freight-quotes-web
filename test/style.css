@@ -116,4 +116,6 @@
 
 .sw-event-reason{display:block;padding:4px 12px;white-space:pre-wrap}.sw-measurements{grid-column:1/-1}
 
+.access-manager>.field{max-width:700px;margin:18px 0}.access-groups{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:16px 0}.access-groups details{border:1px solid #d6e3df;border-radius:8px;padding:12px;min-width:0}.access-groups summary{font-weight:700;cursor:pointer}.access-right,.access-inherit,.access-task-list label{display:flex;gap:10px;align-items:flex-start;margin:10px 0;font-size:13px}.access-right small{display:block;color:#6f8586;font-size:11px;margin-top:3px}.access-manager input[type=checkbox]{width:17px;height:17px;min-height:17px;flex:none;margin-top:2px}.access-right:has(input:disabled){opacity:.6}.access-task-list{max-height:320px;overflow:auto;border:1px solid #d6e3df;padding:12px;border-radius:8px}.access-manager>.bar .btn{min-width:160px}@media(max-width:800px){.access-groups{grid-template-columns:1fr}}
+
 #carrier-service table{font-size:13px}.notice table{width:100%}.section textarea{min-height:84px}
