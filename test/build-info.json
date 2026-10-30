@@ -1,7 +1,1 @@
-{
-  "environment": "staging",
-  "projectRef": "ibclzdkxiozbzmniiygv",
-  "sourceHash": "bd60ed92aa22f522fe0906defd00682cb8f2fad9eb82fc682c869cffee2ec635",
-  "version": "880db0d0cbcbf4d977e4",
-  "releaseVersion": "1.6.2"
-}
+{"environment":"staging","version":"d21a5ea8ae89b310a715","releaseVersion":"1.7.0","projectRef":"ibclzdkxiozbzmniiygv","build":"d21a5ea8ae89b310a715","sourceHash":"472b9e39e78c15588575f4e6cd3c31b8ea4973a8f62eab17290d17d881c6a1b4","builtAt":"2026-10-30T07:41:51.222Z"}
