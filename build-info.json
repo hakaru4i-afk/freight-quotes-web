@@ -1,7 +1,1 @@
-{
-  "environment": "production",
-  "projectRef": "ooclsrndeygojtofuyte",
-  "sourceHash": "bd60ed92aa22f522fe0906defd00682cb8f2fad9eb82fc682c869cffee2ec635",
-  "version": "44c308cccaa106f1f716",
-  "releaseVersion": "1.6.2"
-}
+{"environment":"production","version":"b272725c04df403cf2aa","releaseVersion":"1.7.0","projectRef":"ooclsrndeygojtofuyte","build":"b272725c04df403cf2aa","sourceHash":"472b9e39e78c15588575f4e6cd3c31b8ea4973a8f62eab17290d17d881c6a1b4","builtAt":"2026-10-30T07:41:51.499Z"}
