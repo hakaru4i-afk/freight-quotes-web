@@ -186,4 +186,7 @@ body:has(.cycle-landing){background:#f3f2ed;color:#252636}body:has(.cycle-landin
 
 [data-cabinet-role] .transport-order{background:var(--pr-surface);color:var(--pr-text);border-color:var(--pr-line)}[data-cabinet-role] .transport-order.selected{background:color-mix(in srgb,var(--pr-accent) 12%,var(--pr-surface));border-color:var(--pr-accent)}[data-cabinet-role] .transport-card :is(.transport-group,.transport-data>div,.transport-file,.transport-timeline li){border-color:var(--pr-line)}
 
+[data-cabinet-role] .transport-card summary{color:var(--pr-text)!important}[data-cabinet-role] .transport-heading small{color:var(--pr-accent)}[data-cabinet-role] .transport-card .recognition-box{background:var(--pr-tint);color:var(--pr-text);border-color:var(--pr-line)}
+[data-cabinet-role] .transport-card .recognition-candidate{background:var(--pr-surface);color:var(--pr-text);border-color:var(--pr-line)}[data-cabinet-role] .transport-card .recognition-candidate small{color:var(--pr-muted)}
+
 #carrier-service table{font-size:13px}.notice table{width:100%}.section textarea{min-height:84px}
