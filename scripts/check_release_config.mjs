@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // Read-only release consistency check. Does not contact APIs or write files.
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), 'utf8'));
 const readText = (path) => readFileSync(resolve(root, path), 'utf8');
+const target = process.argv.find((arg) => arg.startsWith('--target='))?.slice(9);
 const errors = [];
+if (target !== undefined && !/^\d+\.\d+\.\d+$/.test(target)) errors.push('Invalid --target version');
 const warnings = [];
 const profiles = [
   { name: 'production', prefix: '' },
@@ -20,6 +23,24 @@ for (const { name, prefix } of profiles) {
     const build = readJson(prefix + 'build-info.json');
     const status = readJson(prefix + 'site-status.json');
     const index = readText(prefix + 'index.html');
+    const bundle = readText(prefix + 'app.js');
+    if (target && build.releaseVersion !== target) errors.push(name + ': release does not match target ' + target);
+    if (target && status.maintenance) errors.push(name + ': maintenance remains enabled');
+    if (build.projectRef && !bundle.includes('https://' + build.projectRef + '.supabase.co')) {
+      errors.push(name + ': JavaScript does not reference its configured API project');
+    }
+    for (const asset of ['app.js', 'style.css']) {
+      const digest = createHash('sha256').update(readFileSync(resolve(root, prefix + asset))).digest('hex').slice(0, 12);
+      if (!index.includes('./' + asset + '?v=' + digest)) errors.push(name + ': stale asset hash for ' + asset);
+    }
+    const manifest = readJson(prefix + 'recognition-manifest.json');
+    for (const file of manifest.files) {
+      const bytes = readFileSync(resolve(root, prefix + file.name));
+      if (bytes.length !== file.bytes || createHash('sha256').update(bytes).digest('hex') !== file.sha256) {
+        errors.push(name + ': recognition integrity mismatch: ' + file.name);
+      }
+    }
+    console.log(name + ': verified ' + manifest.files.length + ' recognition assets');
     state.push({ name, build, status });
     if (build.environment !== name) errors.push(name + ': incorrect build environment');
     if (status.environment !== name) errors.push(name + ': incorrect status environment');
