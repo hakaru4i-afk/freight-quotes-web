@@ -61,9 +61,10 @@ function valueOf(key,raw,header=""){
   return s;
  }
  if(key==="weight"||key==="volume"){
-  const match=s.match(/\d[\d\s.,]*(?:\s*(?:kg|kgs|g|grams|t|tonnes?|m3|m³|cbm|кг|г|т|吨|立方米))?/i);
+  if(/[@*×x]|\b(?:item|pcs|ctn|cartons?|unit|price|amount|email|phone)\b/i.test(s))return null;
+  const match=s.match(/^\s*(\d[\d\s.,]*)(?:\s*(kg|kgs|g|grams?|tonnes?|tons?|m3|m³|cbm|кг|г|т|吨|立方米))?\s*$/i);
   if(!match)return null;
-  const n=numberOf(match[0]); if(n==null)return null;
+  const n=numberOf(match[1]); if(n==null)return null;
   let value=n;
   if(key==="weight"){
    if(/\b(?:grams?|gr)\b|(?:^|[\d\s])г(?:$|\s)|克/.test(s)&&!/\bkg\b|кг/.test(s))value=n/1000;
@@ -77,6 +78,9 @@ function valueOf(key,raw,header=""){
  if(key==="incoterm"){const match=s.toUpperCase().match(/\b(?:EXW|FCA|CPT|CIP|DAP|DPU|DDP|FAS|FOB|CFR|CIF)\b/);return match&&CHOICES.has(match[0])?match[0]:null;}
  if(key==="origin"||key==="destination"||key==="cargo"){
   if(s.length<3||/^\d+(?:[.,]\d+)?$/.test(s)||/^(?:ITEM|PRICE|PCS|CTN|ORDER|TOTAL|COUNTRY|CITY)\b/i.test(s))return null;
+  if(/@|\b(?:e-?mail|phone|telephone|mobile|fax|tel\.?|contact|whatsapp|wechat|website|https?|www\.)\b|邮箱|电话|联系人/i.test(s))return null;
+  if(key==="origin"&&/\b(?:maximum load|dimensions?|size|price|amount|order|units?|pieces?|kg|grams?|cm|mm|cartons?|ctn|pcs|item)\b/i.test(s))return null;
+  if(/^\d+(?:[.,]\d+)?\s*[×x*]\s*\d+/i.test(s))return null;
   if(key==="cargo"&&/^[a-z]{1,4}[-\d/]+$/i.test(s))return null;
   if(key==="origin"&&/^(?:no|yes|n\/a)$/i.test(s))return null;
   return s.slice(0,key==="cargo"?500:300);
@@ -103,7 +107,8 @@ export function analyzeDocument(text,{orderCode="",allowedFields=[],filename=""}
  const add=(key,raw,source,priority=0,group="")=>{
   const value=valueOf(key,raw);if(!value)return;
   if(found.length>=180)return;
-  found.push({key,value,evidence:source.slice(0,300),priority,group});
+  const bonus=["weight","volume"].includes(key)&&/(?:\btotal\b|итого|общий|сумма|总)/i.test(source)?25:0;
+  found.push({key,value,evidence:source.slice(0,300),priority:priority+bonus,group});
  };
  // Read structured XLSX / CSV / TSV rows, preserving empty cells and column positions.
  for(let i=0;i<rows.length;i++){
@@ -147,17 +152,19 @@ export function analyzeDocument(text,{orderCode="",allowedFields=[],filename=""}
    const key=keyOf(cell);
    if(key){
     const next=cs.slice(j+1).find(v=>!!v&&!keyOf(v));
-    if(next)add(key,next,row.sheet+" · "+columnLetter(j+1)+row.row,70);
+    if(next)add(key,next,row.sheet+" · "+columnLetter(j+1)+row.row+" ("+cell+")",70);
     if(cs.length===1&&i+1<rows.length&&rows[i+1].sheet===row.sheet){
      const following=rows[i+1].cells.join(" ").trim();
-     if(following&&!keyOf(following))add(key,following,row.sheet+" · строка "+rows[i+1].row,55);
+     const isNumeric=["weight","volume"].includes(key);
+     const canPair=!isNumeric||/\btotal\b|итого|общий|总/i.test(cell)||/\b(?:kg|kgs|cbm|m3|m³|кг|м3|м³|立方米)\b/i.test(following);
+     if(following&&!keyOf(following)&&canPair)add(key,following,row.sheet+" · строка "+rows[i+1].row+" ("+cell+")",isNumeric?50:55);
     }
    }
    let m=cell.match(/^(.{3,65}?)\s*[:：]\s*(.{1,450})$/);
-   if(m){const k=keyOf(m[1]);if(k)add(k,m[2],row.sheet+" · "+columnLetter(j)+row.row,80);}
+   if(m){const k=keyOf(m[1]);if(k)add(k,m[2],row.sheet+" · "+columnLetter(j)+row.row+" ("+m[1]+")",80);}
    else{
     m=cell.match(/^(.{3,45}?)\s{2,}(.{2,450})$/);
-    if(m){const k=keyOf(m[1]);if(k)add(k,m[2],row.sheet+" · "+columnLetter(j)+row.row,55);}
+    if(m){const k=keyOf(m[1]);if(k)add(k,m[2],row.sheet+" · "+columnLetter(j)+row.row+" ("+m[1]+")",55);}
    }
   }
  }
@@ -174,6 +181,7 @@ export function analyzeDocument(text,{orderCode="",allowedFields=[],filename=""}
  const candidates=[],auto={},warnings=[];
  for(const [key,values] of grouped){
   let items=[...values.values()].sort((a,b)=>b.priority-a.priority);
+  if(key!=="order_code"&&items.length>1){const best=items[0].priority;items=items.filter(x=>x.priority>=Math.max(55,best-15));}
   if(items.length>1&&order){
    const isOrder=key==="order_code";
    if(isOrder){const same=items.filter(x=>x.value.toUpperCase().replace(/\s/g,"")===order);if(same.length)items=same;}
