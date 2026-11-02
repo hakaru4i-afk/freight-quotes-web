@@ -191,3 +191,9 @@ body:has(.cycle-landing){background:#f3f2ed;color:#252636}body:has(.cycle-landin
 [data-cabinet-role] .transport-card .field small{color:var(--pr-muted)!important;opacity:1;font-size:12px}[data-cabinet-role] .transport-data dt{color:var(--pr-muted);opacity:1}
 
 #carrier-service table{font-size:13px}.notice table{width:100%}.section textarea{min-height:84px}
+
+/* TEST-ONLY TEMPORARY FEATURE PAUSE — Issue #42
+   Disable document OCR / smart import entry points without affecting file uploads.
+   Do not enable until the user accepts the redesigned importer. */
+.recognition-box,
+.recognition-link{display:none!important}
