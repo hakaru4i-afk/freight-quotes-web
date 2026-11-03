@@ -1,10 +1,10 @@
 {
-  "version": "stg47-consolidated-e7a963ff8d8d",
+  "version": "stg47-consolidated-7666ba3ec41c",
   "status": "NOT_PUBLISHED",
   "privateBackend": {
-    "sourceCommit": "7ac40d92077145ec588830216721861b4afad380",
-    "gitBlob": "e24941f2e945cad8a9d531b5df516c380958906c",
-    "sha256": "d5f0018f209a18b3c8481fdbdd67a1c48f3eb466f9ca672f3ff342727f9a391b"
+    "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
+    "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
+    "sha256": "0a0961686675c53d9947a388048253ba1d61755a5a8d41608807b8f0ac5ed542"
   },
   "frontendComponents": {
     "app.js": {
@@ -12,8 +12,8 @@
       "sha256": "7b839bfe17c06cc60d38e40548e5293344eab31c15635659bc58026ef2e7d429"
     },
     "task2-panel.js": {
-      "gitBlob": "65d76d1753cd9e404c5e596430987b3ec9924333",
-      "sha256": "deb657d4414d445a0cf9565040811ab0a770ed9e8067729702463d75913ba82b"
+      "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
+      "sha256": "f1fb91dc193b841b41657b190c64a2d280915ccfdc8889c155d390064fff296a"
     },
     "task2-i18n.js": {
       "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",

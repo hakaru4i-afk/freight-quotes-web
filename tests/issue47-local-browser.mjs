@@ -2,6 +2,7 @@
 // Does not claim login or end-to-end coverage of the hosted portal.
 import assert from 'node:assert/strict';
 import path from 'node:path';
+import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 export async function runTask2Browser(origin,tools) {
  const {chromium}=await import(pathToFileURL(path.join(tools,'node_modules/playwright/index.mjs')).href);
@@ -26,6 +27,17 @@ export async function runTask2Browser(origin,tools) {
     await page.locator('form[data-t2-form=save] button[type=submit]').click();
     await page.waitForFunction(()=>document.querySelector('#t2-alert')?.textContent==='Изменения сохранены.');
     results.push({check:'mobile CSV preview, apply and PostgreSQL save',status:'PASS'});
+    await page.locator('.t2-tabs [data-t2-tab=documents]').click();
+    await page.locator('form[data-t2-form=upload] input[type=file]').setInputFiles([
+     {name:'browser-a.txt',mimeType:'text/plain',buffer:Buffer.from('Browser document A 中文')},
+     {name:'browser-b.txt',mimeType:'text/plain',buffer:Buffer.from('Browser document B русский')},
+    ]);
+    await page.locator('form[data-t2-form=upload] button[type=submit]').click();
+    await page.waitForFunction(()=>document.querySelectorAll('[data-t2-doc]').length===2);
+    const [download]=await Promise.all([page.waitForEvent('download'),page.locator('[data-t2-doc]').first().click()]);
+    const bytes=fs.readFileSync(await download.path());
+    assert.ok(['Browser document A 中文','Browser document B русский'].includes(bytes.toString()));
+    results.push({check:'mobile multiple upload and browser download preserve bytes',status:'PASS'});
    } else {
     assert.equal(await page.locator('form[data-t2-form=save]').count(),0,'staff must not edit carrier execution fields');
    }

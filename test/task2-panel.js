@@ -1,6 +1,7 @@
 /* Issue #47 integrated staging UI; canonical place: Исполнение перевозок. */
 (function(){
  "use strict";
+ const uploadIds=new WeakMap();
  const pendingRequests=new Map();
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
@@ -232,7 +233,8 @@
      }
      await loadList();
      alertText((result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote);
-   }catch(e){alertText(e.message||"Ошибка",true);}finally{state.busy=false;}
+     return result;
+   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false};}finally{state.busy=false;}
  }
  async function downloadDoc(id){
    try{
@@ -375,7 +377,10 @@
      const files=f.querySelector('input[type=file]')?.files||[];
      if(!files.length){alertText("Выберите файлы",true);return;}
      for(const file of files){const fd=new FormData();fd.append("action","upload");fd.append("order",state.selected);fd.append("file",file);fd.append("category","task2");if(data.taskId)fd.append("taskId",data.taskId);
-       await update("upload",{},fd);
+       if(!uploadIds.has(file))uploadIds.set(file,crypto.randomUUID());
+       fd.append("uploadId",uploadIds.get(file));
+       const saved=await update("upload",{},fd);
+       if(!saved?.ok)return;
      }return;
    }
    if(kind==="save"){
@@ -392,7 +397,7 @@
    }
    if(kind==="request_docs")data.types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
    if(kind==="act"){
-     const action=data.action;delete data.action;return update(action,{data,...(csvMeta?{csv:csvMeta}:{})});
+     const action=data.action;delete data.action;const latest=state.detail?.acts?.[0];return update(action,{data,...(latest&&["draft","disputed","sent"].includes(latest.state)?{expectedRevision:latest.revision}:{}),...(csvMeta?{csv:csvMeta}:{})});
    }
    if(kind==="pto")return update("pto",{date:data.date?minskISO(data.date):"",arrived:data.arrived==="yes"});
    if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){try{data.date=minskISO(data.date);}catch(e){alertText(e.message,true);return;}}
@@ -426,7 +431,8 @@
      const reason=response==="dispute"?window.prompt("Обязательная причина отказа в согласовании акта:",""):"";
      if(response==="dispute"&&!reason)return;
      if(response==="accept"&&!window.confirm("Согласовать текущую редакцию акта? Это не закроет перевозку с претензией."))return;
-     await update("act_response",{actId:hit.dataset.id,response,reason});return;
+     const act=state.detail?.acts?.find(x=>x.id===hit.dataset.id);
+     await update("act_response",{actId:hit.dataset.id,revision:act?.revision,response,reason});return;
    }
    if(hit.dataset.t2Action==="finish"){await update("finish",{});return;}
    if(hit.dataset.t2Action==="take"){await update("take",{});return;}
