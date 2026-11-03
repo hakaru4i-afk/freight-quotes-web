@@ -1,0 +1,44 @@
+name: Issue47 late bid staging regression
+on:
+  pull_request:
+    paths:
+      - 'test/app.js'
+      - 'test/late-bid-staging.js'
+      - 'test/index.html'
+      - 'test/build-info.json'
+      - 'tests/issue47-late-ui.test.mjs'
+      - '.github/workflows/issue47-late-staging.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'test/app.js'
+      - 'test/late-bid-staging.js'
+      - 'test/index.html'
+      - 'test/build-info.json'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check test/app.js
+      - run: node --check test/late-bid-staging.js
+      - run: node --test tests/issue47-late-ui.test.mjs tests/issue47-task2-csv.test.mjs
+      - name: Staging-only API auth smoke
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
+          const h=await fetch(base+'/health');
+          assert.equal(h.status,200);
+          const data=await h.json();
+          assert.equal(data.projectRef,'ibclzdkxiozbzmniiygv');
+          const request=await fetch(base+'/api/late-bid-drafts');
+          assert.ok([401,403].includes(request.status),'anonymous cannot inspect late bids');
+          console.log('PASS staging API is isolated and denies anonymous late bid access');
+          NODE
