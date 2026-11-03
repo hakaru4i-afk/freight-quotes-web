@@ -1,0 +1,33 @@
+name: Issue #47 staging menu clarity
+on:
+  pull_request:
+    paths:
+      - 'test/app.js'
+      - 'test/index.html'
+      - 'test/build-info.json'
+      - 'tests/issue47-menu-clarity.test.mjs'
+      - '.github/workflows/issue47-staging-check.yml'
+  push:
+    branches:
+      - fix/issue47-staging-menu-clarity
+permissions:
+  contents: read
+jobs:
+  verify-staging-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check test/app.js
+      - run: node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs
+      - run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const html = fs.readFileSync('test/index.html','utf8');
+          const info = JSON.parse(fs.readFileSync('test/build-info.json','utf8'));
+          if (!html.includes('./app.js?v=b3d614971bc9')) throw Error('Staging cache-busting mismatch');
+          if (info.environment !== 'staging' || info.task2Complete !== false) throw Error('Build should be marked staging and partial');
+          NODE
