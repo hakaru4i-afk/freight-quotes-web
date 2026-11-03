@@ -200,11 +200,26 @@
    try{
      const payload={action,order:state.selected,...fields};
      const res=await call(payload,files);
+     let routeNote="";
+     if(action==="save"&&fields.fields?.location&&state.detail?.shipment){
+       const o=state.detail.shipment,mode=String(o.mode||"").toLowerCase();
+       if(/авто|auto|road/.test(mode)&&o.origin&&o.destination){
+         try{
+           const mid=String(o.waypoints||"").split(/[;,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6);
+           const addresses=[o.origin,...mid,o.destination];
+           const first=await fetch("/api/route-distance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transport:"Авто",addresses})});
+           const route=await first.json();
+           if(!first.ok)throw Error(route.error||"Не удалось рассчитать маршрут");
+           const km=await call({action:"route_metrics",order:state.selected,routeKey:route.key});
+           routeNote=" Авто: "+km.remainingKm+" км осталось из "+km.totalKm+" км ("+km.source+").";
+         }catch(e){routeNote=" Километраж пока не рассчитан: "+e.message;}
+       }
+     }
      if(res.needsContainerDecision){
        const yes=window.confirm("Номер контейнера не указан. Отправить перевозчику запрос на заполнение?\nОК = Да, отправить запрос.\nОтмена = Нет, завершить без номера.");
        await call({...payload,answer:yes?"yes":"no"});
      }
-     await loadList();alertText(res.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":"Изменения сохранены.");
+     await loadList();alertText((res.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":"Изменения сохранены.")+routeNote);
    }catch(e){alertText(e.message||"Ошибка",true);}finally{state.busy=false;}
  }
  async function downloadDoc(id){
