@@ -295,15 +295,21 @@
    },
    normalize(f,raw){
      const value=String(raw);
+     const validDate=iso=>{
+       const parsed=new Date(iso+"T00:00:00Z");
+       return /^\d{4}-\d{2}-\d{2}$/.test(iso)&&!Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===iso;
+     };
      if(f.type==="date"){
-       if(/^\d{4}-\d{2}-\d{2}$/.test(value))return value;
        const match=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
-       if(match)return match[3]+"-"+match[2]+"-"+match[1];
-       throw Error("Дата "+f.name+": используйте YYYY-MM-DD либо ДД.ММ.ГГГГ");
+       const iso=match?match[3]+"-"+match[2]+"-"+match[1]:value;
+       if(!validDate(iso))throw Error("Дата "+f.name+": используйте действительную дату YYYY-MM-DD либо ДД.ММ.ГГГГ");
+       return iso;
      }
      if(f.type==="datetime-local"){
        const match=/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::\d{2})?$/.exec(value);
-       if(!match)throw Error("Дата/время "+f.name+": YYYY-MM-DD HH:mm");
+       if(!match||!validDate(match[1]))throw Error("Дата/время "+f.name+": YYYY-MM-DD HH:mm");
+       const [hours,mins]=match[2].split(":").map(Number);
+       if(hours>23||mins>59)throw Error("Некорректное время: "+f.name);
        return match[1]+"T"+match[2];
      }
      if(f.type==="number"&&(!value.trim()||!Number.isFinite(Number(value.replace(",",".")))))
