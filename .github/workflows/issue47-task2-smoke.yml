@@ -31,6 +31,9 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const expected=JSON.parse(readFileSync('test/build-info.json','utf8')).task2.frontendSha;
           const url='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
           const web='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
           const r=await fetch(url+'/health');
@@ -51,7 +54,9 @@ jobs:
             ]);
             if(html.includes('task2-panel.js')&&html.includes('task2-guidance.js')&&js.ok&&css.ok&&guidance.ok){
               const body=await js.text();
-              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')&&(await guidance.text()).includes('Task #2: field-level instructions')){
+              const b=Buffer.from(body,'utf8');
+              const sha=createHash('sha1').update(Buffer.concat([Buffer.from('blob '+b.length+'\\0'),b])).digest('hex');
+              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')&&sha===expected&&html.includes('task2-panel.js?v='+expected.slice(0,12))&&(await guidance.text()).includes('Task #2: field-level instructions')){
                 console.log('PASS: staging static task2 JS/CSS served');
                 verified=true;break;
               }
