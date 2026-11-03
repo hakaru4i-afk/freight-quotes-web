@@ -3,7 +3,7 @@
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "stg47-task2-csv-783bede27e87",
+    "version": "stg47-task2-csv-783bede27e87-api45",
     "date": "2026-11-03",
     "title": "Задача №2 · исправление CSV и завершения перевозки (тестовая среда)",
     "changes": [
@@ -11,12 +11,13 @@
       "Все CSV-значения проверяются перед переносом: некорректная дата не оставляет частично заполненную форму.",
       "После решения по отсутствующему номеру контейнера отображается фактический результат сервера.",
       "У полей не должны дублироваться значки подсказок.",
-      "Только staging; остальной процесс №2 и приёмка по ролям ещё не завершены."
+      "Только staging; остальной процесс №2 и приёмка по ролям ещё не завершены.",
+      "Staging API v45: доступ к исполнению открыт только победителю текущего раунда; архивный победитель прошлого раунда исключён."
     ]
   },
   "releases": [
     {
-      "version": "stg47-task2-csv-783bede27e87",
+      "version": "stg47-task2-csv-783bede27e87-api45",
       "date": "2026-11-03",
       "title": "Задача №2 · исправление CSV и завершения перевозки (тестовая среда)",
       "changes": [
@@ -24,7 +25,8 @@
         "Все CSV-значения проверяются перед переносом: некорректная дата не оставляет частично заполненную форму.",
         "После решения по отсутствующему номеру контейнера отображается фактический результат сервера.",
         "У полей не должны дублироваться значки подсказок.",
-        "Только staging; остальной процесс №2 и приёмка по ролям ещё не завершены."
+        "Только staging; остальной процесс №2 и приёмка по ролям ещё не завершены.",
+        "Staging API v45: доступ к исполнению открыт только победителю текущего раунда; архивный победитель прошлого раунда исключён."
       ]
     },
     {
@@ -82,7 +84,7 @@
   ],
   "updatedAt": "2026-11-03T16:57:37Z",
   "stagingVerification": {
-    "scope": "Task #2 unified execution candidate, registration, Bitrix inheritance, CSV/forms, documents and claims; authenticated owner/carrier/VED E2E pending; CSV input and completion feedback patched",
+    "scope": "Task #2 unified execution candidate, registration, Bitrix inheritance, CSV/forms, documents and claims; authenticated owner/carrier/VED E2E pending; CSV input and completion feedback patched; selected winner tied to active round in API v45",
     "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED"
   }
