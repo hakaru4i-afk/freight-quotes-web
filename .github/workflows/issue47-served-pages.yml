@@ -1,5 +1,10 @@
 name: Issue47 served Pages and API smoke (staging)
 on:
+  pull_request:
+    paths:
+      - 'test/**'
+      - 'tests/issue47-served-pages.test.mjs'
+      - '.github/workflows/issue47-served-pages.yml'
   push:
     branches: [main]
     paths:
