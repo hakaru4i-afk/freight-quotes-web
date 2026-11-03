@@ -3,7 +3,7 @@
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "stg47-optional-owner-1199aa16f248-api52",
+    "version": "stg47-guidecheck-1199aa16f248-api52",
     "date": "2026-11-03",
     "title": "Задача №2 · подготовка поздней ставки, блокировка выбора победителя и архив",
     "changes": [
@@ -16,10 +16,21 @@
       "Кандидат: авторизованный сквозной QA по ролям и ручная приёмка ещё не завершены.",
       "Staging API v49: atomic bid/winner guard, correct 403/409 and air act categorization; staging-only.",
       "API v51: closing disputed shipments requires owner/ВЭД container decision, no duplicate pending container request, no auto-close after claim; staging only.",
-      "В тестовой версии выбор победителя не требует обоснования. API v52 и форма согласованы."
+      "В тестовой версии выбор победителя не требует обоснования. API v52 и форма согласованы.",
+      "Исправлен кэш ключ подсказок и CSV в тестовом HTML; версия JS теперь соответствует последнему изменению кода. Статус приёмки без изменений."
     ]
   },
   "releases": [
+    {
+      "version": "stg47-guidecheck-1199aa16f248-api52",
+      "date": "2026-11-03",
+      "title": "Промежуточная проверка целостности тестовой сборки",
+      "changes": [
+        "Версии четырёх скриптов синхронизированы с SHA исходных файлов.",
+        "Новая GitHub Actions проверка обнаруживает несоответствие фронтенда, манифеста и опубликованных ресурсов.",
+        "Права, полная локализация, работа с документами и E2E всех ролей ещё требуют подтверждения."
+      ]
+    },
     {
       "version": "stg47-late-6726e2927377-api47",
       "date": "2026-11-03",
@@ -100,9 +111,9 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-03T18:00:00Z",
+  "updatedAt": "2026-11-03T18:30:00Z",
   "stagingVerification": {
-    "scope": "DB concurrency rollback verified, original 3 requests and 4 storage-backed attachments preserved. API v51 active. Authenticated role/browser E2E not yet passed.",
+    "scope": "Static files synchronized with DB/API v52. QA: script integrity and served Pages checks pending. No authenticated role E2E passed.",
     "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED"
   }
