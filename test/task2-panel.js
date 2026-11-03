@@ -215,11 +215,13 @@
          }catch(e){routeNote=" Километраж пока не рассчитан: "+e.message;}
        }
      }
+     let result=res;
      if(res.needsContainerDecision){
        const yes=window.confirm("Номер контейнера не указан. Отправить перевозчику запрос на заполнение?\nОК = Да, отправить запрос.\nОтмена = Нет, завершить без номера.");
-       await call({...payload,answer:yes?"yes":"no"});
+       result=await call({...payload,answer:yes?"yes":"no"});
      }
-     await loadList();alertText((res.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":"Изменения сохранены.")+routeNote);
+     await loadList();
+     alertText((result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote);
    }catch(e){alertText(e.message||"Ошибка",true);}finally{state.busy=false;}
  }
  async function downloadDoc(id){
@@ -241,42 +243,117 @@
    alertText("Акт сформирован. Откройте файл и используйте «Печать → Сохранить как PDF».");
  }
  const csv={
-   quote(s){s=String(s??"");if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';},
-   save(text,name){const a=document.createElement("a"),url=URL.createObjectURL(new Blob(["\uFEFF",text],{type:"text/csv;charset=utf-8"}));a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),8000);},
-   parse(text){
-     text=text.replace(/^\uFEFF/,"");const first=text.split(/\r?\n/,1)[0],delimiter=first.split(";").length>first.split(",").length?";":",";
-     let rows=[],row=[],cell="",quoted=false;
-     for(let i=0;i<text.length;i++){const c=text[i];
+   quote(s){
+     s=String(s??"");
+     // Protect Excel from formula injection without corrupting negative numbers.
+     if(/^[=+@]/.test(s))s="'"+s;
+     return '"'+s.replace(/"/g,'""')+'"';
+   },
+   save(content,name){
+     const url=URL.createObjectURL(new Blob(["\uFEFF",content],{type:"text/csv;charset=utf-8"}));
+     const link=document.createElement("a");link.href=url;link.download=name;link.click();
+     setTimeout(()=>URL.revokeObjectURL(url),10000);
+   },
+   parse(content){
+     let text=String(content||"").replace(/^\uFEFF/,"");
+     if(!text.trim())throw Error("CSV пустой");
+     if(text.length>1024*1024)throw Error("CSV превышает 1 МБ");
+     const counts={";":0,",":0,"\t":0};
+     let quoted=false;
+     for(let i=0;i<text.length;i++){
+       const c=text[i];
+       if(c==='"'){
+         if(quoted&&text[i+1]==='"'){i++;continue;}
+         quoted=!quoted;
+       }else if(!quoted&&(c==="\r"||c==="\n"))break;
+       else if(!quoted&&Object.prototype.hasOwnProperty.call(counts,c))counts[c]++;
+     }
+     const delimiter=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+     if(!counts[delimiter])throw Error("В CSV не обнаружены столбцы с заголовками");
+     const rows=[];let row=[],cell="";quoted=false;
+     for(let i=0;i<text.length;i++){
+       const c=text[i];
        if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}
        else if(c===delimiter&&!quoted){row.push(cell);cell="";}
-       else if((c==="\n"||c==="\r")&&!quoted){if(c==="\r"&&text[i+1]==="\n")i++;row.push(cell);if(row.some(x=>x!==""))rows.push(row);row=[];cell="";}
-       else cell+=c;
+       else if((c==="\n"||c==="\r")&&!quoted){
+         if(c==="\r"&&text[i+1]==="\n")i++;
+         row.push(cell);if(row.some(x=>x!==""))rows.push(row);
+         row=[];cell="";
+       }else cell+=c;
      }
-     if(quoted)throw Error("CSV: не закрыта кавычка");
+     if(quoted)throw Error("CSV: незакрытая кавычка");
      row.push(cell);if(row.some(x=>x!==""))rows.push(row);
-     if(rows.length<2)throw Error("CSV должен содержать заголовки и строку значений");
+     if(rows.length!==2)throw Error("Для одной формы нужны заголовки и одна строка данных");
+     if(rows[0].length!==rows[1].length)throw Error("В строке данных и заголовке разное количество столбцов");
      return rows;
    },
-   controls(form){
-     return Array.from(form.querySelectorAll('input[name]:not([type=file]),textarea[name],select[name]'));
-   },
+   controls(form){return Array.from(form.querySelectorAll('input[name]:not([type=file]):not([type=hidden]),textarea[name],select[name]')).filter(f=>!f.disabled);},
+   raw(f){return f.multiple?Array.from(f.selectedOptions).map(o=>o.value).join("|"):f.type==="checkbox"?(f.checked?"true":"false"):f.value;},
    download(form){
      const fields=csv.controls(form);
-     csv.save(fields.map(f=>csv.quote(f.name)).join(";")+"\r\n"+fields.map(f=>csv.quote(f.value||"")).join(";")+"\r\n","task2-"+form.dataset.t2Form+".csv");
+     csv.save(fields.map(f=>csv.quote(f.name)).join(";")+"\r\n"+fields.map(f=>csv.quote(csv.raw(f))).join(";")+"\r\n","task2-"+form.dataset.t2Form+".csv");
+   },
+   normalize(f,raw){
+     const value=String(raw);
+     const validDate=iso=>{
+       const parsed=new Date(iso+"T00:00:00Z");
+       return /^\d{4}-\d{2}-\d{2}$/.test(iso)&&!Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===iso;
+     };
+     if(f.type==="date"){
+       const match=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+       const iso=match?match[3]+"-"+match[2]+"-"+match[1]:value;
+       if(!validDate(iso))throw Error("Дата "+f.name+": используйте действительную дату YYYY-MM-DD либо ДД.ММ.ГГГГ");
+       return iso;
+     }
+     if(f.type==="datetime-local"){
+       const match=/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::\d{2})?$/.exec(value);
+       if(!match||!validDate(match[1]))throw Error("Дата/время "+f.name+": YYYY-MM-DD HH:mm");
+       const [hours,mins]=match[2].split(":").map(Number);
+       if(hours>23||mins>59)throw Error("Некорректное время: "+f.name);
+       return match[1]+"T"+match[2];
+     }
+     if(f.type==="number"&&(!value.trim()||!Number.isFinite(Number(value.replace(",",".")))))
+       throw Error("Неверное число: "+f.name);
+     if(f.type==="number")return value.replace(",",".");
+     if(f.type==="checkbox"){
+       if(/^(да|yes|true|1)$/i.test(value))return true;
+       if(/^(нет|no|false|0)$/i.test(value))return false;
+       throw Error("Для "+f.name+" укажите Да или Нет");
+     }
+     if(f.tagName==="SELECT"){
+       const options=Array.from(f.options);
+       if(f.multiple){
+         const values=value.split("|").map(x=>x.trim()).filter(Boolean);
+         for(const v of values)if(!options.some(o=>o.value===v))throw Error("Неизвестный вариант "+v+" в "+f.name);
+         return values;
+       }
+       if(!options.some(o=>o.value===value))throw Error("Неизвестный вариант "+value+" в "+f.name);
+     }
+     return value;
    },
    async upload(form,file){
-     const rows=csv.parse(await file.text()),fields=csv.controls(form),headers=rows[0],values=rows[1],unknown=headers.filter(x=>!fields.find(f=>f.name===x));
+     if(!file)throw Error("Выберите CSV-файл");
+     const [headers,values]=csv.parse(await file.text()),fields=csv.controls(form),byName=new Map(fields.map(f=>[f.name,f]));
+     if(new Set(headers).size!==headers.length)throw Error("CSV содержит повторяющиеся названия столбцов");
+     const unknown=headers.filter(name=>!byName.has(name));
      if(unknown.length)throw Error("Неизвестные поля CSV: "+unknown.join(", "));
-     if(rows.length>2)throw Error("Для одной заявки заполните одну строку. Многозаявочный импорт оформляется отдельной операцией.");
-     const changes=headers.map((name,i)=>({f:fields.find(f=>f.name===name),value:values[i]??""})).filter(x=>x.f&&x.value!=="");
-     if(!changes.length)throw Error("Нет заполненных значений для переноса");
-     const msg=changes.map(x=>x.f.name+": "+String(x.f.value||"—")+" → "+x.value).join("\n").slice(0,1800);
-     if(!window.confirm("Предпросмотр CSV ("+changes.length+" полей):\n"+msg+"\n\nПрименить к полям формы? Это ещё не сохранение на сервере."))return;
-     changes.forEach(({f,value})=>{if(f.type==="date"&&!/^\d{4}-\d{2}-\d{2}$/.test(value))throw Error("Дата должна быть YYYY-MM-DD: "+f.name);
-       if(f.type==="datetime-local"&&!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d/.test(value))throw Error("Дата и время должны быть YYYY-MM-DDTHH:mm: "+f.name);
-       f.value=value;f.dispatchEvent(new Event("input",{bubbles:true}));
-     });
-     alertText("CSV перенесён в "+changes.length+" полей. Проверьте значения и нажмите штатное сохранение.");
+     // Validate the entire row before mutating even the first control.
+     const changes=headers.map((name,i)=>({f:byName.get(name),raw:values[i]??""}))
+       .filter(x=>x.f&&x.raw!=="")
+       .map(x=>({...x,value:csv.normalize(x.f,x.raw)}));
+     if(!changes.length)throw Error("В CSV нет заполненных значений для переноса");
+     const preview=changes.map(({f,raw})=>f.name+": "+String(csv.raw(f)||"—")+" → "+raw).join("\n");
+     if(!window.confirm("Предпросмотр переноса ("+changes.length+" полей):\n"+preview.slice(0,8000)+"\n\nПеренести в форму? Сохранение на сервере выполняется отдельно."))return;
+     for(const {f,value} of changes){
+       if(f.type==="checkbox")f.checked=value;
+       else if(f.multiple){for(const option of f.options)option.selected=value.includes(option.value);}
+       else f.value=value;
+       if(!f.multiple&&f.type!=="checkbox"&&f.value!==value)
+         throw Error("Поле "+f.name+" не приняло значение. Проверьте допустимый формат.");
+       f.dispatchEvent(new Event("input",{bubbles:true}));
+       f.dispatchEvent(new Event("change",{bubbles:true}));
+     }
+     alertText("CSV перенесён в "+changes.length+" полей. Проверьте данные и нажмите штатную кнопку сохранения.");
    }
  };
  async function onSubmit(ev){
@@ -344,7 +421,7 @@
  }
  function addHints(){
    document.querySelectorAll(".cabinet-panel label").forEach(label=>{
-     if(label.closest("#task2-root")||label.dataset.t2HintAttached)return;
+     if(label.closest("#task2-root")||label.dataset.t2HintAttached||label.dataset.task2Explained)return;
      const control=label.querySelector("input,textarea,select");if(!control)return;
      const caption=label.textContent.trim().slice(0,90);
      if(!caption||control.type==="hidden")return;
