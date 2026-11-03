@@ -90,9 +90,11 @@ function controls(form){
     !["hidden","file","password","submit","button","radio","checkbox"].includes(el.type)&&!el.disabled&&!el.readOnly&&el.name.length<100&&!/^(?:registration_no|winner|selected_offer|price_approved|role)$/i.test(el.name));
 }
 function quoted(v){
- let s=String(v??"");
- if(/^[=+\-@\t\r]/.test(s))s="'"+s;
- return '"'+s.replace(/"/g,'""')+'"';
+ const s=String(v??"");
+ // CSV formula injection prevention, but never corrupt ordinary negative numbers.
+ const safe=/^[=+@\t\r]/.test(s)||(/^-(?!\d+(?:\.\d+)?$)/.test(s));
+ const out=safe?"'"+s:s;
+ return '"'+out.replace(/"/g,'""')+'"';
 }
 function exportCSV(form){
  const fields=controls(form);
@@ -102,17 +104,49 @@ function exportCSV(form){
  setTimeout(()=>URL.revokeObjectURL(u),8000);
 }
 function parseCSV(text){
- const row=[];let cells=[],value="",inQuotes=false,separator=(text.slice(0,500).match(/;/g)||[]).length>=(text.slice(0,500).match(/,/g)||[]).length?";":",";
- text=text.replace(/^\uFEFF/,"");
- for(let i=0;i<text.length;i++){const c=text[i];
-  if(c==='"'){if(inQuotes&&text[i+1]==='"'){value+='"';i++}else inQuotes=!inQuotes;}
-  else if(c===separator&&!inQuotes){cells.push(value);value="";}
-  else if((c==="\r"||c==="\n")&&!inQuotes){if(c==="\r"&&text[i+1]==="\n")i++;cells.push(value);if(cells.some(Boolean))row.push(cells);cells=[];value="";}
-  else value+=c;
+ text=String(text||"").replace(/^\uFEFF/,"");
+ if(!text.trim())throw Error("CSV пуст");
+ // Count separators outside quotes in the header rather than guessing from body data.
+ const counts={";":0,",":0,"\t":0};let quoted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(c==='"'&&quoted&&text[i+1]==='"'){i++;continue}
+  if(c==='"'){quoted=!quoted;continue}
+  if(!quoted&&(c==="\r"||c==="\n"))break;
+  if(!quoted&&Object.prototype.hasOwnProperty.call(counts,c))counts[c]++;
  }
- cells.push(value);if(cells.some(Boolean))row.push(cells);
- if(inQuotes||row.length<2)throw Error("Неверный CSV: нет корректного заголовка и строки");
- return row;
+ const max=Math.max(...Object.values(counts));
+ if(!max)throw Error("В CSV не найден разделитель колонок");
+ const variants=Object.keys(counts).filter(k=>counts[k]===max);
+ if(variants.length!==1)throw Error("Неоднозначный разделитель CSV: укажите один разделитель (, ; или TAB)");
+ const sep=variants[0],rows=[];let row=[],cell="",inQuotes=false,closedQuote=false,fieldStarted=false;
+ for(let i=0;i<text.length;i++){
+  const c=text[i];
+  if(inQuotes){
+   if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}
+   else if(c==='"'){inQuotes=false;closedQuote=true;}
+   else cell+=c;
+  }else if(c===sep){
+   row.push(cell);cell="";closedQuote=false;fieldStarted=false;
+  }else if(c==="\r"||c==="\n"){
+   if(c==="\r"&&text[i+1]==="\n")i++;
+   row.push(cell);if(row.some(x=>x!==""))rows.push(row);
+   row=[];cell="";closedQuote=false;fieldStarted=false;
+  }else if(c==='"'){
+   if(fieldStarted||closedQuote)throw Error("Недопустимая кавычка в CSV, позиция "+(i+1));
+   inQuotes=true;fieldStarted=true;
+  }else{
+   if(closedQuote)throw Error("Символы после закрывающей кавычки CSV, позиция "+(i+1));
+   cell+=c;fieldStarted=true;
+  }
+ }
+ if(inQuotes)throw Error("Незакрытые кавычки в CSV");
+ if(row.length||cell!==""){row.push(cell);if(row.some(x=>x!==""))rows.push(row);}
+ if(rows.length!==2)throw Error("CSV должен содержать заголовок и ровно одну строку данных");
+ if(rows[0].length!==rows[1].length)throw Error("Количество столбцов CSV и значений не совпадает");
+ const names=new Set(rows[0]);
+ if(names.size!==rows[0].length||names.has(""))throw Error("CSV содержит дублирующиеся или пустые имена столбцов");
+ return rows;
 }
 function setReactValue(element,value){
  const prototype=element instanceof HTMLTextAreaElement?HTMLTextAreaElement.prototype:element instanceof HTMLSelectElement?HTMLSelectElement.prototype:HTMLInputElement.prototype;
@@ -121,17 +155,44 @@ function setReactValue(element,value){
  element.dispatchEvent(new Event("input",{bubbles:true}));
  element.dispatchEvent(new Event("change",{bubbles:true}));
 }
+function validCalendarDate(s){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;
+ const [y,m,d]=s.split("-").map(Number);
+ if(y<1||y>9999||m<1||m>12)return false;
+ return d>=1&&d<=new Date(Date.UTC(y,m,0)).getUTCDate();
+}
+function validateCsvCell(element,value,key){
+ if(value==="")return;
+ if(element.maxLength>0&&value.length>element.maxLength)throw Error("Поле "+key+": превышена длина");
+ const type=element.type||"";
+ if(type==="date"&&!validCalendarDate(value))throw Error("Поле "+key+": используйте действительную дату YYYY-MM-DD");
+ if(type==="datetime-local"){
+  const m=/^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(value);
+  if(!m||!validCalendarDate(m[1])||+m[2]>23||+m[3]>59||+(m[4]||0)>59)throw Error("Поле "+key+": неверная дата/время YYYY-MM-DDTHH:mm");
+ }
+ if(type==="time"&&!/^(?:[01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/.test(value))
+  throw Error("Поле "+key+": неверное время HH:mm");
+ if(type==="number"){
+  if(!/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value))throw Error("Поле "+key+": неверное число, ведущие нули/экспонента не допускаются");
+  const num=Number(value);if(!Number.isFinite(num))throw Error("Поле "+key+": число вне диапазона");
+  if(element.min!==""&&num<Number(element.min)||element.max!==""&&num>Number(element.max))throw Error("Поле "+key+": значение вне допустимых границ");
+ }
+ if(element instanceof HTMLSelectElement&&!element.multiple&&!Array.from(element.options).some(o=>o.value===value&&!o.disabled))
+  throw Error("Поле "+key+": значение отсутствует в справочнике выбора");
+}
 async function importCSV(form,file){
- const rows=parseCSV(await file.text()),headers=rows[0],data=rows[1],fields=controls(form);
- if(rows.length!==2)throw Error("Один шаблон заполняет одну форму: используйте одну строку данных");
+ const [headers,data]=parseCSV(await file.text()),fields=controls(form);
  const known=new Map(fields.map(f=>[f.name,f]));
- const changes=headers.map((key,i)=>({element:known.get(key),key,value:data[i]??""})).filter(x=>x.element&&x.value!=="");
- if(!changes.length)throw Error("Не найдено данных для полей формы (проверьте заголовки)");
- if(changes.some(x=>/^\d{1,2}[./]\d{1,2}[./]\d{2,4}$/.test(x.value)&&/date/i.test(x.element.type)))throw Error("Неоднозначная дата: используйте YYYY-MM-DD");
+ const unknown=headers.filter(key=>!known.has(key));
+ if(unknown.length)throw Error("Недоступные/неизвестные поля CSV: "+unknown.join(", ").slice(0,400));
+ const changes=headers.map((key,i)=>({element:known.get(key),key,value:data[i]})).filter(x=>x.value!=="");
+ if(!changes.length)throw Error("Не найдено значений для переноса в форму");
+ // Validate every cell before the first mutation. Failed CSV must never partially fill a form.
+ for(const x of changes)validateCsvCell(x.element,x.value,x.key);
  const preview=changes.map(x=>x.key+" : "+String(x.element.value||"—")+" → "+x.value).join("\n").slice(0,2400);
- if(!confirm("Найдено "+changes.length+" полей:\n"+preview+"\n\nПеренести значения в форму? Это НЕ отправит и НЕ закроет заявку."))return;
+ if(!confirm("Распознано "+changes.length+" из "+fields.length+" полей.\n"+preview+"\n\nПрименить значения? Существующие поля не будут очищены. Это НЕ сохранение на сервере."))return;
  for(const {element,value} of changes)setReactValue(element,value);
- alert("Перенесено значений: "+changes.length+". Проверьте форму и используйте её штатную кнопку сохранения.");
+ alert("Перенесено значений: "+changes.length+". Проверьте форму и воспользуйтесь обычной кнопкой сохранения.");
 }
 function legacyCSV(){
  for(const form of document.querySelectorAll("form")){
