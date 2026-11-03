@@ -14,7 +14,7 @@ test("staging HTML resolves exact committed JS blob versions",()=>{
  for(const [name,expected] of scripts){
    assert.match(expected,/^[a-f0-9]{40}$/);
    const blob=readFileSync("test/"+name);
-   const actual=createHash("sha1").update("blob "+blob.length+"\\0").update(blob).digest("hex");
+   const actual=createHash("sha1").update("blob "+blob.length+"\0").update(blob).digest("hex");
    assert.equal(actual,expected,name+" source hash mismatch");
    assert.ok(html.includes('./'+name+'?v='+expected.slice(0,12)),name+" cache key stale");
  }
