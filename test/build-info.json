@@ -1,9 +1,9 @@
 {
   "environment": "staging",
-  "version": "stg47-optional-owner-1199aa16f248-api52",
+  "version": "stg47-guidecheck-1199aa16f248-api52",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-optional-owner-1199aa16f248-api52",
+  "build": "stg47-guidecheck-1199aa16f248-api52",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-03T16:57:37Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
@@ -21,9 +21,9 @@
     "frontendScript": "task2-panel.js",
     "frontendSha": "7318ca8afd4426818df19df2fe713a66b704b4a0",
     "guidanceScript": "task2-guidance.js",
-    "guidanceSha": "06e484a64d5b4dd4233df4a3944eb284ca127999",
+    "guidanceSha": "fa397c4762b54e84e8d8327aa95259ec11f2ff1a",
     "tablesApplied": true,
-    "qaStatus": "STATIC_CI_PASS; SERVED_PAGES_AND_AUTHENTICATED_ROLE_E2E_PENDING",
+    "qaStatus": "STATIC_CHECKS_ONLY; FULL_AUTH_E2E_NOT_DONE",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -32,7 +32,8 @@
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
     "backendIsolation": "staging-only Supabase freight-api v52, no production changes",
     "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
-    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending"
+    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
+    "guidanceIntegrityNote": "HTML cache key matches actual guidance blob SHA; localized field FAQ and all forms E2E remain unresolved"
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933"
 }
