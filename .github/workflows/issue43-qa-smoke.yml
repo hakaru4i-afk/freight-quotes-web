@@ -1,0 +1,39 @@
+name: Issue43 isolated QA served smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/issue43-qa-smoke.yml'
+      - 'test/qa-issue43/**'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - name: Verify served QA assets and API without authentication or mutation
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://hakaru4i-afk.github.io/freight-quotes-web/test/qa-issue43"
+          api="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-20261101a"
+          for file in app.js index.html build-info.json; do
+            curl --fail --silent --show-error --location --retry 6 --retry-delay 2 --retry-all-errors "$url/$file" -o "/tmp/issue43-$file"
+          done
+          printf '%s  %s\n' 'c090c779ee8519cd20b634397407ee996b4d9f4feb7f9c95087385c06956dc18' '/tmp/issue43-app.js' | sha256sum -c -
+          printf '%s  %s\n' '354c910bd460e24daf24fa38a428697f5d627c06f0002e0917eb73fc9247f6ef' '/tmp/issue43-index.html' | sha256sum -c -
+          printf '%s  %s\n' 'cbb469c19907d98ec7a664a1948490534b3680235a8efe4dd3e45a0d48dc8ca6' '/tmp/issue43-build-info.json' | sha256sum -c -
+          curl --fail --silent --show-error --location --retry 5 --retry-delay 2 --retry-all-errors "$api/health" -o /tmp/issue43-health.json
+          node --input-type=module -e '
+            import fs from "node:fs";
+            const b=JSON.parse(fs.readFileSync("/tmp/issue43-build-info.json","utf8"));
+            const h=JSON.parse(fs.readFileSync("/tmp/issue43-health.json","utf8"));
+            const source="3b26355c51ce159216062cce3a28995fd7d6384662bdea14c05ff451d5952ab1";
+            if(b.build!=="5693124348df5deab456"||b.sourceHash!==source||b.testIsolation?.functionName!=="freight-api-qa-20261101a")process.exit(10);
+            if(h.ok!==true||h.build!==source||h.qaRun!=="20261101a"||h.environment!=="staging")process.exit(11);
+            console.log("ISSUE43_SERVED_ASSETS_AND_API_HEALTH_PASS");
+          '
+          status=$(curl -sS -o /tmp/issue43-unauth.json -w '%{http_code}' "$api/api/requests?order=ISSUE43-NOT-A-REAL-ORDER")
+          test "$status" = "401" -o "$status" = "403" || { echo "ISSUE43_UNAUTH_DENIAL_FAILED status=$status"; exit 12; }
+          echo "ISSUE43_UNAUTH_ACCESS_DENIED_PASS"
