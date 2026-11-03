@@ -2,9 +2,9 @@
 (function(){
  "use strict";
  const eid="task2-root";
- const state={items:[],role:"",selected:"",detail:null,tab:"overview",busy:false,notice:""};
+ const state={items:[],role:"",selected:"",detail:null,tab:"track",busy:false,notice:""};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
- const tabs=[["overview","Параметры"],["documents","Документы и ВЭД"],["track","Движение и даты"],["arrival","ПТО, таможня и склад"],["claims","Претензии и акты"],["history","История"]];
+ const tabs=[["track","Исполнение и трекинг"],["overview","Данные заявки"],["documents","Документы и ВЭД"],["arrival","ПТО и приёмка"],["claims","Претензии и акты"],["history","История"]];
  const tips={
   number:"Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.",
   actual:"Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.",
@@ -88,7 +88,7 @@
      const price=o.amount==null?"—":o.amount+" "+(o.currency||"");
      return readHeader+'<div class="t2-facts">'+readonly("Ставка победителя",price)+readonly("Транспорт",o.mode)+readonly("Маршрут",o.route)+readonly("Груз",o.cargo)+readonly("Вес/объём",(o.weight||"—")+" / "+(o.volume||"—"))+
       readonly("Контакт отправителя",o.sender_contact)+readonly("Исходная плановая дата выхода",x.original_departure||o.pickup||"—")+readonly("Фактическая дата выхода",x.actual_departure?fmt(x.actual_departure):"Не указана")+'</div>'+
-      (carrier&&x.status!=="completed"?'<h3>№ контейнера (не блокирует работу)</h3>'+form("container",field("number","Добавить № контейнера","text","Можно добавлять несколько номеров; проверяется только при завершении."),"Сохранить изменения"):"")+
+      
       '<h3>Указанные контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("Контейнер",c.container_no)).join(""):'<p class="t2-muted">Номер пока не указан.</p>')+'</div>'+
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
@@ -109,34 +109,47 @@
      return html;
    }
    if(state.tab==="track"){
-     const origin=x.original_departure||o.pickup||"—";
-     let html='<div class="t2-facts">'+readonly("Исходная плановая дата (не изменять)",origin)+readonly("Фактический выход",fmt(x.actual_departure))+
-        readonly("Осталось км","Не рассчитано (нужен подтверждённый маршрутный сервис)")+'</div>';
-     html+='<h3>История плановых дат</h3><div class="t2-stack">'+(plans.length?plans.map(p=>'<div class="t2-item">'+fmt(p.planned_departure)+' · '+esc(p.reason||"Исходная дата")+'</div>').join(""):'<p class="t2-muted">Переносов нет. Исходная дата остаётся неизменной.</p>')+'</div>';
-     if(carrier&&!x.actual_departure&&x.status!=="completed"){
-       html+='<h3>+ Новая плановая дата выхода</h3>'+form("new_plan",field("date","Новая плановая дата","datetime-local")+field("reason","Причина переноса","textarea"),"Добавить плановую дату");
-       html+='<h3>Фактическая дата выхода</h3>'+form("actual_departure",field("date","Фактический выход","datetime-local"),"Сохранить фактическую дату");
+     const sourceDate=x.original_departure||o.pickup||"—";
+     let html='<div class="t2-facts">'+readonly("Исходная плановая дата (заблокирована)",sourceDate)+readonly("Фактическая дата выхода",fmt(x.actual_departure))+
+       readonly("ПТО",fmt(x.pto_at))+readonly("Растаможка",fmt(x.customs_at))+readonly("Приёмка склада",fmt(x.warehouse_at))+
+       readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
+     if(carrier&&x.status!=="completed"){
+       html+='<h3>Обновить данные перевозки</h3><p class="t2-muted">Одна кнопка «Сохранить изменения» сохраняет даты, номер контейнера и новые точки, но не завершает заявку. Старые точки и переносы не изменяются.</p>';
+       html+=form("save",'<div class="t2-block-title">Даты отправления</div>'+
+         field("new_plan_date","+ Новая плановая дата выхода (Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
+         field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
+         field("actual_departure","Фактическая дата выхода (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
+         '<div class="t2-block-title">Местоположение</div>'+
+         field("location","Местонахождение груза","text",tips.location)+
+         field("location_date","Дата и время контрольной точки (Минск)","datetime-local",tips.date)+
+         field("location_comment","Примечание к точке","textarea",tips.comment)+
+         '<div class="t2-block-title">ПТО и таможня</div>'+
+         (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
+           '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
+           field("pto_date","Дата прибытия на ПТО (Минск)","datetime-local",tips.date))+
+         (x.customs_at?readonly("Растаможка",fmt(x.customs_at)):field("customs_date","Фактическая дата растаможки (Минск)","datetime-local",tips.date))+
+         '<div class="t2-block-title">Контейнеры</div>'+
+         field("container_no","№ контейнера (необязательно)","text",tips.number),
+         "Сохранить изменения");
      }
-     html+='<h3>Контрольные точки груза</h3><div class="t2-stack">'+(pts.length?pts.map(p=>'<div class="t2-item"><div><strong>'+esc(p.location_text)+'</strong><br><small>'+fmt(p.observed_at)+' · '+esc(p.comment||"")+'</small></div><small>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</small></div>').join(""):'<p class="t2-muted">Пока нет данных о местоположении.</p>')+'</div>';
-     if(carrier&&x.status!=="completed")html+=form("location",field("location","Местоположение груза","text")+field("date","Дата и время сведений","datetime-local")+field("comment","Примечания","textarea"),"Сохранить местоположение");
+     html+='<h3>История переносов плановой даты</h3><div class="t2-stack">'+(plans.length?plans.map(p=>'<div class="t2-item">'+fmt(p.planned_departure)+' · '+esc(p.reason||"Исходная дата")+'</div>').join(""):'<p class="t2-muted">Переносов ещё не было. Исходный план сохраняется.</p>')+'</div>';
+     html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
+     html+='<h3>Движение груза</h3><div class="t2-stack">'+(pts.length?pts.map(p=>'<div class="t2-item"><div><strong>'+esc(p.location_text)+'</strong><br><small>'+fmt(p.observed_at)+' · '+esc(p.comment||"")+'</small></div><small>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</small></div>').join(""):'<p class="t2-muted">Контрольных точек пока нет.</p>')+'</div>';
      if(pts.length){
        const place=pts[pts.length-1].location_text;
-       html+='<h3>Карта текущего местоположения</h3><iframe class="t2-map" loading="lazy" title="Карта груза" src="https://yandex.ru/map-widget/v1/?text='+encodeURIComponent(place)+'"></iframe><p><a target="_blank" rel="noopener noreferrer" href="https://yandex.ru/maps/?text='+encodeURIComponent(place)+'">Открыть местоположение на карте</a></p>';
+       html+='<h3>Карта местоположения</h3><iframe class="t2-map" loading="lazy" title="Карта груза" src="https://yandex.ru/map-widget/v1/?text='+encodeURIComponent(place)+'"></iframe><p><a target="_blank" rel="noopener noreferrer" href="https://yandex.ru/maps/?text='+encodeURIComponent(place)+'">Открыть карту</a></p>';
      }
+     html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
      return html;
    }
    if(state.tab==="arrival"){
      let html='<div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Растаможка",fmt(x.customs_at))+readonly("Приёмка склада",fmt(x.warehouse_at))+'</div>';
-     if(carrier&&x.status!=="completed")html+='<h3>Прибыл на ПТО</h3>'+form("pto",field("date","Дата прибытия на ПТО","datetime-local")+
-       '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="arrived"><option value="no">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>Поручение ВЭД создаётся один раз, повторное сохранение не создаёт дублей.</small></label>',"Сохранить прибытие на ПТО");
-     if(carrier&&x.status!=="completed")html+='<h3>Растаможка</h3>'+form("customs",field("date","Фактическая дата растаможки","datetime-local"),"Сохранить растаможку");
-     html+='<h3>Задания ВЭД</h3><div class="t2-stack">'+tasks.filter(t=>["pto_review","warehouse_acceptance"].includes(t.task_type)).map(taskCard).join("")+'</div>';
-     if(staff){
-       html+='<p class="t2-muted">Только ВЭД или Владелец может закрыть перевозку. Закрытие задач ПТО и склада не закрывает её автоматически.</p>';
-       if(x.status!=="completed"){
-         html+='<button class="t2-btn" type="button" data-t2-action="finish">Перевести в «Выполнено»</button>';
-         html+=' <button class="t2-btn ghost" type="button" data-t2-tab="claims">Оформить претензию</button>';
-       }
+     html+='<p class="t2-muted">Перевозчик вводит даты в единой форме «Исполнение и трекинг». Здесь ВЭД выполняет задачи и принимает решение о завершении.</p>';
+     html+='<h3>Задачи проверки документов и склада</h3><div class="t2-stack">'+tasks.filter(t=>["pto_review","warehouse_acceptance"].includes(t.task_type)).map(taskCard).join("")+'</div>';
+     if(staff&&x.status!=="completed"){
+       html+='<p>Если обязательные этапы завершены, ВЭД или Владелец может проверить возможность закрытия.</p>';
+       html+='<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
+       html+=' <button class="t2-btn ghost" type="button" data-t2-tab="claims">Оформить претензию</button>';
      }
      return html;
    }
@@ -260,6 +273,18 @@
      for(const file of files){const fd=new FormData();fd.append("action","upload");fd.append("order",state.selected);fd.append("file",file);fd.append("category","task2");if(data.taskId)fd.append("taskId",data.taskId);
        await update("upload",{},fd);
      }return;
+   }
+   if(kind==="save"){
+     const fields={};
+     for(const [key,value] of Object.entries(data)){
+       if(value===""||key==="__method")continue;
+       if(key==="pto_yes"){fields.pto_yes=value==="yes";continue;}
+       fields[key]=["new_plan_date","actual_departure","location_date","pto_date","customs_date"].includes(key)?minskISO(value):value;
+     }
+     if(fields.new_plan_date&&!fields.new_plan_reason){alertText("Укажите причину переноса плановой даты",true);return;}
+     if(fields.location&&!fields.location_date){alertText("Укажите дату контрольной точки",true);return;}
+     if(fields.pto_yes&&!fields.pto_date){alertText("Укажите дату прибытия на ПТО",true);return;}
+     return update("save",{fields});
    }
    if(kind==="request_docs")data.types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
    if(kind==="act"){
