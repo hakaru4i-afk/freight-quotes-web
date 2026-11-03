@@ -33,7 +33,18 @@
     "backendIsolation": "staging-only Supabase freight-api v52, no production changes",
     "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
     "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
-    "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS"
+    "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
+    "i18n": {
+      "sourceSha": "f2a2c617b54d6cec6b4ac58c8d2a404284060e10",
+      "coverage": "105 static UI labels in execution, tracking, documents, PTO, claims and acts",
+      "languages": [
+        "ru",
+        "en",
+        "zh"
+      ],
+      "customerDataTranslated": false,
+      "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
+    }
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933"
 }
