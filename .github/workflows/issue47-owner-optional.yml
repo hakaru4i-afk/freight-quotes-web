@@ -1,0 +1,21 @@
+name: Issue47 owner optional reason staging regression
+on:
+  pull_request:
+    paths:
+      - 'test/app.js'
+      - 'test/index.html'
+      - 'test/build-info.json'
+      - 'tests/issue47-owner-optional-reason.test.mjs'
+      - '.github/workflows/issue47-owner-optional.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check test/app.js
+      - run: node --test tests/issue47-owner-optional-reason.test.mjs tests/issue47-late-ui.test.mjs tests/issue47-task2-csv.test.mjs
