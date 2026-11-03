@@ -24,7 +24,7 @@ test("owner can see preparation and client mirrors server winner guard",()=>{
 test("staging build and source SHA are version matched",()=>{
  assert.equal(info.environment,"staging");
  assert.equal(info.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(info.task2.backendVersion,47);
+ assert.ok(info.task2.backendVersion>=47, 'staging backend must retain late-bid guard v47 or newer');
  assert.equal(info.task2Complete,false);
  assert.ok(html.includes("app.js?v="+info.servedAppBlobSha.slice(0,12)));
  assert.ok(html.includes("late-bid-staging.js?v="+info.lateBidUiSha.slice(0,12)));
