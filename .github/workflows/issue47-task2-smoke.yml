@@ -1,0 +1,62 @@
+name: Issue47 Task2 staging full-stack smoke
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'test/task2-panel.js'
+      - 'test/task2.css'
+      - 'test/index.html'
+      - 'test/task2-build-info.json'
+      - '.github/workflows/issue47-task2-smoke.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax and source contracts
+        run: |
+          node --check test/app.js
+          node --check test/task2-panel.js
+          node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs
+      - name: Verify staging API, anonymous access restriction, and served files
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const url='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
+          const web='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
+          const r=await fetch(url+'/health');
+          assert.equal(r.status,200,'health status '+r.status);
+          const h=await r.json();
+          assert.equal(h.environment,'staging');
+          assert.equal(h.projectRef,'ibclzdkxiozbzmniiygv');
+          const blocked=await fetch(url+'/api/task2');
+          assert.equal(blocked.status,403,'anonymous access must be forbidden');
+          console.log('PASS: staging backend health and anonymous task2 forbidden');
+          let verified=false;
+          for(let i=0;i<10;i++){
+            const [html,js,css]=await Promise.all([
+              fetch(web+'index.html?smoke='+i).then(r=>r.text()),
+              fetch(web+'task2-panel.js?smoke='+i),
+              fetch(web+'task2.css?smoke='+i)
+            ]);
+            if(html.includes('task2-panel.js')&&js.ok&&css.ok){
+              const body=await js.text();
+              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')){
+                console.log('PASS: staging static task2 JS/CSS served');
+                verified=true;break;
+              }
+            }
+            await new Promise(r=>setTimeout(r,6000));
+          }
+          assert.ok(verified,'GitHub Pages did not serve the task2 version');
+          const production=await fetch('https://hakaru4i-afk.github.io/freight-quotes-web/index.html').then(r=>r.text());
+          assert.ok(!production.includes('task2-panel.js'),'production interface changed');
+          console.log('PASS: production UI not modified');
+          NODE
