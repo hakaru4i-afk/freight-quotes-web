@@ -17,13 +17,13 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 42,
+    "backendVersion": 44,
     "frontendScript": "task2-panel.js",
     "frontendSha": "385574a5b223a6a006b90a3a654a81ec4ab4a9de",
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "06e484a64d5b4dd4233df4a3944eb284ca127999",
     "tablesApplied": true,
-    "qaStatus": "STATIC_AND_ANONYMOUS_API_PASS; AUTHENTICATED_E2E_PENDING",
+    "qaStatus": "PUBLIC_SERVING_AND_ANONYMOUS_AUTH_PASS; AUTHENTICATED_ROLE_E2E_PENDING",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false
   }
