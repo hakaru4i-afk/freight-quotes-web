@@ -43,13 +43,13 @@ test("commas and TAB are supported",()=>{
 });
 test("malformed files rejected instead of changing forms",()=>{
  for(const c of ["a;a\n1;2\n","a;b\n1\n","a;b\n1;2\n3;4\n","a;b\n\"broken;2\n","a;b\n\"quoted\"extra;2\n","a;b\n1;2;3\n"]){
-  assert.throws(()=>parseCSV(c),Error,c);
+  assert.throws(()=>parseCSV(c),/CSV|кавычк|столбц|колонк|разделител/,c);
  }
 });
 test("validate dates, numeric leading zero, bounds and ranges",()=>{
  const d={type:"date",maxLength:-1};
  assert.doesNotThrow(()=>validateCsvCell(d,"2027-01-02","ready"));
- assert.throws(()=>validateCsvCell(d,"2027-02-30","ready"),/дата/);
+ assert.throws(()=>validateCsvCell(d,"2027-02-30","ready"),/дат/);
  assert.throws(()=>validateCsvCell(d,"02.01.2027","ready"),/дат/);
  const n={type:"number",maxLength:-1,min:"0",max:"100"};
  assert.doesNotThrow(()=>validateCsvCell(n,"-0","price")); // min allows zero
