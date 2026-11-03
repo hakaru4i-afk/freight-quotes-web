@@ -23,6 +23,7 @@
  };
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const fmt=s=>s?new Date(s).toLocaleString("ru-RU",{timeZone:"Europe/Minsk"}):"—";
+ const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
  const badge=s=>'<span class="t2-badge">'+esc(s||"—")+"</span>";
  const field=(name,label,type,tip,extra="")=>'<label class="t2-field"><span>'+esc(label)+' <span class="t2-help" title="'+esc(tip||tips[name]||label)+'" aria-label="Подсказка: '+esc(label)+'">?</span></span>'+
    (type==="textarea"?'<textarea rows="3" name="'+esc(name)+'" '+extra+'></textarea>':
@@ -264,8 +265,8 @@
    if(kind==="act"){
      const action=data.action;delete data.action;return update(action,{data});
    }
-   if(kind==="pto")return update("pto",{date:data.date?new Date(data.date).toISOString():"",arrived:data.arrived==="yes"});
-   if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){const dt=new Date(data.date);if(Number.isNaN(dt.getTime())){alertText("Укажите корректную дату",true);return;}data.date=dt.toISOString();}
+   if(kind==="pto")return update("pto",{date:data.date?minskISO(data.date):"",arrived:data.arrived==="yes"});
+   if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){try{data.date=minskISO(data.date);}catch(e){alertText(e.message,true);return;}}
    return update(kind,data);
  }
  async function onClick(ev){
@@ -281,7 +282,7 @@
      let payload={taskId:hit.dataset.t2TaskComplete};
      if(kind==="warehouse_acceptance"){
        const answer=window.prompt("Дата фактической приёмки на складе (YYYY-MM-DDTHH:mm)",new Date().toISOString().slice(0,16));
-       if(!answer)return;payload.date=new Date(answer).toISOString();
+       if(!answer)return;payload.date=minskISO(answer);
      }else if(!window.confirm("Завершить задачу ВЭД после проверки документов?"))return;
      await update("complete_task",payload);return;
    }
