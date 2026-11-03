@@ -54,8 +54,15 @@
   ],
   "updatedAt": "2026-11-03T09:45:00Z",
   "stagingVerification": {
-    "scope": "P0 #49 access polling / loading only; shipping form unchanged",
+    "scope": "Задача №2: единый тестовый кандидат — ставки→выбранный перевозчик→исполнение/ВЭД/документы/ПТО/склад/контейнер/претензия; CSV, подсказки и FAQ",
     "ownerAcceptance": "PENDING",
-    "production": "NOT UPDATED"
+    "production": "NOT UPDATED",
+    "task2": {
+      "apiVersion": 42,
+      "projectRef": "ibclzdkxiozbzmniiygv",
+      "registrationFormat": "TR-YY-NNNNNN",
+      "manualRoleE2E": "PENDING",
+      "actTemplateSamples": "NOT VERIFIED"
+    }
   }
 }
