@@ -28,6 +28,6 @@ jobs:
           const fs = require('node:fs');
           const html = fs.readFileSync('test/index.html','utf8');
           const info = JSON.parse(fs.readFileSync('test/build-info.json','utf8'));
-          if (!html.includes('./app.js?v=b3d614971bc9')) throw Error('Staging cache-busting mismatch');
+          if (!html.includes('./app.js?v='+info.servedAppBlobSha.slice(0,12))) throw Error('Staging cache-busting mismatch');
           if (info.environment !== 'staging' || info.task2Complete !== false) throw Error('Build should be marked staging and partial');
           NODE
