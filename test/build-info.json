@@ -23,15 +23,16 @@
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "06e484a64d5b4dd4233df4a3944eb284ca127999",
     "tablesApplied": true,
-    "qaStatus": "STATIC_CI_PENDING; AUTHENTICATED_ROLE_E2E_PENDING",
+    "qaStatus": "STATIC_CI_PASS; AUTHENTICATED_ROLE_E2E_PENDING",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
     "backendSourceCommit": "edb86b3841bd344648c930c96c70e792f0c4b305",
     "backendSourceSha": "02fb7b37f4503c8af0cfbe2698bc7643a1ed4cba",
-    "backendIsolation": "freight-api v45, staging only; selected winner must belong to current round",
-    "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only"
+    "backendIsolation": "freight-api v47 staging only; current-round winner guard retained",
+    "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
+    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending"
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933"
 }
