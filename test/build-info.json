@@ -1,15 +1,15 @@
 {
   "environment": "staging",
-  "version": "stg49-67fdfec266aa",
+  "version": "stg47-8ce46389bbba",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg49-67fdfec266aa",
+  "build": "stg47-8ce46389bbba",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-03T09:45:00Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "bounded access polling/session startup",
-  "patchSourceBranch": "fix/issue49-staging-auth-polling",
+  "stagingPatch": "Issue47 owner edit: preserve hidden route when saving otherwise valid price change; staging-only candidate",
+  "patchSourceBranch": "fix/issue47-owner-edit-route-stage",
   "patchSourceCommit": "1659a7b0857b20a7cd97fb52483d754ce06cdf95",
-  "servedAppBlobSha": "67fdfec266aa96083e30a98d5b01e4939d517468",
+  "servedAppBlobSha": "8ce46389bbbaadc81d72dc0dc1de4e56d0fa1d3f",
   "sourceHashNote": "Original 2026-11-02 build with staging-only minimal UI hotfix; not identical to full candidate artifact."
 }

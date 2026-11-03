@@ -1,0 +1,22 @@
+name: Issue47 Owner bid edit isolated check
+on:
+  pull_request:
+    paths:
+      - 'test/app.js'
+      - 'test/index.html'
+      - 'test/build-info.json'
+      - 'tests/issue47-owner-bid-edit.test.mjs'
+      - '.github/workflows/issue47-owner-bid-edit-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  syntax-and-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check bundle syntax
+        run: node --check test/app.js
+      - name: Check owner bid edit payload
+        run: node --test tests/issue47-owner-bid-edit.test.mjs
