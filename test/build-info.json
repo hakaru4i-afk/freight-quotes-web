@@ -21,7 +21,7 @@
     "frontendScript": "task2-panel.js",
     "frontendSha": "7318ca8afd4426818df19df2fe713a66b704b4a0",
     "guidanceScript": "task2-guidance.js",
-    "guidanceSha": "06e484a64d5b4dd4233df4a3944eb284ca127999",
+    "guidanceSha": "fa397c4762b54e84e8d8327aa95259ec11f2ff1a",
     "tablesApplied": true,
     "qaStatus": "STATIC_CI_PASS; SERVED_PAGES_AND_AUTHENTICATED_ROLE_E2E_PENDING",
     "manualAcceptance": "PENDING",
@@ -32,7 +32,8 @@
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
     "backendIsolation": "staging-only Supabase freight-api v52, no production changes",
     "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
-    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending"
+    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
+    "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS"
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933"
 }
