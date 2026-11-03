@@ -3,7 +3,7 @@
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "stg47-late-6726e2927377-api47",
+    "version": "stg47-late-6726e2927377-api49",
     "date": "2026-11-03",
     "title": "Задача №2 · подготовка поздней ставки, блокировка выбора победителя и архив",
     "changes": [
@@ -13,7 +13,8 @@
       "Владелец видит активные подготовки и может снять зависшую блокировку с обязательным основанием.",
       "Для текущего выбранного победителя записан архив остальных участников; источник ставки и история не удаляются.",
       "Регистрационные номера в тестовом разделе исполнения обозначены TEST-TR, база хранит неизменяемый исходный номер.",
-      "Кандидат: авторизованный сквозной QA по ролям и ручная приёмка ещё не завершены."
+      "Кандидат: авторизованный сквозной QA по ролям и ручная приёмка ещё не завершены.",
+      "Staging API v49: atomic bid/winner guard, correct 403/409 and air act categorization; staging-only."
     ]
   },
   "releases": [
@@ -99,7 +100,7 @@
   ],
   "updatedAt": "2026-11-03T18:00:00Z",
   "stagingVerification": {
-    "scope": "Issue #47 frontend+API+DB late bid and archive candidate; automated static and authenticated owner/carrier E2E pending",
+    "scope": "Atomic rollback SQL test 2 late drafts, winner blocked until all resolved, 4 losers archived, no staging state persisted; storage metadata 4/4 found; authenticated E2E pending",
     "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED"
   }
