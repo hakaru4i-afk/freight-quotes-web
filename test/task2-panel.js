@@ -93,7 +93,7 @@
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
    if(state.tab==="documents"){
-     let html='<h3>Документы по перевозке</h3><p class="t2-muted">Исходные файлы Владельца и документы ВЭД/перевозчика доступны в одном месте.</p><p><a class="t2-btn ghost" href="#transport-applications">Открыть транспортную заявку · документ</a></p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
+     let html='<h3>Документы по перевозке</h3><p class="t2-muted">Исходные файлы Владельца и документы ВЭД/перевозчика доступны в одном месте.</p><p><button type="button" class="t2-btn ghost" data-t2-open-transport>Открыть транспортную заявку · документ</button></p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
      html+='<h3>Запросы и задачи ВЭД</h3><div class="t2-stack">'+tasks.filter(t=>["missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
@@ -310,11 +310,17 @@
    return update(kind,data);
  }
  async function onClick(ev){
-   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download]");
+   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download]");
    if(!hit)return;
    if(hit.hasAttribute("data-t2-csv-download"))return csv.download(hit.closest("form"));
    if(hit.hasAttribute("data-t2-refresh")){try{await loadList();}catch(e){alertText(e.message,true);}return;}
    if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
+   if(hit.hasAttribute("data-t2-open-transport")){
+     const candidates=Array.from(document.querySelectorAll("button,a,[role=button]")).filter(x=>!x.closest("#task2-root")&&x.textContent.trim().includes("Транспортная заявка"));
+     const destination=candidates[0];
+     if(!destination){alertText("Раздел транспортной заявки временно недоступен; проверьте меню кабинета.",true);return;}
+     destination.click();return;
+   }
    if(hit.dataset.t2Doc){await downloadDoc(hit.dataset.t2Doc);return;}
    if(hit.dataset.t2ActDownload){exportAct(hit.dataset.t2ActDownload);return;}
    if(hit.dataset.t2TaskComplete){
