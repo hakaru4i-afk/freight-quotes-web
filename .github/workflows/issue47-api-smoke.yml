@@ -1,0 +1,32 @@
+name: Issue47 staging API smoke
+on:
+  workflow_dispatch:
+  push:
+    paths: [.github/workflows/issue47-api-smoke.yml]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Test staging API and authorization
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request, urllib.error
+          base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api'
+          def get(path):
+              req=urllib.request.Request(base+path,headers={'Origin':'https://hakaru4i-afk.github.io'})
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as f: return f.status,json.loads(f.read())
+              except urllib.error.HTTPError as e:
+                  try: content=json.loads(e.read())
+                  except: content={}
+                  return e.code,content
+          status, health=get('/health')
+          assert status==200 and health.get('projectRef')=='ibclzdkxiozbzmniiygv', (status,health)
+          status, data=get('/api/task2')
+          assert status in [401,403], (status,data)
+          print('PASS health: staging isolated')
+          print('PASS new task2 endpoint denies anonymous access:',status)
+          PY
