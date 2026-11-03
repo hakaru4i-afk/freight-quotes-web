@@ -8,7 +8,8 @@ on:
       - 'test/task2-guidance.js'
       - 'test/task2.css'
       - 'test/index.html'
-      - 'test/task2-build-info.json'
+      - 'test/build-info.json'
+      - 'test/site-status.json'
       - '.github/workflows/issue47-task2-smoke.yml'
 permissions:
   contents: read
