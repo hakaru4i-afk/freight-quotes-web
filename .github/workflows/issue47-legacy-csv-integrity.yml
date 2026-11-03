@@ -1,0 +1,26 @@
+name: Task2 legacy CSV integrity staging
+on:
+  pull_request:
+    paths:
+      - 'test/task2-guidance.js'
+      - 'tests/issue47-legacy-csv-integrity.test.mjs'
+      - '.github/workflows/issue47-legacy-csv-integrity.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'test/task2-guidance.js'
+      - 'tests/issue47-legacy-csv-integrity.test.mjs'
+      - '.github/workflows/issue47-legacy-csv-integrity.yml'
+permissions:
+  contents: read
+jobs:
+  csv-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --check test/task2-guidance.js
+      - run: node --test tests/issue47-legacy-csv-integrity.test.mjs tests/issue47-task2-csv.test.mjs
