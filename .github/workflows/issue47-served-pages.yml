@@ -1,0 +1,22 @@
+name: Issue47 served Pages and API smoke (staging)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test/**'
+      - 'tests/issue47-served-pages.test.mjs'
+      - '.github/workflows/issue47-served-pages.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-served-pages:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact served staging build and API
+        run: node --test tests/issue47-served-pages.test.mjs
