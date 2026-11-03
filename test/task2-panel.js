@@ -21,6 +21,7 @@
   doc:"Документ/фото доказательство. Загруженные файлы отображаются в документах и чате заявки.",
   message:"Общий чат именно этой выигранной перевозки: ВЭД, перевозчик и Владелец."
  };
+ const stagingReg=n=>n?(String(n).startsWith("TEST-")?String(n):"TEST-"+String(n)):"";
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const fmt=s=>s?new Date(s).toLocaleString("ru-RU",{timeZone:"Europe/Minsk"}):"—";
  const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
@@ -68,10 +69,10 @@
      return;
    }
    html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+state.items.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
-    esc((i.registration_no||"TR —")+" · "+i.order_code+" · "+(i.process_status||"ожидает"))+'</option>').join("")+'</select></label></div>';
+    esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+(i.process_status||"ожидает"))+'</option>').join("")+'</select></label></div>';
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
-   html+='<div class="t2-context">'+readonly("Рег. №",o.registration_no||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
+   html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
      readonly("Выбранный перевозчик",o.carrier_login)+readonly("Статус",x.status||"Ожидает принятия")+'</div>';
    if(!started){
      html+='<div class="t2-empty">Ставка выбрана, документы и исходные данные доступны для сверки. '+(carrier?'<button type="button" class="t2-btn" data-t2-action="take">Взять перевозку в работу</button>':'Ожидается действие выбранного перевозчика.')+'</div>';
@@ -235,7 +236,7 @@
  function exportAct(id){
    const d=state.detail,a=(d?.acts||[]).find(x=>x.id===id);if(!a)return;
    const o=d.shipment,values=a.data||{},title={auto:"Акт по автомобильной перевозке",rail:"Акт по железнодорожной перевозке",air:"Акт по авиационной перевозке",sea:"Акт по морской перевозке"}[a.transport]||"Акт";
-   const rows=[["Рег. № заявки",o.registration_no],["Номер заказа",o.order_code],["Номера Bitrix",o.bitrix_task],["Перевозчик",o.carrier_login],["Маршрут",o.route],["Ставка",String(o.amount??"")+" "+(o.currency||"")],["Редакция",a.revision],["Дата",fmt(a.created_at)],...Object.entries(values)];
+   const rows=[["Рег. № заявки",stagingReg(o.registration_no)],["Номер заказа",o.order_code],["Номера Bitrix",o.bitrix_task],["Перевозчик",o.carrier_login],["Маршрут",o.route],["Ставка",String(o.amount??"")+" "+(o.currency||"")],["Редакция",a.revision],["Дата",fmt(a.created_at)],...Object.entries(values)];
    const html='<!doctype html><html lang="ru"><meta charset="UTF-8"><title>'+esc(title)+'</title><style>body{font-family:Arial,sans-serif;margin:45px;color:#16212b}h1{font-size:22px}table{width:100%;border-collapse:collapse;margin:20px 0}td{border:1px solid #a9afb5;padding:9px;vertical-align:top}td:first-child{width:35%;background:#f5f7f9}footer{margin-top:60px;display:flex;justify-content:space-between}</style><h1>'+esc(title)+'</h1><p>Регистрационный номер '+esc(o.registration_no)+'</p><table>'+rows.map(([k,v])=>'<tr><td>'+esc(k)+'</td><td>'+esc(v)+'</td></tr>').join("")+'</table><footer><span>Представитель заказчика __________</span><span>Представитель перевозчика __________</span></footer><p>Статус согласования: '+esc(a.state)+'</p></html>';
    const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"}));
    const link=document.createElement("a");link.href=url;link.download="Act_"+(o.registration_no||"TR")+"_rev"+a.revision+".html";link.click();
