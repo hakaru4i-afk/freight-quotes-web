@@ -1,0 +1,55 @@
+{
+  "release": "1.18.0",
+  "files": [
+    {
+      "name": "chi_sim.traineddata.gz",
+      "bytes": 1718768,
+      "sha256": "b8a23f10c7de500891eb458a8adc9cc58ab7f242f08b7d149f5e9aea4ad5db7c"
+    },
+    {
+      "name": "eng.traineddata.gz",
+      "bytes": 2952873,
+      "sha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91"
+    },
+    {
+      "name": "recognition-core-7-basic.wasm.js",
+      "bytes": 3896484,
+      "sha256": "eef5f8b2f8e20e150680b20adaec4a60babafee3adbe8a94583c81fee46e8680"
+    },
+    {
+      "name": "recognition-core-7-relaxed.wasm.js",
+      "bytes": 3905767,
+      "sha256": "861a536cf9ef8e63cb644d57bab39c388f37f7d6b6f60024b741c5f6b39a59b3"
+    },
+    {
+      "name": "recognition-core-7-simd.wasm.js",
+      "bytes": 3899472,
+      "sha256": "c58b46a4c796c0b8afccf77591d5b875b6896b45d402bbce8caa6f5362447b38"
+    },
+    {
+      "name": "recognition-licenses.txt",
+      "bytes": 45563,
+      "sha256": "a178dcb4c1c5c27ac37e0e577ba958af3a4a5b0795ae28d6e38be76d287dc52b"
+    },
+    {
+      "name": "recognition-pdf-worker-6.4.299.mjs",
+      "bytes": 1264342,
+      "sha256": "9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18"
+    },
+    {
+      "name": "recognition-runtime-v1.mjs",
+      "bytes": 508443,
+      "sha256": "472a534573b6bf7d1f10f553d32e038cceeacd085391297b78de10b429e52a2f"
+    },
+    {
+      "name": "recognition-tesseract-worker-7.0.0.js",
+      "bytes": 111307,
+      "sha256": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d"
+    },
+    {
+      "name": "rus.traineddata.gz",
+      "bytes": 2679598,
+      "sha256": "f51f5edc992249ff9b70a227b22f242dfa47b2b1bbc7ae0ea74908640c101f6a"
+    }
+  ]
+}
