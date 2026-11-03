@@ -1,5 +1,5 @@
 {
-  "version": "stg47-optional-owner-1199aa16f248-api52",
+  "version": "stg47-consolidated-e7a963ff8d8d",
   "maintenance": false,
   "environment": "staging",
   "release": {
@@ -105,5 +105,7 @@
     "scope": "DB concurrency rollback verified, original 3 requests and 4 storage-backed attachments preserved. API v51 active. Authenticated role/browser E2E not yet passed.",
     "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED"
-  }
+  },
+  "task2Complete": false,
+  "candidateStatus": "UNPUBLISHED; HOSTED_ROLE_E2E_AND_ACCEPTANCE_PENDING"
 }

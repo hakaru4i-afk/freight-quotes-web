@@ -15,9 +15,12 @@ assert.ok(!scope.includes('r("textarea",{required:!0,minLength:10'));
 assert.ok(scope.includes('"/api/offer-selection"'));
 assert.ok(scope.includes("bidId:i.id"));
 });
-test("actual staging cache bust points to the new app blob",()=>{
+test("unpublished candidate cache bust matches app and does not claim deployed API",()=>{
 assert.equal(info.environment,"staging");
 assert.equal(info.task2Complete,false);
-assert.equal(info.task2.backendVersion,52);
+assert.equal(info.task2.lastObservedBackendVersion,52);
+assert.equal(info.task2.backendVersion,null);
+assert.equal(info.task2.backendDeploymentStatus,"NOT_DEPLOYED");
+assert.match(info.task2.backendCandidate.sha256,/^[a-f0-9]{64}$/);
 assert.ok(html.includes("./app.js?v="+info.servedAppBlobSha.slice(0,12)));
 });

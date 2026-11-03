@@ -1,0 +1,41 @@
+{
+  "version": "stg47-consolidated-e7a963ff8d8d",
+  "status": "NOT_PUBLISHED",
+  "privateBackend": {
+    "sourceCommit": "7ac40d92077145ec588830216721861b4afad380",
+    "gitBlob": "e24941f2e945cad8a9d531b5df516c380958906c",
+    "sha256": "d5f0018f209a18b3c8481fdbdd67a1c48f3eb466f9ca672f3ff342727f9a391b"
+  },
+  "frontendComponents": {
+    "app.js": {
+      "gitBlob": "63de4b9099a79174227eae0b26512265f1793824",
+      "sha256": "7b839bfe17c06cc60d38e40548e5293344eab31c15635659bc58026ef2e7d429"
+    },
+    "task2-panel.js": {
+      "gitBlob": "65d76d1753cd9e404c5e596430987b3ec9924333",
+      "sha256": "deb657d4414d445a0cf9565040811ab0a770ed9e8067729702463d75913ba82b"
+    },
+    "task2-i18n.js": {
+      "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
+      "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
+    },
+    "task2-help-i18n.js": {
+      "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
+      "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+    },
+    "task2-guidance.js": {
+      "gitBlob": "14b308f6661001736fbae0425776108337f130c8",
+      "sha256": "55f9d7d9e62629ad31b08c65e12ca4119c2078839e00877924acb947cc9e4790"
+    },
+    "late-bid-staging.js": {
+      "gitBlob": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
+      "sha256": "96f1a7de01a0fbb2308277cb51d33bc47274f97cb0ea3015c66e813b6222051d"
+    },
+    "task2.css": {
+      "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
+      "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+    }
+  },
+  "productionChanged": false,
+  "task2Complete": false
+}

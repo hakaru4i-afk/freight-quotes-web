@@ -106,7 +106,21 @@ const dict={
   "Нет доступа":["Access denied","无权访问"],
   "Нет ответа API":["No API response","API 无响应"],
   "Скачать CSV шаблон":["Download CSV template","下载 CSV 模板"],
-  "Загрузить CSV":["Upload CSV","上传 CSV"]
+  "Загрузить CSV":["Upload CSV","上传 CSV"],
+  "Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.":["Container number. Optional until closure; provide the actual number when requested by foreign trade staff.", "箱号在结束前可选。外贸人员提出请求后请填写真实箱号。"],
+  "Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.":["Actual cargo departure date and time. The initial date and all reschedules remain in history.", "货物实际发运日期和时间。最初日期及全部延期记录均保留。"],
+  "Новая плановая дата выхода. Добавляйте любое количество раз, пока не указана фактическая дата.":["New planned departure date. Add as many changes as needed until actual departure is recorded.", "新的计划发运日期。实际发运前可以多次新增。"],
+  "Обязательно опишите объективную причину переноса; запись сохранится в истории.":["Explain the objective reason for rescheduling; the entry remains in history.", "必须说明延期的客观原因，记录将保留在历史中。"],
+  "Место нахождения груза: город, терминал, станция, порт или адрес. Добавляется отдельной записью.":["Cargo location: city, terminal, station, port or address. Each observation is a separate entry.", "货物所在地：城市、场站、车站、港口或地址。每次观察单独记录。"],
+  "Дата и время события; укажите время Минска или локальное время с пояснением.":["Event date and time. Use Minsk time or clearly explain the local timezone.", "事件日期和时间。使用明斯克时间，或明确说明当地时区。"],
+  "Опишите какие документы требуются, зачем и какие именно отсутствуют. Каждая отправка — отдельная задача ВЭД.":["Describe the required or missing documents and why they are needed. Each submission creates a foreign-trade task.", "说明需要或缺少哪些文件及原因。每次发送均创建一个外贸任务。"],
+  "Выберите несколько видов документов, если требуется. Вариант «Другое» позволяет уточнить запрос в описании.":["Select multiple document types if needed. Explain Other in the request description.", "可选择多种文件类型。如选其他，请在描述中说明。"],
+  "Связанная задача ВЭД, наследует все номера Bitrix исходного заказа. Не заменяет заказ.":["Linked foreign-trade task. It inherits every Bitrix number from the parent order and does not replace the order.", "关联的外贸任务继承原订单全部 Bitrix 编号，不替代订单。"],
+  "Дополнительное пояснение, видимое ВЭД, перевозчику и Владельцу.":["Additional explanation visible to authorized foreign trade staff, the carrier and the owner.", "补充说明仅对有权限的外贸人员、承运商及所有者显示。"],
+  "Описание нарушения, недостачи или повреждения, основание и требование к перевозчику.":["Describe the violation, shortage or damage, the grounds and the demand addressed to the carrier.", "说明违规、短缺或损坏情况、依据及对承运商的要求。"],
+  "Сумма требований в валюте утверждённой ставки, если применимо.":["Claim amount in the currency of the winning quote, if applicable.", "适用时按中选报价币种填写索赔金额。"],
+  "Документ/фото доказательство. Загруженные файлы отображаются в документах и чате заявки.":["Evidence document or photo. Uploaded files appear in the shipment documents and chat.", "证据文件或照片。上传后显示在运输文件及聊天中。"],
+  "Общий чат именно этой выигранной перевозки: ВЭД, перевозчик и Владелец.":["Shared chat for this winning shipment only: foreign trade staff, carrier and owner.", "仅用于本次中选运输的共享聊天：外贸人员、承运商和所有者。"]
 };
 const originalTexts=new WeakMap();
 const originalAttributes=new WeakMap();
@@ -119,7 +133,7 @@ function update(){
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
  while((node=walker.nextNode())){
-  if(node.parentElement?.closest("script,style,textarea"))continue;
+  if(node.parentElement?.closest("script,style,textarea,.t2-readonly strong,.t2-chat,.t2-item span"))continue;
   const raw=originalTexts.get(node)??node.nodeValue;
   const stripped=raw.trim();
   if(!dict[stripped])continue;

@@ -1,29 +1,29 @@
 {
   "environment": "staging",
-  "version": "stg47-optional-owner-1199aa16f248-api52",
+  "version": "stg47-consolidated-e7a963ff8d8d",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-optional-owner-1199aa16f248-api52",
+  "build": "stg47-consolidated-e7a963ff8d8d",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-03T16:57:37Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
   "stagingPatch": "Task #2 unified execution and role workflows; read-only contract for awarded bid; tracked server-backed document requests, dates, PТО, claims and container closure; staging only; CSV exact-value import validation and actual container close feedback; current-round winner guard in staging API v45",
-  "patchSourceBranch": "fix/issue47-staging-csv-completion-20261103",
-  "patchSourceCommit": "5856a506a1b21091a228a0ad5081eea4e3206fac",
-  "servedAppBlobSha": "1199aa16f248f4a23758883889190cde0be2d0fa",
-  "sourceHashNote": "Staging app.js quote button changed only for authenticated active late draft; Task2 extension and staging Supabase API v47. Production site unchanged.",
+  "patchSourceBranch": "fix/issue47-complete-staging",
+  "patchSourceCommit": "7ac40d92077145ec588830216721861b4afad380",
+  "servedAppBlobSha": "63de4b9099a79174227eae0b26512265f1793824",
+  "sourceHashNote": "Legacy task1 bundle provenance retained. Task2 candidate component hashes are authoritative for this unmerged, unpublished branch. No task1 source branch merged.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 52,
+    "backendVersion": null,
     "frontendScript": "task2-panel.js",
-    "frontendSha": "7318ca8afd4426818df19df2fe713a66b704b4a0",
+    "frontendSha": "65d76d1753cd9e404c5e596430987b3ec9924333",
     "guidanceScript": "task2-guidance.js",
-    "guidanceSha": "fa397c4762b54e84e8d8327aa95259ec11f2ff1a",
+    "guidanceSha": "14b308f6661001736fbae0425776108337f130c8",
     "tablesApplied": true,
-    "qaStatus": "STATIC_CI_PASS; SERVED_PAGES_AND_AUTHENTICATED_ROLE_E2E_PENDING",
+    "qaStatus": "LOCAL_POSTGRES_AND_SYNTHETIC_STORAGE_BROWSER_PASS; HOSTED_END_TO_END_PENDING",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -35,7 +35,7 @@
     "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
-      "sourceSha": "f2a2c617b54d6cec6b4ac58c8d2a404284060e10",
+      "sourceSha": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
       "coverage": "105 static UI labels in execution, tracking, documents, PTO, claims and acts",
       "languages": [
         "ru",
@@ -44,7 +44,56 @@
       ],
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
+    },
+    "lastObservedBackendVersion": 52,
+    "backendDeploymentStatus": "NOT_DEPLOYED",
+    "backendCandidate": {
+      "sourceCommit": "7ac40d92077145ec588830216721861b4afad380",
+      "gitBlob": "e24941f2e945cad8a9d531b5df516c380958906c",
+      "sha256": "d5f0018f209a18b3c8481fdbdd67a1c48f3eb466f9ca672f3ff342727f9a391b"
+    },
+    "frontendCandidateComponents": {
+      "app.js": {
+        "gitBlob": "63de4b9099a79174227eae0b26512265f1793824",
+        "sha256": "7b839bfe17c06cc60d38e40548e5293344eab31c15635659bc58026ef2e7d429"
+      },
+      "task2-panel.js": {
+        "gitBlob": "65d76d1753cd9e404c5e596430987b3ec9924333",
+        "sha256": "deb657d4414d445a0cf9565040811ab0a770ed9e8067729702463d75913ba82b"
+      },
+      "task2-i18n.js": {
+        "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
+        "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
+      },
+      "task2-help-i18n.js": {
+        "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
+        "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+      },
+      "task2-guidance.js": {
+        "gitBlob": "14b308f6661001736fbae0425776108337f130c8",
+        "sha256": "55f9d7d9e62629ad31b08c65e12ca4119c2078839e00877924acb947cc9e4790"
+      },
+      "late-bid-staging.js": {
+        "gitBlob": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
+        "sha256": "96f1a7de01a0fbb2308277cb51d33bc47274f97cb0ea3015c66e813b6222051d"
+      },
+      "task2.css": {
+        "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
+        "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+      }
+    },
+    "helpLocales": {
+      "fieldHintCategories": 28,
+      "faqEntries": 14,
+      "executionFieldTips": 14,
+      "languages": [
+        "ru",
+        "en",
+        "zh"
+      ],
+      "sourceSha": "9beee8e0b7abd9b1e3525dd311da8456348f19b1"
     }
   },
-  "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933"
+  "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
+  "candidateStatus": "UNPUBLISHED; do not merge until hosted API/role E2E and remaining requirements pass"
 }

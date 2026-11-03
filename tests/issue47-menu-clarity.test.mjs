@@ -14,7 +14,6 @@ const uniqueNavigation = [
   ['offers', 'Рассмотрение ставок'],
   ['answers', 'Сроки и ответы'],
   ['approved-shipments', 'Исполнение перевозок'],
-  ['shipment-fulfillment', 'Приёмка и завершение'],
   ['transport-applications', 'Транспортная заявка · документ'],
   ['transport-claims', 'Претензии и акты'],
 ];
@@ -33,4 +32,11 @@ test('Issue #47: quote calculation does not share the shipment-execution action 
 
 test('Issue #47: no production app.js or API code touched by this staging-only change', () => {
   assert.ok(app.length > 2_000_000, 'unexpected staging app bundle');
+});
+
+test('Issue47: obsolete completion navigation cannot bypass the canonical workflow',()=>{
+ assert.ok(!app.includes('id:"shipment-fulfillment",label:'));
+ assert.ok(!app.includes('href:"#shipment-fulfillment"'));
+ const panel=readFileSync(new URL('../test/task2-panel.js',import.meta.url),'utf8');
+ assert.ok(panel.includes('location.replace("#approved-shipments")'));
 });

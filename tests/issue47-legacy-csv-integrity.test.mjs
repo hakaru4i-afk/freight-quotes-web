@@ -4,7 +4,7 @@ import vm from "node:vm";
 import {readFileSync} from "node:fs";
 
 const original=readFileSync("test/task2-guidance.js","utf8");
-const marker="new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});";
+const marker="new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:[\"lang\"]});";
 assert.ok(original.includes(marker),"test harness requires the actual guidance module");
 const code=original.replace(marker,
   "globalThis.csvQA={parseCSV,quoted,validateCsvCell,importCSV};");

@@ -49,6 +49,7 @@ const helpQuestions=[
 ["Как пользоваться CSV, если полей много?","Скачайте CSV из нужной формы, заполните доступные значения, загрузите файл, проверьте предварительное сопоставление и подтвердите перенос. Затем нажмите штатное сохранение формы. Исходные защищённые поля, ставки и номера TR не изменяются."],
 ["Почему нельзя выполнять одно действие в разных меню?","Для каждого действия установлен один раздел. Другие разделы должны давать ссылку на него, а не повторять его обработчик. Ставки — в рассмотрении, исполнение — в исполнении, транспортная заявка — в документе, претензия — в актах."]
 ];
+const helpLanguage=()=>/^zh/i.test(document.documentElement.lang)?"zh":/^en/i.test(document.documentElement.lang)?"en":"ru";
 let observerPending=false;
 function guidance(){
  for(const label of document.querySelectorAll("label")){
@@ -57,7 +58,10 @@ function guidance(){
    if(!input||["hidden","password","submit","checkbox","radio","file"].includes(input.type))continue;
    const text=label.textContent.replace("ⓘ","").trim().slice(0,100);
    if(!text)continue;
-   const title=hints.find(([re])=>re.test(text))?.[1]||general;
+   const index=label.dataset.task2HintIndex===undefined?hints.findIndex(([re])=>re.test(text)):Number(label.dataset.task2HintIndex);
+   label.dataset.task2HintIndex=String(index);
+   const locale=window.task2HelpLocales?.[helpLanguage()];
+   const title=locale?(locale.hints[index]||locale.general):(hints[index]?.[1]||general);
    input.title=title;
    const icon=label.querySelector(".t2-legacy-hint");if(icon)icon.title=title;
    else if(!label.dataset.task2Explained){
@@ -68,11 +72,15 @@ function guidance(){
 }
 function faq(){
  const host=document.querySelector('.cabinet-panel[data-section="help"]');
- if(!host||host.querySelector("#task2-faq"))return;
- const section=document.createElement("section");section.id="task2-faq";
+ if(!host)return;
+ const language=helpLanguage(),existing=host.querySelector("#task2-faq");
+ if(existing?.dataset.language===language)return;
+ existing?.remove();
+ const locale=window.task2HelpLocales?.[language];
+ const section=document.createElement("section");section.id="task2-faq";section.dataset.language=language;
  section.style.cssText="border:1px solid #d5e4d8;background:#fff;color:#173226;padding:16px;border-radius:12px;margin:18px 0";
- section.innerHTML='<h2 style="margin:0 0 10px;font-size:20px">Задача №2 · Полный бизнес-процесс перевозки</h2><p>Инструкция по полям доступна через значок ⓘ рядом с полем. Ниже ответы по работе всех кабинетов.</p>'+
- helpQuestions.map(([q,a])=>'<details style="border-top:1px solid #d9e4da;padding:10px 0"><summary style="font-weight:600;cursor:pointer">'+esc(q)+'</summary><p style="line-height:1.5">'+esc(a)+'</p></details>').join("");
+ section.innerHTML='<h2 style="margin:0 0 10px;font-size:20px">'+esc(locale?.title||"Задача №2 · Полный бизнес-процесс перевозки")+'</h2><p>'+esc(locale?.intro||"Инструкция по полям доступна через значок ⓘ рядом с полем. Ниже ответы по работе всех кабинетов.")+'</p>'+
+ (locale?.faq||helpQuestions).map(([q,a])=>'<details style="border-top:1px solid #d9e4da;padding:10px 0"><summary style="font-weight:600;cursor:pointer">'+esc(q)+'</summary><p style="line-height:1.5">'+esc(a)+'</p></details>').join("");
  host.append(section);
 }
 function supplier(){
@@ -213,7 +221,7 @@ function mount(){
  if(observerPending)return;observerPending=true;
  requestAnimationFrame(()=>{observerPending=false;guidance();faq();supplier();legacyCSV();});
 }
-new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true});
+new MutationObserver(mount).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:["lang"]});
 window.addEventListener("freight-access-updated",mount);
 document.addEventListener("DOMContentLoaded",mount);
 mount();

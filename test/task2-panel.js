@@ -1,7 +1,10 @@
 /* Issue #47 integrated staging UI; canonical place: Исполнение перевозок. */
 (function(){
  "use strict";
+ const pendingRequests=new Map();
  const eid="task2-root";
+ const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
+ window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
  const state={items:[],role:"",selected:"",detail:null,tab:"track",busy:false,notice:""};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["track","Исполнение и трекинг"],["overview","Данные заявки"],["documents","Документы и ВЭД"],["arrival","ПТО и приёмка"],["claims","Претензии и акты"],["history","История"]];
@@ -200,7 +203,13 @@
    state.busy=true;alertText("Сохраняем…");
    try{
      const payload={action,order:state.selected,...fields};
+     const requestKey=JSON.stringify(payload);
+     if(action==="request_docs"){
+       if(!pendingRequests.has(requestKey))pendingRequests.set(requestKey,crypto.randomUUID());
+       payload.requestId=pendingRequests.get(requestKey);
+     }
      const res=await call(payload,files);
+     if(action==="request_docs")pendingRequests.delete(requestKey);
      let routeNote="";
      if(action==="save"&&fields.fields?.location&&state.detail?.shipment){
        const o=state.detail.shipment,mode=String(o.mode||"").toLowerCase();
@@ -288,7 +297,7 @@
      if(rows[0].length!==rows[1].length)throw Error("В строке данных и заголовке разное количество столбцов");
      return rows;
    },
-   controls(form){return Array.from(form.querySelectorAll('input[name]:not([type=file]):not([type=hidden]),textarea[name],select[name]')).filter(f=>!f.disabled);},
+   controls(form){return Array.from(form.querySelectorAll('input[name]:not([type=file]):not([type=hidden]),textarea[name],select[name]')).filter(f=>!f.disabled&&!f.readOnly&&f.name!=="action");},
    raw(f){return f.multiple?Array.from(f.selectedOptions).map(o=>o.value).join("|"):f.type==="checkbox"?(f.checked?"true":"false"):f.value;},
    download(form){
      const fields=csv.controls(form);
@@ -354,12 +363,14 @@
        f.dispatchEvent(new Event("input",{bubbles:true}));
        f.dispatchEvent(new Event("change",{bubbles:true}));
      }
+     form.dataset.t2CsvFields=JSON.stringify(changes.map(x=>x.f.name));
      alertText("CSV перенесён в "+changes.length+" полей. Проверьте данные и нажмите штатную кнопку сохранения.");
    }
  };
  async function onSubmit(ev){
    const f=ev.target.closest("form[data-t2-form]");if(!f)return;ev.preventDefault();
    const data=Object.fromEntries(new FormData(f).entries());const kind=f.dataset.t2Form;
+   const csvMeta=f.dataset.t2CsvFields?{form:kind,changedFields:JSON.parse(f.dataset.t2CsvFields)}:undefined;
    if(kind==="upload"){
      const files=f.querySelector('input[type=file]')?.files||[];
      if(!files.length){alertText("Выберите файлы",true);return;}
@@ -377,15 +388,15 @@
      if(fields.new_plan_date&&!fields.new_plan_reason){alertText("Укажите причину переноса плановой даты",true);return;}
      if(fields.location&&!fields.location_date){alertText("Укажите дату контрольной точки",true);return;}
      if(fields.pto_yes&&!fields.pto_date){alertText("Укажите дату прибытия на ПТО",true);return;}
-     return update("save",{fields});
+     return update("save",{fields,...(csvMeta?{csv:csvMeta}:{})});
    }
    if(kind==="request_docs")data.types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
    if(kind==="act"){
-     const action=data.action;delete data.action;return update(action,{data});
+     const action=data.action;delete data.action;return update(action,{data,...(csvMeta?{csv:csvMeta}:{})});
    }
    if(kind==="pto")return update("pto",{date:data.date?minskISO(data.date):"",arrived:data.arrived==="yes"});
    if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){try{data.date=minskISO(data.date);}catch(e){alertText(e.message,true);return;}}
-   return update(kind,data);
+   return update(kind,{...data,...(csvMeta?{csv:csvMeta}:{})});
  }
  async function onClick(ev){
    const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download]");
@@ -441,8 +452,8 @@
      try{await loadList();}catch(e){alertText(e.message||"Не удалось загрузить исполнение",true);}
    });
  }
- document.addEventListener("click",onClick);
- document.addEventListener("submit",onSubmit);
+ document.addEventListener("click",ev=>{onClick(ev).catch(e=>alertText(e.message,true));});
+ document.addEventListener("submit",ev=>{onSubmit(ev).catch(e=>alertText(e.message,true));});
  document.addEventListener("change",async ev=>{
    if(ev.target.id==="t2-select"){state.selected=ev.target.value;try{await loadDetail();}catch(e){alertText(e.message,true);}}
    if(ev.target.hasAttribute("data-t2-csv-upload")){
