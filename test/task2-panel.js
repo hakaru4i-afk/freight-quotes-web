@@ -92,11 +92,11 @@
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
    if(state.tab==="documents"){
-     let html='<h3>Документы по перевозке</h3><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
+     let html='<h3>Документы по перевозке</h3><p class="t2-muted">Исходные файлы Владельца и документы ВЭД/перевозчика доступны в одном месте.</p><p><a class="t2-btn ghost" href="#transport-applications">Открыть транспортную заявку · документ</a></p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
      html+='<h3>Запросы и задачи ВЭД</h3><div class="t2-stack">'+tasks.filter(t=>["missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
-        field("description","Что требуется?","textarea")+field("types","Вид документа","select","Выберите основной тип. Остальные перечислите в описании."),"Направить запрос ВЭД");
+        field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small></label>',"Направить запрос ВЭД");
      }
      if(x.status!=="completed"){
        html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
@@ -260,11 +260,12 @@
        await update("upload",{},fd);
      }return;
    }
+   if(kind==="request_docs")data.types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
    if(kind==="act"){
      const action=data.action;delete data.action;return update(action,{data});
    }
    if(kind==="pto")return update("pto",{date:data.date?new Date(data.date).toISOString():"",arrived:data.arrived==="yes"});
-   if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date)data.date=new Date(data.date).toISOString();
+   if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){const dt=new Date(data.date);if(Number.isNaN(dt.getTime())){alertText("Укажите корректную дату",true);return;}data.date=dt.toISOString();}
    return update(kind,data);
  }
  async function onClick(ev){
