@@ -51,9 +51,9 @@ jobs:
               assert.equal(prod.build, production.build);
               assert.equal(prod.projectRef,'ooclsrndeygojtofuyte');
               assert.ok(decode(stgHtmlBytes).includes('./app.js?v='+expected.servedAppBlobSha.slice(0,12)));
-              const prefix=new TextEncoder().encode('blob '+stgJsBytes.length+'\\0');
-              const bytes=new Uint8Array(prefix.length+stgJsBytes.length);
-              bytes.set(prefix);bytes.set(stgJsBytes,prefix.length);
+              const prefix=new TextEncoder().encode('blob '+stgJsBytes.length);
+              const bytes=new Uint8Array(prefix.length+1+stgJsBytes.length);
+              bytes.set(prefix);bytes[prefix.length]=0;bytes.set(stgJsBytes,prefix.length+1);
               const blobSha=createHash('sha1').update(bytes).digest('hex');
               assert.equal(blobSha,expected.servedAppBlobSha,'served test/app.js does not match version manifest');
               console.log('PASS: served staging build '+stg.build+' and app blob '+blobSha.slice(0,12));
