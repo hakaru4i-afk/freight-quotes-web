@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'test/task2-panel.js'
+      - 'test/task2-guidance.js'
       - 'test/task2.css'
       - 'test/index.html'
       - 'test/task2-build-info.json'
@@ -24,6 +25,7 @@ jobs:
         run: |
           node --check test/app.js
           node --check test/task2-panel.js
+          node --check test/task2-guidance.js
           node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs
       - name: Verify staging API, anonymous access restriction, and served files
         run: |
@@ -41,14 +43,15 @@ jobs:
           console.log('PASS: staging backend health and anonymous task2 forbidden');
           let verified=false;
           for(let i=0;i<10;i++){
-            const [html,js,css]=await Promise.all([
+            const [html,js,css,guidance]=await Promise.all([
               fetch(web+'index.html?smoke='+i).then(r=>r.text()),
               fetch(web+'task2-panel.js?smoke='+i),
-              fetch(web+'task2.css?smoke='+i)
+              fetch(web+'task2.css?smoke='+i),
+              fetch(web+'task2-guidance.js?smoke='+i)
             ]);
-            if(html.includes('task2-panel.js')&&js.ok&&css.ok){
+            if(html.includes('task2-panel.js')&&html.includes('task2-guidance.js')&&js.ok&&css.ok&&guidance.ok){
               const body=await js.text();
-              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')){
+              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')&&(await guidance.text()).includes('Task #2: field-level instructions')){
                 console.log('PASS: staging static task2 JS/CSS served');
                 verified=true;break;
               }
