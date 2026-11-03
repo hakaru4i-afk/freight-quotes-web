@@ -1,0 +1,65 @@
+name: Issue43 production served smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - app.js
+      - index.html
+      - build-info.json
+      - site-status.json
+      - .github/workflows/issue43-production-smoke.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  production-static-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax and version coherence
+        run: |
+          set -euo pipefail
+          node --check app.js
+          node <<'NODE'
+          const fs = require('node:fs');
+          const x = JSON.parse(fs.readFileSync('build-info.json', 'utf8'));
+          const status = JSON.parse(fs.readFileSync('site-status.json', 'utf8'));
+          const page = fs.readFileSync('index.html','utf8');
+          const app = fs.readFileSync('app.js','utf8');
+          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== '1.19.3') throw Error('wrong production identity');
+          if (x.version !== status.version || status.release.version !== '1.19.3') throw Error('release metadata mismatch');
+          if (!page.includes('app.js?v=' + x.build)) throw Error('stale app cache key');
+          if (!app.includes('sender_contact:S.target.value') || !app.includes('g.sender_contact||""')) throw Error('Owner field missing');
+          if (!app.includes('Object.fromEntries(["sender_contact","origin","weight"')) throw Error('Owner hydrate missing');
+          if (app.includes('freight-documents-qa-20261101a')) throw Error('QA storage in production');
+          console.log('LOCAL_PRODUCTION_STATIC_PASS');
+          NODE
+      - name: Verify served GitHub Pages bytes
+        run: |
+          set -euo pipefail
+          base="https://hakaru4i-afk.github.io/freight-quotes-web"
+          matched=0
+          for attempt in $(seq 1 12); do
+            valid=1
+            for file in app.js index.html build-info.json site-status.json; do
+              curl --fail --silent --show-error --location --max-time 25 \
+                -H "Cache-Control: no-cache" "$base/$file?issue43=$GITHUB_SHA" -o "/tmp/issue43-$file" || { valid=0; break; }
+              cmp -s "$file" "/tmp/issue43-$file" || { valid=0; break; }
+            done
+            if [ "$valid" -eq 1 ]; then matched=1; break; fi
+            sleep 10
+          done
+          [ "$matched" -eq 1 ] || { echo "PRODUCTION_SERVE_MISMATCH"; exit 1; }
+          echo "PRODUCTION_SERVED_BYTES_PASS"
+      - name: Check production API unauthenticated health only
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --max-time 25 \
+            "https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/health" > /tmp/issue43-health.json
+          node <<'NODE'
+          const fs=require('node:fs');
+          const h=JSON.parse(fs.readFileSync('/tmp/issue43-health.json','utf8'));
+          if (!h || typeof h !== 'object') throw Error('no health payload');
+          console.log('PRODUCTION_API_HEALTH_PASS');
+          NODE
