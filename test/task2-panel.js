@@ -415,7 +415,7 @@
  }
  function addHints(){
    document.querySelectorAll(".cabinet-panel label").forEach(label=>{
-     if(label.closest("#task2-root")||label.dataset.t2HintAttached)return;
+     if(label.closest("#task2-root")||label.dataset.t2HintAttached||label.dataset.task2Explained)return;
      const control=label.querySelector("input,textarea,select");if(!control)return;
      const caption=label.textContent.trim().slice(0,90);
      if(!caption||control.type==="hidden")return;
