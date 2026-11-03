@@ -1,15 +1,15 @@
 {
   "environment": "staging",
-  "version": "stg47-task2-385574a5b223",
+  "version": "stg47-task2-csv-783bede27e87",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-task2-385574a5b223",
+  "build": "stg47-task2-csv-783bede27e87",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-03T16:48:00Z",
+  "builtAt": "2026-11-03T16:57:37Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Task #2 unified execution and role workflows; read-only contract for awarded bid; tracked server-backed document requests, dates, PТО, claims and container closure; staging only",
-  "patchSourceBranch": "fix/issue47-staging-menu-clarity",
-  "patchSourceCommit": "b867e7659dc57d89905cb0fa0e506cb55b23da15",
+  "stagingPatch": "Task #2 unified execution and role workflows; read-only contract for awarded bid; tracked server-backed document requests, dates, PТО, claims and container closure; staging only; CSV exact-value import validation and actual container close feedback",
+  "patchSourceBranch": "fix/issue47-staging-csv-completion-20261103",
+  "patchSourceCommit": "5856a506a1b21091a228a0ad5081eea4e3206fac",
   "servedAppBlobSha": "b3d614971bc974b02440e70fa2fcd40160e4aa8a",
   "sourceHashNote": "Core app.js remains 1.19.2 and unchanged; Task2 is staging-only extension panel, dedicated API and additional DB migrations; production remains untouched.",
   "task2Complete": false,
@@ -19,12 +19,14 @@
     "backendFunction": "freight-api",
     "backendVersion": 44,
     "frontendScript": "task2-panel.js",
-    "frontendSha": "385574a5b223a6a006b90a3a654a81ec4ab4a9de",
+    "frontendSha": "783bede27e87e28289033ad9d48d31b39f0d114d",
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "06e484a64d5b4dd4233df4a3944eb284ca127999",
     "tablesApplied": true,
     "qaStatus": "PUBLIC_SERVING_AND_ANONYMOUS_AUTH_PASS; AUTHENTICATED_ROLE_E2E_PENDING",
     "manualAcceptance": "PENDING",
-    "fullTaskCompleted": false
+    "fullTaskCompleted": false,
+    "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
+    "containerClosureFeedbackFix": true
   }
 }
