@@ -1,9 +1,9 @@
 {
-  "version": "stg49-67fdfec266aa",
+  "version": "stg47-optional-owner-1199aa16f248-api52",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "stg47-late-6726e2927377-api51",
+    "version": "stg47-optional-owner-1199aa16f248-api52",
     "date": "2026-11-03",
     "title": "Задача №2 · подготовка поздней ставки, блокировка выбора победителя и архив",
     "changes": [
@@ -15,7 +15,8 @@
       "Регистрационные номера в тестовом разделе исполнения обозначены TEST-TR, база хранит неизменяемый исходный номер.",
       "Кандидат: авторизованный сквозной QA по ролям и ручная приёмка ещё не завершены.",
       "Staging API v49: atomic bid/winner guard, correct 403/409 and air act categorization; staging-only.",
-      "API v51: closing disputed shipments requires owner/ВЭД container decision, no duplicate pending container request, no auto-close after claim; staging only."
+      "API v51: closing disputed shipments requires owner/ВЭД container decision, no duplicate pending container request, no auto-close after claim; staging only.",
+      "В тестовой версии выбор победителя не требует обоснования. API v52 и форма согласованы."
     ]
   },
   "releases": [
