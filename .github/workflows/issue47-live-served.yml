@@ -1,0 +1,24 @@
+name: Task2 exact live staging served checks
+on:
+  pull_request:
+    paths:
+      - 'tests/issue47-live-served.test.mjs'
+      - '.github/workflows/issue47-live-served.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'test/**'
+      - 'tests/issue47-live-served.test.mjs'
+      - '.github/workflows/issue47-live-served.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/issue47-live-served.test.mjs
