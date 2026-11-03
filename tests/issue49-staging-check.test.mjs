@@ -10,7 +10,8 @@ test('Issue49 production is not modified by staging build', () => {
   assert.equal(info.projectRef, 'ibclzdkxiozbzmniiygv');
   assert.ok(state.stagingVerification.ownerAcceptance === 'PENDING');
   assert.equal(state.stagingVerification.production, 'NOT UPDATED');
-  assert.ok(html.includes('./app.js?v=67fdfec266aa'));
+  assert.match(info.servedAppBlobSha, /^[a-f0-9]{40}$/);
+  assert.ok(html.includes('./app.js?v=' + info.servedAppBlobSha.slice(0,12)), 'staging HTML must refer to the exact declared bundle');
 });
 test('bounded session request and cleanup are present', () => {
   const idx=app.indexOf('function ny()'),end=app.indexOf('var ry=',idx);

@@ -1,15 +1,16 @@
 {
   "environment": "staging",
-  "version": "stg49-67fdfec266aa",
+  "version": "stg47-b3d614971bc9",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg49-67fdfec266aa",
+  "build": "stg47-b3d614971bc9",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-03T09:45:00Z",
+  "builtAt": "2026-11-03T15:39:51.964Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "bounded access polling/session startup",
-  "patchSourceBranch": "fix/issue49-staging-auth-polling",
-  "patchSourceCommit": "1659a7b0857b20a7cd97fb52483d754ce06cdf95",
-  "servedAppBlobSha": "67fdfec266aa96083e30a98d5b01e4939d517468",
-  "sourceHashNote": "Original 2026-11-02 build with staging-only minimal UI hotfix; not identical to full candidate artifact."
+  "stagingPatch": "Issue #47 UI labels: separate quote calculation from shipment execution; clarify menu roles (partial task #2)",
+  "patchSourceBranch": "fix/issue47-staging-menu-clarity",
+  "patchSourceCommit": "b867e7659dc57d89905cb0fa0e506cb55b23da15",
+  "servedAppBlobSha": "b3d614971bc974b02440e70fa2fcd40160e4aa8a",
+  "sourceHashNote": "Staging-only interface wording patch over previous staging API and bundle; NOT a complete implementation of Issue #47, Bitrix propagation or TR registration numbers.",
+  "task2Complete": false
 }
