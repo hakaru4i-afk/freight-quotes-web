@@ -1,1 +1,9 @@
-{"environment":"production","version":"c78f687dd160ae4625e0","releaseVersion":"1.19.2","projectRef":"ooclsrndeygojtofuyte","build":"c78f687dd160ae4625e0","sourceHash":"c50b636c7079c1eb197bb4f6316affcd17484b2e059e3f35051efb36f4134610","builtAt":"2026-11-02T12:26:40.000Z"}
+{
+  "environment": "production",
+  "version": "23fb722d6c9da7c95914",
+  "releaseVersion": "1.19.3",
+  "projectRef": "ooclsrndeygojtofuyte",
+  "build": "23fb722d6c9da7c95914",
+  "sourceHash": "git-blob-sha1:23fb722d6c9da7c9591456702b162a10e5f9a8d0",
+  "builtAt": "2026-11-03T11:26:48.805Z"
+}
