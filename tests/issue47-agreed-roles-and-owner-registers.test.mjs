@@ -30,7 +30,7 @@ test("Existing owner login remains on shared staging API",()=>{
   assert.ok(app.includes("freight-staging-ibclzdkxiozbzmniiygv-session"));
   assert.ok(app.includes("functions/v1/freight-api"));
   assert.ok(!app.includes("functions/v1/freight-api-qa-issue47qa"));
-  assert.equal(release.task2.backendVersion,56);
+  assert.equal(release.task2.backendVersion,57);
   assert.equal(release.task2Complete,false);
   assert.ok(page.includes("app.js?v="+release.servedAppBlobSha.slice(0,12)));
 });
