@@ -1,16 +1,16 @@
 {
   "environment": "staging",
-  "version": "stg47-cabinets-d1288260945e",
+  "version": "stg47-cabinets-bfcc6ad97597",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-cabinets-d1288260945e",
+  "build": "stg47-cabinets-bfcc6ad97597",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-03T16:57:37Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
   "stagingPatch": "Task #2 unified execution and role workflows; read-only contract for awarded bid; tracked server-backed document requests, dates, PТО, claims and container closure; staging only; CSV exact-value import validation and actual container close feedback; current-round winner guard in staging API v45",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
-  "servedAppBlobSha": "d1288260945e0998546c053cc2452dad5682268f",
+  "servedAppBlobSha": "bfcc6ad975971775a56dfd07043f53569e53a1b5",
   "sourceHashNote": "Legacy task1 bundle provenance retained. Task2 candidate component hashes are authoritative for this unmerged, unpublished branch. No task1 source branch merged.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "d1288260945e0998546c053cc2452dad5682268f",
-        "sha256": "ef37bde08896b6effd9076b346a2da4c78bb7e39203fd5db95b7ea9552bd5a73"
+        "gitBlob": "bfcc6ad975971775a56dfd07043f53569e53a1b5",
+        "sha256": "f77f542c58066fc0062d77605acb40d6cfa4605211233194cef4e721749c7c34"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -103,7 +103,7 @@
   "candidateStatus": "UNPUBLISHED; do not merge until hosted API/role E2E and remaining requirements pass",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
-    "observedVersion": 6,
-    "bundleSha256": "1729fa18a3501b5e2872d3ed4c2290818dde80226190dd9ea1191787dbe86fbb"
+    "observedVersion": 7,
+    "bundleSha256": "67e064d565307c1d65b2b714b998f8b886367a0d1522c2f03b6e37c5adf9de17"
   }
 }
