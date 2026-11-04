@@ -18,11 +18,12 @@ assert.ok(scope.includes("bidId:i.id"));
 test("staging QA candidate cache bust matches app and reports actual isolated API",()=>{
 assert.equal(info.environment,"staging");
 assert.equal(info.task2Complete,false);
-assert.equal(info.task2.lastObservedBackendVersion,11);
-assert.equal(info.task2.backendVersion,11);
-assert.equal(info.task2.backendDeploymentStatus,"ACTIVE_QA_V11_NOT_FULL_E2E");
-assert.equal(info.task2.backendFunction,"freight-api-qa-issue47qa");
-assert.match(s,/freight-api-qa-issue47qa/);
+assert.equal(info.task2.lastObservedBackendVersion,53);
+assert.equal(info.task2.backendVersion,53);
+assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V53_ACTIVE; FULL_ACCEPTANCE_PENDING");
+assert.equal(info.task2.backendFunction,"freight-api");
+assert.match(s,/functions\/v1\/freight-api"/);
+assert.doesNotMatch(s,/functions\/v1\/freight-api-qa-issue47qa/);
 assert.match(info.task2.backendCandidate.sha256,/^[a-f0-9]{64}$/);
 assert.ok(html.includes("./app.js?v="+info.servedAppBlobSha.slice(0,12)));
 });
