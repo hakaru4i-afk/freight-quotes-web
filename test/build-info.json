@@ -1,23 +1,23 @@
 {
   "environment": "staging",
-  "version": "stg47-bid-edit-79a09b8-api57",
+  "version": "stg47-carrier-status-cbc94a2-api58",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-bid-edit-79a09b8-api57",
+  "build": "stg47-carrier-status-cbc94a2-api58",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-04T18:57:25.618Z",
+  "builtAt": "2026-11-04T19:27:15.124Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Owner bid edit: preserve original route in PATCH when route input is hidden by origin/destination editor; backend v57 unchanged; published only /test/. No claim of 26/26 PASS.",
+  "stagingPatch": "Carrier: canonical round_result from archived loser/winner record overrides interim admission decision in own bids and request overview. Staging API v58; full Issue #47 acceptance remains OPEN.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "5ea066061d40e17399c50fb65ba1f11a61f51a7e",
+  "servedAppBlobSha": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 57,
+    "backendVersion": 58,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 57,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V57_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 58,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V58_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -54,7 +54,7 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "5ea066061d40e17399c50fb65ba1f11a61f51a7e"
+        "gitBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -118,6 +118,17 @@
     "backendVersion": 57,
     "scope": "quote-edit",
     "validation": "source inspection and patch assertion PASS; hosted authenticated save pending",
+    "productionChanged": false
+  },
+  "carrierOutcomeFix": {
+    "issue": 47,
+    "source": "staging freight-api v58 and test/app.js",
+    "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
+    "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
+    "endpoint": "/api/carrier",
+    "backendVersion": 58,
+    "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
+    "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
   }
 }
