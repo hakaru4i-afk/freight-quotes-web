@@ -6,7 +6,7 @@ const panel=readFileSync("test/late-bid-staging.js","utf8");
 const html=readFileSync("test/index.html","utf8");
 const info=JSON.parse(readFileSync("test/build-info.json","utf8"));
 test("late offer submit blocked unless verified active preparation",()=>{
- assert.match(js,/disabled:V\?\.carrierPolicy\?\.blocked\|\|x\|\|_\|\|!u\|\|!i\|\|!K\|\|\(re&&!window\.freightLateDraftActive\)/);
+ assert.match(js,/disabled:V\?\.carrierPolicy\?\.blocked\|\|x\|\|_\|\|!u\|\|\(V\?\.role!=="carrier"&&!i\)\|\|!K\|\|\(re&&!window\.freightLateDraftActive\)/);
  assert.match(js,/children:_\?"\\u041E\\u0442\\u043F\\u0440\\u0430\\u0432\\u043B\\u044F\\u0435\\u043C\\u2026":re&&!window\.freightLateDraftActive\?/);
 });
 test("carrier starts and cancels late preparation through authenticated canonical API",()=>{
@@ -25,9 +25,9 @@ test("staging build and source SHA are version matched",()=>{
  assert.equal(info.environment,"staging");
  assert.equal(info.projectRef,"ibclzdkxiozbzmniiygv");
  assert.equal(info.task2.backendFunction,"freight-api");
- assert.equal(info.task2.backendVersion,56);
- assert.equal(info.task2.lastObservedBackendVersion,56);
- assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V56_ACTIVE; FULL_ACCEPTANCE_PENDING");
+ assert.equal(info.task2.backendVersion,57);
+ assert.equal(info.task2.lastObservedBackendVersion,57);
+ assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V57_ACTIVE; FULL_ACCEPTANCE_PENDING");
  assert.match(js,/functions\/v1\/freight-api"/);
  assert.doesNotMatch(js,/functions\/v1\/freight-api-qa-issue47qa/);
  assert.equal(info.task2Complete,false);
