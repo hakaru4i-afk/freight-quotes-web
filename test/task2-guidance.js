@@ -104,9 +104,25 @@ function quoted(v){
  const out=safe?"'"+s:s;
  return '"'+out.replace(/"/g,'""')+'"';
 }
+const csvRussianNames={carrier:"Перевозчик",contact:"Контактное лицо",amount:"Сумма ставки",currency:"Валюта",mode:"Вид транспорта",plannedKm:"Плановый километраж (км)",pickup:"Дата забора груза",website:"Сайт",route:"Маршрут",eta:"Плановая дата прибытия",departure:"Дата отправления",arrival:"Дата прибытия",weight:"Вес (кг)",volume:"Объём (м³)",container:"Номер контейнера",containerNo:"Номер контейнера",notes:"Примечание",comment:"Комментарий",phone:"Телефон",email:"Электронная почта",status:"Статус",date:"Дата",address:"Адрес",cost:"Стоимость",distance:"Расстояние (км)",plannedDate:"Плановая дата",actualDate:"Фактическая дата"};
+function csvFieldTitle(field){
+ const key=field.name.split(".").pop();
+ const explicit=csvRussianNames[key];if(explicit)return explicit;
+ const label=field.labels?.[0]?.textContent||field.closest("label")?.textContent||field.closest(".form-field,.field,.t2-field")?.querySelector("label")?.textContent||"";
+ const cleaned=label.replace(/[\\s*]+/g," ").trim();
+ if(cleaned&&/[А-Яа-яЁё]/.test(cleaned))return cleaned.slice(0,100);
+ const spaced=key.replace(/([a-z])([A-Z])/g,"$1 $2").replace(/_/g," ");
+ return "Поле: "+spaced;
+}
+function csvFieldColumns(fields){
+ const counts=new Map();return fields.map(field=>{
+  const title=csvFieldTitle(field),count=(counts.get(title)||0)+1;counts.set(title,count);
+  return {field,title:count===1?title:title+" ("+count+")"};
+ });
+}
 function exportCSV(form){
  const fields=controls(form);
- const csv=fields.map(f=>quoted(f.name)).join(";")+"\r\n"+fields.map(f=>quoted(f.value)).join(";")+"\r\n";
+ const columns=csvFieldColumns(fields);\n const csv=columns.map(x=>quoted(x.title)).join(";")+"\r\n"+fields.map(f=>quoted(f.value)).join(";")+"\r\n";
  const u=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=u;a.download="freight-form-"+(form.id||"fields")+".csv";a.click();
  setTimeout(()=>URL.revokeObjectURL(u),8000);
@@ -190,7 +206,7 @@ function validateCsvCell(element,value,key){
 }
 async function importCSV(form,file){
  const [headers,data]=parseCSV(await file.text()),fields=controls(form);
- const known=new Map(fields.map(f=>[f.name,f]));
+ const known=new Map(fields.map(f=>[f.name,f]));\n for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
  const unknown=headers.filter(key=>!known.has(key));
  if(unknown.length)throw Error("Недоступные/неизвестные поля CSV: "+unknown.join(", ").slice(0,400));
  const changes=headers.map((key,i)=>({element:known.get(key),key,value:data[i]})).filter(x=>x.value!=="");
