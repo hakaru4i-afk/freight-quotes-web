@@ -23,7 +23,6 @@
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "d0199d5f4d58f6138008bc65213f1cc378ba41a2",
     "tablesApplied": true,
-    "qaStatus": "STAGING_PUBLISHED_PARTIAL; LIVE_CARRIER_SUBMIT_E2E_PENDING",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -97,8 +96,7 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "stg47-integrated-qa11",
-    "backendBundleSHA256": "60496dc570161365eb0c9b70fa70c69c576c210d096fe0913d300afc4c9fa270",
-    "qaContract": "v57 staging API; GitHub Pages served source must match manifest; six mocked carrier draft-start scenarios PASS; authorized live carrier submission remains unverified"
+    "backendBundleSHA256": "60496dc570161365eb0c9b70fa70c69c576c210d096fe0913d300afc4c9fa270"
   },
   "lateBidUiSha": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
