@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 const root="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
-const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-issue47qa";
+const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
 const fileNames=["index.html","build-info.json","app.js","task2-panel.js","task2-guidance.js","task2-i18n.js","late-bid-staging.js","task2.css"];
 function githubBlob(buf){return createHash("sha1").update(Buffer.from("blob "+buf.length+"\0")).update(buf).digest("hex");}
 async function load(url){
@@ -42,8 +42,8 @@ test("GitHub Pages serves the EXACT current staging files",async()=>{
   assert.equal(manifest.task2.i18n.sourceSha,githubBlob(readFileSync("test/task2-i18n.js")));
   assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
   assert.equal(manifest.task2Complete,false,"Do not falsely mark unfinished E2E as PASS");
-  assert.equal(manifest.task2.backendFunction,"freight-api-qa-issue47qa");
-  assert.equal(manifest.task2.backendVersion,11);
+  assert.equal(manifest.task2.backendFunction,"freight-api");
+  assert.equal(manifest.task2.backendVersion,53);
   console.log("PASS: exact GitHub Pages staging bytes and manifest verified");
  });
 },{timeout:135000});
