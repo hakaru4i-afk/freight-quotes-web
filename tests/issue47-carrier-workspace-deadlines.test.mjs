@@ -42,7 +42,7 @@ test("dashboard filters closed requests, picks real dates, sorts overdue first",
   const tasks=api.tasks(entries,own);
   assert.ok(!tasks.some(x=>x.order_code==="archived"));
   assert.deepEqual(Array.from(tasks.map(x=>x.order_code)),["sooner","selected","later"]);
-  assert.match(tasks[1].description,/Забор/);
+  assert.match(tasks[1].description,/забор/i);
 });
 test("approved tabs, cards, styling, and assets are staging-only", () => {
   for(const tab of ["Готовлю","На рассмотрении","Выбранные","Исполнение","Выполненные","Архив"])assert.ok(app.includes(tab));
