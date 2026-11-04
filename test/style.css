@@ -217,3 +217,52 @@ body:has(.cycle-landing){background:#f3f2ed;color:#252636}body:has(.cycle-landin
 .offer-label-alternative{background:#d4dce9;color:#283e56;border-color:#8190a7}
 .offer-label-unavailable{background:#f6b6b6;color:#702222;border-color:#c65a5a}
 @media (max-width:640px){.offer-legend{font-size:12px;padding:11px 13px}.offer-insight{max-width:100%}}
+
+
+/* STAGING Issue #47 / B10-B11 — approved My Applications dark workspace, visible deadlines.
+   The existing transport forms and navigation are kept operational below the request list. */
+.carrier-portal #carrier-orders{background:#0b1727;border:1px solid #304253;border-radius:22px;padding:clamp(16px,2.5vw,30px);color:#e4edf6}
+.carrier-portal #carrier-orders>.bar{align-items:flex-start;gap:16px;flex-wrap:wrap}
+.carrier-portal #carrier-orders>.bar h2{font-size:clamp(26px,3vw,34px);font-weight:750;margin:6px 0 0;color:#f2f6fb}
+.carrier-portal #carrier-orders>.bar .eyebrow{font-size:12px;letter-spacing:0;text-transform:none;color:#b4c6d5}
+.carrier-portal #carrier-orders>.bar h2 .quiet{color:#88a5ba;font-size:.6em}
+.carrier-portal #carrier-orders .carrier-controls{display:flex;flex-direction:column-reverse;align-items:stretch;gap:14px;margin:24px 0}
+.carrier-portal #carrier-orders .carrier-controls input{width:100%;max-width:none;background:#0f1d2d;color:#e6f2fc;border:1px solid #3e5163;border-radius:12px;padding:14px 18px;min-height:50px;font-size:14px}
+.carrier-portal #carrier-orders .carrier-controls input::placeholder{color:#a8b9c9;opacity:1}
+.carrier-portal #carrier-orders .carrier-tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding:2px 0 10px;background:transparent;gap:8px;scrollbar-width:thin;border:0}
+.carrier-portal #carrier-orders .carrier-tabs button{flex:0 0 auto;border:1px solid #405163;border-radius:10px;background:transparent;color:#cfdeed;padding:9px 12px;font-size:13px;font-weight:550;white-space:nowrap}
+.carrier-portal #carrier-orders .carrier-tabs button.active{background:#22394c;color:#f7fbff;border-color:#6ea7c1;box-shadow:inset 0 0 0 1px #6ea7c136}
+.carrier-portal #carrier-orders .carrier-tabs button:focus-visible,.carrier-portal #carrier-orders .carrier-request:focus-visible{outline:3px solid #74cae9;outline-offset:3px}
+.carrier-portal #carrier-orders .carrier-workspace{display:grid;grid-template-columns:minmax(0,1fr);gap:20px}
+.carrier-portal #carrier-orders .carrier-request-list{display:grid;grid-template-columns:minmax(0,1fr);gap:15px}
+.carrier-portal #carrier-orders .carrier-request{background:#101e30;border:1px solid #3f5368;border-radius:18px;padding:clamp(16px,2.5vw,24px);color:#dae7f4;box-shadow:none;min-width:0}
+.carrier-portal #carrier-orders .carrier-request:hover{border-color:#749eb9}
+.carrier-portal #carrier-orders .carrier-request.is-selected{background:#14263b;border-color:#6bb4d5;box-shadow:0 0 0 1px #6bb4d526}
+.carrier-portal #carrier-orders .carrier-request.is-selected:before{top:17px;bottom:17px;background:#78cbde}
+.carrier-portal #carrier-orders .carrier-request h2{margin:6px 0 5px;color:#f5f9fc;font-size:clamp(18px,2.1vw,22px);font-weight:720}
+.carrier-portal #carrier-orders .carrier-request .eyebrow{color:#8aa6bb;text-transform:none;letter-spacing:.03em;font-size:10px}
+.carrier-portal #carrier-orders .carrier-card-stage{border-radius:50px;background:#243548;border:1px solid #506276;color:#d7e5ee;padding:6px 12px;font-size:12px;font-weight:600;flex-shrink:0}
+.carrier-portal #carrier-orders .carrier-stage-archive .carrier-card-stage{background:#292d37;border-color:#565a63;color:#e4e7ed}
+.carrier-portal #carrier-orders .carrier-stage-selected .carrier-card-stage,.carrier-portal #carrier-orders .carrier-stage-execution .carrier-card-stage{background:#133d34;border-color:#386d5d;color:#b6f2de}
+.carrier-portal #carrier-orders .carrier-card-subline{color:#a9bed0!important;font-size:13px;line-height:1.5;margin:7px 0 12px}
+.carrier-portal #carrier-orders .carrier-card-route{color:#dfebf5!important;font-size:14px;line-height:1.55;overflow-wrap:anywhere;margin:12px 0}
+.carrier-portal #carrier-orders .carrier-card-deadline{background:#152c41;border:1px solid #375977;border-radius:10px;padding:10px 12px;color:#d1e8f9!important;font-size:13px;font-weight:600;line-height:1.5}
+.carrier-portal #carrier-orders .carrier-stage-archive .carrier-card-deadline{background:#202c38;border-color:#465260;color:#adbcca!important}
+.carrier-portal #carrier-orders .carrier-request .carrier-card-result{font-size:12px;line-height:1.5;font-weight:700;padding:6px 11px;border-radius:9px}
+.carrier-portal #carrier-orders .carrier-request .map-link{color:#8bdbf0;border-color:#43667d;background:#172f43;font-size:12px;padding:9px 13px}
+.carrier-portal #carrier-orders .carrier-request .request-specs{margin-top:12px}
+.carrier-portal #carrier-orders .carrier-request .small,.carrier-portal #carrier-orders .carrier-request p{overflow-wrap:anywhere}
+.carrier-portal #carrier-orders .logistics-panel{position:static;max-width:none}
+.carrier-portal #carrier-orders .carrier-request .bar{gap:10px}
+.carrier-portal .overview-card .workload-rows time{font-size:12px;font-variant-numeric:tabular-nums;white-space:normal;text-align:right;font-weight:650}
+@media(max-width:640px){
+ .carrier-portal #carrier-orders{padding:14px;border-radius:16px}
+ .carrier-portal #carrier-orders .carrier-controls{margin:18px 0}
+ .carrier-portal #carrier-orders .carrier-tabs{width:100%;justify-content:flex-start;gap:6px}
+ .carrier-portal #carrier-orders .carrier-tabs button{flex:0 0 auto;padding:8px 10px;font-size:12px}
+ .carrier-portal #carrier-orders .carrier-request{padding:16px}
+ .carrier-portal #carrier-orders .carrier-request h2{font-size:17px}
+ .carrier-portal #carrier-orders .carrier-card-stage{font-size:11px}
+ .carrier-portal .overview-card .workload-rows>a{flex-wrap:wrap}
+ .carrier-portal .overview-card .workload-rows time{width:100%;text-align:left;padding-left:20px}
+}
