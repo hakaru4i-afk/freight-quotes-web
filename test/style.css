@@ -197,3 +197,23 @@ body:has(.cycle-landing){background:#f3f2ed;color:#252636}body:has(.cycle-landin
    Do not enable until the user accepts the redesigned importer. */
 .recognition-box,
 .recognition-link{display:none!important}
+
+/* Issue #47: clearly visible, accessible offer comparison colors. The API remains the source of truth. */
+.offer-legend{background:#f2f8ff;border:1px solid #a5c7eb;color:#143147;font-size:14px;font-weight:550;line-height:1.8;padding:14px 18px 14px 20px;box-shadow:0 1px 5px #26496912}
+.offer-legend::before{content:"";display:block;height:7px;border-radius:6px;margin:0 0 12px;background:linear-gradient(90deg,#159451 0 25%,#e7a111 25% 50%,#74869b 50% 75%,#cf4949 75% 100%)}
+.offer-row-good>td{background:#d8f6e5!important;color:#173828}
+.offer-row-review>td{background:#fff0bd!important;color:#493700}
+.offer-row-alternative>td{background:#e8edf5!important;color:#243746}
+.offer-row-unavailable>td{background:#fde3e3!important;color:#602525}
+.offer-row-good>td:first-child{box-shadow:inset 6px 0 #158451}
+.offer-row-review>td:first-child{box-shadow:inset 6px 0 #be8504}
+.offer-row-alternative>td:first-child{box-shadow:inset 6px 0 #6d7d97}
+.offer-row-unavailable>td:first-child{box-shadow:inset 6px 0 #c34141}
+.offer-row-selected>td{background:#c9f2e3!important;color:#173828}
+.offer-row-selected>td:first-child{box-shadow:inset 6px 0 #067c70}
+.offer-label{font-weight:750;border:1px solid transparent;padding:6px 10px;line-height:1.45;white-space:normal}
+.offer-label-good{background:#b0efd0;color:#075c39;border-color:#42996b}
+.offer-label-review{background:#ffe18c;color:#654800;border-color:#b48712}
+.offer-label-alternative{background:#d4dce9;color:#283e56;border-color:#8190a7}
+.offer-label-unavailable{background:#f6b6b6;color:#702222;border-color:#c65a5a}
+@media (max-width:640px){.offer-legend{font-size:12px;padding:11px 13px}.offer-insight{max-width:100%}}
