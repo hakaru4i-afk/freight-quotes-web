@@ -27,7 +27,7 @@ jobs:
           node --check test/app.js
           node --check test/task2-panel.js
           node --check test/task2-guidance.js
-          node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs
+          node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs tests/issue47-agreed-roles-and-owner-registers.test.mjs
       - name: Verify staging API, anonymous access restriction, and served files
         run: |
           node --input-type=module <<'NODE'
