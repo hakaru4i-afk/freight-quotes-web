@@ -41,6 +41,17 @@ function quoteView(data){
  root.innerHTML='<h3>Поздняя ставка · '+esc(order)+'</h3><p>'+esc(blocked)+'</p>'+
    (action?'<button class="btn secondary" type="button" data-late-action="'+(active?"cancel":"start")+'" data-notification="'+esc(assigned.notification_id)+'" '+(busy?"disabled":"")+'>'+(active?"Отменить подготовку":"Начать подготовку поздней ставки")+'</button>':"")+'<p data-late-status role="status"></p>';
 }
+function carrierInboxView(data){
+ const root=locate();if(!root)return;
+ if(data.role!=="carrier"){root.hidden=true;return;}
+ const late=(data.assigned||[]).filter(i=>{
+  const deadline=Date.parse(String(i.deadline||"").replace(/(?:Z|[+-]\\d\\d:\\d\\d)$/,"")+"+03:00");
+  return Number.isFinite(deadline)&&deadline<=Date.now()&&!i.has_winner&&!i.declined&&!i.has_bid;
+ });
+ if(!late.length){root.hidden=true;return;}
+ root.hidden=false;root.style.cssText="margin:16px 0;padding:16px;border:1px solid #76c6dd;border-radius:12px;background:#102d42;color:#eafaff";
+ root.innerHTML='<h3 style="margin:0 0 8px">Просроченные ставки — подача открыта</h3><p>Пока победитель не выбран, вы можете подготовить и отправить ставку после дедлайна. Решение о её рассмотрении принимает Владелец.</p>'+late.map(i=>'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0"><strong>Заявка '+esc(i.order_code)+'</strong><a class="btn secondary" style="display:inline-block" href="?page=quote&amp;order='+encodeURIComponent(i.order_code)+'">Взять в работу</a></div>').join('');
+}
 function ownerView(data){
  const root=locate();if(!root)return;
  const active=(data.items||[]).filter(i=>i.status==="active"&&!i.winner_count);
@@ -71,6 +82,7 @@ async function refresh(){
   latest=data;
   if(quotePage)quoteView(data);
   else if(data.role==="owner")ownerView(data);
+  else if(data.role==="carrier")carrierInboxView(data);
  }catch(e){if(quotePage)window.freightLateDraftActive=false;const root=locate();if(root){root.hidden=false;status("Проверка поздних ставок: "+e.message,true);}}
  finally{refreshPending=false;}
 }
