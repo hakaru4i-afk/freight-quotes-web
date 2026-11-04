@@ -24,7 +24,8 @@ test("GitHub Pages actually serves exact staging build and assets",async()=>{
  for(const [name,sha] of assets){
   const code=await get(name+"?v="+sha);
   assert.ok(code.length>300,"Staging asset unexpectedly empty "+name);
-  if(name==="app.js") { assert.match(code,/freight-staging-ibclzdkxiozbzmniiygv-session/); assert.match(code,/freight-api-qa-issue47qa/); assert.doesNotMatch(code,/ooclsrndeygojtofuyte/); }
+  if(name==="app.js") { assert.match(code,/freight-staging-ibclzdkxiozbzmniiygv-session/); assert.match(code,/functions\/v1\/freight-api"/);
+  assert.doesNotMatch(code,/functions\/v1\/freight-api-qa-issue47qa/); assert.doesNotMatch(code,/ooclsrndeygojtofuyte/); }
   if(name==="late-bid-staging.js")assert.match(code,/api\/late-bid-drafts/);
  }
 });
