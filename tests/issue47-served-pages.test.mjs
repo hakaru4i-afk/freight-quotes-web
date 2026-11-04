@@ -24,18 +24,18 @@ test("GitHub Pages actually serves exact staging build and assets",async()=>{
  for(const [name,sha] of assets){
   const code=await get(name+"?v="+sha);
   assert.ok(code.length>300,"Staging asset unexpectedly empty "+name);
-  if(name==="app.js") { assert.match(code,/freight-qa-issue47qa-session/); assert.match(code,/freight-api-qa-issue47qa/); assert.doesNotMatch(code,/ooclsrndeygojtofuyte/); }
+  if(name==="app.js") { assert.match(code,/freight-staging-ibclzdkxiozbzmniiygv-session/); assert.match(code,/freight-api-qa-issue47qa/); assert.doesNotMatch(code,/ooclsrndeygojtofuyte/); }
   if(name==="late-bid-staging.js")assert.match(code,/api\/late-bid-drafts/);
  }
 });
 test("Staging Edge API responds without exposing protected data",async()=>{
- const baseApi="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-issue47qa";
+ const baseApi="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
  const health=await fetch(baseApi+"/health",{signal:AbortSignal.timeout(15000)});
  assert.equal(health.status,200);
  const result=await health.json();
  assert.equal(result.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(manifest.task2.backendFunction,"freight-api-qa-issue47qa");
- assert.equal(manifest.task2.backendVersion,11);
+ assert.equal(manifest.task2.backendFunction,"freight-api");
+ assert.equal(manifest.task2.backendVersion,53);
  const unauth=await fetch(baseApi+"/api/late-bid-drafts",{signal:AbortSignal.timeout(15000)});
  assert.ok([401,403].includes(unauth.status),"Anonymous API data exposure: status "+unauth.status);
 });
