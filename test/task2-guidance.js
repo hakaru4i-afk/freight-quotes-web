@@ -122,7 +122,8 @@ function csvFieldColumns(fields){
 }
 function exportCSV(form){
  const fields=controls(form);
- const columns=csvFieldColumns(fields);\n const csv=columns.map(x=>quoted(x.title)).join(";")+"\r\n"+fields.map(f=>quoted(f.value)).join(";")+"\r\n";
+ const columns=csvFieldColumns(fields);
+ const csv=columns.map(x=>quoted(x.title)).join(";")+"\r\n"+fields.map(f=>quoted(f.value)).join(";")+"\r\n";
  const u=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
  const a=document.createElement("a");a.href=u;a.download="freight-form-"+(form.id||"fields")+".csv";a.click();
  setTimeout(()=>URL.revokeObjectURL(u),8000);
@@ -206,7 +207,8 @@ function validateCsvCell(element,value,key){
 }
 async function importCSV(form,file){
  const [headers,data]=parseCSV(await file.text()),fields=controls(form);
- const known=new Map(fields.map(f=>[f.name,f]));\n for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
+ const known=new Map(fields.map(f=>[f.name,f]));
+ for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
  const unknown=headers.filter(key=>!known.has(key));
  if(unknown.length)throw Error("Недоступные/неизвестные поля CSV: "+unknown.join(", ").slice(0,400));
  const changes=headers.map((key,i)=>({element:known.get(key),key,value:data[i]})).filter(x=>x.value!=="");
