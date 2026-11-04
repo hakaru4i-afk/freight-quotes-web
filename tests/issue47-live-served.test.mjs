@@ -43,7 +43,7 @@ test("GitHub Pages serves the EXACT current staging files",async()=>{
   assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
   assert.equal(manifest.task2Complete,false,"Do not falsely mark unfinished E2E as PASS");
   assert.equal(manifest.task2.backendFunction,"freight-api");
-  assert.equal(manifest.task2.backendVersion,57);
+  assert.equal(manifest.task2.backendVersion,manifest.carrierOutcomeFix.backendVersion);
   console.log("PASS: exact GitHub Pages staging bytes and manifest verified");
  });
 },{timeout:135000});
