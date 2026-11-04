@@ -1,16 +1,16 @@
 {
   "environment": "staging",
-  "version": "stg47-cabinets-ded5da7be652",
+  "version": "stg47-cabinets-4e051a4f69da",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-cabinets-ded5da7be652",
+  "build": "stg47-cabinets-4e051a4f69da",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-03T16:57:37Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
   "stagingPatch": "Task #2 unified execution and role workflows; read-only contract for awarded bid; tracked server-backed document requests, dates, PТО, claims and container closure; staging only; CSV exact-value import validation and actual container close feedback; current-round winner guard in staging API v45",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
-  "servedAppBlobSha": "ded5da7be652d81e9ef5e8a0a11dc4ce36048791",
+  "servedAppBlobSha": "4e051a4f69da24e35ac9de96792212cdcf20ed17",
   "sourceHashNote": "Legacy task1 bundle provenance retained. Task2 candidate component hashes are authoritative for this unmerged, unpublished branch. No task1 source branch merged.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "ded5da7be652d81e9ef5e8a0a11dc4ce36048791",
-        "sha256": "3eb44ea169a98238d07bf7cf5402a4edbbc765a6e7d4763eb5b88be401a8ab83"
+        "gitBlob": "4e051a4f69da24e35ac9de96792212cdcf20ed17",
+        "sha256": "289672c9b92d6c8511b40f39085f890f5b40464aa5515a4cb4f6d27669114606"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
