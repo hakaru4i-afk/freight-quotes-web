@@ -1,5 +1,5 @@
 {
-  "version": "stg47-cabinets-4e051a4f69da",
+  "version": "stg47-cabinets-d1288260945e",
   "status": "NOT_PUBLISHED",
   "privateBackend": {
     "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -8,8 +8,8 @@
   },
   "frontendComponents": {
     "app.js": {
-      "gitBlob": "4e051a4f69da24e35ac9de96792212cdcf20ed17",
-      "sha256": "289672c9b92d6c8511b40f39085f890f5b40464aa5515a4cb4f6d27669114606"
+      "gitBlob": "d1288260945e0998546c053cc2452dad5682268f",
+      "sha256": "ef37bde08896b6effd9076b346a2da4c78bb7e39203fd5db95b7ea9552bd5a73"
     },
     "task2-panel.js": {
       "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
