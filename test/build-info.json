@@ -23,6 +23,7 @@
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "d0199d5f4d58f6138008bc65213f1cc378ba41a2",
     "tablesApplied": true,
+    "qaStatus": "PUBLISHED_STAGING_PARTIAL",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
