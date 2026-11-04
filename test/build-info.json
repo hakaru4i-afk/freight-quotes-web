@@ -17,20 +17,20 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api-qa-issue47qa",
-    "backendVersion": null,
+    "backendVersion": 11,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "14b308f6661001736fbae0425776108337f130c8",
     "tablesApplied": true,
-    "qaStatus": "LOCAL_POSTGRES_AND_SYNTHETIC_STORAGE_BROWSER_PASS; HOSTED_END_TO_END_PENDING",
+    "qaStatus": "ISOLATED_QA_API_V11_ACTIVE; PUBLIC_PAGES_E2E_PENDING; TASK2_PARTIAL",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
     "backendSourceCommit": "a54db33672eba4b766a2511672e5708def311ce9",
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
-    "backendIsolation": "staging-only Supabase freight-api v52, no production changes",
+    "backendIsolation": "freight_qa_issue47qa (isolated QA), production untouched",
     "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
     "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 52,
-    "backendDeploymentStatus": "NOT_DEPLOYED",
+    "lastObservedBackendVersion": 11,
+    "backendDeploymentStatus": "ACTIVE_QA_V11_NOT_FULL_E2E",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -97,7 +97,8 @@
     "legacyGatewayGuardRequired": true,
     "uploadRetriesAndCompensation": "local PostgreSQL/browser verified; real Storage pending",
     "actRevisionGuard": true,
-    "lifecycleGuard": true
+    "lifecycleGuard": true,
+    "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde"
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
   "candidateStatus": "UNPUBLISHED; do not merge until hosted API/role E2E and remaining requirements pass",
@@ -106,5 +107,6 @@
     "observedVersion": 11,
     "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "build": "issue47qa-draft-lock-v11"
-  }
+  },
+  "releaseNotes": "Publication requested 2026-11-04; staging frontend only, QA API v11, 26/26 requirements still PARTIAL"
 }
