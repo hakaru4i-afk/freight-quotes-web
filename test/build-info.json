@@ -103,7 +103,8 @@
   "candidateStatus": "UNPUBLISHED; do not merge until hosted API/role E2E and remaining requirements pass",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
-    "observedVersion": 7,
-    "bundleSha256": "67e064d565307c1d65b2b714b998f8b886367a0d1522c2f03b6e37c5adf9de17"
+    "observedVersion": 11,
+    "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
+    "build": "issue47qa-draft-lock-v11"
   }
 }
