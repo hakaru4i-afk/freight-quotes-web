@@ -1,37 +1,37 @@
 {
   "environment": "staging",
-  "version": "stg47-roles-b25f01b9-api53",
+  "version": "stg47-roles-b25f01b9-api56",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-roles-b25f01b9-api53",
+  "build": "stg47-roles-b25f01b9-api56",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-03T16:57:37Z",
+  "builtAt": "2026-11-04T13:26:34.632983+00:00",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
   "stagingPatch": "Separate role titles (without inventing business processes), private Owner-visible registers, shared-staging auth preserved.",
   "patchSourceBranch": "fix/issue47-complete-staging",
-  "patchSourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
+  "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
   "servedAppBlobSha": "b25f01b91d63c9631aeb09f82f968dd818859c0f",
-  "sourceHashNote": "Legacy task1 bundle provenance retained. Task2 candidate component hashes are authoritative for this unmerged, unpublished branch. No task1 source branch merged.",
+  "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 53,
+    "backendVersion": 56,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "14b308f6661001736fbae0425776108337f130c8",
     "tablesApplied": true,
-    "qaStatus": "OWNER_ROLE_NAMES_AND_REGISTERS_RELEASE_CANDIDATE; 26 REQUIREMENTS PARTIAL",
+    "qaStatus": "PUBLISHED_STAGING_PARTIAL",
     "manualAcceptance": "PENDING",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "a54db33672eba4b766a2511672e5708def311ce9",
+    "backendSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
-    "lateBidApi": "freight-api v47 (/api/late-bid-drafts), staging only",
+    "lateBidApi": "freight-api v56",
     "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 53,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V53_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 56,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V56_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "bfcc6ad975971775a56dfd07043f53569e53a1b5",
-        "sha256": "f77f542c58066fc0062d77605acb40d6cfa4605211233194cef4e721749c7c34"
+        "gitBlob": "b25f01b91d63c9631aeb09f82f968dd818859c0f",
+        "sha256": "767de639568caa8dd325e86cbc485db1a36a38e6a7ed9f94fd47ddfdebc8f548"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -98,10 +98,12 @@
     "uploadRetriesAndCompensation": "local PostgreSQL/browser verified; real Storage pending",
     "actRevisionGuard": true,
     "lifecycleGuard": true,
-    "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde"
+    "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
+    "backendBuild": "stg47-integrated-qa11",
+    "backendBundleSHA256": "01c1f38da7b13d41a26c25195fb73e249d1e6bb123fb1467b61cec14724fea4a"
   },
   "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
-  "candidateStatus": "UNPUBLISHED; do not merge until hosted API/role E2E and remaining requirements pass",
+  "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
     "observedVersion": 11,

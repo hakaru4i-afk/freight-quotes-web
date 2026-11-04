@@ -15,12 +15,12 @@ assert.ok(!scope.includes('r("textarea",{required:!0,minLength:10'));
 assert.ok(scope.includes('"/api/offer-selection"'));
 assert.ok(scope.includes("bidId:i.id"));
 });
-test("staging QA candidate cache bust matches app and reports actual isolated API",()=>{
+test("staging QA candidate cache bust matches app and reports actual shared staging API",()=>{
 assert.equal(info.environment,"staging");
 assert.equal(info.task2Complete,false);
-assert.equal(info.task2.lastObservedBackendVersion,53);
-assert.equal(info.task2.backendVersion,53);
-assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V53_ACTIVE; FULL_ACCEPTANCE_PENDING");
+assert.equal(info.task2.lastObservedBackendVersion,56);
+assert.equal(info.task2.backendVersion,56);
+assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V56_ACTIVE; FULL_ACCEPTANCE_PENDING");
 assert.equal(info.task2.backendFunction,"freight-api");
 assert.match(s,/functions\/v1\/freight-api"/);
 assert.doesNotMatch(s,/functions\/v1\/freight-api-qa-issue47qa/);

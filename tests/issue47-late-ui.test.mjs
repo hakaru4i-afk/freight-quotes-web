@@ -25,9 +25,9 @@ test("staging build and source SHA are version matched",()=>{
  assert.equal(info.environment,"staging");
  assert.equal(info.projectRef,"ibclzdkxiozbzmniiygv");
  assert.equal(info.task2.backendFunction,"freight-api");
- assert.equal(info.task2.backendVersion,53);
- assert.equal(info.task2.lastObservedBackendVersion,53);
- assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V53_ACTIVE; FULL_ACCEPTANCE_PENDING");
+ assert.equal(info.task2.backendVersion,56);
+ assert.equal(info.task2.lastObservedBackendVersion,56);
+ assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V56_ACTIVE; FULL_ACCEPTANCE_PENDING");
  assert.match(js,/functions\/v1\/freight-api"/);
  assert.doesNotMatch(js,/functions\/v1\/freight-api-qa-issue47qa/);
  assert.equal(info.task2Complete,false);

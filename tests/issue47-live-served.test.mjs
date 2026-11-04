@@ -43,7 +43,7 @@ test("GitHub Pages serves the EXACT current staging files",async()=>{
   assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
   assert.equal(manifest.task2Complete,false,"Do not falsely mark unfinished E2E as PASS");
   assert.equal(manifest.task2.backendFunction,"freight-api");
-  assert.equal(manifest.task2.backendVersion,53);
+  assert.equal(manifest.task2.backendVersion,56);
   console.log("PASS: exact GitHub Pages staging bytes and manifest verified");
  });
 },{timeout:135000});
@@ -52,6 +52,7 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  assert.equal(health.status,200);
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
+ assert.equal(h.build,"stg47-integrated-qa11");
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
   assert.ok([401,403].includes(resp.status),"Anonymous "+route+" returned "+resp.status);
