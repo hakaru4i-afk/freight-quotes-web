@@ -1,27 +1,27 @@
 {
   "environment": "staging",
-  "version": "stg47-roles-b25f01b9-api56",
+  "version": "stg47-compare-bd94230-api57",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-roles-b25f01b9-api56",
+  "build": "stg47-compare-bd94230-api57",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-04T13:26:34.632983+00:00",
+  "builtAt": "2026-11-04T14:48:46.000Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Separate role titles (without inventing business processes), private Owner-visible registers, shared-staging auth preserved.",
+  "stagingPatch": "Authorized carrier quote form no longer depends on owner deep-link token; Bitrix field inherited from source; Owner offer comparison colors stronger and price/time methodology explained. Pending hosted E2E.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "b25f01b91d63c9631aeb09f82f968dd818859c0f",
+  "servedAppBlobSha": "bd94230bed66277f6bfe61858f4811e3f557439c",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 56,
+    "backendVersion": 57,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
-    "guidanceSha": "14b308f6661001736fbae0425776108337f130c8",
+    "guidanceSha": "d0199d5f4d58f6138008bc65213f1cc378ba41a2",
     "tablesApplied": true,
     "qaStatus": "PUBLISHED_STAGING_PARTIAL",
     "manualAcceptance": "PENDING",
@@ -31,8 +31,8 @@
     "backendSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
-    "lateBidApi": "freight-api v56",
-    "stagingBuildNote": "Task2 JS SHA in HTML matches actual Git blob; authenticated E2E still pending",
+    "lateBidApi": "freight-api v57",
+    "stagingBuildNote": "Source UI+API checked. GitHub Pages deployment needs served confirmation. Full authenticated E2E remains pending.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 56,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V56_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 57,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V57_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -54,8 +54,7 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "b25f01b91d63c9631aeb09f82f968dd818859c0f",
-        "sha256": "767de639568caa8dd325e86cbc485db1a36a38e6a7ed9f94fd47ddfdebc8f548"
+        "gitBlob": "bd94230bed66277f6bfe61858f4811e3f557439c"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -70,12 +69,10 @@
         "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
       },
       "task2-guidance.js": {
-        "gitBlob": "14b308f6661001736fbae0425776108337f130c8",
-        "sha256": "55f9d7d9e62629ad31b08c65e12ca4119c2078839e00877924acb947cc9e4790"
+        "gitBlob": "d0199d5f4d58f6138008bc65213f1cc378ba41a2"
       },
       "late-bid-staging.js": {
-        "gitBlob": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
-        "sha256": "96f1a7de01a0fbb2308277cb51d33bc47274f97cb0ea3015c66e813b6222051d"
+        "gitBlob": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3"
       },
       "task2.css": {
         "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
@@ -100,9 +97,9 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "stg47-integrated-qa11",
-    "backendBundleSHA256": "01c1f38da7b13d41a26c25195fb73e249d1e6bb123fb1467b61cec14724fea4a"
+    "backendBundleSHA256": "60496dc570161365eb0c9b70fa70c69c576c210d096fe0913d300afc4c9fa270"
   },
-  "lateBidUiSha": "e37e3a32adbcc67caec11a4d78eb43530f5f0933",
+  "lateBidUiSha": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
@@ -110,5 +107,5 @@
     "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "build": "issue47qa-draft-lock-v11"
   },
-  "releaseNotes": "Publication requested 2026-11-04; staging frontend only, QA API v11, 26/26 requirements still PARTIAL"
+  "releaseNotes": "2026-11-04: staging-only late rate submission v57 and Owner color/criteria comparison; schema unchanged; end-to-end QA and 26/26 acceptance pending."
 }
