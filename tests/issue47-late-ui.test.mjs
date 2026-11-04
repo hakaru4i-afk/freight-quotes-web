@@ -5,9 +5,12 @@ const js=readFileSync("test/app.js","utf8");
 const panel=readFileSync("test/late-bid-staging.js","utf8");
 const html=readFileSync("test/index.html","utf8");
 const info=JSON.parse(readFileSync("test/build-info.json","utf8"));
-test("late offer submit blocked unless verified active preparation",()=>{
- assert.match(js,/disabled:V\?\.carrierPolicy\?\.blocked\|\|x\|\|_\|\|!u\|\|\(V\?\.role!=="carrier"&&!i\)\|\|!K\|\|\(re&&!window\.freightLateDraftActive\)/);
- assert.match(js,/children:_\?"\\u041E\\u0442\\u043F\\u0440\\u0430\\u0432\\u043B\\u044F\\u0435\\u043C\\u2026":re&&!window\.freightLateDraftActive\?/);
+test("assigned carrier late offer has enabled submit and starts the verified preparation before POST",()=>{
+ assert.match(js,/disabled:V\\?\\.carrierPolicy\\?\\.blocked\\|\\|x\\|\\|_\\|\\|!u\\|\\|\\(V\\?\\.role!=="carrier"&&\\(!i\\|\\|!K\\)\\)/);
+ assert.doesNotMatch(js,/disabled:[^,]*re&&!window\\.freightLateDraftActive/);
+ assert.match(js,/freightPrepareLateOnSubmit\\(h,source\\.round_id\\)/);
+ assert.match(js,/action:"start",order,notificationId:assigned\\.notification_id/);
+ assert.match(js,/state\\.role!=="carrier"/);
 });
 test("carrier starts and cancels late preparation through authenticated canonical API",()=>{
  assert.match(panel,/fetch\("\/api\/late-bid-drafts"/);
