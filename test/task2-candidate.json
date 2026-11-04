@@ -1,5 +1,5 @@
 {
-  "version": "stg47-consolidated-7666ba3ec41c",
+  "version": "stg47-cabinets-ded5da7be652",
   "status": "NOT_PUBLISHED",
   "privateBackend": {
     "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -8,8 +8,8 @@
   },
   "frontendComponents": {
     "app.js": {
-      "gitBlob": "63de4b9099a79174227eae0b26512265f1793824",
-      "sha256": "7b839bfe17c06cc60d38e40548e5293344eab31c15635659bc58026ef2e7d429"
+      "gitBlob": "ded5da7be652d81e9ef5e8a0a11dc4ce36048791",
+      "sha256": "3eb44ea169a98238d07bf7cf5402a4edbbc765a6e7d4763eb5b88be401a8ab83"
     },
     "task2-panel.js": {
       "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -37,5 +37,10 @@
     }
   },
   "productionChanged": false,
-  "task2Complete": false
+  "task2Complete": false,
+  "isolatedQaApi": {
+    "function": "freight-api-qa-issue47qa",
+    "observedVersion": 6,
+    "bundleSha256": "1729fa18a3501b5e2872d3ed4c2290818dde80226190dd9ea1191787dbe86fbb"
+  }
 }
