@@ -1,16 +1,16 @@
 {
   "environment": "staging",
-  "version": "stg47-compare-bd94230-api57",
+  "version": "stg47-late-submit-a4d52fd-api57",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-compare-bd94230-api57",
+  "build": "stg47-late-submit-a4d52fd-api57",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-04T14:48:46.000Z",
+  "builtAt": "2026-11-04T15:00:00Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Authorized carrier quote form no longer depends on owner deep-link token; Bitrix field inherited from source; Owner offer comparison colors stronger and price/time methodology explained. Pending hosted E2E.",
+  "stagingPatch": "Late bid form submit no longer disabled by stale global; canonical API starts draft on submit and validates assignment/current round; release journal dynamically uses test/site-status.json. API v57. Staging-only, auth E2E open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "bd94230bed66277f6bfe61858f4811e3f557439c",
+  "servedAppBlobSha": "a4d52fd23abdc96e88015a1520e2765ae1b27e4d",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -32,7 +32,7 @@
     "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v57",
-    "stagingBuildNote": "Source UI+API checked. GitHub Pages deployment needs served confirmation. Full authenticated E2E remains pending.",
+    "stagingBuildNote": "Staging code patched, Pages deployment and authorized E2E verification required for acceptance.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
@@ -54,7 +54,7 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "bd94230bed66277f6bfe61858f4811e3f557439c"
+        "gitBlob": "a4d52fd23abdc96e88015a1520e2765ae1b27e4d"
       },
       "task2-panel.js": {
         "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
@@ -107,5 +107,5 @@
     "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "build": "issue47qa-draft-lock-v11"
   },
-  "releaseNotes": "2026-11-04: staging-only late rate submission v57 and Owner color/criteria comparison; schema unchanged; end-to-end QA and 26/26 acceptance pending."
+  "releaseNotes": "2026-11-04 #47: late bid send enabled through authenticated draft start; live updates journal; price/time color comparison; 26/26 NOT PASS"
 }
