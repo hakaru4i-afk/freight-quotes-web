@@ -37,7 +37,7 @@ test("Staging Edge API responds without exposing protected data",async()=>{
  assert.equal(result.projectRef,"ibclzdkxiozbzmniiygv");
  assert.equal(result.build,manifest.task2.backendBuild);
  assert.equal(manifest.task2.backendFunction,"freight-api");
- assert.equal(manifest.task2.backendVersion,56);
+ assert.equal(manifest.task2.backendVersion,57);
  const unauth=await fetch(baseApi+"/api/late-bid-drafts",{signal:AbortSignal.timeout(15000)});
  assert.ok([401,403].includes(unauth.status),"Anonymous API data exposure: status "+unauth.status);
 });
