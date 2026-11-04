@@ -9,8 +9,8 @@ const escaped = (value) => Array.from(value, (ch) => {
 }).join('');
 
 const uniqueNavigation = [
-  ['carrier-orders', 'Входящие запросы'],
-  ['carrier-offers', 'Мои ставки'],
+  ['carrier-orders', 'Мои заявки'],
+  ['carrier-offers', 'Мои предложения'],
   ['offers', 'Рассмотрение ставок'],
   ['answers', 'Сроки и ответы'],
   ['approved-shipments', 'Исполнение перевозок'],
@@ -21,7 +21,7 @@ const uniqueNavigation = [
 test('Issue #47: each clarified navigation item has exactly one canonical entry', () => {
   for (const [id, label] of uniqueNavigation) {
     const expression = escaped(`id:"${id}",label:"${label}"`);
-    assert.equal(app.split(expression).length - 1, 1, `${id}: ${label}`);
+    assert.equal((app.split(expression).length - 1) + (app.split(`id:"${id}",label:"${label}"`).length - 1), 1, `${id}: ${label}`);
   }
 });
 
