@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import vm from "node:vm";
 
 const src = fs.readFileSync("test/app.js", "utf8");
 const prod = fs.readFileSync("app.js", "utf8");
@@ -23,4 +24,19 @@ test("carrier offer status prioritizes final round outcome over bid admission", 
 test("staging script cache bust matches recorded artifact", () => {
   assert.equal(info.environment, "staging");
   assert.ok(html.includes("./app.js?v=" + info.servedAppBlobSha.slice(0,12)));
+});
+
+test("historical pending bid cannot override losing/declined archived round", () => {
+  const start=src.indexOf("function issue47CarrierBidStatus(x)");
+  const end=src.indexOf(";function V0(", start);
+  assert.ok(start>=0 && end>start, "status helper scope remains recognizable");
+
+  const status=runInNewContext(src.slice(start,end+1)+";issue47CarrierBidStatus",{});
+  assert.equal(status({round_result:"lost",decision:"pending"}),"Не выбран · архив");
+  assert.equal(status({round_result:"lost",decision:"accepted",selected_offer:{bid_id:"stale"}}),"Не выбран · архив");
+  assert.equal(status({round_result:"declined",decision:"accepted"}),"Отказался · архив");
+  assert.equal(status({round_result:"no_response",decision:"pending"}),"Нет ответа · архив");
+  assert.equal(status({round_result:"winner",decision:"accepted"}),"Победитель");
+  assert.equal(status({decision:"pending"}),"Ожидает решения Владельца");
+  assert.equal(status({decision:"accepted"}),"Допущена к рассмотрению");
 });
