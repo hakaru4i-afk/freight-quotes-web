@@ -1,9 +1,9 @@
 {
   "environment": "staging",
-  "version": "stg47-owner-offer-review-api62-task2asset260ba",
+  "version": "stg47-owner-review-api62-versioned-core-js",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-owner-offer-review-api62-task2asset260ba",
+  "build": "stg47-owner-review-api62-versioned-core-js",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
@@ -20,8 +20,8 @@
     "backendVersion": 62,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
-    "guidanceScript": "task2-guidance.js",
-    "guidanceSha": "d0199d5f4d58f6138008bc65213f1cc378ba41a2",
+    "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
+    "guidanceSha": "42dc6ccc8a207ed9b0f1b9196ce935a5ed801ad1",
     "tablesApplied": true,
     "qaStatus": "READY_FOR_OWNER_MANUAL_QA_NOT_ACCEPTED",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
@@ -235,5 +235,6 @@
     ],
     "publication": "API ACTIVE, Pages CI verification pending",
     "acceptance": "PENDING AUTHENTICATED OWNER E2E"
-  }
+  },
+  "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js"
 }
