@@ -6,6 +6,7 @@ on:
       - 'test/task2-guidance.js'
       - 'test/carrier-csv-wps-hotfix.js'
       - 'tests/issue47-carrier-xlsx.test.mjs'
+      - 'tests/issue47-insurance-excel-import.test.mjs'
       - '.github/workflows/issue47-excel-qa.yml'
   workflow_dispatch:
 jobs:
@@ -15,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate native XLSX export, field columns, and carrier Excel UI
-        run: node --test tests/issue47-carrier-xlsx.test.mjs
+        run: node --test tests/issue47-carrier-xlsx.test.mjs tests/issue47-insurance-excel-import.test.mjs
       - name: Validate Excel using independent Python ZIP and XML readers
         run: |
           python3 - <<'PY'
@@ -48,7 +49,7 @@ jobs:
                 fetch(base+'task2-guidance.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
                 fetch(base+'carrier-csv-wps-hotfix.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text())
               ]);
-              if(html.includes('task2-guidance.js?v=8af294e1fe35') &&
+              if(html.includes('task2-guidance.js?v=66cb31663137') &&
                  html.includes('carrier-csv-wps-hotfix.js?v=1e867d941474') &&
                  guide.includes('Скачать Excel-шаблон') &&
                  guide.includes('freight-form-') &&
