@@ -1,9 +1,9 @@
 {
   "environment": "staging",
-  "version": "stg47-owner-review-api62-versioned-core-js",
+  "version": "stg47-owner-review-api63-versioned-core-js",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-owner-review-api62-versioned-core-js",
+  "build": "stg47-owner-review-api63-versioned-core-js",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 62,
+    "backendVersion": 63,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 62,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V62_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 63,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V63_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -97,8 +97,8 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "stg47-integrated-qa11",
-    "backendBundleSHA256": "0eae0441ca3960adef7a33556a8391b4ed6d85ea0fe357b70469780720e61674",
-    "backendActiveBundleSha256": "0eae0441ca3960adef7a33556a8391b4ed6d85ea0fe357b70469780720e61674",
+    "backendBundleSHA256": "04cb7fa111447f07dc3d09457797dd7cfbb0676bce771d3dd76668014a029eee",
+    "backendActiveBundleSha256": "04cb7fa111447f07dc3d09457797dd7cfbb0676bce771d3dd76668014a029eee",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -162,7 +162,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 62,
+    "backendVersion": 63,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -176,7 +176,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 62,
+    "apiVersion": 63,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -226,14 +226,16 @@
     "winnerCount": "one per round",
     "checks": "CI pending; authenticated owner E2E pending",
     "productionChanged": false,
-    "backendVersion": 62,
-    "backendBundleSha256": "0eae0441ca3960adef7a33556a8391b4ed6d85ea0fe357b70469780720e61674",
+    "backendVersion": 63,
+    "backendBundleSha256": "04cb7fa111447f07dc3d09457797dd7cfbb0676bce771d3dd76668014a029eee",
     "serverGuards": [
       "no bid re-review after winner or stale/annulled round",
       "no owner participation approval after winner",
-      "owner participation approval requires bid.decision=accepted"
+      "owner participation approval requires bid.decision=accepted",
+      "carrier acceptance denied after winner even before deadline",
+      "non-idempotent quote submission after winner returns HTTP 409 before DB trigger"
     ],
-    "publication": "API ACTIVE, Pages CI verification pending",
+    "publication": "staging API v63 active; UI bundle unchanged, CI pending",
     "acceptance": "PENDING AUTHENTICATED OWNER E2E"
   },
   "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js"
