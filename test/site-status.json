@@ -1,5 +1,5 @@
 {
-  "version": "stg47-owner-offer-review-api62",
+  "version": "stg47-owner-offer-review-api62-task2asset260ba",
   "maintenance": false,
   "environment": "staging",
   "release": {
@@ -199,7 +199,7 @@
       "oldPath": "task2-panel.js",
       "newPath": "task2-panel-260ba5a1c29f.js",
       "blobSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
-      "expected": "CI pending",
+      "expected": "REDEPLOYING_VERSIONED_BUILD; live hash CI pending",
       "productionChanged": false
     }
   },
