@@ -1,5 +1,5 @@
 {
-  "version": "stg47-annulled-quote-guard-api61",
+  "version": "stg47-owner-offer-review-api62",
   "maintenance": false,
   "environment": "staging",
   "release": {
@@ -14,7 +14,8 @@
       "26-групповая пошаговая инструкция ручной приёмки находится в закрытом репозитории в docs/registries/MANUAL_QA_20261105_TASK1_TASK2.md.",
       "НЕ ПРИНЯТО: 26/26 полного авторизованного E2E и реальный совместимый откат/восстановление. Production не изменялся.",
       "05.11.2026 — Ручная проверка перевозчика: Excel распознан, 1 поздняя ставка по заявке №32 отправлена, запись 447A4E7B; сценарий отправки PASS. Полная цепочка Owner/SL остаётся на проверке.",
-      "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN."
+      "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN.",
+      "05.11.2026 — Исправлено «Рассмотрение ставок» (Issue #47/#35): по заказам 12, 32 и C26EM080961 SQL подтвердил по одному победителю и 4 архивным участникам. После выбора победителя скрыты повторный выбор и учёт/неучёт ставок; API v62 дополнительно блокирует изменение допуска в закрытом раунде, запрещает согласование участия без уже принятой ставки. Обоснование Владельца остаётся необязательным. Исправлены статусы и FAQ. Production не менялся; авторизованная сквозная QA остаётся OPEN."
     ]
   },
   "releases": [
@@ -30,7 +31,8 @@
         "26-групповая пошаговая инструкция ручной приёмки находится в закрытом репозитории в docs/registries/MANUAL_QA_20261105_TASK1_TASK2.md.",
         "НЕ ПРИНЯТО: 26/26 полного авторизованного E2E и реальный совместимый откат/восстановление. Production не изменялся.",
         "05.11.2026 — Ручная проверка перевозчика: Excel распознан, 1 поздняя ставка по заявке №32 отправлена, запись 447A4E7B; сценарий отправки PASS. Полная цепочка Owner/SL остаётся на проверке.",
-        "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN."
+        "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN.",
+        "05.11.2026 — Исправлено «Рассмотрение ставок» (Issue #47/#35): по заказам 12, 32 и C26EM080961 SQL подтвердил по одному победителю и 4 архивным участникам. После выбора победителя скрыты повторный выбор и учёт/неучёт ставок; API v62 дополнительно блокирует изменение допуска в закрытом раунде, запрещает согласование участия без уже принятой ставки. Обоснование Владельца остаётся необязательным. Исправлены статусы и FAQ. Production не менялся; авторизованная сквозная QA остаётся OPEN."
       ]
     },
     {
@@ -179,9 +181,9 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-05T18:34:00Z",
+  "updatedAt": "2026-11-05T18:54:00Z",
   "stagingVerification": {
-    "scope": "01/26 not claimed; rate from Excel order 32 manual PASS; annulled order 76 API filtering verified by read-only SQL and API v61 source, authenticated post-deploy browser QA pending; other scenarios unresolved.",
+    "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,C26EM080961 each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED",
     "cronDeadline": {
@@ -219,5 +221,26 @@
     "frontendCommit": "3cd31c5562b693aa6d70cc4e1b6cd8adc5a3a2e8",
     "verification": "READ_ONLY_SQL_FILTER_PASS; CI_REGRESSION_PASS; FULL_AUTHENTICATED_BROWSER_PENDING",
     "productionChanged": false
+  },
+  "ownerOfferReviewFix": {
+    "issue": 47,
+    "relatedIssue": 35,
+    "frontendCommit": "5a11224d226e74b83b9033feee9c7e6dbb9b5f1c",
+    "backendVersion": 62,
+    "backendSha256": "0eae0441ca3960adef7a33556a8391b4ed6d85ea0fe357b70469780720e61674",
+    "findings": [
+      "obsolete winner buttons for completed rounds",
+      "re-review buttons on archived bids",
+      "participation approval allowed before accepted quote",
+      "FAQ falsely claimed re-selection and mandatory rationale"
+    ],
+    "fixes": [
+      "one chosen bid, losers archive displayed",
+      "owner bid decisions locked once round has winner",
+      "owner participation requires accepted quote",
+      "reason remains optional",
+      "staging-only, no production change"
+    ],
+    "status": "CODE_DEPLOYED; SOURCE_AND_CI_CHECKS; AUTH E2E PENDING"
   }
 }
