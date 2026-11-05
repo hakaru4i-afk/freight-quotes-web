@@ -4,6 +4,12 @@ on:
     paths:
       - 'tests/issue47-live-mobile.test.mjs'
       - '.github/workflows/issue47-live-mobile.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'test/**'
+      - 'tests/issue47-live-mobile.test.mjs'
+      - '.github/workflows/issue47-live-mobile.yml'
   workflow_dispatch:
 permissions:
   contents: read
