@@ -40,4 +40,10 @@ test("Issue 47: XLSX archive contains one distinct cell per form field", async (
   assert.match(worksheet,/ООО &amp; Сыновья; Иванов/);
   assert.match(worksheet,/-100\.50/);
   assert.match(entries.get("xl/workbook.xml"),/Ставка перевозчика/);
+  const styles=entries.get("xl/styles.xml");
+  assert.match(styles,/color rgb="FF20332E"/);
+  assert.doesNotMatch(styles,/patternType="solid"/);
+  assert.doesNotMatch(worksheet,/<autoFilter/);
+  assert.match(styles,/wrapText="1"/);
+
 });
