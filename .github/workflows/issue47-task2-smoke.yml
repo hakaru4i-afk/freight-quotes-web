@@ -11,6 +11,7 @@ on:
       - 'test/task2-panel.js'
       - 'test/task2-panel-*.js'
       - 'test/task2-guidance.js'
+      - 'test/task2-guidance-*.js'
       - 'test/task2.css'
       - 'test/index.html'
       - 'test/build-info.json'
@@ -40,7 +41,7 @@ jobs:
           import {readFileSync} from 'node:fs';
           import {createHash} from 'node:crypto';
           const manifest=JSON.parse(readFileSync('test/build-info.json','utf8'));
-          const expected=manifest.task2.frontendSha,asset=manifest.task2.frontendScript;
+          const expected=manifest.task2.frontendSha,asset=manifest.task2.frontendScript,guideAsset=manifest.task2.guidanceScript;
           const url='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
           const web='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
           const r=await fetch(url+'/health');
@@ -57,9 +58,9 @@ jobs:
               fetch(web+'index.html?smoke='+i).then(r=>r.text()),
               fetch(web+asset+'?smoke='+i),
               fetch(web+'task2.css?smoke='+i),
-              fetch(web+'task2-guidance.js?smoke='+i)
+              fetch(web+guideAsset+'?smoke='+i)
             ]);
-            if(html.includes(asset)&&html.includes('task2-guidance.js')&&js.ok&&css.ok&&guidance.ok){
+            if(html.includes(asset)&&html.includes(guideAsset)&&js.ok&&css.ok&&guidance.ok){
               const body=await js.text();
               const b=Buffer.from(body,'utf8');
               const sha=createHash('sha1').update(Buffer.concat([Buffer.from('blob '+b.length),Buffer.from([0]),b])).digest('hex');

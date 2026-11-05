@@ -17,16 +17,16 @@ test("GitHub Pages actually serves exact staging build and assets",async()=>{
    await new Promise(r=>setTimeout(r,12000));
  }
  assert.ok(found,"Staging Pages serving old manifest or old JS after 144s; do not mark released");
- assert.match(html,/late-bid-staging\.js\?v=[a-f0-9]{12}/);
+ assert.ok(html.includes(manifest.lateBidUiScript+"?v="+manifest.lateBidUiSha.slice(0,12)));
  assert.ok(html.includes(manifest.task2.frontendScript+"?v="+manifest.task2.frontendSha.slice(0,12)));
  assert.ok(!html.includes("ooclsrndeygojtofuyte"),"Production Supabase must never be on staging page");
- const assets=[["app.js",manifest.servedAppBlobSha.slice(0,12)],["late-bid-staging.js",manifest.lateBidUiSha.slice(0,12)],[manifest.task2.frontendScript,manifest.task2.frontendSha.slice(0,12)]];
+ const assets=[["app.js",manifest.servedAppBlobSha.slice(0,12)],[manifest.lateBidUiScript,manifest.lateBidUiSha.slice(0,12)],[manifest.task2.frontendScript,manifest.task2.frontendSha.slice(0,12)]];
  for(const [name,sha] of assets){
   const code=await get(name+"?v="+sha);
   assert.ok(code.length>300,"Staging asset unexpectedly empty "+name);
   if(name==="app.js") { assert.match(code,/freight-staging-ibclzdkxiozbzmniiygv-session/); assert.match(code,/functions\/v1\/freight-api"/);
   assert.doesNotMatch(code,/functions\/v1\/freight-api-qa-issue47qa/); assert.doesNotMatch(code,/ooclsrndeygojtofuyte/); }
-  if(name==="late-bid-staging.js")assert.match(code,/api\/late-bid-drafts/);
+  if(name===manifest.lateBidUiScript)assert.match(code,/api\/late-bid-drafts/);
  }
 });
 test("Staging Edge API responds without exposing protected data",async()=>{

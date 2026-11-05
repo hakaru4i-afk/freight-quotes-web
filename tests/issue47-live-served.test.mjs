@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 const root="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
-const fileNames=["index.html","build-info.json","app.js","task2-panel-260ba5a1c29f.js","task2-guidance.js","task2-i18n.js","late-bid-staging.js","task2.css"];
+const fileNames=["index.html","build-info.json","app.js","task2-panel-260ba5a1c29f.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css"];
 function githubBlob(buf){return createHash("sha1").update(Buffer.from("blob "+buf.length+"\0")).update(buf).digest("hex");}
 async function load(url){
  const res=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
@@ -33,11 +33,11 @@ test("GitHub Pages serves the EXACT current staging files",async()=>{
   assert.equal(manifest.projectRef,"ibclzdkxiozbzmniiygv");
   assert.equal(manifest.servedAppBlobSha,githubBlob(readFileSync("test/app.js")));
   assert.equal(manifest.task2.frontendSha,githubBlob(readFileSync("test/"+manifest.task2.frontendScript)));
-  assert.equal(manifest.task2.guidanceSha,githubBlob(readFileSync("test/task2-guidance.js")));
+  assert.equal(manifest.task2.guidanceSha,githubBlob(readFileSync("test/"+manifest.task2.guidanceScript)));
   for(const [name,sha] of [
     ["app.js",manifest.servedAppBlobSha],
     [manifest.task2.frontendScript,manifest.task2.frontendSha],
-    ["task2-guidance.js",manifest.task2.guidanceSha]
+    [manifest.task2.guidanceScript,manifest.task2.guidanceSha]
   ]) assert.ok(html.includes(name+"?v="+sha.slice(0,12)),"HTML cache key out of sync: "+name);
   assert.equal(manifest.task2.i18n.sourceSha,githubBlob(readFileSync("test/task2-i18n.js")));
   assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
