@@ -108,8 +108,8 @@ const csvRussianNames={carrier:"Перевозчик",contact:"Контактн�
 function csvFieldTitle(field){
  const key=field.name.split(".").pop();
  const explicit=csvRussianNames[key];if(explicit)return explicit;
- const label=field.labels?.[0]?.textContent||field.closest("label")?.textContent||field.closest(".form-field,.field,.t2-field")?.querySelector("label")?.textContent||"";
- const cleaned=label.replace(/[\\s*]+/g," ").trim();
+ const label=field.labels?.[0]?.textContent||field.closest?.("label")?.textContent||field.closest?.(".form-field,.field,.t2-field")?.querySelector("label")?.textContent||"";
+ const cleaned=label.replace(/[\s*]+/g," ").trim();
  if(cleaned&&/[А-Яа-яЁё]/.test(cleaned))return cleaned.slice(0,100);
  const spaced=key.replace(/([a-z])([A-Z])/g,"$1 $2").replace(/_/g," ");
  return "Поле: "+spaced;

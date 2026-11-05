@@ -187,6 +187,7 @@
     "invalidDates": "rejected",
     "xlsxColumns": "one fixed field per column",
     "verification": "automated CI and authenticated staging browser QA pending",
-    "productionChanged": false
+    "productionChanged": false,
+    "legacyCsvNoPartialMutationTest": "Fixed field label fallback for non-browser form doubles, preserves atomic validation"
   }
 }
