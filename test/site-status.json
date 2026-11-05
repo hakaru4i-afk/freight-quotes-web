@@ -1,5 +1,5 @@
 {
-  "version": "stg47-deadline-qa-27b4b286-api60",
+  "version": "stg47-annulled-quote-guard-api61",
   "maintenance": false,
   "environment": "staging",
   "release": {
@@ -13,7 +13,8 @@
       "Owner может переключаться между тестовыми кабинетами: 5 перевозчиков и другие роли (ВЭД, поставщик, контент-менеджер, дизайнер, закупки, сертификация). Проверка всей цепочки — в ЛК.",
       "26-групповая пошаговая инструкция ручной приёмки находится в закрытом репозитории в docs/registries/MANUAL_QA_20261105_TASK1_TASK2.md.",
       "НЕ ПРИНЯТО: 26/26 полного авторизованного E2E и реальный совместимый откат/восстановление. Production не изменялся.",
-      "05.11.2026 — Исправлен шаблон ставки перевозчика: вместо CSV выдаётся настоящий Excel XLSX с отдельной колонкой на каждое поле; добавлен импорт XLSX. Структура OOXML и GitHub Pages CI PASS; реальная WPS/Excel сквозная проверка ещё не принята. Production не менялся."
+      "05.11.2026 — Ручная проверка перевозчика: Excel распознан, 1 поздняя ставка по заявке №32 отправлена, запись 447A4E7B; сценарий отправки PASS. Полная цепочка Owner/SL остаётся на проверке.",
+      "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN."
     ]
   },
   "releases": [
@@ -28,7 +29,8 @@
         "Owner может переключаться между тестовыми кабинетами: 5 перевозчиков и другие роли (ВЭД, поставщик, контент-менеджер, дизайнер, закупки, сертификация). Проверка всей цепочки — в ЛК.",
         "26-групповая пошаговая инструкция ручной приёмки находится в закрытом репозитории в docs/registries/MANUAL_QA_20261105_TASK1_TASK2.md.",
         "НЕ ПРИНЯТО: 26/26 полного авторизованного E2E и реальный совместимый откат/восстановление. Production не изменялся.",
-        "05.11.2026 — Исправлен шаблон ставки перевозчика: вместо CSV выдаётся настоящий Excel XLSX с отдельной колонкой на каждое поле; добавлен импорт XLSX. Структура OOXML и GitHub Pages CI PASS; реальная WPS/Excel сквозная проверка ещё не принята. Production не менялся."
+        "05.11.2026 — Ручная проверка перевозчика: Excel распознан, 1 поздняя ставка по заявке №32 отправлена, запись 447A4E7B; сценарий отправки PASS. Полная цепочка Owner/SL остаётся на проверке.",
+        "05.11.2026 — Исправлено P0: аннулированная заявка №76 (hidden=1) ошибочно показывалась в «Просроченные ставки»; API v61 исключает такие заявки при загрузке списка и запрещает повторно начинать подготовку ставки. Проверено SQL: было 5 назначений, стало 0. В тестовом интерфейсе действие переименовано в «Подготовить позднюю ставку». Production не изменялся. Авторизованная приёмка после публикации ещё OPEN."
       ]
     },
     {
@@ -177,10 +179,10 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-05T15:42:04.851Z",
+  "updatedAt": "2026-11-05T18:34:00Z",
   "stagingVerification": {
-    "scope": "User screenshot and Supabase read-only QA confirm order 12 late quote saved as pending with Bitrix inheritance and submitted draft. Latest deployed staging exact SHA Actions run 41856510980 PASS; Pages deployment 41856509057 PASS, served Pages/API 41856511034 PASS, full-stack smoke 41856511222 PASS. Authenticated remaining E2E/26 group acceptance and paired rollback pending.",
-    "ownerAcceptance": "PENDING",
+    "scope": "01/26 not claimed; rate from Excel order 32 manual PASS; annulled order 76 API filtering verified by read-only SQL and API v61 source, authenticated post-deploy browser QA pending; other scenarios unresolved.",
+    "ownerAcceptance": "PARTIAL_RATE_SEND_PASS; 26_GROUPS_PENDING",
     "production": "NOT UPDATED",
     "cronDeadline": {
       "active": true,
@@ -202,7 +204,20 @@
     "frontendCommit": "f5fa811064fd0b8a569b0d5eb02018dc5eea8620",
     "ci": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42073340100",
     "pages": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42073338634",
-    "authorisedWpsExcelAcceptance": "PENDING",
+    "authorisedWpsExcelAcceptance": "MANUAL_PASS_1_LATE_RATE_ORDER_32; ALL_VARIANTS_AND_OWNER_FLOW_PENDING",
+    "productionChanged": false,
+    "latestFrontendCommit": "c02145e31f35999345acbfd74397dfa541c826cf"
+  },
+  "stagingAnnulledLateBidFix": {
+    "issue": 47,
+    "order": "76",
+    "problem": "Annulled hidden request remained in overdue rate entry",
+    "databaseBefore": 5,
+    "databaseAfter": 0,
+    "backendVersion": 61,
+    "backendCommit": "e484f376654c8001c06233b38a60d183dffda351",
+    "frontendCommit": "3cd31c5562b693aa6d70cc4e1b6cd8adc5a3a2e8",
+    "verification": "READ_ONLY_SQL_FILTER_PASS; CI_REGRESSION_PASS; FULL_AUTHENTICATED_BROWSER_PENDING",
     "productionChanged": false
   }
 }
