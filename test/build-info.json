@@ -46,7 +46,7 @@
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
     "lastObservedBackendVersion": 60,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V60_ACTIVE; FULL_AUTHORIZED_ACCEPTANCE_PENDING",
+    "backendDeploymentStatus": "SHARED_STAGING_API_V60_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
