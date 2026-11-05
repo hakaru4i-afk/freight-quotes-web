@@ -1,9 +1,9 @@
 {
   "environment": "staging",
-  "version": "stg47-owner-offer-review-api62",
+  "version": "stg47-owner-offer-review-api62-task2asset260ba",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-owner-offer-review-api62",
+  "build": "stg47-owner-offer-review-api62-task2asset260ba",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
