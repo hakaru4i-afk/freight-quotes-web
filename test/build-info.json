@@ -1,13 +1,13 @@
 {
   "environment": "staging",
-  "version": "stg47-sl-status-27b4b286-api59",
+  "version": "stg47-sl-policy-27b4b286-api60",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-sl-status-27b4b286-api59",
+  "build": "stg47-sl-policy-27b4b286-api60",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
-  "builtAt": "2026-11-05T14:24:05.151Z",
+  "builtAt": "2026-11-05T14:33:28.147Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Staging only: SL missed-deadline -3 remains after late bid; canonical archived/declined outcomes and expired deadline hint clarified. Owner/Carrier/Storage/full Task2 E2E remain open.",
+  "stagingPatch": "Staging only. SLA at missed deadline remains -3 for later bids; policy v2.1 labels historical -1/-2 separately. Carrier terminal statuses override bid decisions. 26 group acceptance pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
   "servedAppBlobSha": "27b4b286c6539ed262163f1bc84ced9e3ffec4af",
@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 59,
+    "backendVersion": 60,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 59,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V59_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 60,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V60_ACTIVE; FULL_AUTHORIZED_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -98,13 +98,22 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "stg47-integrated-qa11",
     "backendBundleSHA256": "60496dc570161365eb0c9b70fa70c69c576c210d096fe0913d300afc4c9fa270",
-    "backendActiveBundleSha256": "608196a92a17a0a2e245291385f2a6f7d0ec5af6bdc6a21c477398710c833616",
+    "backendActiveBundleSha256": "ed12430cb19b76f289b42a291c907ae646736416fe4de4ba6e1e36ee9a67892a",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
       "manualAcceptance": "PENDING",
       "archivedCorrection": "test.carrier.alpha 99 to 97 via auditable void_event",
       "regression": "GitHub Actions 42042742083 PASS"
+    },
+    "slPolicyVersion": "2.1",
+    "slRulePresentation": {
+      "current": {
+        "no_response": -3,
+        "late_after_no_response": 0
+      },
+      "legacy": "prior late_response -1/-2 still visible as history, not applied to new late bids",
+      "fullE2e": "PENDING"
     }
   },
   "lateBidUiSha": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3",
@@ -134,7 +143,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 59,
+    "backendVersion": 60,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -148,7 +157,7 @@
     ],
     "frontendBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 59,
+    "apiVersion": 60,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
