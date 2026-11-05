@@ -267,7 +267,7 @@
      setTimeout(()=>URL.revokeObjectURL(url),10000);
    },
    parse(content){
-     let text=String(content||"").replace(/^\uFEFF/,"");
+     let text=String(content||"").replace(/^\uFEFF/,"").replace(/^sep=;\r?\n/i,"");
      if(!text.trim())throw Error("CSV пустой");
      if(text.length>1024*1024)throw Error("CSV превышает 1 МБ");
      const counts={";":0,",":0,"\t":0};
@@ -303,7 +303,7 @@
    raw(f){return f.multiple?Array.from(f.selectedOptions).map(o=>o.value).join("|"):f.type==="checkbox"?(f.checked?"true":"false"):f.value;},
    download(form){
      const fields=csv.controls(form);
-     csv.save(fields.map(f=>csv.quote(f.name)).join(";")+"\r\n"+fields.map(f=>csv.quote(csv.raw(f))).join(";")+"\r\n","task2-"+form.dataset.t2Form+".csv");
+     csv.save("sep=;\r\n"+fields.map(f=>csv.quote(f.name)).join(";")+"\r\n"+fields.map(f=>csv.quote(csv.raw(f))).join(";")+"\r\n","task2-"+form.dataset.t2Form+".csv");
    },
    normalize(f,raw){
      const value=String(raw);
