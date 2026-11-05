@@ -18,8 +18,8 @@
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
     "backendVersion": 62,
-    "frontendScript": "task2-panel.js",
-    "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
+    "frontendScript": "task2-panel-260ba5a1c29f.js",
+    "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
     "guidanceScript": "task2-guidance.js",
     "guidanceSha": "d0199d5f4d58f6138008bc65213f1cc378ba41a2",
     "tablesApplied": true,
@@ -123,6 +123,15 @@
       "command": "SELECT freight.process_request_deadlines();",
       "lastRunResult": "succeeded",
       "isolatedTransactionTests": "PASS no-response -3 idempotent; timely bid admission; timely decline exempt",
+      "productionChanged": false
+    },
+    "staticAssetCacheFix": {
+      "date": "2026-11-05",
+      "previousPath": "task2-panel.js",
+      "newPath": "task2-panel-260ba5a1c29f.js",
+      "sha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
+      "reason": "GitHub Pages served old bytes under stable path despite publishing new repository source",
+      "validation": "published smoke and exact-source CI PENDING",
       "productionChanged": false
     }
   },

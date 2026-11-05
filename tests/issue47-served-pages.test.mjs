@@ -18,9 +18,9 @@ test("GitHub Pages actually serves exact staging build and assets",async()=>{
  }
  assert.ok(found,"Staging Pages serving old manifest or old JS after 144s; do not mark released");
  assert.match(html,/late-bid-staging\.js\?v=[a-f0-9]{12}/);
- assert.match(html,/task2-panel\.js\?v=[a-f0-9]{12}/);
+ assert.ok(html.includes(manifest.task2.frontendScript+"?v="+manifest.task2.frontendSha.slice(0,12)));
  assert.ok(!html.includes("ooclsrndeygojtofuyte"),"Production Supabase must never be on staging page");
- const assets=[["app.js",manifest.servedAppBlobSha.slice(0,12)],["late-bid-staging.js",manifest.lateBidUiSha.slice(0,12)],["task2-panel.js",manifest.task2.frontendSha.slice(0,12)]];
+ const assets=[["app.js",manifest.servedAppBlobSha.slice(0,12)],["late-bid-staging.js",manifest.lateBidUiSha.slice(0,12)],[manifest.task2.frontendScript,manifest.task2.frontendSha.slice(0,12)]];
  for(const [name,sha] of assets){
   const code=await get(name+"?v="+sha);
   assert.ok(code.length>300,"Staging asset unexpectedly empty "+name);

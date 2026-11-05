@@ -9,6 +9,7 @@ on:
       - 'tests/issue47-carrier-round-status.test.mjs'
       - 'tests/issue47-carrier-workspace-deadlines.test.mjs'
       - 'test/task2-panel.js'
+      - 'test/task2-panel-*.js'
       - 'test/task2-guidance.js'
       - 'test/task2.css'
       - 'test/index.html'
@@ -38,7 +39,8 @@ jobs:
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {createHash} from 'node:crypto';
-          const expected=JSON.parse(readFileSync('test/build-info.json','utf8')).task2.frontendSha;
+          const manifest=JSON.parse(readFileSync('test/build-info.json','utf8'));
+          const expected=manifest.task2.frontendSha,asset=manifest.task2.frontendScript;
           const url='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
           const web='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
           const r=await fetch(url+'/health');
@@ -53,15 +55,15 @@ jobs:
           for(let i=0;i<10;i++){
             const [html,js,css,guidance]=await Promise.all([
               fetch(web+'index.html?smoke='+i).then(r=>r.text()),
-              fetch(web+'task2-panel.js?smoke='+i),
+              fetch(web+asset+'?smoke='+i),
               fetch(web+'task2.css?smoke='+i),
               fetch(web+'task2-guidance.js?smoke='+i)
             ]);
-            if(html.includes('task2-panel.js')&&html.includes('task2-guidance.js')&&js.ok&&css.ok&&guidance.ok){
+            if(html.includes(asset)&&html.includes('task2-guidance.js')&&js.ok&&css.ok&&guidance.ok){
               const body=await js.text();
               const b=Buffer.from(body,'utf8');
               const sha=createHash('sha1').update(Buffer.concat([Buffer.from('blob '+b.length),Buffer.from([0]),b])).digest('hex');
-              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')&&sha===expected&&html.includes('task2-panel.js?v='+expected.slice(0,12))&&(await guidance.text()).includes('Task #2: field-level instructions')){
+              if(body.includes('Issue #47 integrated staging UI')&&body.includes('data-t2-form')&&sha===expected&&html.includes(asset+'?v='+expected.slice(0,12))&&(await guidance.text()).includes('Task #2: field-level instructions')){
                 console.log('PASS: staging static task2 JS/CSS served');
                 verified=true;break;
               }
