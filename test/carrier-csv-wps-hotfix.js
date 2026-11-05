@@ -41,7 +41,7 @@ function zip(files){
    ld.setUint16(26,filename.length,true);lh.set(filename,30);
    const ch=new Uint8Array(46+filename.length),cd=new DataView(ch.buffer);
    cd.setUint32(0,0x02014b50,true);cd.setUint16(4,20,true);cd.setUint16(6,20,true);cd.setUint16(8,0x800,true);
-   cd.setUint16(16,crc,true);cd.setUint32(20,data.length,true);cd.setUint32(24,data.length,true);
+   cd.setUint32(16,crc,true);cd.setUint32(20,data.length,true);cd.setUint32(24,data.length,true);
    cd.setUint16(28,filename.length,true);cd.setUint32(42,offset,true);ch.set(filename,46);
    locals.push(lh,data);centers.push(ch);offset+=lh.length+data.length;
  }
