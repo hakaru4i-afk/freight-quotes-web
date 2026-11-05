@@ -31,7 +31,7 @@ test("historical pending bid cannot override losing/declined archived round", ()
   const end=src.indexOf(";function V0(", start);
   assert.ok(start>=0 && end>start, "status helper scope remains recognizable");
 
-  const status=runInNewContext(src.slice(start,end+1)+";issue47CarrierBidStatus",{});
+  const status=vm.runInNewContext(src.slice(start,end+1)+";issue47CarrierBidStatus",{});
   assert.equal(status({round_result:"lost",decision:"pending"}),"Не выбран · архив");
   assert.equal(status({round_result:"lost",decision:"accepted",selected_offer:{bid_id:"stale"}}),"Не выбран · архив");
   assert.equal(status({round_result:"declined",decision:"accepted"}),"Отказался · архив");
