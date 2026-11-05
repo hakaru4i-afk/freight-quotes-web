@@ -95,7 +95,7 @@ function supplier(){
 }
 function controls(form){
  return Array.from(form.querySelectorAll("input[name],textarea[name],select[name]")).filter(el=>
-    !["hidden","file","password","submit","button","radio","checkbox"].includes(el.type)&&!el.disabled&&!el.readOnly&&el.name.length<100&&!/^(?:registration_no|winner|selected_offer|price_approved|role)$/i.test(el.name));
+    !["hidden","file","password","submit","button","radio","checkbox"].includes(el.type)&&!el.disabled&&!el.readOnly&&!el.closest?.(".hp")&&el.name.length<100&&!/^(?:registration_no|winner|selected_offer|price_approved|role)$/i.test(el.name));
 }
 function quoted(v){
  const s=String(v??"");
@@ -258,21 +258,45 @@ async function importCSV(form,file){
   rows=parseCSV(await file.text());
  }
  const [headers,data]=rows,fields=controls(form);
+ // Earlier rate templates accidentally included the hidden anti-spam field «Сайт».
+ // Never map it into the submission form; retain compatibility with those workbooks.
+ const honeypot=form.querySelector?.('.hp input[name="website"]');
+ const legacyWebsite=key=>Boolean(honeypot)&&/^(?:website|сайт)$/i.test(String(key).trim());
+ const skippedWebsite=headers.filter(legacyWebsite);
  const known=new Map(fields.map(f=>[f.name,f]));
  for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
- const unknown=headers.filter(key=>!known.has(key));
+ const unknown=headers.filter(key=>!known.has(key)&&!legacyWebsite(key));
  if(unknown.length)throw Error("Недоступные/неизвестные поля CSV: "+unknown.join(", ").slice(0,400));
- const mapped=headers.map((key,i)=>({element:known.get(key),key,original:data[i]??"",value:normalizeExcelChoice(known.get(key),data[i]??"",key)}));
+ const mapped=headers.map((key,i)=>legacyWebsite(key)?null:({element:known.get(key),key,original:data[i]??"",value:normalizeExcelChoice(known.get(key),data[i]??"",key)})).filter(Boolean);
  const unselected=mapped.filter(x=>x.value===""&&x.original!=="");
  const changes=mapped.filter(x=>x.value!=="");
  if(!changes.length)throw Error("Не найдено значений для переноса в форму");
  // Validate every cell before the first mutation. Failed CSV must never partially fill a form.
  for(const x of changes)validateCsvCell(x.element,x.value,x.key);
  const preview=changes.map(x=>x.key+" : "+String(x.element.value||"—")+" → "+x.value).join("\n").slice(0,2400);
- if(!confirm("Распознано "+changes.length+" из "+fields.length+" полей.\n"+preview+(unselected.length?"\n\nПропущены незаполненные варианты: "+unselected.map(x=>x.key).join(", ")+". Выберите их в форме перед отправкой.":"")+"\n\nПрименить значения? Существующие поля не будут очищены. Это НЕ сохранение на сервере."))return;
+ if(!confirm("Распознано "+changes.length+" из "+fields.length+" полей.\n"+preview+(skippedWebsite.length?"\n\nКолонка «Сайт» из старого шаблона — служебная, пропускается; для ставки не нужна.":"")+(unselected.length?"\n\nПропущены незаполненные варианты: "+unselected.map(x=>x.key).join(", ")+". Выберите их в форме перед отправкой.":"")+"\n\nПрименить значения? Существующие поля не будут очищены. Это НЕ сохранение на сервере."))return;
  for(const {element,value} of changes)setReactValue(element,value);
- alert("Перенесено значений: "+changes.length+"."+(unselected.length?" Не заполнены: "+unselected.map(x=>x.key).join(", ")+". Заполните эти обязательные поля в форме.":"")+" Проверьте данные и воспользуйтесь обычной кнопкой сохранения.");
+ // Clean a hidden value imported by the previous (faulty) Excel template.
+ if(skippedWebsite.length&&honeypot?.value)setReactValue(honeypot,"");
+ alert("Перенесено значений: "+changes.length+"."+(unselected.length?" Не заполнены: "+unselected.map(x=>x.key).join(", ")+". Заполните эти обязательные поля в форме.":"")+" Данные перенесены только в форму — ставка ещё НЕ отправлена. Проверьте обязательные поля и галочку подтверждения, затем нажмите «Отправить все варианты».");
 }
+/* The native HTML required check accepts whitespace; the API trims it and rejects the quote. */
+function quoteSubmitPreflight(event){
+ const form=event.target;
+ if(!form?.querySelector?.('input[name$=".validUntil"]')||!form.querySelector('input[name="carrier"]'))return;
+ const required=Array.from(form.querySelectorAll("input[required],textarea[required],select[required]"));
+ const missing=required.find(el=>el.type==="checkbox"?!el.checked:!String(el.value??"").trim());
+ if(!missing)return;
+ event.preventDefault();
+ event.stopPropagation();
+ missing.setCustomValidity?.("Заполните обязательное поле перед отправкой ставки.");
+ missing.focus?.();
+ missing.reportValidity?.();
+ const reset=()=>missing.setCustomValidity?.("");
+ missing.addEventListener?.("input",reset,{once:true});
+ missing.addEventListener?.("change",reset,{once:true});
+}
+document.addEventListener("submit",quoteSubmitPreflight,true);
 function legacyCSV(){
  for(const form of document.querySelectorAll("form")){
   if(form.closest("#task2-root")||form.dataset.task2Csv||form.closest(".auth-card")||form.querySelector('input[type="password"]'))continue;

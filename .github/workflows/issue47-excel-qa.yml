@@ -49,7 +49,7 @@ jobs:
                 fetch(base+'task2-guidance.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
                 fetch(base+'carrier-csv-wps-hotfix.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text())
               ]);
-              if(html.includes('task2-guidance.js?v=90917407f634') &&
+              if(html.includes('task2-guidance.js?v=42dc6ccc8a20') &&
                  html.includes('carrier-csv-wps-hotfix.js?v=1e867d941474') &&
                  guide.includes('Скачать Excel-шаблон') &&
                  guide.includes('freight-form-') &&

@@ -189,5 +189,12 @@
     "verification": "automated CI and authenticated staging browser QA pending",
     "productionChanged": false,
     "legacyCsvNoPartialMutationTest": "Fixed field label fallback for non-browser form doubles, preserves atomic validation"
+  },
+  "stagingQuoteSubmitHotfix": {
+    "issue": 47,
+    "reason": "Earlier Excel template exported hidden anti-bot website field; nonempty site entry caused HTTP 400 on /api/quote",
+    "resolution": "exclude hidden input from new XLSX; ignore legacy website/Сайт column and reset previously imported field; preflight trimmed required values",
+    "verified": "CI/published staging pending",
+    "productionChanged": false
   }
 }
