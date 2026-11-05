@@ -208,6 +208,26 @@ function validateCsvCell(element,value,key){
  if(element instanceof HTMLSelectElement&&!element.multiple&&!Array.from(element.options).some(o=>o.value===value&&!o.disabled))
   throw Error("Поле "+key+": значение отсутствует в справочнике выбора");
 }
+/* Match Excel choices to the actual live dropdown, not to translated labels or placeholders. */
+function normalizeExcelChoice(element,raw,key){
+ const value=String(raw??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ");
+ if(element.tagName!=="SELECT"||element.multiple||value==="")return value;
+ const options=Array.from(element.options).filter(o=>!o.disabled);
+ const norm=x=>String(x??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ").toLocaleLowerCase("ru-RU");
+ const lower=norm(value);
+ const insurance=/(?:^|\.)insurance$/i.test(element.name)||/^страхование(?:\b|\s|$)/i.test(String(key));
+ if(insurance && ["unknown","не определено","не указано","не выбрано","n/a","—","-"].includes(lower))return "";
+ const synonyms=insurance?{
+   "да":"Включено","yes":"Включено","included":"Включено","включена":"Включено","страховка включена":"Включено",
+   "нет":"Не включено","no":"Не включено","not included":"Не включено","без страхования":"Не включено","не включена":"Не включено",
+   "by agreement":"По согласованию","upon agreement":"По согласованию"
+ }:{};
+ const preferred=synonyms[lower]||value;
+ const match=options.find(o=>norm(o.value)===norm(preferred)||norm(o.textContent)===norm(preferred));
+ if(match)return match.value;
+ const allowed=options.map(o=>o.textContent.trim()||o.value).join(" / ");
+ throw Error("Поле "+key+": «"+value+"» не является допустимым значением. Выберите: "+allowed+". Остальные поля формы не изменены.");
+}
 async function importCSV(form,file){
  let rows;
  if(/\.xlsx$/i.test(file.name)){
@@ -222,14 +242,16 @@ async function importCSV(form,file){
  for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
  const unknown=headers.filter(key=>!known.has(key));
  if(unknown.length)throw Error("Недоступные/неизвестные поля CSV: "+unknown.join(", ").slice(0,400));
- const changes=headers.map((key,i)=>({element:known.get(key),key,value:data[i]})).filter(x=>x.value!=="");
+ const mapped=headers.map((key,i)=>({element:known.get(key),key,original:data[i]??"",value:normalizeExcelChoice(known.get(key),data[i]??"",key)}));
+ const unselected=mapped.filter(x=>x.value===""&&x.original!=="");
+ const changes=mapped.filter(x=>x.value!=="");
  if(!changes.length)throw Error("Не найдено значений для переноса в форму");
  // Validate every cell before the first mutation. Failed CSV must never partially fill a form.
  for(const x of changes)validateCsvCell(x.element,x.value,x.key);
  const preview=changes.map(x=>x.key+" : "+String(x.element.value||"—")+" → "+x.value).join("\n").slice(0,2400);
- if(!confirm("Распознано "+changes.length+" из "+fields.length+" полей.\n"+preview+"\n\nПрименить значения? Существующие поля не будут очищены. Это НЕ сохранение на сервере."))return;
+ if(!confirm("Распознано "+changes.length+" из "+fields.length+" полей.\n"+preview+(unselected.length?"\n\nПропущены незаполненные варианты: "+unselected.map(x=>x.key).join(", ")+". Выберите их в форме перед отправкой.":"")+"\n\nПрименить значения? Существующие поля не будут очищены. Это НЕ сохранение на сервере."))return;
  for(const {element,value} of changes)setReactValue(element,value);
- alert("Перенесено значений: "+changes.length+". Проверьте форму и воспользуйтесь обычной кнопкой сохранения.");
+ alert("Перенесено значений: "+changes.length+"."+(unselected.length?" Не заполнены: "+unselected.map(x=>x.key).join(", ")+". Заполните эти обязательные поля в форме.":"")+" Проверьте данные и воспользуйтесь обычной кнопкой сохранения.");
 }
 function legacyCSV(){
  for(const form of document.querySelectorAll("form")){
