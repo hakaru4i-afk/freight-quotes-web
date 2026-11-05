@@ -47,3 +47,16 @@ test("annulled/hidden requests do not offer late rate preparation in carrier vie
  assert.equal(info.stagingAnnulledLateBidFix.order,"76");
  assert.equal(info.stagingAnnulledLateBidFix.productionChanged,false);
 });
+
+test("owner offer review: completed selection disables stale controls for every carrier in that round",()=>{
+ const app=readFileSync("test/app.js","utf8");
+ assert.match(app,/selection:F\.selections\?\.find\(v=>v\.round_id===C\.round_id\)/);
+ assert.match(app,/\(c&&!h\)\?r\("button"/);
+ assert.match(app,/Не выбран · отбор завершён/);
+ assert.match(app,/closedRounds:F\.selections\?\.map\(v=>v\.round_id\)/);
+ assert.match(app,/!closed\.includes\(w\.round_id\)/);
+ assert.match(app,/!F\.selections\?\.some\(v=>v\.round_id===C\.round_id\)&&o\("div"/);
+ assert.match(app,/Не выбран · архив/);
+ assert.ok(!app.includes("Новый выбор заменит предыдущий вариант.") || app.includes("Отбор завершён"));
+ assert.equal(info.ownerOfferReviewFix.productionChanged,false);
+});

@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "27b4b286c6539ed262163f1bc84ced9e3ffec4af",
+  "servedAppBlobSha": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -165,7 +165,7 @@
       "B10",
       "B11"
     ],
-    "frontendBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68",
+    "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
     "apiVersion": 61,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
@@ -207,6 +207,15 @@
     "behavior": "exclude hidden/annulled from GET assigned/items and reject POST actions; remove stale CTA and label late preparation distinctly",
     "stagingReadOnlyVerification": "order 76 five notifications before filter, zero after; order 32 remains eligible for carriers that have not submitted",
     "fullAuthorizedBrowserQA": "PENDING",
+    "productionChanged": false
+  },
+  "ownerOfferReviewFix": {
+    "issue": 47,
+    "frontendSha": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
+    "scope": "Owner offer comparison, closed round control guard, archive labels, selection rules and FAQ",
+    "ownerReason": "optional",
+    "winnerCount": "one per round",
+    "checks": "CI pending; authenticated owner E2E pending",
     "productionChanged": false
   }
 }
