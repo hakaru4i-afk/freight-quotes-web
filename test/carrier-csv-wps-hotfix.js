@@ -5,18 +5,7 @@
 (() => {
 "use strict";
 if (!location.pathname.includes("/test/")) return;
-const enc=new TextEncoder(), dec=new TextDecoder("utf-8");
-const nativeURL=URL.createObjectURL.bind(URL);
-const nativeAnchor=HTMLAnchorElement.prototype.click;
-const blobs=new Map();
-URL.createObjectURL=function(blob) {
-  const url=nativeURL(blob);
-  if(blob instanceof Blob && /csv|text\/plain|octet-stream/i.test(blob.type||"text/plain")) {
-    blobs.set(url,blob);
-    if(blobs.size>60) blobs.delete(blobs.keys().next().value);
-  }
-  return url;
-};
+const enc=new TextEncoder(),dec=new TextDecoder('utf-8');
 const xesc=v=>String(v??"").replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;");
 function splitCSV(source){
  let txt=String(source||"").replace(/^\uFEFF/,"").replace(/^sep=[;,\t]\r?\n/i,"");
@@ -78,19 +67,6 @@ function makeXlsx(rows){
  const styles=xml+'<styleSheet xmlns="'+ns+'"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF177C70"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="1" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs></styleSheet>';
  return zip({"[Content_Types].xml":types,"_rels/.rels":rels,"xl/workbook.xml":workbook,"xl/_rels/workbook.xml.rels":wrels,"xl/styles.xml":styles,"xl/worksheets/sheet1.xml":sheet});
 }
-HTMLAnchorElement.prototype.click=function(...args){
- if(!/^freight-form-fields(?:\s*\(\d+\))?\.csv$/i.test(this.download||""))return nativeAnchor.apply(this,args);
- const source=blobs.get(this.href);
- if(!source){console.warn("Excel export: original CSV blob unavailable");return nativeAnchor.apply(this,args);}
- const oldName=this.download;
- source.text().then(csv=>{
-   const data=makeXlsx(splitCSV(csv));
-   const url=nativeURL(new Blob([data],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
-   const a=document.createElement("a");a.href=url;a.download=oldName.replace(/\.csv$/i,".xlsx");
-   document.body.appendChild(a);nativeAnchor.call(a);a.remove();
-   setTimeout(()=>URL.revokeObjectURL(url),60000);
- }).catch(e=>{console.error("Excel export:",e);alert("Не удалось сформировать Excel-шаблон: "+e.message);});
-};
 async function unzip(buffer){
  const raw=new Uint8Array(buffer),view=new DataView(buffer),files=new Map();
  let eocd=-1;for(let i=raw.length-22;i>=Math.max(0,raw.length-65557);i--)if(view.getUint32(i,true)===0x06054b50){eocd=i;break;}
@@ -151,36 +127,5 @@ function xlsxToCsv(files){
  const quote=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
  return "\uFEFF"+rows.slice(0,2).map(r=>Array.from({length:width},(_,i)=>quote(r[i])).join(";")).join("\r\n")+"\r\n";
 }
-const active=new WeakSet();
-async function importXlsx(input,file){
- const data=await file.arrayBuffer();
- if(data.byteLength>10_000_000)throw Error("Excel-файл больше 10 МБ");
- const csv=xlsxToCsv(await unzip(data));
- const replacement=new File([csv],file.name.replace(/\.xlsx$/i,".csv"),{type:"text/csv"});
- const dt=new DataTransfer();dt.items.add(replacement);input.files=dt.files;
- active.add(input);
- input.dispatchEvent(new Event("change",{bubbles:true}));
-}
-document.addEventListener("change",event=>{
- const input=event.target;
- if(!(input instanceof HTMLInputElement)||input.type!=="file"||active.has(input)){active.delete(input);return;}
- const file=input.files?.[0];
- if(!file||!/\.xlsx$/i.test(file.name)||!/csv|xlsx/i.test(input.accept||""))return;
- event.preventDefault();event.stopImmediatePropagation();
- importXlsx(input,file).catch(e=>alert("Не удалось импортировать Excel: "+e.message));
-},true);
-function adjust(){
- for(const input of document.querySelectorAll('input[type="file"]')){
-   if(/csv/i.test(input.accept||"")&&!/xlsx/i.test(input.accept))input.accept+=",.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
- }
- for(const el of document.querySelectorAll("button,label")){
-   if(el.children.length&&[...el.children].some(x=>x.tagName!=="INPUT"&&x.tagName!=="SPAN"))continue;
-   if(/CSV/i.test(el.textContent||"")&&/скачать|шаблон|загрузить/i.test(el.textContent||""))
-     for(const n of [...el.childNodes])if(n.nodeType===Node.TEXT_NODE)n.textContent=n.textContent.replace(/CSV/g,"Excel (.xlsx)");
- }
-}
-let queued=false;
-new MutationObserver(()=>{if(queued)return;queued=true;queueMicrotask(()=>{queued=false;adjust();});}).observe(document.documentElement,{childList:true,subtree:true});
-document.addEventListener("DOMContentLoaded",adjust);
-adjust();
+window.freightXlsxInterop=Object.freeze({makeXlsx,unzip,xlsxToCsv});
 })();
