@@ -56,7 +56,7 @@ test("hidden quote honeypot never becomes an Excel column or a submitted value",
  const form={querySelectorAll:()=>fields,querySelector:sel=>sel==='.hp input[name="website"]'?website:null};
  let messages=[];
  const api=runInNewContext(script.slice(start,end)+"\n({controls,importCSV})",{
-  window:{freightXlsxInterop:null},HTMLInputElement,HTMLSelectElement,HTMLTextAreaElement,Date,Map,Number,String,Error,Event:class{},
+  window:{freightXlsxInterop:null},document:{addEventListener(){}},HTMLInputElement,HTMLSelectElement,HTMLTextAreaElement,Date,Map,Number,String,Error,Event:class{},
   confirm:()=>true,alert:msg=>messages.push(msg)
  });
  assert.deepEqual(Array.from(api.controls(form),f=>f.name),["carrier","contact"]);
