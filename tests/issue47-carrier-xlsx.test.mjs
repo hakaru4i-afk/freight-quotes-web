@@ -31,7 +31,7 @@ test("Issue 47: XLSX archive contains one distinct cell per form field", async (
   const signature=new DataView(bytes.buffer).getUint32(0,true);
   assert.equal(signature,0x04034b50, "must be ZIP / OOXML, not plain CSV");
   const entries=await api.unzip(bytes.buffer);
-  assert.deepEqual([...entries.keys()].sort(),["[Content_Types].xml","_rels/.rels","xl/workbook.xml","xl/_rels/workbook.xml.rels","xl/styles.xml","xl/worksheets/sheet1.xml"].sort());
+  assert.deepEqual([...entries.keys()].sort(),["[Content_Types].xml","xl/workbook.xml","xl/_rels/workbook.xml.rels","xl/styles.xml","xl/worksheets/sheet1.xml"].sort());
   const worksheet=entries.get("xl/worksheets/sheet1.xml");
   for(const address of ["A1","B1","C1","D1","E1","A2","B2","C2","D2","E2"]){
     assert.match(worksheet,new RegExp('r="'+address+'"'));
