@@ -174,5 +174,19 @@
   },
   "stagingUiHotfixCommit": "e2683a6c0a19e7da05736e196f0965444c121018",
   "stagingCandidateRelease": "1.19.9",
-  "releaseVersionMeaning": "releaseVersion is the previously published production baseline; stagingCandidateRelease is the planned test candidate"
+  "releaseVersionMeaning": "releaseVersion is the previously published production baseline; stagingCandidateRelease is the planned test candidate",
+  "stagingExcelDateHotfix": {
+    "issue": 47,
+    "scope": "XLSX/WPS quote form date import",
+    "dateFormats": [
+      "YYYY-MM-DD",
+      "DD.MM.YYYY",
+      "Excel 1900 serial",
+      "ISO datetime"
+    ],
+    "invalidDates": "rejected",
+    "xlsxColumns": "one fixed field per column",
+    "verification": "automated CI and authenticated staging browser QA pending",
+    "productionChanged": false
+  }
 }

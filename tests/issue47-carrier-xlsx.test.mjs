@@ -47,3 +47,18 @@ test("Issue 47: XLSX archive contains one distinct cell per form field", async (
   assert.match(styles,/wrapText="1"/);
 
 });
+
+test("Issue 47: Excel/WPS validity dates accept human and ISO formatting", () => {
+  const from=guidance.indexOf("function validCalendarDate(s){");
+  const to=guidance.indexOf("function validateCsvCell(element,value,key){",from);
+  assert.ok(from>=0&&to>from);
+  const normalize=runInNewContext(guidance.slice(from,to)+"\nnormalizeExcelDate",{Date,Number,String,Error});
+  for(const value of ["05.11.2026","5.11.2026","05/11/2026","2026/11/05","2026-11-05","2026-11-05 12:30:00","2026-11-05T00:00:00Z"])
+    assert.equal(normalize(value,"Ставка действует до"),"2026-11-05",value);
+  const serial=(Date.UTC(2026,10,5)-Date.UTC(1899,11,30))/86400000;
+  assert.equal(normalize(String(serial),"Ставка действует до"),"2026-11-05");
+  for(const invalid of ["31.11.2026","29.02.2026","2026-13-05","гггг-мм-дд","0"])
+    assert.throws(()=>normalize(invalid,"Ставка действует до"),/дата .* неверна/,invalid);
+  assert.match(guidance,/element\.type==="date"&&value!==""\)return normalizeExcelDate\(value,key\)/);
+  assert.match(guidance,/element\.type==="number"&&value!==""\)/);
+});

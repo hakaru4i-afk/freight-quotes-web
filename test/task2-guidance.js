@@ -46,7 +46,7 @@ const helpQuestions=[
 ["Как фиксируются растаможка и склад?","Перевозчик вводит фактическую дату растаможки → система однократно создаёт задачу ВЭД на приёмку → ВЭД фиксирует дату склада, которая видна перевозчику. Перевозка сама по себе не закрывается."],
 ["Обязательно ли указывать контейнер?","Во время перевозки нет. При попытке закрыть без номера ВЭД/Владелец выбирает: «Да — запросить» или «Нет — завершить без номера». При запросе перевозчик заполняет номер; чистая перевозка закроется автоматически, только если остальные этапы пройдены."],
 ["Как работает претензия?","Акт создаётся по типу транспорта (авто, ЖД, авиа, море), с доказательствами и версией; перевозчик согласует или отказывает с причиной. Любую перевозку, в истории которой была претензия, окончательно завершает только ВЭД или Владелец."],
-["Как пользоваться CSV, если полей много?","Скачайте CSV из нужной формы, заполните доступные значения, загрузите файл, проверьте предварительное сопоставление и подтвердите перенос. Затем нажмите штатное сохранение формы. Исходные защищённые поля, ставки и номера TR не изменяются."],
+["Как пользоваться Excel-шаблоном, если полей много?","Скачайте XLSX из нужной формы: каждое поле — отдельная колонка. Заполните строку значений в Microsoft Excel или WPS, затем загрузите XLSX, проверьте сопоставление и подтвердите перенос. Даты можно вводить как ДД.ММ.ГГГГ или YYYY-MM-DD, стоимость — с запятой или точкой. После загрузки нажмите штатную кнопку отправки; исходные защищённые поля и номер TR не изменяются."],
 ["Почему нельзя выполнять одно действие в разных меню?","Для каждого действия установлен один раздел. Другие разделы должны давать ссылку на него, а не повторять его обработчик. Ставки — в рассмотрении, исполнение — в исполнении, транспортная заявка — в документе, претензия — в актах."]
 ];
 const helpLanguage=()=>/^zh/i.test(document.documentElement.lang)?"zh":/^en/i.test(document.documentElement.lang)?"en":"ru";
@@ -189,6 +189,24 @@ function validCalendarDate(s){
  if(y<1||y>9999||m<1||m>12)return false;
  return d>=1&&d<=new Date(Date.UTC(y,m,0)).getUTCDate();
 }
+/* Convert date values edited in Excel/WPS into the ISO format required by HTML date inputs. */
+function normalizeExcelDate(raw,key){
+ const input=String(raw??"").trim(),pad=n=>String(n).padStart(2,"0");
+ let iso=input;
+ const dmy=/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/.exec(input);
+ const ymd=/^(\d{4})[.\/](\d{1,2})[.\/](\d{1,2})(?:[ T]\d{2}:\d{2}(?::\d{2})?)?$/.exec(input);
+ const isoTime=/^(\d{4}-\d{2}-\d{2})[ T]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?Z?$/.exec(input);
+ if(dmy)iso=dmy[3]+"-"+pad(dmy[2])+"-"+pad(dmy[1]);
+ else if(ymd)iso=ymd[1]+"-"+pad(ymd[2])+"-"+pad(ymd[3]);
+ else if(isoTime)iso=isoTime[1];
+ else if(/^\d{5}(?:[.,]0+)?$/.test(input)){
+   const serial=Number(input.replace(",","."));
+   const date=new Date(Date.UTC(1899,11,30)+serial*86400000);
+   if(Number.isFinite(date.getTime()))iso=date.toISOString().slice(0,10);
+ }
+ if(!validCalendarDate(iso))throw Error("Поле "+key+": дата «"+input+"» неверна. Используйте ДД.ММ.ГГГГ или YYYY-MM-DD (Excel/WPS).");
+ return iso;
+}
 function validateCsvCell(element,value,key){
  if(value==="")return;
  if(element.maxLength>0&&value.length>element.maxLength)throw Error("Поле "+key+": превышена длина");
@@ -211,6 +229,8 @@ function validateCsvCell(element,value,key){
 /* Match Excel choices to the actual live dropdown, not to translated labels or placeholders. */
 function normalizeExcelChoice(element,raw,key){
  const value=String(raw??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ");
+ if(element.type==="date"&&value!=="")return normalizeExcelDate(value,key);
+ if(element.type==="number"&&value!=="")return value.replace(/\s/g,"").replace(",",".");
  if(element.tagName!=="SELECT"||element.multiple||value==="")return value;
  const options=Array.from(element.options).filter(o=>!o.disabled);
  const norm=x=>String(x??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ").toLocaleLowerCase("ru-RU");
