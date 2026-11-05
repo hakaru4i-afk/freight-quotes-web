@@ -16,6 +16,24 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate native XLSX export, field columns, and carrier Excel UI
         run: node --test tests/issue47-carrier-xlsx.test.mjs
+      - name: Validate Excel using independent Python ZIP and XML readers
+        run: |
+          python3 - <<'PY'
+          import zipfile, xml.etree.ElementTree as ET
+          path = "/tmp/issue47-carrier-generated.xlsx"
+          with zipfile.ZipFile(path) as book:
+              print("archive contents:", book.namelist())
+              bad = book.testzip()
+              if bad: raise RuntimeError("Invalid ZIP CRC for " + bad)
+              for part in book.namelist():
+                  if part.endswith(".xml") or part.endswith(".rels") or part == "[Content_Types].xml":
+                      ET.fromstring(book.read(part))
+              sheet = ET.fromstring(book.read("xl/worksheets/sheet1.xml"))
+              ns = {"s":"http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
+              cells = [c.attrib["r"] for c in sheet.findall(".//s:c", ns)]
+              assert cells == ["A1","B1","C1","D1","E1","A2","B2","C2","D2","E2"], cells
+              print("Independent workbook integrity and distinct columns PASS")
+          PY
       - name: Confirm GitHub Pages serves the new Excel interface
         run: |
           node --input-type=module <<'NODE'
