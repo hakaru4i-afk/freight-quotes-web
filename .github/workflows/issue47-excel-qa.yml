@@ -16,3 +16,30 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate native XLSX export, field columns, and carrier Excel UI
         run: node --test tests/issue47-carrier-xlsx.test.mjs
+      - name: Confirm GitHub Pages serves the new Excel interface
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const base='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
+          let ok=false;
+          for(let i=0;i<20;i++){
+            const stamp=Date.now();
+            try{
+              const [html,guide,codec]=await Promise.all([
+                fetch(base+'index.html?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
+                fetch(base+'task2-guidance.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
+                fetch(base+'carrier-csv-wps-hotfix.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text())
+              ]);
+              if(html.includes('task2-guidance.js?v=8af294e1fe35') &&
+                 html.includes('carrier-csv-wps-hotfix.js?v=f0b80cb015ae') &&
+                 guide.includes('Скачать Excel-шаблон') &&
+                 guide.includes('freight-form-') &&
+                 codec.includes('window.freightXlsxInterop=Object.freeze({makeXlsx,unzip,xlsxToCsv})')){
+                console.log('PASS published staging includes native XLSX download/import modules');
+                ok=true;break;
+              }
+            }catch(e){console.log('Published probe: '+e.message)}
+            await new Promise(r=>setTimeout(r,5000));
+          }
+          assert.ok(ok,'Published staging does not yet match Excel template build');
+          NODE
