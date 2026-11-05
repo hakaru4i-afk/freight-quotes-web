@@ -120,13 +120,16 @@ function csvFieldColumns(fields){
   return {field,title:count===1?title:title+" ("+count+")"};
  });
 }
-function exportCSV(form){
- const fields=controls(form);
- const columns=csvFieldColumns(fields);
- const csv=columns.map(x=>quoted(x.title)).join(";")+"\r\n"+fields.map(f=>quoted(f.value)).join(";")+"\r\n";
- const u=URL.createObjectURL(new Blob(["\uFEFF",csv],{type:"text/csv;charset=utf-8"}));
- const a=document.createElement("a");a.href=u;a.download="freight-form-"+(form.id||"fields")+".csv";a.click();
- setTimeout(()=>URL.revokeObjectURL(u),8000);
+function exportXlsx(form){
+ const api=window.freightXlsxInterop;
+ if(!api)throw Error("Модуль Excel-шаблонов не загружен. Обновите страницу.");
+ const fields=controls(form),columns=csvFieldColumns(fields);
+ if(!fields.length)throw Error("В форме нет полей для экспорта");
+ const bytes=api.makeXlsx([columns.map(c=>c.title),fields.map(f=>f.value)]);
+ const url=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+ const a=document.createElement("a");a.href=url;a.download="freight-form-"+(form.id||"fields")+".xlsx";
+ document.body.appendChild(a);a.click();a.remove();
+ setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 function parseCSV(text){
  text=String(text||"").replace(/^\uFEFF/,"");
@@ -206,7 +209,15 @@ function validateCsvCell(element,value,key){
   throw Error("Поле "+key+": значение отсутствует в справочнике выбора");
 }
 async function importCSV(form,file){
- const [headers,data]=parseCSV(await file.text()),fields=controls(form);
+ let rows;
+ if(/\.xlsx$/i.test(file.name)){
+  const api=window.freightXlsxInterop;
+  if(!api)throw Error("Модуль Excel-шаблонов не загружен");
+  rows=parseCSV(api.xlsxToCsv(await api.unzip(await file.arrayBuffer())));
+ }else{
+  rows=parseCSV(await file.text());
+ }
+ const [headers,data]=rows,fields=controls(form);
  const known=new Map(fields.map(f=>[f.name,f]));
  for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
  const unknown=headers.filter(key=>!known.has(key));
@@ -228,9 +239,9 @@ function legacyCSV(){
   form.dataset.task2Csv="1";
   const tools=document.createElement("div");tools.className="t2-legacy-csv";
   tools.style.cssText="display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:9px 0";
-  const download=document.createElement("button");download.type="button";download.className="btn secondary";download.textContent="Скачать CSV шаблон";download.addEventListener("click",()=>exportCSV(form));
-  const label=document.createElement("label");label.className="btn secondary";label.style.cursor="pointer";label.textContent="Загрузить CSV";
-  const upload=document.createElement("input");upload.type="file";upload.accept=".csv,text/csv";upload.hidden=true;label.append(upload);
+  const download=document.createElement("button");download.type="button";download.className="btn secondary";download.textContent="Скачать Excel-шаблон";download.addEventListener("click",()=>{try{exportXlsx(form)}catch(e){alert(e.message)}});
+  const label=document.createElement("label");label.className="btn secondary";label.style.cursor="pointer";label.textContent="Загрузить Excel";
+  const upload=document.createElement("input");upload.type="file";upload.accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv";upload.hidden=true;label.append(upload);
   upload.addEventListener("change",async()=>{try{if(upload.files[0])await importCSV(form,upload.files[0])}catch(e){alert(e.message)}finally{upload.value=""}});
   tools.append(download,label);form.append(tools);
  }
