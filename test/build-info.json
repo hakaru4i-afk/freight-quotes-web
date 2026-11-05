@@ -1,9 +1,9 @@
 {
   "environment": "staging",
-  "version": "stg47-deadline-qa-27b4b286-api60",
+  "version": "stg47-annulled-quote-guard-api61",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-deadline-qa-27b4b286-api60",
+  "build": "stg47-annulled-quote-guard-api61",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 60,
+    "backendVersion": 61,
     "frontendScript": "task2-panel.js",
     "frontendSha": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
     "guidanceScript": "task2-guidance.js",
@@ -28,10 +28,10 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-    "backendSourceSha": "22cb2b139973cf3bef588ac1a4a8c023e8958a0b",
+    "backendSourceCommit": "e484f376654c8001c06233b38a60d183dffda351",
+    "backendSourceSha": "261e224d5df4889e4c710134d966f1e1d9bf709e",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
-    "lateBidApi": "freight-api v57",
+    "lateBidApi": "freight-api v61",
     "stagingBuildNote": "Staging code patched, Pages deployment and authorized E2E verification required for acceptance.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 60,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V60_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 61,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V61_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -98,7 +98,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "stg47-integrated-qa11",
     "backendBundleSHA256": "60496dc570161365eb0c9b70fa70c69c576c210d096fe0913d300afc4c9fa270",
-    "backendActiveBundleSha256": "ed12430cb19b76f289b42a291c907ae646736416fe4de4ba6e1e36ee9a67892a",
+    "backendActiveBundleSha256": "c108b2b877ee2a66752bb9389be763e2a79bf47073358e3ed6e7240634d3df0e",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -126,7 +126,7 @@
       "productionChanged": false
     }
   },
-  "lateBidUiSha": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3",
+  "lateBidUiSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
@@ -153,7 +153,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 60,
+    "backendVersion": 61,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -167,7 +167,7 @@
     ],
     "frontendBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 60,
+    "apiVersion": 61,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -195,6 +195,18 @@
     "reason": "Earlier Excel template exported hidden anti-bot website field; nonempty site entry caused HTTP 400 on /api/quote",
     "resolution": "exclude hidden input from new XLSX; ignore legacy website/Сайт column and reset previously imported field; preflight trimmed required values",
     "verified": "CI/published staging pending",
+    "productionChanged": false
+  },
+  "stagingAnnulledLateBidFix": {
+    "issue": 47,
+    "order": "76",
+    "previousState": "annulled + hidden",
+    "backendCommit": "e484f376654c8001c06233b38a60d183dffda351",
+    "backendVersion": 61,
+    "frontendSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
+    "behavior": "exclude hidden/annulled from GET assigned/items and reject POST actions; remove stale CTA and label late preparation distinctly",
+    "stagingReadOnlyVerification": "order 76 five notifications before filter, zero after; order 32 remains eligible for carriers that have not submitted",
+    "fullAuthorizedBrowserQA": "PENDING",
     "productionChanged": false
   }
 }

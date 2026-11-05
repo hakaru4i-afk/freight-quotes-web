@@ -28,7 +28,7 @@ function quoteView(data){
  window.freightLateDraftActive=!!active&&data.role==="carrier"&&!!assigned&&!assigned.has_winner;
  window.freightLateDraftOrder=order;
  if(old!==window.freightLateDraftActive)window.dispatchEvent(new Event("freight-late-bid-state"));
- if(!assigned){root.hidden=true;return;}
+ if(!assigned||String(assigned.workflow_status||"").toLowerCase()==="annulled"){root.hidden=true;return;}
  const overdue=new Date(assigned.deadline+"+03:00").getTime()<=Date.now();
  if(!overdue||data.role!=="carrier"){root.hidden=true;return;}
  root.hidden=false;
@@ -46,11 +46,11 @@ function carrierInboxView(data){
  if(data.role!=="carrier"){root.hidden=true;return;}
  const late=(data.assigned||[]).filter(i=>{
   const deadline=Date.parse(String(i.deadline||"").replace(/(?:Z|[+-]\\d\\d:\\d\\d)$/,"")+"+03:00");
-  return Number.isFinite(deadline)&&deadline<=Date.now()&&!i.has_winner&&!i.declined&&!i.has_bid;
+  return Number.isFinite(deadline)&&deadline<=Date.now()&&!i.has_winner&&!i.declined&&!i.has_bid&&String(i.workflow_status||"").toLowerCase()!=="annulled";
  });
  if(!late.length){root.hidden=true;return;}
  root.hidden=false;root.style.cssText="margin:16px 0;padding:16px;border:1px solid #76c6dd;border-radius:12px;background:#102d42;color:#eafaff";
- root.innerHTML='<h3 style="margin:0 0 8px">Просроченные ставки — подача открыта</h3><p>Пока победитель не выбран, вы можете подготовить и отправить ставку после дедлайна. Решение о её рассмотрении принимает Владелец.</p>'+late.map(i=>'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0"><strong>Заявка '+esc(i.order_code)+'</strong><a class="btn secondary" style="display:inline-block" href="?page=quote&amp;order='+encodeURIComponent(i.order_code)+'">Взять в работу</a></div>').join('');
+ root.innerHTML='<h3 style="margin:0 0 8px">Просроченные ставки — подача открыта</h3><p>Пока победитель не выбран, вы можете подготовить и отправить ставку после дедлайна. Решение о её рассмотрении принимает Владелец.</p>'+late.map(i=>'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0"><strong>Заявка '+esc(i.order_code)+'</strong><a class="btn secondary" style="display:inline-block" href="?page=quote&amp;order='+encodeURIComponent(i.order_code)+'">Подготовить позднюю ставку</a></div>').join('');
 }
 function ownerView(data){
  const root=locate();if(!root)return;

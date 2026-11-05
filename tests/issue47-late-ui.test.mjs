@@ -38,3 +38,12 @@ test("staging build and source SHA are version matched",()=>{
  assert.ok(html.includes("late-bid-staging.js?v="+info.lateBidUiSha.slice(0,12)));
  assert.ok(!readFileSync("index.html","utf8").includes("late-bid-staging.js"));
 });
+
+test("annulled/hidden requests do not offer late rate preparation in carrier view",()=>{
+ assert.match(panel,/String\(i\.workflow_status\|\|""\)\.toLowerCase\(\)!=="annulled"/);
+ assert.match(panel,/Подготовить позднюю ставку/);
+ assert.doesNotMatch(panel,/>Взять в работу<\/a>/);
+ assert.equal(info.task2.backendVersion,61);
+ assert.equal(info.stagingAnnulledLateBidFix.order,"76");
+ assert.equal(info.stagingAnnulledLateBidFix.productionChanged,false);
+});
