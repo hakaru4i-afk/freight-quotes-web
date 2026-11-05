@@ -20,7 +20,7 @@ test("Issue 47: carrier quote exporter is native Excel, not a CSV rename", () =>
   assert.match(guidance,/Скачать Excel-шаблон/);
   assert.match(guidance,/Загрузить Excel/);
   assert.match(html,/carrier-csv-wps-hotfix\.js\?v=/);
-  assert.match(html,/task2-guidance\.js\?v=/);
+  assert.match(html,/task2-guidance-42dc6ccc8a20\.js\?v=/);
 });
 test("Issue 47: XLSX archive contains one distinct cell per form field", async () => {
   const api=loadCodec();

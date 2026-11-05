@@ -35,7 +35,7 @@ test("staging build and source SHA are version matched",()=>{
  assert.doesNotMatch(js,/functions\/v1\/freight-api-qa-issue47qa/);
  assert.equal(info.task2Complete,false);
  assert.ok(html.includes("app.js?v="+info.servedAppBlobSha.slice(0,12)));
- assert.ok(html.includes("late-bid-staging.js?v="+info.lateBidUiSha.slice(0,12)));
+ assert.ok(html.includes(info.lateBidUiScript+"?v="+info.lateBidUiSha.slice(0,12)));
  assert.ok(!readFileSync("index.html","utf8").includes("late-bid-staging.js"));
 });
 

@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'test/task2-guidance.js'
+      - 'test/task2-guidance-*.js'
       - 'test/carrier-csv-wps-hotfix.js'
       - 'tests/issue47-carrier-xlsx.test.mjs'
       - 'tests/issue47-insurance-excel-import.test.mjs'
@@ -46,10 +47,10 @@ jobs:
             try{
               const [html,guide,codec]=await Promise.all([
                 fetch(base+'index.html?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
-                fetch(base+'task2-guidance.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
+                fetch(base+'task2-guidance-42dc6ccc8a20.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
                 fetch(base+'carrier-csv-wps-hotfix.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text())
               ]);
-              if(html.includes('task2-guidance.js?v=42dc6ccc8a20') &&
+              if(html.includes('task2-guidance-42dc6ccc8a20.js?v=42dc6ccc8a20') &&
                  html.includes('carrier-csv-wps-hotfix.js?v=1e867d941474') &&
                  guide.includes('Скачать Excel-шаблон') &&
                  guide.includes('freight-form-') &&
