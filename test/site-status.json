@@ -182,7 +182,7 @@
   "updatedAt": "2026-11-05T18:34:00Z",
   "stagingVerification": {
     "scope": "01/26 not claimed; rate from Excel order 32 manual PASS; annulled order 76 API filtering verified by read-only SQL and API v61 source, authenticated post-deploy browser QA pending; other scenarios unresolved.",
-    "ownerAcceptance": "PARTIAL_RATE_SEND_PASS; 26_GROUPS_PENDING",
+    "ownerAcceptance": "PENDING",
     "production": "NOT UPDATED",
     "cronDeadline": {
       "active": true,
