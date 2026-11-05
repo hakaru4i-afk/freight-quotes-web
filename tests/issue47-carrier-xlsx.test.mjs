@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 
 const codec = readFileSync(new URL("../test/carrier-csv-wps-hotfix.js", import.meta.url), "utf8");
@@ -28,6 +28,7 @@ test("Issue 47: XLSX archive contains one distinct cell per form field", async (
   const headers=["Перевозчик","Контактное лицо","Сумма ставки","Валюта","Дата забора груза"];
   const values=["Тестовый перевозчик","ООО & Сыновья; Иванов","-100.50","USD","2026-11-05"];
   const bytes=api.makeXlsx([headers,values]);
+  writeFileSync("/tmp/issue47-carrier-generated.xlsx", Buffer.from(bytes));
   const signature=new DataView(bytes.buffer).getUint32(0,true);
   assert.equal(signature,0x04034b50, "must be ZIP / OOXML, not plain CSV");
   const entries=await api.unzip(bytes.buffer);
