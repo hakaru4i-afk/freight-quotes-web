@@ -4,12 +4,12 @@
   "visibility": "public-redacted",
   "asOfDate": "2026-11-06",
   "release": {
-    "version": "1.19.10",
+    "version": "1.19.11",
     "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_OPEN",
-    "frontendCommit": "6e87e7a0549522ceaf467db2f38d05e6005c71eb",
-    "apiVersion": 67,
-    "scope": "Carrier transport application only",
-    "checkSummary": "17 component and handler checks; 9 successful CI checks; 14 served-file checks",
+    "frontendCommit": "66d03b512bea1f953b980a452a6cae027c90712e",
+    "apiVersion": 68,
+    "scope": "Carrier transport application official layout and terminology; staging API export metadata sanitization",
+    "checkSummary": "Formal UI static checks, road/rail API export unit checks, isolated QA unauthorized smoke and shared staging regression CI passed",
     "manualAcceptance": "OPEN",
     "source": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
   },
