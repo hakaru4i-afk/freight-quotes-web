@@ -63,6 +63,7 @@ export function requiredDocumentKeys(d) {
 export function validateTransportApplication(d) {
   const errors=requiredDocumentKeys(d).filter(k=>!hasValue(d[k]));
   if(d.dangerousGoods==='unknown') errors.push('dangerousGoods');
+  if((d.insuranceRequired==='yes'||['CIP','CIF'].includes(d.incoterm))&&/^(no|нет|не включено|not included)$/i.test(String(d.insurance||'').trim())) errors.push('insurance');
   for(const key of ['weight','volume','invoiceAmount','totalKm']) if(hasValue(d[key])&&(!Number.isFinite(Number(String(d[key]).replace(',','.')))||Number(String(d[key]).replace(',','.'))<=0)) errors.push(key);
   for(const key of ['applicationDate','ready_date','etd','eta']) if(hasValue(d[key])&&(!/^\d{4}-\d{2}-\d{2}$/.test(d[key])||!Number.isFinite(Date.parse(d[key]))||new Date(d[key]).toISOString().slice(0,10)!==d[key])) errors.push(key);
   if(d.etd&&d.ready_date&&d.etd<d.ready_date) errors.push('etd');

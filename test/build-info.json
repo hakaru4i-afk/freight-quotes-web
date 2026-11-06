@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 64,
+    "backendVersion": 65,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -28,7 +28,7 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "f0561d484d71070303b814f50acf7d9280877eb5",
+    "backendSourceCommit": "a10136624f164bd73d2e8e4ed3078b36b5c1f6e8",
     "backendSourceSha": "261e224d5df4889e4c710134d966f1e1d9bf709e",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 64,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V64_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 65,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V65_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -97,8 +97,8 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
-    "backendBundleSHA256": "335345948410b3eb61ea8fdb1245892df972b81fbf91a89c0934fa878d1c388a",
-    "backendActiveBundleSha256": "335345948410b3eb61ea8fdb1245892df972b81fbf91a89c0934fa878d1c388a",
+    "backendBundleSHA256": "ee4caad0687b54cc8471457863d0a29465ff96b9fa0de12cbb058c259bed829d",
+    "backendActiveBundleSha256": "ee4caad0687b54cc8471457863d0a29465ff96b9fa0de12cbb058c259bed829d",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -162,7 +162,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 64,
+    "backendVersion": 65,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -176,7 +176,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 64,
+    "apiVersion": 65,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -242,17 +242,17 @@
   "carrierDocument": {
     "issue": 17,
     "build": "issue17-compact-document-20261106",
-    "apiVersion": 64,
-    "apiBundleSha256": "335345948410b3eb61ea8fdb1245892df972b81fbf91a89c0934fa878d1c388a",
-    "backendSourceCommit": "f0561d484d71070303b814f50acf7d9280877eb5",
+    "apiVersion": 65,
+    "apiBundleSha256": "ee4caad0687b54cc8471457863d0a29465ff96b9fa0de12cbb058c259bed829d",
+    "backendSourceCommit": "a10136624f164bd73d2e8e4ed3078b36b5c1f6e8",
     "productionChanged": false,
     "hostedApi": "PASS road/rail save/send/exports and permissions",
     "hostedBrowser": "OPEN",
     "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
     "files": {
       "app.js": "00c543342c69c2960f1619d5189ab501194facec9f8232aa0c4fcee8ada2c3ad",
-      "transport-application-editor.mjs": "8671b5355a81b6b3b9b335c6db3a11d4ca5b8d5909f5f76d18bd71dfcd849f17",
-      "transport-application-model.mjs": "566801c99ee28f0f7f251131204aa906dad085bb22fe7156db5e49d53d0fcb9a",
+      "transport-application-editor.mjs": "72fbcaf4dd081a3a775916521039ac672951eed9549370dffee011298a4c06c3",
+      "transport-application-model.mjs": "8f6eff1fb1633b189887bb51f15fd01629bb685f5dcb424d51497ea161743d3d",
       "transport-application.css": "b29ab0d65a206645bf2ca45a39317029d664b208e49c8ca0bdcec1f332275813"
     }
   }

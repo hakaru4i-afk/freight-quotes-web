@@ -7,6 +7,7 @@ export function renderCompactDocument({r,groups,model,values,onChange,busy,onCor
   const fields=[...groups.flatMap(g=>g[3]),...EXTRA_FIELDS].map(([key,ru,en,type])=>({key,ru,en,type}));
   const byKey=Object.fromEntries(fields.map(f=>[f.key,f]));
   const plan=documentFieldPlan(model,values), required=new Set(requiredDocumentKeys(values));
+  plan.main=plan.main.filter(key=>!(['contract','customerDetails','carrierDetails','shipper','consignee'].includes(key)&&hasValue(model.values[key])));
   function field(key) {
     const f=byKey[key];if(!f)return null;
     const label=key==='trackingInstructions'?t.remarks:lang==='en'?f.en:lang==='zh'?(zhFields[key]||f.en):f.ru;
@@ -14,8 +15,8 @@ export function renderCompactDocument({r,groups,model,values,onChange,busy,onCor
     const props={name:key,value:values[key]??'',onChange:e=>onChange(key,e.target.value),'aria-required':required.has(key),maxLength:f.type==='textarea'?4000:500};
     return r('label',{className:'field'+(f.type==='textarea'?' full':''),children:[r('span',{children:label+(required.has(key)?' *':'')}),choices?r('select',{...props,children:[r('option',{value:'',children:'—'}),...choices.map(([v,l])=>r('option',{value:v,children:l},v))]}):r(f.type==='textarea'?'textarea':'input',{...props,type:f.type==='date'?'date':f.type==='number'?'number':'text',step:f.type==='number'?'any':undefined}),r('small',{children:key==='containerNumber'?t.container:t.hint})]},key);
   }
-  const summaryKeys=['applicationDate','customerDetails','carrierDetails','contract','origin','destination','transport','incoterm','incotermPlace','cargo','weight','volume','dimensions','ready_date','schedule','etd'];
-  const inherited=fields.map(f=>f.key).filter(k=>hasValue(model.values[k])&&!plan.main.includes(k)&&!summaryKeys.includes(k));
+  const summaryKeys=['applicationDate','customerDetails','carrierDetails','contract','origin','destination','transport','incoterm','incotermPlace','cargo','weight','volume','dimensions','ready_date','schedule','etd','shipper','consignee'];
+  const inherited=fields.map(f=>f.key).filter(k=>hasValue(model.values[k])&&!plan.main.includes(k)&&!summaryKeys.includes(k)&&!['document','carrier'].includes(model.sources[k]));
   const optional=fields.map(f=>f.key).filter(k=>!plan.main.includes(k)&&!plan.locked.includes(k)&&!plan.suppressed.includes(k)&&!inherited.includes(k)&&!['dangerousDetails','invoiceAmount','invoiceCurrency','insurance','temperature','exportCustoms','importCustoms','customsReason'].includes(k));
   const conditional=[...(values.customsApplicable==='yes'?['exportCustoms','importCustoms']:values.customsApplicable==='no'?['customsReason']:[]),...(values.dangerousGoods==='yes'?['dangerousDetails']:[]),...(values.insuranceRequired==='yes'?['insurance','invoiceAmount','invoiceCurrency']:[]),...(values.temperatureRequired==='yes'?['temperature']:[])].filter(k=>!plan.main.includes(k)&&!plan.locked.includes(k));
   return r('section',{className:'compact-transport-document',children:[
