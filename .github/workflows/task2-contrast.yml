@@ -1,0 +1,29 @@
+name: Task2 staging text contrast regression
+on:
+  pull_request:
+    paths:
+      - 'test/task2-contrast-hotfix.css'
+      - 'test/index.html'
+      - 'tests/task2-contrast.test.mjs'
+      - '.github/workflows/task2-contrast.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'test/task2-contrast-hotfix.css'
+      - 'test/index.html'
+      - 'tests/task2-contrast.test.mjs'
+      - '.github/workflows/task2-contrast.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-contrast:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate CSS scope and text contrast
+        run: node --test tests/task2-contrast.test.mjs
