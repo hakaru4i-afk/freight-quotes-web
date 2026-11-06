@@ -18,9 +18,9 @@ assert.ok(scope.includes("bidId:i.id"));
 test("staging QA candidate cache bust matches app and reports actual shared staging API",()=>{
 assert.equal(info.environment,"staging");
 assert.equal(info.task2Complete,false);
-assert.equal(info.task2.lastObservedBackendVersion,66);
-assert.equal(info.task2.backendVersion,66);
-assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V66_ACTIVE; FULL_ACCEPTANCE_PENDING");
+assert.equal(info.task2.lastObservedBackendVersion,67);
+assert.equal(info.task2.backendVersion,67);
+assert.equal(info.task2.backendDeploymentStatus,"SHARED_STAGING_API_V67_ACTIVE; FULL_ACCEPTANCE_PENDING");
 assert.equal(info.task2.backendFunction,"freight-api");
 assert.match(s,/functions\/v1\/freight-api"/);
 assert.doesNotMatch(s,/functions\/v1\/freight-api-qa-issue47qa/);
