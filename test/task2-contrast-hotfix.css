@@ -1,0 +1,77 @@
+/* Staging QA contrast hotfix · Issue #47 · 2026-11-06.
+   Restrict changes to the Task 2 execution workspace. The general carrier
+   palette is dark, while its transport document stage and forms are light.
+   Global cabinet heading rules must never make light panels unreadable. */
+#task2-root .t2-stage {
+  color: #18392f;
+  background: #f8faf8;
+  border-color: #cadbce;
+  color-scheme: light;
+}
+#task2-root .t2-stage :is(h2, h3, h4) {
+  color: #173a31;
+}
+#task2-root .t2-stage .t2-muted,
+#task2-root .t2-stage :is(.t2-field small, .t2-item small, .t2-chat small) {
+  color: #4a6357;
+}
+#task2-root .t2-stage :is(.t2-form, .t2-item, .t2-empty, .t2-chat, .t2-picker) {
+  background: #ffffff;
+  color: #18392f;
+}
+#task2-root .t2-stage .t2-field {
+  color: #1e3e33;
+}
+#task2-root .t2-stage .t2-field :is(input, select, textarea) {
+  background: #ffffff;
+  color: #17372e;
+  border-color: #839d90;
+}
+#task2-root .t2-stage .t2-field :is(input, textarea)::placeholder {
+  color: #576b61;
+  opacity: 1;
+}
+#task2-root .t2-stage .t2-btn.ghost {
+  background: #ffffff;
+  color: #145b44;
+  border-color: #8db4a0;
+}
+#task2-root .t2-stage .t2-btn.ghost:hover {
+  background: #e9f4ed;
+}
+#task2-root .t2-stage :is(button, input, select, textarea):focus-visible {
+  outline: 3px solid #16694e;
+  outline-offset: 2px;
+}
+/* Inactive tabs sit on the *dark* carrier workspace, outside the light card. */
+.carrier-portal #task2-root .t2-heading p {
+  color: #c7dae7;
+}
+.carrier-portal #task2-root .t2-tabs {
+  border-bottom-color: #617c90;
+}
+.carrier-portal #task2-root .t2-tabs button {
+  color: #e8f4fd;
+  background: #18384f;
+  border-color: #7a9aaf;
+}
+.carrier-portal #task2-root .t2-tabs button:hover:not(.active) {
+  color: #ffffff;
+  background: #29516b;
+}
+.carrier-portal #task2-root .t2-tabs button.active {
+  color: #ffffff;
+  background: #176b53;
+  border-color: #78c7a9;
+}
+.carrier-portal #task2-root .t2-tabs button:focus-visible {
+  outline: 3px solid #9adbef;
+  outline-offset: 2px;
+}
+@media (max-width: 390px) {
+  #task2-root .t2-stage { padding: 12px; }
+  .carrier-portal #task2-root .t2-tabs button {
+    overflow-wrap: anywhere;
+    min-width: 0;
+  }
+}
