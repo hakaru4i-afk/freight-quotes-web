@@ -116,7 +116,7 @@
    if(state.tab==="track"){
      const sourceDate=x.original_departure||o.pickup||"—";
      let html='<div class="t2-facts">'+readonly("Исходная плановая дата (заблокирована)",sourceDate)+readonly("Фактическая дата выхода",fmt(x.actual_departure))+
-       readonly("ПТО",fmt(x.pto_at))+readonly("Растаможка",fmt(x.customs_at))+readonly("Приёмка склада",fmt(x.warehouse_at))+
+       readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновить данные перевозки</h3><p class="t2-muted">Одна кнопка «Сохранить изменения» сохраняет даты, номер контейнера и новые точки, но не завершает заявку. Старые точки и переносы не изменяются.</p>';
@@ -132,7 +132,7 @@
          (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
            '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
            field("pto_date","Дата прибытия на ПТО (Минск)","datetime-local",tips.date))+
-         (x.customs_at?readonly("Растаможка",fmt(x.customs_at)):field("customs_date","Фактическая дата растаможки (Минск)","datetime-local",tips.date))+
+         (x.customs_at?readonly("Дата завершения таможенного оформления",fmt(x.customs_at)):field("customs_date","Дата завершения импортного таможенного оформления (Минск)","datetime-local",tips.date))+
          '<div class="t2-block-title">Контейнеры</div>'+
          field("container_no","№ контейнера (необязательно)","text",tips.number),
          "Сохранить изменения");
@@ -148,7 +148,7 @@
      return html;
    }
    if(state.tab==="arrival"){
-     let html='<div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Растаможка",fmt(x.customs_at))+readonly("Приёмка склада",fmt(x.warehouse_at))+'</div>';
+     let html='<div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
      html+='<p class="t2-muted">Перевозчик вводит даты в единой форме «Исполнение и трекинг». Здесь ВЭД выполняет задачи и принимает решение о завершении.</p>';
      html+='<h3>Задачи проверки документов и склада</h3><div class="t2-stack">'+tasks.filter(t=>["pto_review","warehouse_acceptance"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(staff&&x.status!=="completed"){

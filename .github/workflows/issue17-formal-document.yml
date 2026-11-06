@@ -1,0 +1,23 @@
+name: Formal transport application UI (staging)
+on:
+  pull_request:
+    paths: ['test/task2-panel*.js','test/task2-guidance*.js','test/task2-i18n.js','test/transport-application*','test/index.html','tests/issue17-formal-document-ui.test.mjs','.github/workflows/issue17-formal-document.yml']
+  push:
+    branches: [main]
+    paths: ['test/task2-panel*.js','test/task2-guidance*.js','test/task2-i18n.js','test/transport-application*','test/index.html','tests/issue17-formal-document-ui.test.mjs','.github/workflows/issue17-formal-document.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Official document terms and layout
+        run: node --test tests/issue17-formal-document-ui.test.mjs
+      - name: Existing transport application data contract
+        run: node --test tests/issue17-model.test.mjs
