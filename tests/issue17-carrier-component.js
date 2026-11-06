@@ -287,6 +287,7 @@ function Ky({ item: i, role: c, claims: h, onChanged: m }) {
                   onSubmit: (f) => {
                     f.preventDefault();
                     let P = f.nativeEvent.submitter?.value || "save";
+                    if(ne && P === "submit") {const missing=validateTransportApplication(L);if(missing.length){y(documentValidationMessage(missing,md));return;}}
                     X("/api/transport-applications", {
                       action: ne ? P : "edit",
                       details: L,

@@ -29,3 +29,8 @@ export function renderCompactDocument({r,groups,model,values,onChange,busy,onCor
     r('div',{className:'bar transport-actions',children:[r('button',{className:'btn secondary',name:'action',value:'save',formNoValidate:true,disabled:busy,children:t.save}),r('button',{className:'btn',name:'action',value:'submit',formNoValidate:true,disabled:busy,children:t.send})]})
   ]});
 }
+export function documentValidationMessage(keys,groups) {
+ const lang=documentLocale(), t=words[lang]||words.ru;
+ const fields=[...groups.flatMap(g=>g[3]),...EXTRA_FIELDS];
+ return t.required+': '+keys.map(key=>{const field=fields.find(f=>f[0]===key);return field?.[lang==='ru'?1:2]||key;}).join('; ');
+}
