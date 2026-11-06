@@ -63,7 +63,7 @@ export function verify(base){
   const status=JSON.parse(fs.readFileSync(path.join(ROOT,'test/qa-public-status.json'),'utf8'));
   const history=JSON.parse(fs.readFileSync(path.join(ROOT,'test/site-status.json'),'utf8'));
   const historyString=JSON.stringify(history);
-  const rawOrderCode=/(?:C26EM\\d{6}|WS26\\d{4,}|LT26\\d{6,}|(?:заявк[а-я]*|заказ[а-я]*)\\s*(?:№\\s*)?\\d{1,6})/i;
+  const rawOrderCode=/(?:C26EM\d{6}|WS26\d{4,}|LT26\d{6,}|(?:заявк[а-я]*|заказ[а-я]*)\s*(?:№\s*)?\d{1,6})/i;
   const historyErrors=rawOrderCode.test(historyString)?['Business order references in public release history'] : [];
   const errors=[...inspectSummary(status),...inspectChangedFiles(changedFiles(base)),...historyErrors];
   if(errors.length){for(const e of errors)console.error('BLOCK:',e);return 1}
