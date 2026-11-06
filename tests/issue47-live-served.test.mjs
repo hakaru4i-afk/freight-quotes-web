@@ -22,7 +22,7 @@ async function retry(action){
 test("GitHub Pages serves the EXACT current staging files",async()=>{
  await retry(async()=>{
   const published=new Map();
-  for(const name of fileNames){
+  for(const name of new Set([...fileNames,...(JSON.parse(readFileSync("test/build-info.json","utf8")).carrierDocument?.moduleAssets||[])])){
    const content=await load(root+name+"?issue47_qa="+Date.now());
    const local=readFileSync("test/"+name);
    assert.equal(githubBlob(content),githubBlob(local),name+" served SHA differs from repository");
