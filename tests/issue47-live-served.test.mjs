@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 const root="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
-const fileNames=["index.html","build-info.json","app.js","task2-panel-260ba5a1c29f.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css"];
+const fileNames=["index.html","build-info.json","app.js","task2-panel-260ba5a1c29f.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css","transport-application-model.mjs","transport-application-editor.mjs","transport-application.css"];
 function githubBlob(buf){return createHash("sha1").update(Buffer.from("blob "+buf.length+"\0")).update(buf).digest("hex");}
 async function load(url){
  const res=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
@@ -52,7 +52,7 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  assert.equal(health.status,200);
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(h.build,"stg47-integrated-qa11");
+ assert.equal(h.build,JSON.parse(readFileSync("test/build-info.json","utf8")).task2.backendBuild);
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
   assert.ok([401,403].includes(resp.status),"Anonymous "+route+" returned "+resp.status);
