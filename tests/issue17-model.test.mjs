@@ -11,3 +11,17 @@ test('required insurance cannot be satisfied by a negative winning-offer answer'
 
 import {correctionEventNote} from '../test/transport-application-editor.mjs';
 test('correction note is visible in document audit; malformed legacy details do not crash',()=>{assert.equal(correctionEventNote({event_type:'application_correction_request',detail:'{"note":"QA correction"}'}),' · QA correction');assert.equal(correctionEventNote({event_type:'application_correction_request',detail:'broken'}),'');assert.equal(correctionEventNote({event_type:'application_save',detail:'{}'}),'');});
+
+import {renderCompactDocument} from '../test/transport-application-editor.mjs';
+test('CIP overrides legacy insurance=no switch and exposes every missing insurance requirement',()=>{
+ const h=hydrate({details:{...base,insuranceRequired:'no',insurance:'no'},order:{incoterm:'CIP'}});
+ assert.equal(h.values.insuranceRequired,'yes');
+ const fields=[['insurance','Страхование','Insurance','textarea'],['invoiceAmount','Инвойс','Invoice','number'],['invoiceCurrency','Валюта','Currency','currency']];
+ const node=renderCompactDocument({r:(tag,props)=>({tag,...props}),groups:[['risk','Риски','Risks',fields]],model:h,values:h.values,onChange:()=>{}});
+ const controls=[];function walk(n){if(!n)return;if(Array.isArray(n))return n.forEach(walk);if(typeof n==='object'){if(n.name)controls.push(n);walk(n.children);}}walk(node);
+ for(const key of ['insurance','invoiceAmount','invoiceCurrency'])assert.ok(controls.some(n=>n.name===key),key+' must be editable when required');
+ const toggle=controls.find(n=>n.name==='insuranceRequired');assert.equal(toggle.value,'yes');assert.equal(toggle.disabled,true);
+});
+test('known source hazard cannot be downgraded; unknown classification stays editable',()=>{const h=hydrate({details:base,order:{dangerous_goods:'yes',dangerous_details:'UN QA'},patch:{dangerousGoods:'no'}});assert.equal(h.values.dangerousGoods,'yes');assert.equal(h.values.dangerousDetails,'UN QA');assert.ok(h.locked.includes('dangerousGoods'));const u=hydrate({order:{dangerous_goods:'unknown'}});assert.ok(!u.locked.includes('dangerousGoods'));});
+
+test('unknown source hazard and default customs stay editable in primary fields',()=>{const h=hydrate({order:{dangerous_goods:'unknown'}});const p=documentFieldPlan(h);assert.ok(p.main.includes('dangerousGoods'));assert.ok(p.main.includes('customsApplicable'));});

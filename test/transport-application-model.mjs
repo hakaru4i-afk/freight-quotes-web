@@ -11,7 +11,7 @@ export const EXTRA_FIELDS = [
   ['customsReason','Причина неприменимости таможни','Reason customs does not apply','text'],
   ['insuranceRequired','Требуется страхование','Insurance required','yesno'],
 ];
-export const IMMUTABLE = ['applicationDate','origin','destination','waypoints','cargo','weight','volume','dimensions','incoterm','incotermPlace','transport','ready_date','freightScope','extras','schedule','etd','customerDetails','carrierDetails','contract','serviceTerms','paymentBasis','paymentTerms'];
+export const IMMUTABLE = ['applicationDate','origin','destination','waypoints','cargo','weight','volume','dimensions','incoterm','incotermPlace','transport','ready_date','freightScope','extras','schedule','etd','customerDetails','carrierDetails','contract','serviceTerms','paymentBasis','paymentTerms','dangerousGoods','dangerousDetails'];
 const sourceKeys = {incotermPlace:'incoterm_place', dangerousGoods:'dangerous_goods',dangerousDetails:'dangerous_details',loadingContact:'sender_contact'};
 export function hydrateTransportApplication({item={}, order={}, company={}, carrier={}, template={}, defaults={}, details=item.booking?.details||{}, patch={}, etd={}}={}) {
   const values={}, sources={}, locked=[];
@@ -36,7 +36,7 @@ export function hydrateTransportApplication({item={}, order={}, company={}, carr
   if(hasValue(company.legalDetails)) confirmed.customerDetails=company.legalDetails;
   if(hasValue(carrier.legalDetails)) confirmed.carrierDetails=carrier.legalDetails;
   confirmed.applicationDate=details.applicationDate||String(item.booking?.taken_at||'').slice(0,10)||defaults.applicationDate;
-  for(const key of IMMUTABLE) if(hasValue(confirmed[key])) {
+  for(const key of IMMUTABLE) if(hasValue(confirmed[key])&&(key!=='dangerousGoods'||['yes','no'].includes(confirmed[key]))&&(key!=='dangerousDetails'||confirmed.dangerousGoods==='yes')) {
     values[key]=confirmed[key]; locked.push(key);
     sources[key]=key==='applicationDate'?'server':hasValue(template[key])?'approved-template':hasValue(bid[key])||['schedule','etd','freightScope','extras'].includes(key)?'winning-offer':key==='carrierDetails'?'carrier-profile':key==='customerDetails'?'company':'order';
   }
@@ -45,7 +45,8 @@ export function hydrateTransportApplication({item={}, order={}, company={}, carr
   if(!hasValue(values.insurance)&&hasValue(bid.insurance)) {values.insurance=bid.insurance;sources.insurance='winning-offer';}
   if(!hasValue(values.dangerousDetails)) values.dangerousDetails=bid.dangerous_details||'';
   if(!hasValue(values.customsApplicable)) values.customsApplicable=hasValue(values.exportCustoms)||hasValue(values.importCustoms)?'yes':'unknown';
-  if(!hasValue(values.insuranceRequired)) values.insuranceRequired=['CIP','CIF'].includes(values.incoterm)?'yes':'no';
+  if(['CIP','CIF'].includes(values.incoterm)) values.insuranceRequired='yes';
+  else if(!hasValue(values.insuranceRequired)) values.insuranceRequired='no';
   const amount=item.selected_offer?.bid?.amount, currency=item.selected_offer?.bid?.currency;
   return {values,sources,locked,amount:hasValue(amount)?amount:item.booking?.amount,currency:hasValue(currency)?currency:item.booking?.currency,requestNumber:item.booking?.request_number||'',orderCode:item.order_code||'',bitrix:item.bitrix_tasks||item.bitrix_task||order.bitrix_task||'',layout:documentMode(values)==='rail'?'BEA47':'BDX99'};
 }
@@ -75,7 +76,7 @@ export function validateTransportApplication(d) {
 }
 export function documentFieldPlan(model, current=model.values) {
   const required=requiredDocumentKeys(current), locked=new Set(model.locked);
-  const inherited=k=>hasValue(model.values[k])&&model.sources[k]!=='document'&&model.sources[k]!=='carrier';
+  const inherited=k=>hasValue(model.values[k])&&model.values[k]!=='unknown'&&['order','winning-offer','company','carrier-profile','approved-template','server'].includes(model.sources[k]);
   const main=required.filter(k=>!locked.has(k)&&(!inherited(k)||!hasValue(current[k])));
   for(const key of ['schedule','etd','vehicleType','vehicleNumber',...(['rail','multi'].includes(documentMode(current))||current.containerized==='yes'?['containerNumber']:[]),'customsApplicable','trackingInstructions']) if(!locked.has(key)&&!inherited(key)&&!main.includes(key)) main.push(key);
   const suppressed=['customsShipper','customsConsignee','exportContact','importContact','serviceTerms','paymentTerms','paymentBasis'];
