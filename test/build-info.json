@@ -10,14 +10,14 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "16509adc40718c7197d266c025659c7116ef1fc9",
+  "servedAppBlobSha": "d62a1bcdf9202928ad181d25abe37a4ddfe7947b",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 66,
+    "backendVersion": 67,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -28,7 +28,7 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "d788410979524738354abf25c78426965fda3446",
+    "backendSourceCommit": "ce1b38d92a2bb36d5fb8616c289029e58915169f",
     "backendSourceSha": "261e224d5df4889e4c710134d966f1e1d9bf709e",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 66,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V66_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 67,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V67_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -97,8 +97,8 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
-    "backendBundleSHA256": "ea6861035d6bd6ee6b552abe092408f78e2534275753d8a14ce9a52adda8b05f",
-    "backendActiveBundleSha256": "ea6861035d6bd6ee6b552abe092408f78e2534275753d8a14ce9a52adda8b05f",
+    "backendBundleSHA256": "fbef91c7accf216ff8150388a5840e3d4db88e16ca7d8b6b3ccb8f7bad0fde94",
+    "backendActiveBundleSha256": "fbef91c7accf216ff8150388a5840e3d4db88e16ca7d8b6b3ccb8f7bad0fde94",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -162,7 +162,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 66,
+    "backendVersion": 67,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -176,7 +176,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 66,
+    "apiVersion": 67,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -242,23 +242,23 @@
   "carrierDocument": {
     "issue": 17,
     "build": "issue17-compact-document-20261106",
-    "apiVersion": 66,
-    "apiBundleSha256": "ea6861035d6bd6ee6b552abe092408f78e2534275753d8a14ce9a52adda8b05f",
-    "backendSourceCommit": "d788410979524738354abf25c78426965fda3446",
+    "apiVersion": 67,
+    "apiBundleSha256": "fbef91c7accf216ff8150388a5840e3d4db88e16ca7d8b6b3ccb8f7bad0fde94",
+    "backendSourceCommit": "ce1b38d92a2bb36d5fb8616c289029e58915169f",
     "productionChanged": false,
     "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
     "files": {
-      "app.js": "7810c020f383e256ebaf22fdfd1090aabd8e38469b50e368727dcb8a91ffc516",
-      "transport-application-model.mjs": "8a5e20e5b23e349445dd08f5dea060970cb38d96f96af076fb2211d8ae447bb0",
-      "transport-application-editor.mjs": "8e72562b2e35c792a2cd615d36f09a27068e68e4b68e7e13b1970e6e4b9654b4",
+      "app.js": "cb3cdd58e9b1ac740a975cb954827de3679dea7116de485655bf997ee7437e14",
+      "transport-application-model.mjs": "751a0dca991a25fd31b693e3d361305b3996cd24b874d54c68556d48f11899c0",
+      "transport-application-editor.mjs": "8c01c7cdb211ab9c9ee7557050161eb5adb02cde8be30653e3332849de900653",
       "transport-application.css": "b29ab0d65a206645bf2ca45a39317029d664b208e49c8ca0bdcec1f332275813",
-      "transport-application-model-8a5e20e5b23e.mjs": "8a5e20e5b23e349445dd08f5dea060970cb38d96f96af076fb2211d8ae447bb0",
-      "transport-application-editor-8e72562b2e35.mjs": "8e72562b2e35c792a2cd615d36f09a27068e68e4b68e7e13b1970e6e4b9654b4"
+      "transport-application-model-751a0dca991a.mjs": "751a0dca991a25fd31b693e3d361305b3996cd24b874d54c68556d48f11899c0",
+      "transport-application-editor-8c01c7cdb211.mjs": "8c01c7cdb211ab9c9ee7557050161eb5adb02cde8be30653e3332849de900653"
     },
     "qaEvidence": "Versioned actual results: private docs/releases/issue17/STATUS.md; full Task2 and manual acceptance remain OPEN.",
     "moduleAssets": [
-      "transport-application-model-8a5e20e5b23e.mjs",
-      "transport-application-editor-8e72562b2e35.mjs"
+      "transport-application-model-751a0dca991a.mjs",
+      "transport-application-editor-8c01c7cdb211.mjs"
     ]
   }
 }

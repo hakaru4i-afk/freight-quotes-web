@@ -30,6 +30,8 @@ export function hydrateTransportApplication({item={}, order={}, company={}, carr
   merge({carrierDetails:carrier.legalDetails},'carrier-profile');
   merge(template,'approved-template');
   const confirmed={...orderValues};
+  if(!['yes','no'].includes(confirmed.dangerousGoods)&&['yes','no'].includes(bid.dangerous_goods)) confirmed.dangerousGoods=bid.dangerous_goods;
+  if(confirmed.dangerousGoods==='yes'&&!hasValue(confirmed.dangerousDetails)&&bid.dangerous_goods==='yes') confirmed.dangerousDetails=bid.dangerous_details;
   for(const key of ['origin','destination','waypoints']) if(hasValue(bid[key])) confirmed[key]=bid[key];
   Object.assign(confirmed,{transport:bid.mode||item.transport,schedule:bid.pickup,etd:etd.date,freightScope:bid.includes,extras:bid.extras});
   for(const key of ['contract','serviceTerms','paymentBasis','paymentTerms']) if(hasValue(template[key])) confirmed[key]=template[key];
@@ -38,7 +40,7 @@ export function hydrateTransportApplication({item={}, order={}, company={}, carr
   confirmed.applicationDate=details.applicationDate||String(item.booking?.taken_at||'').slice(0,10)||defaults.applicationDate;
   for(const key of IMMUTABLE) if(hasValue(confirmed[key])&&(key!=='dangerousGoods'||['yes','no'].includes(confirmed[key]))&&(key!=='dangerousDetails'||confirmed.dangerousGoods==='yes')) {
     values[key]=confirmed[key]; locked.push(key);
-    sources[key]=key==='applicationDate'?'server':hasValue(template[key])?'approved-template':hasValue(bid[key])||['schedule','etd','freightScope','extras'].includes(key)?'winning-offer':key==='carrierDetails'?'carrier-profile':key==='customerDetails'?'company':'order';
+    sources[key]=key==='applicationDate'?'server':hasValue(template[key])?'approved-template':(hasValue(bid[sourceKeys[key]||key])&&String(bid[sourceKeys[key]||key])===String(confirmed[key]))||['schedule','etd','freightScope','extras'].includes(key)?'winning-offer':key==='carrierDetails'?'carrier-profile':key==='customerDetails'?'company':'order';
   }
   for(const [target,key] of Object.entries({customsShipper:'shipper',customsConsignee:'consignee',exportContact:'loadingContact',importContact:'deliveryContact'})) if(!hasValue(values[target])&&hasValue(values[key])) {values[target]=values[key];sources[target]=sources[key];}
   if(!hasValue(values.dangerousGoods)) values.dangerousGoods=bid.dangerous_goods||'unknown';
