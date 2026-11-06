@@ -1,0 +1,19 @@
+name: Staging anonymous access denial
+on:
+  push:
+    branches: [main]
+    paths: ['tests/qa-anonymous-roles.test.mjs', '.github/workflows/qa-anonymous-api.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  anonymous-denied:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Anonymous read, write and preview-spoof denial against staging API
+        run: node --test tests/qa-anonymous-roles.test.mjs
