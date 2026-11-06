@@ -3,21 +3,21 @@
   "version": "stg47-owner-review-api63-versioned-core-js",
   "releaseVersion": "1.19.2",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "stg47-owner-review-api63-versioned-core-js",
+  "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
+  "servedAppBlobSha": "fc2640a31d77703eaa975fde138c7c65886063c0",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 63,
+    "backendVersion": 64,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "260ba5a1c29fd4ce6cb629a4818436af8261bc05",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -45,7 +45,7 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 63,
+    "lastObservedBackendVersion": 64,
     "backendDeploymentStatus": "SHARED_STAGING_API_V63_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -96,7 +96,7 @@
     "actRevisionGuard": true,
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
-    "backendBuild": "stg47-integrated-qa11",
+    "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "04cb7fa111447f07dc3d09457797dd7cfbb0676bce771d3dd76668014a029eee",
     "backendActiveBundleSha256": "04cb7fa111447f07dc3d09457797dd7cfbb0676bce771d3dd76668014a029eee",
     "slPenaltyRetention": {
@@ -176,7 +176,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 63,
+    "apiVersion": 64,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -238,5 +238,22 @@
     "publication": "staging API v63 active; UI bundle unchanged, CI pending",
     "acceptance": "PENDING AUTHENTICATED OWNER E2E"
   },
-  "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js"
+  "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js",
+  "carrierDocument": {
+    "issue": 17,
+    "build": "issue17-compact-document-20261106",
+    "apiVersion": 64,
+    "apiBundleSha256": "335345948410b3eb61ea8fdb1245892df972b81fbf91a89c0934fa878d1c388a",
+    "backendSourceCommit": "f0561d4",
+    "productionChanged": false,
+    "hostedApi": "PASS road/rail save/send/exports and permissions",
+    "hostedBrowser": "OPEN",
+    "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
+    "files": {
+      "app.js": "dc289a8c8f6244613b350d46e52179831077dc8688c76d0f50faa299cfea8ad9",
+      "transport-application-editor.mjs": "1083b0ab90dbdd6fe2b9796aa10fa63e15950630c4c98a72e962edb296b92b4c",
+      "transport-application-model.mjs": "566801c99ee28f0f7f251131204aa906dad085bb22fe7156db5e49d53d0fcb9a",
+      "transport-application.css": "b29ab0d65a206645bf2ca45a39317029d664b208e49c8ca0bdcec1f332275813"
+    }
+  }
 }

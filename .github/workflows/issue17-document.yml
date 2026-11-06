@@ -1,0 +1,19 @@
+name: Issue17 document mapping
+on:
+  pull_request:
+    paths: ['test/transport-application*', 'tests/issue17*', '.github/workflows/issue17-document.yml']
+  push:
+    branches: [main, fix/issue17-compact-document]
+    paths: ['test/transport-application*', 'tests/issue17*', '.github/workflows/issue17-document.yml']
+permissions:
+  contents: read
+jobs:
+  mapping:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node tests/issue17-model.test.mjs
+      - run: node --check test/app.js
