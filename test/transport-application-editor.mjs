@@ -36,3 +36,7 @@ export function documentValidationMessage(keys,groups) {
  const fields=[...groups.flatMap(g=>g[3]),...EXTRA_FIELDS];
  return t.required+': '+keys.map(key=>{const field=fields.find(f=>f[0]===key);return lang==='zh'?(zhFields[key]||field?.[2]||key):field?.[lang==='ru'?1:2]||key;}).join('; ');
 }
+export function correctionEventNote(event) {
+ if(event.event_type!=='application_correction_request')return '';
+ try {const detail=typeof event.detail==='string'?JSON.parse(event.detail):event.detail;return detail?.note?' · '+String(detail.note):'';}catch{return '';}
+}
