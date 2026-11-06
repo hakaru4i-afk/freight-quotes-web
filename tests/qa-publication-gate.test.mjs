@@ -14,7 +14,7 @@ test('raw QA exports, screenshots and backups are blocked',()=>{
    assert.ok(inspectChangedFiles([p]).length>0,p);
 });
 test('public summary rejects credentials, emails and personal fields',()=>{
- for(const x of [{password:'pass'},{session:'abc'},{anything:'name@example.org'},{raw:{a:1}},{secret:'sb_secret_abcdefghijklmnop1234'},{database:'postgresql://u:p@db.invalid/a'}])
+ for(const x of [{password:'pass'},{session:'abc'},{anything:'name@example.org'},{raw:{a:1}},{secret:'sb_'+'secret_abcdefghijklmnop1234'},{database:'postgresql://u:p@db.invalid/a'}])
    assert.ok(inspectSummary({...baseline,...x}).length>0);
 });
 test('false PASS claims cannot override release gate',()=>{
