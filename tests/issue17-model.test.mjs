@@ -8,3 +8,6 @@ test('customs N/A has explicit reason; relevant customs and opted-in risk fields
 test('container may be empty; validate supplied format and dates',()=>{assert.deepEqual(validate({...base,containerized:'yes',containerNumber:''}),[]);assert.ok(validate({...base,containerNumber:'bad'}).includes('containerNumber'));assert.ok(validate({...base,eta:'2026-02-30'}).includes('eta'));});
 
 test('required insurance cannot be satisfied by a negative winning-offer answer',()=>{assert.ok(validate({...base,insuranceRequired:'yes',insurance:'no',invoiceAmount:'100',invoiceCurrency:'EUR'}).includes('insurance'));});
+
+import {correctionEventNote} from '../test/transport-application-editor.mjs';
+test('correction note is visible in document audit; malformed legacy details do not crash',()=>{assert.equal(correctionEventNote({event_type:'application_correction_request',detail:'{"note":"QA correction"}'}),' · QA correction');assert.equal(correctionEventNote({event_type:'application_correction_request',detail:'broken'}),'');assert.equal(correctionEventNote({event_type:'application_save',detail:'{}'}),'');});

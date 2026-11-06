@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "8ca6ab94e3b2695fc0483c1a2493c5b954d62e82",
+  "servedAppBlobSha": "a791ba4ba6bff630f0da3cd197cde4d1e91c1941",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -250,8 +250,8 @@
     "hostedBrowser": "OPEN",
     "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
     "files": {
-      "app.js": "00c543342c69c2960f1619d5189ab501194facec9f8232aa0c4fcee8ada2c3ad",
-      "transport-application-editor.mjs": "72fbcaf4dd081a3a775916521039ac672951eed9549370dffee011298a4c06c3",
+      "app.js": "9052ec2ce9e344b271f955f74ebc892d60ab227fe71471f2916ffa987456756a",
+      "transport-application-editor.mjs": "8b1579c0f9158eecc6c76f183117e38d0c4143a31679d8bbf3ea21438279aee8",
       "transport-application-model.mjs": "8f6eff1fb1633b189887bb51f15fd01629bb685f5dcb424d51497ea161743d3d",
       "transport-application.css": "b29ab0d65a206645bf2ca45a39317029d664b208e49c8ca0bdcec1f332275813"
     }

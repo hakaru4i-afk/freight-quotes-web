@@ -628,7 +628,7 @@ function Ky({ item: i, role: c, claims: h, onChanged: m }) {
                 className: "small",
                 translate: "no",
                 children:
-                  f.created + " \xB7 " + f.actor + " \xB7 " + f.event_type,
+                  f.created + " \xB7 " + f.actor + " \xB7 " + f.event_type + correctionEventNote(f),
               },
               P,
             ),
