@@ -1,1 +1,153 @@
 .compact-transport-document{min-width:0}.compact-transport-document .transport-data>div{min-width:0;overflow-wrap:anywhere}.compact-transport-document input,.compact-transport-document select,.compact-transport-document textarea{width:100%;max-width:100%;box-sizing:border-box}.compact-transport-document details{margin:12px 0}.compact-transport-document summary{cursor:pointer}.compact-transport-document dd{margin:0;white-space:pre-wrap}.compact-transport-document .transport-actions{flex-wrap:wrap}
+
+/* Issue #17, Task #2: neutral official form, without changing the underlying data. */
+[data-cabinet-role] .compact-transport-document {
+  --td-ink: #182d26;
+  --td-muted: #4b6258;
+  --td-line: #cbd8d0;
+  max-width: 1100px;
+  margin: 0 auto 28px;
+  padding: clamp(16px, 3vw, 36px);
+  background: #fff;
+  color: var(--td-ink);
+  border: 1px solid var(--td-line);
+  border-radius: 6px;
+  box-shadow: 0 7px 24px rgb(16 42 30 / 8%);
+  color-scheme: light;
+}
+[data-cabinet-role] .compact-transport-document .transport-document-header {
+  margin: 0 0 24px;
+  padding: 0 0 19px;
+  border-bottom: 2px solid #234c3b;
+  text-align: center;
+}
+[data-cabinet-role] .compact-transport-document .transport-document-header h2 {
+  margin: 0;
+  color: #172d25;
+  font-size: clamp(18px, 2.2vw, 24px);
+  line-height: 1.3;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+  font-weight: 750;
+}
+[data-cabinet-role] .compact-transport-document .transport-document-subtitle {
+  margin: 9px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #50675b;
+}
+[data-cabinet-role] .compact-transport-document :is(h3, h4) {
+  color: #203e31;
+  font-size: 16px;
+  line-height: 1.4;
+  border-bottom: 1px solid #d4ded6;
+  padding-bottom: 8px;
+  margin: 24px 0 13px;
+  font-weight: 700;
+}
+[data-cabinet-role] .compact-transport-document .transport-data {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0 0 15px;
+  border: 1px solid var(--td-line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+[data-cabinet-role] .compact-transport-document .transport-data > div {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--td-line);
+  min-width: 0;
+  background: #fff;
+  overflow-wrap: anywhere;
+}
+[data-cabinet-role] .compact-transport-document .transport-data > div:nth-child(4n+1),
+[data-cabinet-role] .compact-transport-document .transport-data > div:nth-child(4n+2) {
+  background: #f5f8f5;
+}
+[data-cabinet-role] .compact-transport-document dt {
+  margin: 0 0 5px;
+  color: #50675b;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+[data-cabinet-role] .compact-transport-document dd {
+  margin: 0;
+  color: #192e25;
+  font-size: 14px;
+  line-height: 1.55;
+  font-weight: 600;
+}
+[data-cabinet-role] .compact-transport-document .field {
+  color: #1c3a2b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+[data-cabinet-role] .compact-transport-document .field :is(input,select,textarea) {
+  border: 1px solid #8ca99a;
+  border-radius: 4px;
+  background: #fff;
+  color: #172f22;
+}
+[data-cabinet-role] .compact-transport-document .field small,
+[data-cabinet-role] .compact-transport-document > p.small {
+  color: #50675b;
+}
+[data-cabinet-role] .compact-transport-document :is(input,textarea)::placeholder {
+  opacity: 1;
+  color: #50675b;
+}
+[data-cabinet-role] .compact-transport-document :is(details, .transport-group) {
+  border: 1px solid var(--td-line);
+  border-radius: 4px;
+  background: #fff;
+  padding: 10px 14px;
+  margin: 14px 0;
+  color: #182d26;
+}
+[data-cabinet-role] .compact-transport-document :is(details, .transport-group) > summary {
+  color: #244a37;
+  font-weight: 650;
+  font-size: 13px;
+  padding: 2px 0;
+}
+[data-cabinet-role] .compact-transport-document details[open] > summary {
+  border-bottom: 1px solid #d9e3da;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+[data-cabinet-role] .compact-transport-document .transport-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  border-top: 1px solid #d9e3da;
+  margin-top: 22px;
+  padding-top: 17px;
+  gap: 9px;
+}
+[data-cabinet-role] .compact-transport-document :is(button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #266b51;
+  outline-offset: 2px;
+}
+@media(max-width: 680px) {
+  [data-cabinet-role] .compact-transport-document .transport-data { grid-template-columns: 1fr; }
+  [data-cabinet-role] .compact-transport-document .transport-actions .btn { flex: 1 1 210px; }
+}
+@media print {
+  [data-cabinet-role] .compact-transport-document {
+    color: #000;
+    background: #fff;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
+    max-width: none;
+  }
+  [data-cabinet-role] .compact-transport-document :is(.transport-actions, details, .transport-group) {
+    display: none!important;
+  }
+  [data-cabinet-role] .compact-transport-document .transport-data > div {
+    break-inside: avoid;
+  }
+}
