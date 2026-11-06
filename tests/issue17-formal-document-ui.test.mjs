@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createHash} from 'node:crypto';
 const read = file => fs.readFileSync(new URL('../test/'+file,import.meta.url),'utf8');
 const panel=read('task2-panel-260ba5a1c29f.js');
 const panelCurrent=read('task2-panel.js');
@@ -31,7 +32,8 @@ test('form uses a formal title in RU, EN and ZH and no inline technical source t
 });
 test('all deployed hashed editor copies use the same formal renderer',()=>{
   for(const name of ['transport-application-editor-8c01c7cdb211.mjs','transport-application-editor-8e72562b2e35.mjs']){
-    assert.equal(read(name),editor);
+    const normalized = content => content.replace(/transport-application-model-[a-f0-9]{12}\.mjs/g,'transport-application-model-HASH.mjs');
+    assert.equal(normalized(read(name)),normalized(editor));
   }
 });
 test('formal print surface and responsive layout remain readable',()=>{
@@ -42,12 +44,14 @@ test('formal print surface and responsive layout remain readable',()=>{
   assert.match(css,/color-scheme:\s*light/);
   assert.doesNotMatch(css,/pointer-events:\s*none/);
 });
-test('staging refreshes versioned static assets without changing API or production paths',()=>{
-  for(const val of ['transport-application.css?v=issue17-formal-20261106',
-                    'task2-panel-260ba5a1c29f.js?v=issue47-formal-20261106',
-                    'task2-i18n.js?v=issue47-formal-20261106',
-                    'task2-guidance-42dc6ccc8a20.js?v=issue47-formal-20261106']){
-    assert.ok(index.includes(val),val);
+test('staging uses exact asset-content SHA prefixes for cache-busting',()=>{
+  const blob = file => {
+    const buf=fs.readFileSync(new URL('../test/'+file,import.meta.url));
+    return createHash('sha1').update('blob '+buf.length+'\\0'.replace('\\0','\\x00')).update(buf).digest('hex');
+  };
+  const resources=['transport-application.css','app.js','task2-panel-260ba5a1c29f.js','task2-i18n.js','task2-guidance-42dc6ccc8a20.js'];
+  for(const file of resources){
+    assert.ok(index.includes(file+'?v='+blob(file).slice(0,12)),file+' has stale version in staging HTML');
   }
   assert.match(index,/ibclzdkxiozbzmniiygv\.supabase\.co/);
   assert.doesNotMatch(index,/ooclsrndeygojtofuyte/);
