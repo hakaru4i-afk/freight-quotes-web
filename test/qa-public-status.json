@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "environment": "staging",
+  "visibility": "public-redacted",
+  "asOfDate": "2026-11-06",
+  "release": {
+    "version": "1.19.10",
+    "status": "PUBLISHED_STAGING_MANUAL_ACCEPTANCE_OPEN",
+    "frontendCommit": "6e87e7a0549522ceaf467db2f38d05e6005c71eb",
+    "apiVersion": 67,
+    "scope": "Carrier transport application only",
+    "checkSummary": "17 component and handler checks; 9 successful CI checks; 14 served-file checks",
+    "manualAcceptance": "OPEN",
+    "source": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
+  },
+  "task2": {
+    "issue": 47,
+    "totalGroups": 26,
+    "ownerAccepted": 0,
+    "status": "FULL_END_TO_END_ACCEPTANCE_OPEN",
+    "note": "Release-specific automated checks do not establish acceptance of the full 26-group transport process"
+  },
+  "roleIsolation": {
+    "status": "PARTIAL",
+    "databaseReadGrants": "No direct anon/authenticated SELECT grants on freight schema; RLS enabled",
+    "fileStorageVisibility": "Private buckets",
+    "documentNegativeTests": "PASS in narrowly reported Issue 17 scenarios",
+    "allEndpointsAllRoles": "OPEN",
+    "note": "Server API, chats, downloads, previews and negative cross-account tests require matrix-wide proof"
+  },
+  "qaEvidence": {
+    "public": "Only aggregates, statuses, build hashes and completion of checks",
+    "private": "Detailed registers and restricted test evidence; never publish credentials, customer data or raw logs on GitHub Pages",
+    "rawArtifacts": "NOT_PUBLISHED_PRIVACY_GUARD"
+  },
+  "production": "NOT_MODIFIED"
+}
