@@ -47,7 +47,7 @@ test('formal print surface and responsive layout remain readable',()=>{
 test('staging uses exact asset-content SHA prefixes for cache-busting',()=>{
   const blob = file => {
     const buf=fs.readFileSync(new URL('../test/'+file,import.meta.url));
-    return createHash('sha1').update('blob '+buf.length+'\\0'.replace('\\0','\\x00')).update(buf).digest('hex');
+    return createHash('sha1').update('blob '+buf.length+String.fromCharCode(0)).update(buf).digest('hex');
   };
   const resources=['transport-application.css','app.js','task2-panel-260ba5a1c29f.js','task2-i18n.js','task2-guidance-42dc6ccc8a20.js'];
   for(const file of resources){
