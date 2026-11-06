@@ -103,7 +103,7 @@
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
       "manualAcceptance": "PENDING",
-      "archivedCorrection": "test.carrier.alpha 99 to 97 via auditable void_event",
+      "archivedCorrection": "synthetic QA carrier 99 to 97 via auditable void_event",
       "regression": "GitHub Actions 42042742083 PASS"
     },
     "slPolicyVersion": "2.1",
