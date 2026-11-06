@@ -1,0 +1,35 @@
+name: QA publication privacy gate
+on:
+  pull_request:
+    paths: ['test/**', 'docs/**', 'scripts/qa-publication-gate.mjs', 'tests/qa-publication-gate.test.mjs', '.github/workflows/qa-publication-security.yml']
+  push:
+    branches: [main]
+    paths: ['test/**', 'docs/**', 'scripts/qa-publication-gate.mjs', 'tests/qa-publication-gate.test.mjs', '.github/workflows/qa-publication-security.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  prevent-public-data-leaks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: QA summary and negative security regression
+        run: node --test tests/qa-publication-gate.test.mjs
+      - name: Reject unredacted QA evidence in public repository
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          if [ -n "$PR_BASE" ]; then
+            node scripts/qa-publication-gate.mjs "$PR_BASE"
+          elif [ -n "$PUSH_BEFORE" ] && [ "$PUSH_BEFORE" != '0000000000000000000000000000000000000000' ]; then
+            node scripts/qa-publication-gate.mjs "$PUSH_BEFORE"
+          else
+            node scripts/qa-publication-gate.mjs
+          fi
