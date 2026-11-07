@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "d62a1bcdf9202928ad181d25abe37a4ddfe7947b",
+  "servedAppBlobSha": "3923da67a647d71c39be7181f4784fcf3d56b2ca",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -249,17 +249,17 @@
     "productionChanged": false,
     "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
     "files": {
-      "app.js": "cb3cdd58e9b1ac740a975cb954827de3679dea7116de485655bf997ee7437e14",
-      "transport-application-model.mjs": "751a0dca991a25fd31b693e3d361305b3996cd24b874d54c68556d48f11899c0",
-      "transport-application-editor.mjs": "dba1691a4db16d631f140969044735127938e354",
-      "transport-application.css": "0a5957a81f5df50a601902df9632d0c380eccafa",
-      "transport-application-model-751a0dca991a.mjs": "751a0dca991a25fd31b693e3d361305b3996cd24b874d54c68556d48f11899c0",
-      "transport-application-editor-8c01c7cdb211.mjs": "dba1691a4db16d631f140969044735127938e354"
+      "app.js": "def8960a8e39ddd890d2d99f51c62ceb3dea04d1746eb86bc6385e870416270c",
+      "transport-application-model.mjs": "caba71ebd9c1e824beed63eb64b5d1b4545602906c9af52e61b1129946ea0336",
+      "transport-application-editor.mjs": "988bd096ea692435839885d8a5dca89ecbe880b6181e1da455ab2c10e208159d",
+      "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
+      "transport-application-model-caba71ebd9c1.mjs": "caba71ebd9c1e824beed63eb64b5d1b4545602906c9af52e61b1129946ea0336",
+      "transport-application-editor-988bd096ea69.mjs": "988bd096ea692435839885d8a5dca89ecbe880b6181e1da455ab2c10e208159d"
     },
     "qaEvidence": "Versioned actual results: private docs/releases/issue17/STATUS.md; full Task2 and manual acceptance remain OPEN.",
     "moduleAssets": [
-      "transport-application-model-751a0dca991a.mjs",
-      "transport-application-editor-8c01c7cdb211.mjs"
+      "transport-application-model-caba71ebd9c1.mjs",
+      "transport-application-editor-988bd096ea69.mjs"
     ],
     "formalExport": {
       "stage": "STAGING_API_V68_ACTIVE",

@@ -1,0 +1,37 @@
+name: Rebuild Issue17 sample-matched staging document assets
+on:
+  push:
+    branches: [fix/issue17-sample-faithful-ui-20261107]
+    paths:
+      - 'test/transport-application-model.mjs'
+      - 'test/transport-application-editor.mjs'
+      - 'tests/issue17-carrier-component.js'
+      - 'tests/issue17-formal-document-ui.test.mjs'
+      - '.github/workflows/issue17-rebuild-samples.yml'
+permissions:
+  contents: write
+jobs:
+  rebuild-and-verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/issue17-sample-faithful-ui-20261107
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Assemble canonical component and immutable, hash-versioned modules
+        run: node scripts/build-issue17-assets.mjs --component
+      - name: Verify compact carrier forms, value hydration and core staging tests
+        run: node --test tests/issue17-model.test.mjs tests/issue17-formal-document-ui.test.mjs tests/issue47-late-ui.test.mjs
+      - name: Commit verified generated staging assets to development branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/app.js test/build-info.json test/index.html test/transport-application-editor.mjs test/transport-application-model-*.mjs test/transport-application-editor-*.mjs
+          if ! git diff --cached --quiet; then
+            git commit -m "build(issue17): sample-matched canonical UI and hashed model assets"
+            git push origin HEAD:fix/issue17-sample-faithful-ui-20261107
+          fi
