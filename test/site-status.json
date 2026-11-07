@@ -1,19 +1,34 @@
 {
-  "version": "issue17-signatures-api70-20261107",
+  "version": "issue47-carrier-myapplications-api72-20261107",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "1.19.13 · тестовая",
+    "version": "1.19.14 · тестовая",
     "date": "2026-11-07",
-    "title": "Официальное оформление подписей заказчика и перевозчика",
+    "title": "Новый маршрут перевозчика: «Мои заявки» → документ → исполнение",
     "changes": [
-      "В PDF и DOCX блок подписей заменён на две самостоятельные колонки «Заказчик / Customer» и «Перевозчик / Carrier».",
-      "На каждой стороне предусмотрены организация, должность, ФИО, подпись, дата и отметка печати (при наличии); неутверждённые подписи и даты не подставляются.",
-      "В XLSX исправлена структура блока подписей и перенос строк; PDF учитывает совместное размещение блока, DOCX запрещает разрыв подписных строк.",
-      "Развёрнуто только на staging Edge Function v70 (SHA-256 f46a8d803170c7fa75ac28c1eb861d3b14de3a25eac7df820988670010b676d0). Статическая проверка выполнена; визуальная проверка подписей в скачанных PDF, Word, Excel ожидается."
+      "После выбора Владельцем единственного победителя перевозчик видит выигранную перевозку в «Моих заявках» с кнопкой «Взять в работу» и выбранной ставкой.",
+      "После принятия перевозки следующий шаг — транспортная заявка. До её согласования Владельцем исполнение и трекинг недоступны.",
+      "Статусы отображаются по этапам: ожидает принятия, подготовка документа, на согласовании, возврат на доработку, исполнение и завершение.",
+      "Выпущен frontend /test/: исходный коммит 5e5c14e735d169bf88695411d7bc89ae9893cb51; staging API v72 (SHA-256 745b2b7a1ba79bcfaa5496a400f558d7c136a101e4d4f80cd61abe833a124caf).",
+      "Защита на сервере применяется к /api/task2 и старым путям движения /api/shipment-execution и /api/fulfillment. Отбор единственного победителя и права по ролям не изменялись.",
+      "Проверено наличие изменений в исходниках и активного Edge Function; независимая проверка публичной выдачи GitHub Pages и авторизованный полный проход по ролям ещё требуются. Production не изменён."
     ]
   },
   "releases": [
+    {
+      "version": "1.19.14 · тестовая",
+      "date": "2026-11-07",
+      "title": "Новый маршрут перевозчика: «Мои заявки» → документ → исполнение",
+      "changes": [
+        "После выбора Владельцем единственного победителя перевозчик видит выигранную перевозку в «Моих заявках» с кнопкой «Взять в работу» и выбранной ставкой.",
+        "После принятия перевозки следующий шаг — транспортная заявка. До её согласования Владельцем исполнение и трекинг недоступны.",
+        "Статусы отображаются по этапам: ожидает принятия, подготовка документа, на согласовании, возврат на доработку, исполнение и завершение.",
+        "Выпущен frontend /test/: исходный коммит 5e5c14e735d169bf88695411d7bc89ae9893cb51; staging API v72 (SHA-256 745b2b7a1ba79bcfaa5496a400f558d7c136a101e4d4f80cd61abe833a124caf).",
+        "Защита на сервере применяется к /api/task2 и старым путям движения /api/shipment-execution и /api/fulfillment. Отбор единственного победителя и права по ролям не изменялись.",
+        "Проверено наличие изменений в исходниках и активного Edge Function; независимая проверка публичной выдачи GitHub Pages и авторизованный полный проход по ролям ещё требуются. Production не изменён."
+      ]
+    },
     {
       "version": "1.19.13 · тестовая",
       "date": "2026-11-07",
@@ -224,7 +239,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-07T06:57:00Z",
+  "updatedAt": "2026-11-07",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -273,6 +288,17 @@
       "apiSha256": "f46a8d803170c7fa75ac28c1eb861d3b14de3a25eac7df820988670010b676d0",
       "status": "STAGING_ACTIVE_SOURCE_VERIFIED",
       "downloadedExportVisualQA": "PENDING",
+      "productionChanged": false
+    },
+    "carrierAcceptance": {
+      "issue": 47,
+      "status": "STAGING_API_ACTIVE_FRONTEND_MAIN_COMMITTED",
+      "frontendCommit": "5e5c14e735d169bf88695411d7bc89ae9893cb51",
+      "apiVersion": 72,
+      "apiSha256": "745b2b7a1ba79bcfaa5496a400f558d7c136a101e4d4f80cd61abe833a124caf",
+      "workflow": "award -> carrier-orders/take -> transport-applications/submit -> Owner/approve -> approved-shipments",
+      "authorizedBrowserTest": "PENDING",
+      "servedGitHubPagesTest": "UNCONFIRMED",
       "productionChanged": false
     }
   },
