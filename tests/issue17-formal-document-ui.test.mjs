@@ -21,20 +21,24 @@ test('formal customs and warehouse labels in Task2 workspace',()=>{
   assert.match(i18n,/进口清关完成日期/);
 });
 test('form uses a formal title in RU, EN and ZH and no inline technical source tags',()=>{
-  assert.match(editor,/ЗАЯВКА НА ПЕРЕВОЗКУ ГРУЗА/);
-  assert.match(editor,/FREIGHT TRANSPORT APPLICATION/);
-  assert.match(editor,/货物运输委托申请书/);
+  assert.match(editor,/ПОРУЧЕНИЕ НА ОРГАНИЗАЦИЮ ПЕРЕВОЗКИ ГРУЗА/);
+  assert.match(editor,/FREIGHT TRANSPORT INSTRUCTION/);
+  assert.match(editor,/货物运输组织委托书/);
   assert.match(editor,/transport-document-header/);
   assert.match(editor,/Согласованная стоимость перевозки/);
   assert.doesNotMatch(editor,/source&&r\('small'/);
   assert.match(editor,/name:'action',value:'submit'/);
   assert.match(editor,/onCorrection\(values\._correction\)/);
 });
-test('all deployed hashed editor copies use the same formal renderer',()=>{
-  for(const name of ['transport-application-editor-8c01c7cdb211.mjs','transport-application-editor-8e72562b2e35.mjs']){
-    const normalized = content => content.replace(/transport-application-model-[a-f0-9]{12}\.mjs/g,'transport-application-model-HASH.mjs');
-    assert.equal(normalized(read(name)),normalized(editor));
-  }
+test('current build references source-identical versioned document modules',()=>{
+  const manifest=JSON.parse(fs.readFileSync(new URL('../test/build-info.json',import.meta.url),'utf8'));
+  const modules=manifest.carrierDocument?.moduleAssets||[];
+  assert.equal(modules.length,2,'model/editor build artifacts missing');
+  const modelName=modules.find(n=>n.startsWith('transport-application-model-'));
+  const editorName=modules.find(n=>n.startsWith('transport-application-editor-'));
+  assert.ok(modelName&&editorName,'document modules missing');
+  assert.equal(read(modelName),read('transport-application-model.mjs'));
+  assert.equal(read(editorName),editor);
 });
 test('formal print surface and responsive layout remain readable',()=>{
   assert.match(css,/transport-document-header/);
