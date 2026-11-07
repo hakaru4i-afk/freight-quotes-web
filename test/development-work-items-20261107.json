@@ -58,8 +58,8 @@
       "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/28",
       "category": "development",
       "name": "Разделение транспортной заявки и исполнения перевозки на самостоятельные процессы",
-      "status": "specification_registered",
-      "release": null,
+      "status": "staging_frontend_published_source_e2e_pending",
+      "release": "1.19.17 · тестовая",
       "related": [
         "https://github.com/hakaru4i-afk/freight-quotes/issues/47",
         "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
@@ -71,7 +71,16 @@
         "Сквозные номера, ставка и перевозчик наследуются без дублей",
         "Отдельная история и статусы, права по ролям",
         "E2E в staging без изменений production"
-      ]
+      ],
+      "frontend_commits": [
+        "3ccb1c05fccc84acd7578330de9169de17851d02",
+        "e3d33f0307138a9bfeb8d32fbbf59fdf56f5a694",
+        "07953500d04b8612e63d4a118aefa6fbfa2da132"
+      ],
+      "frontend_asset": "test/task2-panel-processes-20261107-3ccb1c05.js",
+      "backend_existing_gate": "freight-api staging v75: reject physical execution until transport document is approved",
+      "test_status": "static_checks_passed; GitHub Actions and live browser authorized E2E unverified",
+      "production_changed": false
     }
   ]
 }
