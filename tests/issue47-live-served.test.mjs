@@ -4,7 +4,7 @@ import {readFileSync} from "node:fs";
 import {createHash} from "node:crypto";
 const root="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
-const fileNames=["index.html","build-info.json","app.js","task2-panel-visible-20261107.js","task2-process-split-20261107.css","issue28-document-navigation-20261107.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css","transport-application-model.mjs","transport-application-editor.mjs","transport-application.css"];
+const fileNames=["index.html","build-info.json","app.js","task2-panel-sidebar-only-20261107.js","task2-process-split-20261107.css","issue28-document-navigation-20261107.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css","transport-application-model.mjs","transport-application-editor.mjs","transport-application.css"];
 function githubBlob(buf){return createHash("sha1").update(Buffer.from("blob "+buf.length+"\0")).update(buf).digest("hex");}
 async function load(url){
  const res=await fetch(url,{signal:AbortSignal.timeout(20000),headers:{"Cache-Control":"no-cache","Pragma":"no-cache"}});
