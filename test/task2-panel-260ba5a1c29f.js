@@ -6,9 +6,9 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"track",busy:false,notice:""};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:""};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
- const tabs=[["track","Исполнение и трекинг"],["overview","Данные заявки"],["documents","Документы и ВЭД"],["arrival","ПТО и приёмка"],["claims","Претензии и акты"],["history","История"]];
+ const tabs=[["overview","Обзор"],["stages","Этапы перевозки"],["track","Трекинг"],["documents","Документы исполнения"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]];
  const tips={
   number:"Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.",
   actual:"Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.",
@@ -66,7 +66,7 @@
    const root=pane.querySelector("#"+eid);
    if(!root)return;
    const chosen=state.items.find(i=>i.order_code===state.selected),d=state.detail;
-   const heading='<header class="t2-heading"><div><h2>Исполнение перевозок · Задача №2</h2><p>После выбора единственного победителя. Сбор ставок и согласование участия здесь не выполняются.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
+   const heading='<header class="t2-heading"><div><h2>Исполнение перевозок</h2><p>Этапы движения груза, трекинг, документы исполнения и завершение. Согласование транспортной заявки — отдельный бизнес-процесс.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
    let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
    if(!state.items.length){
      root.innerHTML=html+'<div class="t2-empty">Пока нет согласованной перевозки для этого кабинета. После выбора Владельцем одного победителя заявка появится здесь.</div>';
@@ -78,14 +78,16 @@
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
-     readonly("Выбранный перевозчик",o.carrier_login)+readonly("Этап",x.status==="completed"?"Завершена":!started?"Ожидает принятия":d.booking_state==="approved"?"Исполнение":d.booking_state==="pending"?"Документ на согласовании":d.booking_state==="rejected"?"Документ на доработке":"Подготовка документа")+'</div>';
+     readonly("Выбранный перевозчик",o.carrier_login)+
+     readonly("Статус транспортной заявки",d.booking_state==="approved"?"Согласована":d.booking_state==="pending"?"На согласовании":d.booking_state==="rejected"?"Возвращена на исправление":d.booking_state==="in_progress"?"Подготовка документа":"Не оформлена")+
+     readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Не начато":d.booking_state==="approved"?"В работе":"Ожидает согласования документа")+'</div>';
    if(!started){
      html+='<div class="t2-empty"><h3>Шаг 1 · Принятие заявки</h3><p>После выбора победителя перевозчик принимает работу в разделе «Мои заявки». До принятия перевозка не передаётся в исполнение.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else if(d.booking_state!=="approved"){
      const documentState=d.booking_state==="pending"?"Документ находится на согласовании у Владельца":d.booking_state==="rejected"?"Документ возвращён перевозчику на исправление":"Нужно подготовить и отправить транспортную заявку";
      html+='<div class="t2-empty"><h3>Шаг 2 · Транспортная заявка</h3><p>'+esc(documentState)+'. Исполнение и трекинг откроются после согласования документа Владельцем.</p><button type="button" class="t2-btn" data-t2-open-transport>Открыть транспортную заявку</button></div>';
    }else{
-     html+='<div class="t2-alert">Транспортная заявка согласована Владельцем. Доступен этап исполнения перевозки.</div>';
+     html+='<div class="t2-process-banner"><div><strong>Документальный процесс завершён: транспортная заявка согласована.</strong><span>Сейчас открыт отдельный процесс исполнения. Здесь фиксируются только фактические события и документы перевозки.</span></div><button type="button" class="t2-btn ghost" data-t2-open-transport>К транспортной заявке</button></div>';
      html+='<nav class="t2-tabs">'+tabs.map(([key,title])=>'<button type="button" data-t2-tab="'+key+'" class="'+(state.tab===key?"active":"")+'">'+esc(title)+'</button>').join("")+'</nav>';
      html+='<div class="t2-stage">'+renderTab(d,carrier,staff)+'</div>';
    }
@@ -103,7 +105,7 @@
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
    if(state.tab==="documents"){
-     let html='<h3>Документы по перевозке</h3><p class="t2-muted">Исходные файлы Владельца и документы ВЭД/перевозчика доступны в одном месте.</p><p><button type="button" class="t2-btn ghost" data-t2-open-transport>Открыть транспортную заявку · документ</button></p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
+     let html='<h3>Документы исполнения перевозки</h3><p class="t2-muted">Здесь находятся сопроводительные файлы, запросы ВЭД и переписка во время перевозки. Согласование самой транспортной заявки выполняется в отдельном разделе.</p><p><button type="button" class="t2-btn ghost" data-t2-open-transport>Перейти к транспортной заявке</button></p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
      html+='<h3>Запросы и задачи ВЭД</h3><div class="t2-stack">'+tasks.filter(t=>["missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
@@ -118,13 +120,31 @@
      if(x.status!=="completed")html+=form("message",field("message","Сообщение","textarea"),"Отправить сообщение");
      return html;
    }
+   if(state.tab==="stages"){
+     const latestPoint=pts.length?pts[pts.length-1]:null;
+     const milestones=[
+       ["1","Транспортная заявка согласована",true,"Документ согласован Владельцем; состояние документа ведётся отдельно"],
+       ["2","Фактический выход груза",!!x.actual_departure,x.actual_departure?fmt(x.actual_departure):"Ожидается отметка перевозчика"],
+       ["3","Движение груза",pts.length>0,latestPoint?esc(latestPoint.location_text)+" · "+fmt(latestPoint.observed_at):"Ожидается первая контрольная точка"],
+       ["4","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"Не зафиксировано"],
+       ["5","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка"],
+       ["6","Таможенное оформление",!!x.customs_at,x.customs_at?fmt(x.customs_at):"Не завершено"],
+       ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
+       ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
+     ];
+     return '<h3>Этапы перевозки</h3><p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
+       '<div class="t2-milestones">'+milestones.map(([n,label,done,detail])=>
+         '<div class="t2-milestone '+(done?"is-done":"is-pending")+'"><span class="t2-milestone-number">'+n+'</span><div><strong>'+esc(label)+'</strong><p>'+detail+'</p></div><span class="t2-milestone-status">'+(done?"Зафиксировано":"Ожидается")+'</span></div>'
+       ).join("")+'</div>'+
+       '<p><button type="button" class="t2-btn" data-t2-tab="track">Перейти к трекингу</button> <button type="button" class="t2-btn ghost" data-t2-tab="completion">Проверить завершение</button></p>';
+   }
    if(state.tab==="track"){
      const sourceDate=x.original_departure||o.pickup||"—";
      let html='<div class="t2-facts">'+readonly("Исходная плановая дата (заблокирована)",sourceDate)+readonly("Фактическая дата выхода",fmt(x.actual_departure))+
        readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      if(carrier&&x.status!=="completed"){
-       html+='<h3>Обновить данные перевозки</h3><p class="t2-muted">Одна кнопка «Сохранить изменения» сохраняет даты, номер контейнера и новые точки, но не завершает заявку. Старые точки и переносы не изменяются.</p>';
+       html+='<h3>Трекинг и фактические события</h3><p class="t2-muted">Одна кнопка «Сохранить изменения» сохраняет даты, номер контейнера и новые точки, но не завершает перевозку. Старые точки и переносы не изменяются.</p>';
        html+=form("save",'<div class="t2-block-title">Даты отправления</div>'+
          field("new_plan_date","+ Новая плановая дата выхода (Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
          field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
@@ -152,9 +172,9 @@
      html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
      return html;
    }
-   if(state.tab==="arrival"){
-     let html='<div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
-     html+='<p class="t2-muted">Перевозчик вводит даты в единой форме «Исполнение и трекинг». Здесь ВЭД выполняет задачи и принимает решение о завершении.</p>';
+   if(state.tab==="completion"||state.tab==="arrival"){
+     let html='<h3>Завершение перевозки</h3><div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
+     html+='<p class="t2-muted">Перевозчик регистрирует фактические события во вкладке «Трекинг». Здесь ВЭД и Владелец проверяют обязательные этапы и принимают решение о закрытии перевозки.</p>';
      html+='<h3>Задачи проверки документов и склада</h3><div class="t2-stack">'+tasks.filter(t=>["pto_review","warehouse_acceptance"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(staff&&x.status!=="completed"){
        html+='<p>Если обязательные этапы завершены, ВЭД или Владелец может проверить возможность закрытия.</p>';
@@ -415,10 +435,7 @@
    if(hit.hasAttribute("data-t2-refresh")){try{await loadList();}catch(e){alertText(e.message,true);}return;}
    if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
    if(hit.hasAttribute("data-t2-open-transport")){
-     const candidates=Array.from(document.querySelectorAll("button,a,[role=button]")).filter(x=>!x.closest("#task2-root")&&x.textContent.trim().includes("Транспортная заявка"));
-     const destination=candidates[0];
-     if(!destination){alertText("Раздел транспортной заявки временно недоступен; проверьте меню кабинета.",true);return;}
-     destination.click();return;
+     location.hash="#transport-applications";return;
    }
    if(hit.dataset.t2Doc){await downloadDoc(hit.dataset.t2Doc);return;}
    if(hit.dataset.t2ActDownload){exportAct(hit.dataset.t2ActDownload);return;}
