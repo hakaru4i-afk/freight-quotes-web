@@ -59,3 +59,39 @@
   color: #fff !important;
   background: #176448 !important;
 }
+
+/* The document header inherits the portal's dark global header background.
+   Give the entire official document a consistent light print-like surface. */
+.carrier-portal .compact-transport-document > .transport-document-header,
+[data-cabinet-role] .compact-transport-document > .transport-document-header,
+.compact-transport-document > .transport-document-header {
+  background: #ffffff !important;
+  color: #172f25 !important;
+  border: 0 !important;
+  border-bottom: 2px solid #234c3b !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+.carrier-portal .compact-transport-document > .transport-document-header h2,
+[data-cabinet-role] .compact-transport-document > .transport-document-header h2,
+.compact-transport-document > .transport-document-header h2 {
+  color: #172f25 !important;
+  -webkit-text-fill-color: #172f25 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+.carrier-portal .compact-transport-document > .transport-document-header .transport-document-subtitle,
+[data-cabinet-role] .compact-transport-document > .transport-document-header .transport-document-subtitle,
+.compact-transport-document > .transport-document-header .transport-document-subtitle {
+  color: #405d4e !important;
+  -webkit-text-fill-color: #405d4e !important;
+  opacity: 1 !important;
+}
+/* Do not use the portal's universal dark header on any document section. */
+.compact-transport-document > header { padding: 14px 10px 20px !important; }
+@media print {
+  .compact-transport-document > .transport-document-header {
+    background: #fff !important;
+    color: #000 !important;
+  }
+}
