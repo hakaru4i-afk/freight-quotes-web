@@ -10,12 +10,12 @@
   },
   "isolatedQa": {
     "apiFunction": "freight-api-qa-issue47qa",
-    "apiVersion": 12,
-    "build": "task12-e2e-v75-t101-20261107",
+    "apiVersion": 13,
+    "build": "task12-e2e-v75-t101-dg-20261107",
     "schema": "freight_qa_issue47qa",
     "storageBucket": "freight-documents-qa-issue47qa",
     "storagePublic": false,
-    "bundleSha256": "0d9b646d38b48ed145ea42f452d96541e646eb24405eb12d793e2867b82bce8e",
+    "bundleSha256": "cd32296c0ad5ac38878302dd5f9d5f6864fbbdd4ed2c76a4eb704eb74bed6adb",
     "schemaColumns": 711,
     "sharedSchemaColumns": 711,
     "missingColumns": 0,
@@ -25,7 +25,9 @@
   "ownerRequiredValidation": {
     "status": "DEPLOYED_ISOLATED_QA_ONLY",
     "sourcePr": "https://github.com/hakaru4i-afk/freight-quotes/pull/60",
-    "sharedStagingPatched": false
+    "sharedStagingPatched": false,
+    "frontendBlob": "c7b74a9bb78299210ce318f59726b34240b0c5ac",
+    "sourceCommit": "1f2be8e5de97dd10473eb0c9f3ad1e150da343d0"
   },
   "releaseReadiness": "BLOCKED_AUTH_E2E_AND_BACKUP_RESTORE",
   "productionChanged": false,
