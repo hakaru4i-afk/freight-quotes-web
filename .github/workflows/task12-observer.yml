@@ -11,6 +11,8 @@ on:
       - 'tests/task12-observer-smoke.test.mjs'
       - '.github/workflows/task12-observer.yml'
       - 'tests/task1-create-form-browser.test.mjs'
+      - 'tests/task12-role-robots.test.mjs'
+      - 'tests/task12-robot-runner.mjs'
 permissions:
   contents: read
 concurrency:
@@ -65,31 +67,75 @@ jobs:
           path: reports/
           if-no-files-found: ignore
           retention-days: 30
-  owner-form-browser:
-    name: "T1-01 / Owner create shipment / isolated browser validation"
+  all-robots:
+    name: "Robots: execute 37 mapped checks, report PASS/PARTIAL/FAIL/BLOCKED"
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 45
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Install Playwright and Chromium
+      - name: Install isolated browser runtime
         run: |
           npm install --no-save playwright@1.56.1
           npx playwright install --with-deps chromium
-      - name: Run real Owner-form UI with isolated API doubles; report missing validation as FAIL
+      - name: Run all available Task1 + Task2 robot checks and produce inspectable report
+        id: robot
+        continue-on-error: true
+        env:
+          QA_TEST_TIMEOUT_MS: '85000'
         run: |
           mkdir -p reports
-          node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/t1-01-browser.xml tests/task1-create-form-browser.test.mjs
-      - name: Save T1-01 evidence
-        uses: actions/upload-artifact@v4
+          node tests/task12-robot-runner.mjs
+      - name: Upload complete robot report, logs and screenshots
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: task1-t101-isolated-browser-evidence
-          path: reports/
+          name: task12-robots-all-groups
+          path: |
+            reports/
+            lw2-desktop-qa.png
+            lw2-mobile-qa.png
           retention-days: 30
-          if-no-files-found: ignore
+          if-no-files-found: warn
+      - name: Publish redacted public 37-case report for QA observer (staging only)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f reports/task12-robot-matrix.json || exit 0
+          git config user.name task12-qa-bot
+          git config user.email 'task12-qa-bot@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git checkout -B qa-report-publisher origin/main
+            cp reports/task12-robot-matrix.json test/qa-robot-latest.json
+            git add test/qa-robot-latest.json
+            if git diff --cached --quiet; then
+              echo 'QA report identical to deployed report'
+              break
+            fi
+            git commit -m "qa(staging): publish robot results for run ${GITHUB_RUN_ID}"
+            if git push origin HEAD:main; then
+              echo 'Published robot report for dashboard'
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::warning::Could not publish report on main; uploaded artifact remains available."
+            fi
+          done
+      - name: Fail robot job if a check found error (no false green)
+        if: always()
+        env:
+          ROBOT_OUTCOME: ${{ steps.robot.outcome }}
+        run: |
+          if [ "$ROBOT_OUTCOME" != success ]; then
+            echo "::error::Robot tests reported failures; inspect the uploaded artifact."
+            exit 1
+          fi
   policy:
     name: "Scope safeguard"
     runs-on: ubuntu-24.04
@@ -97,6 +143,6 @@ jobs:
       - name: Confirm no production access or synthetic PASS is claimed
         shell: bash
         run: |
-          echo "This workflow runs only public staging smoke checks."
+          echo "This workflow executes public smoke and isolated mock-browser checks."
           echo "No login credentials, real customer files, role mutations or production APIs are used."
           echo "Task1/Task2 full authorized E2E remains PENDING until independently demonstrated."
