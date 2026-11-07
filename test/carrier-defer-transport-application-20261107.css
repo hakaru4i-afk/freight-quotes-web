@@ -1,0 +1,8 @@
+
+/* Staging-only: defer unfinished transport-application authoring for Carrier.
+   Retain existing records/API and Owner/VED access. */
+.carrier-portal .cabinet-sidebar nav a[href="#transport-applications"],
+.carrier-portal .cabinet-panel[data-section="transport-applications"]{
+  display:none!important;
+}
+.carrier-portal [data-t2-open-transport]{display:none!important}
