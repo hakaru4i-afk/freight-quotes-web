@@ -58,8 +58,8 @@
       "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/28",
       "category": "development",
       "name": "Разделение транспортной заявки и исполнения перевозки на самостоятельные процессы",
-      "status": "staging_document_only_code_committed_static_qa_passed_live_pages_unverified",
-      "release": "1.19.20 · тестовая",
+      "status": "staging_source_committed_live_pages_verification_pending",
+      "release": "1.19.21 · тестовая",
       "related": [
         "https://github.com/hakaru4i-afk/freight-quotes/issues/47",
         "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
@@ -93,7 +93,17 @@
         "execution history",
         "duplicate navigation link"
       ],
-      "staging_app_sha": "e476749cf36b67dc1ced185d872466627ec0fc67"
+      "staging_app_sha": "61e74835f0da5df76bd3e5d53ee6dcbe8487f176",
+      "post_award_document_status_fix": "Document list badges take shipment_bookings.state; no physical loading/movement status inside document workspace",
+      "post_award_document_commit": "a2f9f76eab51a5fa937a48543c9d74659df4fdc8",
+      "reference_branch": "refactor/post-award-workflow-20261107",
+      "reference_branch_status": "acceptance criteria drafted; full post-award redesign not yet released",
+      "automated_verification": [
+        "tests/issue28-document-only.test.mjs",
+        "tests/issue28-workflow-separation.test.mjs",
+        "tests/issue28-served-staging.test.mjs"
+      ],
+      "qa_status": "code structural checks and JS syntax passed; GitHub Pages live proof and authorized roles end-to-end pending"
     }
   ]
 }
