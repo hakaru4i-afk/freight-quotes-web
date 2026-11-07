@@ -19,11 +19,11 @@
     "backendFunction": "freight-api",
     "backendVersion": 75,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "818dc7a36b65ff2704f4ad8b09bc3fd6a9139620",
+    "frontendSha": "6f735236b6b87ce9a91840ae18b22a58d850d211",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
-    "qaStatus": "READY_FOR_OWNER_MANUAL_QA_NOT_ACCEPTED",
+    "qaStatus": "AUTOMATED_ISOLATED_BROWSER_RUNNING; FULL_AUTHORIZED_E2E_NOT_ACCEPTED",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -32,7 +32,7 @@
     "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "Page/build source and API69 published; served-byte and authorized owner acceptance required",
+    "stagingBuildNote": "GitHub Pages staging frontend source pinned to task2-panel-sidebar-only-20261107.js blob 6f735236b6b8; staging freight-api v75 confirmed ACTIVE in Supabase 2026-11-07. Full authorized E2E pending.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
@@ -46,7 +46,7 @@
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
     "lastObservedBackendVersion": 75,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V69_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "backendDeploymentStatus": "SHARED_STAGING_API_V75_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
