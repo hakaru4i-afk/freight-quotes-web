@@ -81,8 +81,14 @@
    if(!started){
      html+='<div class="t2-empty">Ставка выбрана, документы и исходные данные доступны для сверки. '+(carrier?'<button type="button" class="t2-btn" data-t2-action="take">Взять перевозку в работу</button>':'Ожидается действие выбранного перевозчика.')+'</div>';
    }else{
-     html+='<nav class="t2-tabs">'+tabs.map(([key,title])=>'<button type="button" data-t2-tab="'+key+'" class="'+(state.tab===key?"active":"")+'">'+esc(title)+'</button>').join("")+'</nav>';
-     html+='<div class="t2-stage">'+renderTab(d,carrier,staff)+'</div>';
+     // No duplicate inner navigation: keep one canonical left cabinet menu.
+     // All shipment-operation sections remain reachable on this page.
+     const previousTab=state.tab;
+     html+=tabs.map(([key,title])=>{
+       state.tab=key;
+       return '<section class="t2-stage" data-t2-section="'+esc(key)+'"><h3>'+esc(title)+'</h3>'+renderTab(d,carrier,staff)+'</section>';
+     }).join("");
+     state.tab=previousTab;
    }
    root.innerHTML=html;
  }
