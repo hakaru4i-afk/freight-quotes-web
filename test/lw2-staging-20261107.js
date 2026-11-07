@@ -18,10 +18,10 @@
    return equals||nodes.find(n=>n.textContent.trim().toLowerCase().includes(label.toLowerCase()));
  }
  function go(name){
-   const mapped={orders:["Мои заявки","Заявки"],docs:["Транспортные заявки","Документы"],ships:["Мои перевозки","Исполнение перевозок"],feedback:["Предложения"]};
+   const mapped={orders:["Мои заявки","Заявки"],ships:["Мои перевозки","Исполнение перевозок"],feedback:["Предложения"]};
    const list=mapped[name]||[];
    for(const n of list){const b=findNav(n);if(b){b.click();return;}}
-   const hashes={orders:"#carrier-orders",docs:"#transport-applications",ships:"#approved-shipments",feedback:"#portal-feedback"};
+   const hashes={orders:"#carrier-orders",ships:"#approved-shipments",feedback:"#portal-feedback"};
    if(hashes[name])location.hash=hashes[name];
  }
  function classify(mode){
@@ -84,7 +84,7 @@
    host.innerHTML=
      '<div class="lw2-kpis" aria-label="Показатели рабочего кабинета">'+
        kpi("orders","▱",newVal,"Непрочитанные заявки")+
-       kpi("docs","▤",docs,"Транспортные заявки")+
+       kpi("orders","◷",pending===null?"—":String(pending),"Ожидают ставки")+
        kpi("ships","🚚",v,"В пути")+
        kpi("ships","▱",other,"Другие этапы")+
      '</div>'+
