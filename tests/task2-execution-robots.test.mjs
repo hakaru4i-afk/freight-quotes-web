@@ -76,12 +76,14 @@ test("T2-17 ROBOT: planning date change needs a reason and keeps original date",
  assert.equal(detail.state.original_departure,"2026-11-07T10:00:00Z");
  assert.deepEqual(errors,[]);
 });
-test("T2-18 ROBOT: all four carrier modes are visible in execution without transport application",async t=>{
- const {page,detail,errors}=await fixture(t,{mode:"Авиа"});
- assert.match(await page.locator("#task2-root").innerText(),/Перевозка принята в работу/);
- assert.match(await page.locator('#task2-root [data-t2-section="overview"]').innerText(),/Авиа/);
- assert.ok(await page.locator('form[data-t2-form="save"]').count()>0,"Execution must be available without approved transport application");
- assert.deepEqual(errors,[]);
+test("T2-18 ROBOT: auto, rail, sea and air execution render without transport application",async t=>{
+ for(const mode of ["Авто","Ж/Д","Море","Авиа"]){
+  const {page,errors}=await fixture(t,{mode});
+  assert.match(await page.locator("#task2-root").innerText(),/Перевозка принята в работу/);
+  assert.ok((await page.locator('#task2-root [data-t2-section="overview"]').innerText()).includes(mode),mode+" transport missing");
+  assert.ok(await page.locator('form[data-t2-form="save"]').count()>0,mode+" execution blocked");
+  assert.deepEqual(errors,[],mode+" execution errors");
+ }
 });
 test("T2-20 ROBOT: PТО creates one VED review task on event submission",async t=>{
  const {page,posts,detail}=await fixture(t);
