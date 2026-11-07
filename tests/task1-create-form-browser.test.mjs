@@ -39,6 +39,7 @@ async function fixture(t){
   if(path==="/api/session")return respond(200,{role:"owner"});
   if(path==="/api/access")return respond(200,{access:{owner:true,permissions:["workspace.read","requests.manage","documents.read"]},users:[],roles:[],profiles:[],roleProfiles:[]});
   if(path==="/api/data")return respond(200,{role:"owner",bids:[],answers:[],selections:[],reports:[],approvals:[],notifications:[],requests:[]});
+  if(path==="/api/documents"&&req.method()==="GET")return respond(200,{files:[],access:"QA-ISOLATED-ONLY"});
   if(path==="/api/workload")return respond(200,{total:0,requests:0,shipments:0,categories:[],counts:{deliveries:0,incidents:0},items:[]});
   if(path.startsWith("/api/requests")&&req.method()==="GET")return respond(404,{error:"QA: no existing request"});
   if(path==="/api/requests"&&req.method()==="POST"){
