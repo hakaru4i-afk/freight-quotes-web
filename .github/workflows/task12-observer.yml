@@ -134,10 +134,52 @@ jobs:
             echo "::error::Robot tests reported failures; inspect the uploaded artifact."
             exit 1
           fi
+  authenticated-qa-preflight:
+    name: "Protected QA: real Owner/Carrier/Logistic authentication and denial checks"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify real login sessions using isolated QA API only
+        id: auth
+        continue-on-error: true
+        env:
+          QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
+          QA_OWNER_PASSWORD: ${{ secrets.QA_OWNER_PASSWORD }}
+          QA_CARRIER_A_LOGIN: ${{ secrets.QA_CARRIER_A_LOGIN }}
+          QA_CARRIER_A_PASSWORD: ${{ secrets.QA_CARRIER_A_PASSWORD }}
+          QA_CARRIER_B_LOGIN: ${{ secrets.QA_CARRIER_B_LOGIN }}
+          QA_CARRIER_B_PASSWORD: ${{ secrets.QA_CARRIER_B_PASSWORD }}
+          QA_LOGISTIC_LOGIN: ${{ secrets.QA_LOGISTIC_LOGIN }}
+          QA_LOGISTIC_PASSWORD: ${{ secrets.QA_LOGISTIC_PASSWORD }}
+          QA_SCHEMA_PARITY_VERIFIED: ${{ vars.QA_SCHEMA_PARITY_VERIFIED }}
+        run: node tests/task12-authenticated-readonly.e2e.mjs
+      - name: Upload redacted results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task12-isolated-qa-auth-preflight
+          path: reports/private-auth-qa-preflight.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Make missing protected QA setup visible
+        if: always()
+        env:
+          AUTH_OUTCOME: ${{ steps.auth.outcome }}
+        run: |
+          if [ "$AUTH_OUTCOME" != success ]; then
+            echo "::error::AUTH_QA_BLOCKED: missing safe QA credentials/parity or real login failure; no production access."
+            exit 1
+          fi
   production-release-gate:
     name: "Release decision: 37 authenticated E2E + security + restore (fail closed)"
     if: always()
-    needs: [all-robots]
+    needs: [all-robots, authenticated-qa-preflight]
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
