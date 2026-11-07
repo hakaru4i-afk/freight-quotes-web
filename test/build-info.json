@@ -1,7 +1,7 @@
 {
   "environment": "staging",
-  "version": "issue28-document-only-staging-20261107",
-  "releaseVersion": "1.19.20",
+  "version": "issue28-post-award-document-staging-20261107",
+  "releaseVersion": "1.19.21",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "e476749cf36b67dc1ced185d872466627ec0fc67",
+  "servedAppBlobSha": "61e74835f0da5df76bd3e5d53ee6dcbe8487f176",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -322,12 +322,12 @@
     "stylesheet": "task2-process-split-20261107.css",
     "cssBlobSha": "547f6efd12f55df9ab718eeabe476b97c824cfdc",
     "serverVersion": 75,
-    "status": "STAGING_FRONTEND_COMMITTED; LIVE_PAGES_AND_AUTHORIZED_E2E_PENDING",
+    "status": "STAGING_MAIN_SOURCE_COMMITTED; LIVE_PAGES_DEPLOYMENT_AND_AUTHENTICATED_E2E_NOT_YET_VERIFIED",
     "productionChanged": false,
     "documentNavigationScript": "issue28-document-navigation-20261107.js",
     "documentNavigationBlobSha": "369cde8b7f19df586ab1a85d8b1563dffcdebb76",
     "visibilityFix": "Both business-process cards and disabled execution tabs are rendered before winner selection and document approval",
-    "releaseVersion": "1.19.20",
+    "releaseVersion": "1.19.21",
     "visibilityAudit": {
       "problem": "New execution tabs were rendered only after a winner and an approved document, so users could see no change",
       "fix": "Always show transport documents vs execution navigation; show locked stage names before eligibility",
@@ -338,7 +338,7 @@
     "documentOnly": true,
     "documentOnlyCommit": "bf4a29b7749c7f221fd101fae5827cd161430b98",
     "documentOnlyAsset": "test/app.js",
-    "documentOnlyAssetBlobSha": "e476749cf36b67dc1ced185d872466627ec0fc67",
+    "documentOnlyAssetBlobSha": "61e74835f0da5df76bd3e5d53ee6dcbe8487f176",
     "removedFromApplication": [
       "execution stages",
       "transport document-set upload",
@@ -346,6 +346,9 @@
       "execution history",
       "duplicate execution shortcut"
     ],
-    "documentOnlyRule": "Keep document editor, corrections and Owner approval in transport-applications; display shipment stages, tracking, supporting files and closing solely in approved-shipments/task2."
+    "documentOnlyRule": "Keep document editor, corrections and Owner approval in transport-applications; display shipment stages, tracking, supporting files and closing solely in approved-shipments/task2.",
+    "postAwardDocumentStatusFix": true,
+    "postAwardDocumentStatusCommit": "a2f9f76eab51a5fa937a48543c9d74659df4fdc8",
+    "currentScope": "Preserve existing fill/save/send/approve transport application; fix document status in transport application list. Full post-award refactor remains isolated and not released."
   }
 }
