@@ -1,0 +1,30 @@
+/* Issue #47: accessible carrier acceptance block in My applications (staging). */
+#carrier-awarded-workflow {
+  --flow-ink:#1b352a; --flow-accent:#165e48; --flow-line:#b9ccc1;
+  background:#fff !important;color:var(--flow-ink) !important;color-scheme:light;
+  border:1px solid #b9ccc1;border-radius:12px;padding:clamp(14px,2.5vw,24px);
+  margin:0 0 24px;box-shadow:0 5px 16px rgb(12 37 29 / 8%);
+  width:100%;max-width:100%;min-width:0;box-sizing:border-box;
+}
+#carrier-awarded-workflow *{box-sizing:border-box;}
+#carrier-awarded-workflow .carrier-flow-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+#carrier-awarded-workflow h2{font-size:clamp(18px,2vw,23px);font-weight:750;line-height:1.28;margin:0 0 8px;color:#143c2b !important;-webkit-text-fill-color:#143c2b;}
+#carrier-awarded-workflow p{color:#344c40 !important;-webkit-text-fill-color:#344c40;opacity:1 !important;font-size:13px;line-height:1.5;overflow-wrap:anywhere;margin:7px 0;}
+#carrier-awarded-workflow .carrier-flow-head p{max-width:760px;}
+#carrier-awarded-workflow .carrier-flow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:12px;}
+#carrier-awarded-workflow .carrier-flow-card{border:1px solid var(--flow-line);border-radius:9px;padding:15px;background:#fafcfb;color:#1c382b;min-width:0;overflow-wrap:anywhere;}
+#carrier-awarded-workflow .carrier-flow-title{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:12px;}
+#carrier-awarded-workflow .carrier-flow-title strong{font-size:17px;color:#152e23 !important;}
+#carrier-awarded-workflow .carrier-flow-status{display:inline-flex;align-items:center;background:#e3f0e9;color:#194d37 !important;font-size:12px;font-weight:650;padding:6px 9px;border-radius:7px;line-height:1.4;}
+#carrier-awarded-workflow small{display:block;margin-top:10px;color:#3f5c4a !important;opacity:1 !important;line-height:1.5;font-size:12px;}
+#carrier-awarded-workflow button{display:inline-flex;justify-content:center;align-items:center;max-width:100%;background:#165e48 !important;color:#fff !important;-webkit-text-fill-color:#fff;opacity:1 !important;border:1px solid #165e48 !important;border-radius:8px;padding:10px 14px;font-size:13px;line-height:1.4;font-weight:700;cursor:pointer;min-height:42px;white-space:normal;text-align:center;}
+#carrier-awarded-workflow .carrier-flow-head button{background:#fff !important;color:#165e48 !important;-webkit-text-fill-color:#165e48;}
+#carrier-awarded-workflow button:disabled{background:#e0e7e2 !important;color:#405449 !important;-webkit-text-fill-color:#405449;border-color:#a1b1a4 !important;cursor:wait;}
+#carrier-awarded-workflow button:focus-visible{outline:3px solid #1f7756;outline-offset:2px;}
+#carrier-awarded-workflow .carrier-flow-actions{margin-top:15px;}
+#carrier-awarded-workflow .carrier-flow-message{background:#eaf5ec;padding:11px;border-radius:8px;border:1px solid #aecdb9;color:#1c4532 !important;}
+@media(max-width:480px){
+ #carrier-awarded-workflow {padding:13px;margin-bottom:16px;}
+ #carrier-awarded-workflow .carrier-flow-grid{grid-template-columns:minmax(0,1fr);}
+ #carrier-awarded-workflow .carrier-flow-actions button{width:100%;}
+}
