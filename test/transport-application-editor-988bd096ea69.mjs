@@ -1,0 +1,80 @@
+import {EXTRA_FIELDS,documentFieldPlan,requiredDocumentKeys,validateTransportApplication,hasValue,documentMode} from './transport-application-model-caba71ebd9c1.mjs';
+const zhFields={applicationDate:'申请日期',subject:'主题',serviceTerms:'运输条款',contract:'合同 / 依据',origin:'装货地点',destination:'卸货地点',waypoints:'途经地点',incoterm:'贸易术语',incotermPlace:'指定地点',departureStation:'始发站',destinationStation:'到达站',shipper:'发货人及地址',consignee:'收货人及地址',loadingContact:'装货联系人',deliveryContact:'卸货联系人',schedule:'提货时间',ready_date:'备货日期',etd:'预计发运日期',eta:'预计到达日期',trackingInstructions:'特殊条件 / 备注',totalKm:'路线距离（公里）',exportCustoms:'出口报关点',importCustoms:'进口报关点',customsShipper:'报关发货人资料',customsConsignee:'报关收货人资料',exportContact:'出口联系人',importContact:'进口联系人',customsNotes:'报关补充说明',cargo:'货物名称',hsCode:'海关编码',quantity:'件数',marks:'包装标记',volume:'体积（立方米）',weight:'毛重（公斤）',invoiceAmount:'发票金额',invoiceCurrency:'发票币种',packaging:'包装方式',dangerousGoods:'危险品',dangerousDetails:'危险品信息',transport:'运输方式',attachedList:'随附文件清单',containerized:'集装箱运输',seaLeg:'海运段',containerNumber:'集装箱号',sealNumber:'封条号',batteries:'锂电池',freightScope:'运费包含项目',extras:'附加费用',paymentBasis:'付款依据',paymentTerms:'付款条款',customsCost:'报关费用承担方',insurance:'保险范围',vehicleNumber:'车辆 / 车皮号码',vehicleType:'车辆 / 集装箱类型',carrierDetails:'承运人资料',customerDetails:'客户资料',temperature:'温度要求',loadingMode:'特殊装卸方式',equipmentCount:'车辆 / 集装箱数量',dimensions:'货物尺寸',customsApplicable:'报关要求',customsReason:'不适用原因',insuranceRequired:'保险要求',deliveryTerm:'交货期限',freeTime:'装卸及清关免费时间',borderCrossing:'铁路边境口岸',trafficType:'进出口/过境运输',railCargoCodes:'铁路货物编码',customsRegime:'报关制度',containerReturnInstructions:'空箱返还说明'};
+const words={ru:{documentTitle:'ПОРУЧЕНИЕ НА ОРГАНИЗАЦИЮ ПЕРЕВОЗКИ ГРУЗА',documentSubtitle:'На основании согласованного предложения',summary:'Сведения о перевозке',source:'Источник',order:'№ заказа',bitrix:'№ задачи Битрикс',rate:'Согласованная стоимость перевозки',missing:'Сведения, предоставляемые перевозчиком',optional:'Прочие применимые условия',remarks:'Особые условия / примечания',correction:'Запросить исправление исходных данных',correctionHint:'Укажите неверное значение и требуемое исправление. Подтверждённые данные сохранятся до решения Владельца.',sendCorrection:'Отправить запрос на исправление',no:'Не применяется',yes:'Требуется',unknown:'Уточняется',save:'Сохранить черновик',send:'Отправить документ на согласование',hint:'Заполняет перевозчик, по данным перевозки. * — обязательно при отправке; черновик можно сохранить частично.',container:'Можно оставить пустым до назначения. Контроль при завершении перевозки выполняется отдельно.',legal:'Условия договора берутся из утверждённого договора. Условия и цены образцов не подставляются.',special:'Специальные условия перевозки',insurance:'Страхование / стоимость груза',temperature:'Температурный режим',danger:'Опасный груз',required:'Проверьте поля',faq:'Как заполнить документ',faqText:'Известные сведения перенесены из заказа и выбранной ставки. Заполните недостающие контакты и транспорт. Для таможни выберите «Не применяется» с причиной либо укажите пункты. Сначала сохраните черновик, затем отправьте документ на согласование. Номер контейнера можно добавить позже. Исправления исходных данных отправляйте отдельным запросом.'},en:{documentTitle:'FREIGHT TRANSPORT INSTRUCTION',documentSubtitle:'Based on the accepted carrier quotation',summary:'Shipment information',source:'Source',order:'Order number',bitrix:'Bitrix task number',rate:'Agreed freight charge',missing:'Information provided by the carrier',optional:'Other applicable terms',remarks:'Special conditions / remarks',correction:'Request source data correction',correctionHint:'Describe the incorrect value and requested correction. Confirmed data stays unchanged pending the Owner’s decision.',sendCorrection:'Send correction request',no:'Not applicable',yes:'Required',unknown:'To be confirmed',save:'Save draft',send:'Submit document for approval',hint:'Completed by the carrier from shipment records. * — required on submission; partial drafts are allowed.',container:'May remain empty until assigned. Completion-time checks remain separate.',legal:'Terms come from the approved contract. Sample terms and prices are never inserted.',special:'Special cases',insurance:'Insurance / invoice value',temperature:'Temperature requirements',danger:'Dangerous goods',required:'Check fields',faq:'How to prepare the document',faqText:'Known values come from the order and winning offer. Complete missing contacts and equipment. For customs select Not applicable with a reason, or enter clearance points. Save a draft, then submit for approval. The container number may be added later. Request source corrections separately.'},zh:{documentTitle:'货物运输组织委托书',documentSubtitle:'依据已确认的承运人报价',summary:'运输信息',source:'来源',order:'订单号',bitrix:'Bitrix任务编号',rate:'已确认运输费用',missing:'承运人填写信息',optional:'其他适用条款',remarks:'特殊条件 / 备注',correction:'申请更正原始数据',correctionHint:'请说明错误值及所需更正。货主决定前保留已确认数据。',sendCorrection:'发送更正申请',no:'不适用',yes:'需要',unknown:'待确认',save:'保存草稿',send:'提交文件审批',hint:'由承运人根据运输资料填写。* 表示提交时必填；可保存不完整草稿。',container:'分配前可留空。运输完成时另行检查。',legal:'条款来自已批准合同。不自动套用样本条款和价格。',special:'特殊情况',insurance:'保险 / 发票金额',temperature:'温度要求',danger:'危险品',required:'请检查字段',faq:'如何填写文件',faqText:'已知信息来自订单和中选报价。补充缺失联系人和设备信息。报关可选择不适用并说明原因，或填写报关点。先保存草稿再提交审批。集装箱号可稍后添加。原始数据更正请单独申请。'}};
+export function documentLocale(){return typeof document==='undefined'?'ru':document.documentElement.lang.slice(0,2);}
+export function renderCompactDocument({r,groups,model,values,onChange,busy,onCorrection}) {
+  const lang=documentLocale(),t=words[lang]||words.ru;
+  const fields=[...groups.flatMap(g=>g[3]),...EXTRA_FIELDS].map(([key,ru,en,type])=>({key,ru,en,type}));
+  const byKey=Object.fromEntries(fields.map(f=>[f.key,f]));
+  const plan=documentFieldPlan(model,values), required=new Set(requiredDocumentKeys(values));
+  plan.main=plan.main.filter(key=>!(['contract','customerDetails','carrierDetails','shipper','consignee'].includes(key)&&hasValue(model.values[key])));
+  function field(key) {
+    const f=byKey[key];if(!f)return null;
+    const label=key==='trackingInstructions'?t.remarks:lang==='en'?f.en:lang==='zh'?(zhFields[key]||f.en):f.ru;
+    const choices=f.type==='customs'?[['unknown',t.unknown],['yes',t.yes],['no',t.no]]:f.type==='danger'?[['unknown',t.unknown],['no',lang==='ru'?'Нет':lang==='zh'?'否':'No'],['yes',lang==='ru'?'Да':lang==='zh'?'是':'Yes']]:f.type==='yesno'?[['no',t.no],['yes',t.yes]]:f.type==='currency'?['USD','EUR','CNY','BYN','RUB'].map(v=>[v,v]):f.type==='incoterm'?['EXW','FCA','CPT','CIP','DAP','DPU','DDP','FAS','FOB','CFR','CIF'].map(v=>[v,v]):f.type==='transport'?['Авто','ЖД','Море','Авиа','Мультимодальная'].map(v=>[v,v]):null;
+    const props={name:key,value:values[key]??'',onChange:e=>onChange(key,e.target.value),'aria-required':required.has(key),maxLength:f.type==='textarea'?4000:500};
+    return r('label',{className:'field'+(f.type==='textarea'?' full':''),children:[r('span',{children:label+(required.has(key)?' *':'')}),choices?r('select',{...props,children:[r('option',{value:'',children:'—'}),...choices.map(([v,l])=>r('option',{value:v,children:l},v))]}):r(f.type==='textarea'?'textarea':'input',{...props,type:f.type==='date'?'date':f.type==='number'?'number':'text',step:f.type==='number'?'any':undefined}),r('small',{children:key==='containerNumber'?t.container:t.hint})]},key);
+  }
+  const mode=documentMode(values);
+  const rail=mode==='rail', road=mode==='road', multi=mode==='multi';
+  const labelFor=key=>lang==='ru'?byKey[key]?.ru:lang==='zh'?(zhFields[key]||byKey[key]?.en):byKey[key]?.en;
+  // The same sections and data order as the two supplied instruction templates.
+  // Missing fields never produce blank contractual rows.
+  const sections=[
+    {name:lang==='ru'?'Стороны и основание':lang==='zh'?'当事方与合同依据':'Parties and contract',
+      data:[['number',lang==='ru'?'Регистрационный №':lang==='zh'?'登记编号':'Registration No.',model.requestNumber],
+        ['order',t.order,model.orderCode],['bitrix',t.bitrix,Array.isArray(model.bitrix)?model.bitrix.join(', '):model.bitrix],
+        ...['applicationDate','customerDetails','carrierDetails','contract'].map(k=>[k,labelFor(k)||k,model.values[k]])]},
+    {name:lang==='ru'?'Маршрут и сроки':lang==='zh'?'路线与时间':'Route and dates',
+      data:['schedule','origin','destination','incoterm','incotermPlace','shipper','consignee',
+        ...(rail?['departureStation','destinationStation','borderCrossing']:[]),
+        'eta'].map(k=>[k,labelFor(k)||k,model.values[k]])},
+    {name:lang==='ru'?'Груз и транспорт':lang==='zh'?'货物与运输工具':'Cargo and equipment',
+      data:['cargo','weight','volume','packaging','quantity','vehicleType',
+        ...(rail||multi?['containerNumber']:['vehicleNumber']),
+        ...(rail?['railCargoCodes']:[])].map(k=>[k,labelFor(k)||k,model.values[k]])},
+    {name:lang==='ru'?'Согласованная стоимость':lang==='zh'?'约定运价':'Agreed freight charge',
+      data:[['rate',t.rate,hasValue(model.amount)&&hasValue(model.currency)?String(model.amount)+' '+model.currency:'']]}
+  ];
+  const summaryKeys=sections.flatMap(s=>s.data.map(row=>row[0]));
+  const summaryCards=sections.map((s,index)=>{
+    const provided=s.data.filter(([key,label,value])=>hasValue(value)&&String(value).trim()!=='unknown');
+    if(!provided.length)return null;
+    return r('section',{className:'transport-details-summary',children:[
+      r('h3',{children:s.name}),
+      r('dl',{className:'transport-data',children:provided.map(([key,label,value])=>
+        r('div',{children:[r('dt',{children:label}),r('dd',{translate:'no',children:String(value)})]},key))})
+    ]},index);
+  }).filter(Boolean);
+  const inherited=fields.map(f=>f.key).filter(k=>hasValue(model.values[k])&&!plan.main.includes(k)&&!summaryKeys.includes(k)&&model.values[k]!=='unknown'&&['order','winning-offer','company','carrier-profile','approved-template','server'].includes(model.sources[k]));
+  const railOnly=new Set(['departureStation','destinationStation','borderCrossing','trafficType','railCargoCodes','customsRegime','containerReturnInstructions']);
+  const roadOnly=new Set(['deliveryTerm','freeTime']);
+  const legacyHidden=new Set(['subject','serviceTerms','customsShipper','customsConsignee','exportContact','importContact',
+    'paymentBasis','paymentTerms','totalKm','marks','attachedList','batteries','seaLeg',
+    'invoiceAmount','invoiceCurrency','insurance','temperature','exportCustoms','importCustoms',
+    'customsReason','dangerousDetails','insuranceRequired','temperatureRequired']);
+  const optional=fields.map(f=>f.key).filter(k=>!plan.main.includes(k)&&!plan.locked.includes(k)&&!plan.suppressed.includes(k)
+    &&!inherited.includes(k)&&!legacyHidden.has(k)
+    &&(!railOnly.has(k)||(rail||multi))&&(!roadOnly.has(k)||(road||multi)));
+  const conditional=[...(values.customsApplicable==='yes'?['exportCustoms','importCustoms']:values.customsApplicable==='no'?['customsReason']:[]),...(values.dangerousGoods==='yes'?['dangerousDetails']:[]),...(values.insuranceRequired==='yes'?['insurance','invoiceAmount','invoiceCurrency']:[]),...(values.temperatureRequired==='yes'?['temperature']:[])].filter(k=>!plan.main.includes(k)&&!plan.locked.includes(k));
+  return r('section',{className:'compact-transport-document',children:[
+    r('header',{className:'transport-document-header',children:[r('h2',{children:t.documentTitle}),r('p',{className:'transport-document-subtitle',children:t.documentSubtitle})]}),
+    ...summaryCards,
+    r('p',{className:'small',children:t.legal}),
+    r('details',{children:[r('summary',{children:t.correction}),r('p',{children:t.correctionHint}),r('textarea',{name:'correctionNote',value:values._correction||'',maxLength:2000,onChange:e=>onChange('_correction',e.target.value),'aria-label':t.correction}),r('button',{type:'button',className:'btn secondary',disabled:busy||String(values._correction||'').trim().length<10,onClick:()=>onCorrection(values._correction),children:t.sendCorrection})]}),
+    r('h3',{children:t.missing}),r('div',{className:'grid',children:[...plan.main,...conditional].map(field)}),
+    r('details',{className:'transport-group',children:[r('summary',{children:t.special}),r('div',{className:'grid',children:[...['dangerousGoods','containerized','seaLeg'].filter(k=>!plan.main.includes(k)&&!inherited.includes(k)).map(field),r('label',{className:'field',children:[t.insurance,r('select',{name:'insuranceRequired',value:values.insuranceRequired||'no',disabled:['CIP','CIF'].includes(values.incoterm),onChange:e=>onChange('insuranceRequired',e.target.value),children:[r('option',{value:'no',children:t.no}),r('option',{value:'yes',children:t.yes})]})]}),r('label',{className:'field',children:[t.temperature,r('select',{name:'temperatureRequired',value:values.temperatureRequired||'no',onChange:e=>onChange('temperatureRequired',e.target.value),children:[r('option',{value:'no',children:t.no}),r('option',{value:'yes',children:t.yes})]})]})]})]}),
+    r('details',{className:'transport-group',children:[r('summary',{children:t.optional}),r('div',{className:'grid',children:optional.filter(k=>!['dangerousGoods','containerized','seaLeg','insuranceRequired'].includes(k)).map(field)}),r('dl',{className:'transport-data',children:inherited.map(k=>r('div',{children:[r('dt',{children:(lang==='ru'?byKey[k].ru:lang==='zh'?zhFields[k]:byKey[k].en)}),r('dd',{translate:'no',children:String(model.values[k])})]},k))})]}),
+    r('details',{children:[r('summary',{children:t.faq}),r('p',{children:t.faqText})]}),
+    r('div',{className:'bar transport-actions',children:[r('button',{className:'btn secondary',name:'action',value:'save',formNoValidate:true,disabled:busy,children:t.save}),r('button',{className:'btn',name:'action',value:'submit',formNoValidate:true,disabled:busy,children:t.send})]})
+  ]});
+}
+export function documentValidationMessage(keys,groups) {
+ const lang=documentLocale(), t=words[lang]||words.ru;
+ const fields=[...groups.flatMap(g=>g[3]),...EXTRA_FIELDS];
+ return t.required+': '+keys.map(key=>{const field=fields.find(f=>f[0]===key);return lang==='zh'?(zhFields[key]||field?.[2]||key):field?.[lang==='ru'?1:2]||key;}).join('; ');
+}
+export function correctionEventNote(event) {
+ if(event.event_type!=='application_correction_request')return '';
+ try {const detail=typeof event.detail==='string'?JSON.parse(event.detail):event.detail;return detail?.note?' · '+String(detail.note):'';}catch{return '';}
+}
