@@ -58,7 +58,8 @@ footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
 <div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Запустить / повторить технические проверки</a><button class="action" id="refresh-qa" type="button">Обновить результаты сейчас</button><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Требования и ошибки</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/28" target="_blank" rel="noopener noreferrer">Отложенная транспортная заявка</a></div>
 <p class="meta">Кнопка запуска открывает GitHub Actions: выберите <b>Run workflow</b>. Этот workflow пока не выполняет авторизованные E2E — это отдельный этап разработки и настройки защищённой изолированной QA-среды.</p>
 </section>
-<section class="live panel" aria-label="Что ещё не запущено"><h2>Следующий этап · автоматическая проверка бизнес-процессов</h2><p>Это <strong>план работ, не активный запуск</strong>. Нужны изолированные тестовые пользователи с ролями, защищённые доступы, реальные браузерные действия и доказательства для каждого пункта.</p><div class="actions"><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/29" target="_blank" rel="noopener noreferrer">Открыть задачу на полный E2E и список блокеров</a></div></section>
+<section class="live panel" aria-label="Сводка роботов"><h2>Роботы · 37 групп задач №1 и №2</h2><p id="robot-state" role="status">Загружаем последние результаты роботов…</p><div class="grid"><div class="metric"><small>Частично проверено</small><strong id="robot-partial">—</strong></div><div class="metric"><small>Обнаружены ошибки</small><strong id="robot-fail">—</strong></div><div class="metric"><small>Заблокировано</small><strong id="robot-blocked">—</strong></div><div class="metric"><small>Полный E2E PASS</small><strong id="robot-e2e">0</strong></div></div><p>Роботы проверяют доступные функции реального интерфейса с изолированным API, а также кодовые контракты. <b>Частично проверено</b> означает, что проверка прошла, но вход под настоящей тестовой ролью и вся цепочка не подтверждены.</p><div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Запустить роботов · Run workflow</a><a class="action" id="robot-report-link" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Журнал последнего запуска</a></div></section>
+<section class="live panel" aria-label="Что ещё не запущено"><h2>Следующий этап · автоматическая проверка бизнес-процессов</h2><p>Роботы для изолированных проверок теперь существуют. <strong>Полный авторизованный E2E по настоящей QA-базе ещё не включён</strong>: для него требуется независимая изоляция и защищённые учётные записи ролей. Это остаётся открытым пунктом.</p><div class="actions"><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/29" target="_blank" rel="noopener noreferrer">Открыть задачу на полный E2E и список блокеров</a></div></section>
 <section class="live panel" aria-label="Проверки тестовой базы"><h2>Фактическая инвентаризация staging · без изменения данных</h2><p>Это отдельная проверка целостности в базе. Она не заменяет авторизованные E2E-сценарии и не добавляет PASS в счётчики.</p><ul id="inspection"></ul></section>
 <div class="toolbar">
 <div><button class="pill" id="all" aria-pressed="true">Все проверки</button> <button class="pill" id="todo" aria-pressed="false">Неподтверждённые</button> <button class="pill" id="errors" aria-pressed="false">Ошибки</button></div>
@@ -71,7 +72,7 @@ footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
 <script>
 "use strict";
 const labels={PASS:"PASS · подтверждено",FAIL:"FAIL · ошибка",BLOCKED:"BLOCKED · препятствие",PENDING_E2E:"Ожидает полного E2E",DEFERRED:"Отложено"};
-let current=null,filter="all";
+let current=null,robotReport=null,filter="all";
 function el(tag,text,css){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(css)n.className=css;return n}
 function formatCount(g){const total=g.cases.length,pass=g.cases.filter(x=>x.status==="PASS").length;return pass+"/"+total}
 function view(){
@@ -81,7 +82,7 @@ function view(){
  document.getElementById("count1").textContent=formatCount(a);
  document.getElementById("count2").textContent=formatCount(b);
  document.getElementById("pending").textContent=String(items.filter(x=>x.status==="PENDING_E2E").length);
- document.getElementById("failed").textContent=String(items.filter(x=>["FAIL","BLOCKED"].includes(x.status)||x.automation?.status==="FAIL").length);
+ document.getElementById("failed").textContent=String(items.filter(x=>["FAIL","BLOCKED"].includes(x.status)||x.automation?.status==="FAIL"||robotReport?.scenarios?.some(r=>r.id===x.id&&r.status==="FAIL")).length);
  document.getElementById("updated").textContent="Статусы от "+(current.updatedAt||"не указано");
  document.getElementById("progress1").style.width=(100*a.cases.filter(x=>x.status==="PASS").length/a.cases.length)+"%";
  document.getElementById("progress2").style.width=(100*b.cases.filter(x=>x.status==="PASS").length/b.cases.length)+"%";
@@ -90,7 +91,8 @@ function view(){
   const root=document.getElementById(id);root.replaceChildren();
   for(const x of group.cases){
    if(filter==="todo"&&x.status==="PASS")continue;
-   if(filter==="errors"&&!["FAIL","BLOCKED"].includes(x.status)&&x.automation?.status!=="FAIL")continue;
+   const rs=robotReport?.scenarios?.find(r=>r.id===x.id);
+   if(filter==="errors"&&!["FAIL","BLOCKED"].includes(x.status)&&x.automation?.status!=="FAIL"&&rs?.status!=="FAIL")continue;
    const li=el("li",undefined,"case");li.dataset.status=x.status;
    li.append(el("span",x.id,"id"));
    const detail=el("div");detail.append(el("b",x.title));detail.append(el("span",labels[x.status]||x.status,"status"));
@@ -103,6 +105,10 @@ function view(){
       const a=el("a","Посмотреть автоматический тест и журнал","qa-evidence");
       a.href=evidence;a.target="_blank";a.rel="noopener noreferrer";detail.append(a);
     }
+  }
+   if(rs){
+    detail.append(el("span","Робот: "+(rs.status==="PARTIAL"?"частичная проверка пройдена":rs.status==="FAIL"?"ошибка обнаружена":rs.status==="BLOCKED"?"нет полного сценария":rs.status),"status"));
+    detail.append(el("small",rs.note));
   }
    if(x.evidence?.length) detail.append(el("small","Доказательства: "+x.evidence.length));
    li.append(detail);root.append(li);
@@ -161,6 +167,25 @@ async function live(){
  }
 }
 document.getElementById("refresh-qa").addEventListener("click",()=>{load();live()});
-load();live();setInterval(()=>{if(!document.hidden){load();live()}},90000);
+async function loadRobots(){
+ const state=document.getElementById("robot-state");
+ try{
+  const r=await fetch("./qa-robot-latest.json?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("HTTP "+r.status);
+  const j=await r.json();
+  if(j.fullAuthorizedE2e!==false||!Array.isArray(j.scenarios))throw Error("Недопустимый отчёт");
+  robotReport=j;view();
+  document.getElementById("robot-partial").textContent=String(j.checks?.PARTIAL??0);
+  document.getElementById("robot-fail").textContent=String(j.checks?.FAIL??0);
+  document.getElementById("robot-blocked").textContent=String(j.checks?.BLOCKED??37);
+  document.getElementById("robot-e2e").textContent=String(j.checks?.PASS_E2E??0);
+  state.textContent=j.generatedAt
+   ?"Последний полный автоматический прогон: "+new Date(j.generatedAt).toLocaleString("ru-RU")+". Файлы, роли и причины — в журнале GitHub Actions."
+   :"Первый запуск автоматических роботов ещё не завершён. В GitHub Actions нажмите Run workflow.";
+  if(j.workflowUrl?.startsWith("https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/"))
+   document.getElementById("robot-report-link").href=j.workflowUrl;
+ }catch(e){state.textContent="Не удалось загрузить опубликованный отчёт роботов: "+e.message+". Откройте GitHub Actions."}
+}
+load();live();loadRobots();setInterval(()=>{if(!document.hidden){load();live();loadRobots()}},90000);
 </script>
 </body></html>
