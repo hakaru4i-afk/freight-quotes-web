@@ -35,37 +35,9 @@
  #task2-root .t2-process-banner .t2-btn{width:100%;}
 }
 
-/* Issue #28 visibility fix: keep the two business processes visible even before an award exists. */
-#task2-root .t2-workflow-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px;margin:16px 0;}
-#task2-root .t2-workflow-link{display:flex;flex-direction:column;gap:7px;min-width:0;padding:15px 17px;border-radius:10px;border:1px solid #b9ccc0;background:#fff;text-decoration:none!important;color:#1c3c2b!important;-webkit-text-fill-color:#1c3c2b!important;}
-#task2-root .t2-workflow-link strong{color:#163b29!important;-webkit-text-fill-color:#163b29!important;font-size:15px;line-height:1.45;}
-#task2-root .t2-workflow-link span{color:#405b4a!important;-webkit-text-fill-color:#405b4a!important;font-size:13px;line-height:1.5;}
-#task2-root .t2-workflow-link.is-current{background:#e4f3eb!important;border:2px solid #196b4a;}
-#task2-root .t2-workflow-link:focus-visible{outline:3px solid #168452;outline-offset:3px;}
+/* Issue #28: execution tabs remain visible but disabled before approval. */
 #task2-root .t2-tabs-locked{opacity:1!important;}
 #task2-root .t2-tabs-locked button:disabled{cursor:not-allowed;background:#f2f5f3!important;border:1px solid #c7d4cb!important;color:#3f5949!important;-webkit-text-fill-color:#3f5949!important;opacity:1!important;}
 #task2-root .t2-empty h3{color:#22412f!important;-webkit-text-fill-color:#22412f!important;}
 #task2-root .t2-empty p{color:#395849!important;-webkit-text-fill-color:#395849!important;line-height:1.5;}
-@media(max-width:600px){#task2-root .t2-workflow-nav{grid-template-columns:minmax(0,1fr);}#task2-root .t2-workflow-link{padding:12px;}}
 
-/* Both links are also visible in the transport document workspace. */
-.cabinet-panel[data-section="transport-applications"] .issue28-document-process-nav{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 18px;
-}
-.cabinet-panel[data-section="transport-applications"] .issue28-process-tile{
-  display:flex;flex-direction:column;gap:6px;min-width:0;padding:14px 16px;
-  background:#fff!important;border:1px solid #bbcfc2;border-radius:10px;text-decoration:none!important;
-  color:#173b28!important;-webkit-text-fill-color:#173b28!important;
-}
-.cabinet-panel[data-section="transport-applications"] .issue28-process-tile.is-current{
-  background:#e6f2eb!important;border:2px solid #196b4a;
-}
-.cabinet-panel[data-section="transport-applications"] .issue28-process-tile strong{
-  font-size:15px;line-height:1.4;color:#193e2a!important;-webkit-text-fill-color:#193e2a!important;
-}
-.cabinet-panel[data-section="transport-applications"] .issue28-process-tile span{
-  font-size:13px;line-height:1.5;color:#40594a!important;-webkit-text-fill-color:#40594a!important;
-}
-@media(max-width:600px){
-  .cabinet-panel[data-section="transport-applications"] .issue28-document-process-nav{grid-template-columns:1fr;}
-}
