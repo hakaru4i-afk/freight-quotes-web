@@ -108,6 +108,7 @@ async function load(){
 const jobDescriptions={
  "Staging: public availability & QA evidence contract":["Публикация и контроль матрицы","Проверка доступности опубликованных ресурсов и наличия контрольной матрицы. Не входит под пользователем."],
  "Staging: real desktop/mobile browser smoke (not authenticated E2E)":["Браузер · мобильный и компьютер","Проверка страницы входа, языков и ошибок JavaScript без входа в роли."],
+ "T1-01 / Owner create shipment / isolated browser validation":["T1-01 · Форма Владельца (изолированный браузер)","Проверяется реальная форма, но API заменён изолированными тестовыми ответами. Статус не равен полному авторизованному E2E."],
  "Scope safeguard":["Защита рабочей среды","Проверка ограничения тестов публичным staging-smoke, без изменений production."]
 };
 function renderJobs(jobs,runUrl){
