@@ -8,6 +8,7 @@ on:
     paths:
       - 'test/**'
       - '!test/qa-robot-latest.json'
+      - '!test/qa-release-readiness.json'
       - 'tests/**'
       - '.github/workflows/task12-observer.yml'
 permissions:
@@ -133,6 +134,68 @@ jobs:
             echo "::error::Robot tests reported failures; inspect the uploaded artifact."
             exit 1
           fi
+  production-release-gate:
+    name: "Release decision: 37 authenticated E2E + security + restore (fail closed)"
+    if: always()
+    needs: [all-robots]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Download robot report from this run
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: task12-robots-all-groups
+          path: qa-artifacts
+      - name: Evaluate full pre-release acceptance without touching production
+        id: decision
+        continue-on-error: true
+        env:
+          ROBOT_REPORT_PATH: qa-artifacts/reports/task12-robot-matrix.json
+        run: node tests/task12-release-gate.mjs
+      - name: Upload inspectable release decision
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task12-production-release-readiness
+          path: reports/task12-release-readiness.json
+          retention-days: 30
+          if-no-files-found: warn
+      - name: Publish redacted release status to staging QA observer
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f reports/task12-release-readiness.json ]; then exit 0; fi
+          git config user.name task12-qa-bot
+          git config user.email 'task12-qa-bot@users.noreply.github.com'
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git checkout -B qa-release-status-publisher origin/main
+            cp reports/task12-release-readiness.json test/qa-release-readiness.json
+            git add test/qa-release-readiness.json
+            if git diff --cached --quiet; then break; fi
+            git commit -m "qa(staging): publish release readiness decision from run ${GITHUB_RUN_ID}"
+            if git push origin HEAD:main; then break; fi
+            if [ "$attempt" -eq 3 ]; then echo "::warning::Report publishing failed; artifact remains."; fi
+          done
+      - name: Make release readiness visibly fail when incomplete
+        if: always()
+        env:
+          GATE_OUTCOME: ${{ steps.decision.outcome }}
+        run: |
+          if [ "$GATE_OUTCOME" != success ]; then
+            echo "::error::RELEASE_BLOCKED: do not deploy production. See release-readiness artifact."
+            exit 1
+          fi
+          echo "READY_FOR_OWNER_RELEASE_APPROVAL: Production still requires explicit Owner authorization."
   policy:
     name: "Scope safeguard"
     runs-on: ubuntu-24.04
