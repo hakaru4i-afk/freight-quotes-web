@@ -10,8 +10,15 @@ export const EXTRA_FIELDS = [
   ['customsApplicable','Таможенное оформление','Customs clearance','customs'],
   ['customsReason','Причина неприменимости таможни','Reason customs does not apply','text'],
   ['insuranceRequired','Требуется страхование','Insurance required','yesno'],
+  ['deliveryTerm','Срок доставки по согласованной ставке','Delivery period per accepted offer','text'],
+  ['freeTime','Свободное время на погрузку, таможенное оформление и разгрузку','Free time for loading, customs and unloading','text'],
+  ['borderCrossing','Пограничный переход (ЖД)','Border crossing (rail)','text'],
+  ['trafficType','Вид перевозки: импорт, экспорт, транзит','Traffic type: import, export, transit','text'],
+  ['railCargoCodes','Коды ГНГ / ЕТСНГ (ЖД)','GNG / ETSNG codes (rail)','text'],
+  ['customsRegime','Таможенный режим (ГТД / ВТТ)','Customs regime (GTD / VTT)','text'],
+  ['containerReturnInstructions','Инструкции по возврату порожнего контейнера','Empty container return instructions','textarea'],
 ];
-export const IMMUTABLE = ['applicationDate','origin','destination','waypoints','cargo','weight','volume','dimensions','incoterm','incotermPlace','transport','ready_date','freightScope','extras','schedule','etd','customerDetails','carrierDetails','contract','serviceTerms','paymentBasis','paymentTerms','dangerousGoods','dangerousDetails'];
+export const IMMUTABLE = ['applicationDate','origin','destination','waypoints','cargo','weight','volume','dimensions','incoterm','incotermPlace','transport','ready_date','freightScope','extras','schedule','etd','deliveryTerm','customerDetails','carrierDetails','contract','serviceTerms','paymentBasis','paymentTerms','dangerousGoods','dangerousDetails'];
 const sourceKeys = {incotermPlace:'incoterm_place', dangerousGoods:'dangerous_goods',dangerousDetails:'dangerous_details',loadingContact:'sender_contact'};
 export function hydrateTransportApplication({item={}, order={}, company={}, carrier={}, template={}, defaults={}, details=item.booking?.details||{}, patch={}, etd={}}={}) {
   const values={}, sources={}, locked=[];
@@ -34,6 +41,8 @@ export function hydrateTransportApplication({item={}, order={}, company={}, carr
   if(confirmed.dangerousGoods==='yes'&&!hasValue(confirmed.dangerousDetails)&&bid.dangerous_goods==='yes') confirmed.dangerousDetails=bid.dangerous_details;
   for(const key of ['origin','destination','waypoints']) if(hasValue(bid[key])) confirmed[key]=bid[key];
   Object.assign(confirmed,{transport:bid.mode||item.transport,schedule:bid.pickup,etd:etd.date,freightScope:bid.includes,extras:bid.extras});
+  if(hasValue(bid.days)) confirmed.deliveryTerm = String(bid.days).trim() + (/\b(?:дн|days?)\b/i.test(String(bid.days))?'':' дней');
+
   for(const key of ['contract','serviceTerms','paymentBasis','paymentTerms']) if(hasValue(template[key])) confirmed[key]=template[key];
   if(hasValue(company.legalDetails)) confirmed.customerDetails=company.legalDetails;
   if(hasValue(carrier.legalDetails)) confirmed.carrierDetails=carrier.legalDetails;
@@ -80,7 +89,7 @@ export function documentFieldPlan(model, current=model.values) {
   const required=requiredDocumentKeys(current), locked=new Set(model.locked);
   const inherited=k=>hasValue(model.values[k])&&model.values[k]!=='unknown'&&['order','winning-offer','company','carrier-profile','approved-template','server'].includes(model.sources[k]);
   const main=required.filter(k=>!locked.has(k)&&(!inherited(k)||!hasValue(current[k])));
-  for(const key of ['schedule','etd','vehicleType','vehicleNumber',...(['rail','multi'].includes(documentMode(current))||current.containerized==='yes'?['containerNumber']:[]),'customsApplicable','trackingInstructions']) if(!locked.has(key)&&!inherited(key)&&!main.includes(key)) main.push(key);
+  for(const key of ['schedule','etd',...(['road','multi'].includes(documentMode(current))?['deliveryTerm']:[]),'vehicleType','vehicleNumber',...(['rail','multi'].includes(documentMode(current))||current.containerized==='yes'?['containerNumber']:[]),'customsApplicable','trackingInstructions']) if(!locked.has(key)&&!inherited(key)&&!main.includes(key)) main.push(key);
   const suppressed=['customsShipper','customsConsignee','exportContact','importContact','serviceTerms','paymentTerms','paymentBasis'];
   return {main,required,locked:[...locked],suppressed};
 }
