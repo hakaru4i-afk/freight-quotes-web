@@ -1,7 +1,7 @@
 {
   "environment": "staging",
-  "version": "stg47-issue17-sample-faithful-api69-20261107",
-  "releaseVersion": "1.19.12",
+  "version": "issue28-visible-navigation-staging-20261107",
+  "releaseVersion": "1.19.18",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
@@ -322,10 +322,17 @@
     "stylesheet": "task2-process-split-20261107.css",
     "cssBlobSha": "3014af3e1b7afa2b26689d61f51248a84aaf8061",
     "serverVersion": 75,
-    "status": "STAGING_FILES_COMMITTED; GITHUB_PAGES_SERVING_AND_AUTH_E2E_UNVERIFIED",
+    "status": "STAGING_CODE_COMMITTED_STATIC_CHECKS_PASS; LIVE_GITHUB_PAGES_AND_AUTHORIZED_E2E_UNVERIFIED",
     "productionChanged": false,
     "documentNavigationScript": "issue28-document-navigation-20261107.js",
     "documentNavigationBlobSha": "12ab285c0794b8194c36bbeb10ffea3b02a40cf3",
-    "visibilityFix": "Both business-process cards and disabled execution tabs are rendered before winner selection and document approval"
+    "visibilityFix": "Both business-process cards and disabled execution tabs are rendered before winner selection and document approval",
+    "releaseVersion": "1.19.18",
+    "visibilityAudit": {
+      "problem": "New execution tabs were rendered only after a winner and an approved document, so users could see no change",
+      "fix": "Always show transport documents vs execution navigation; show locked stage names before eligibility",
+      "checks": "Syntax and asset-reference checks passed; live GitHub Pages verification pending",
+      "productionChanged": false
+    }
   }
 }
