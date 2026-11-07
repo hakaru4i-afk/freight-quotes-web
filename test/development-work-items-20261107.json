@@ -58,8 +58,8 @@
       "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/28",
       "category": "development",
       "name": "Разделение транспортной заявки и исполнения перевозки на самостоятельные процессы",
-      "status": "staging_code_committed_static_checks_passed_public_pages_unverified",
-      "release": "1.19.18 · тестовая",
+      "status": "staging_code_updated_duplicate_cards_removed_live_pages_unverified",
+      "release": "1.19.19 · тестовая",
       "related": [
         "https://github.com/hakaru4i-afk/freight-quotes/issues/47",
         "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
@@ -77,12 +77,13 @@
         "e3d33f0307138a9bfeb8d32fbbf59fdf56f5a694",
         "07953500d04b8612e63d4a118aefa6fbfa2da132"
       ],
-      "frontend_asset": "test/task2-panel-visible-20261107.js",
+      "frontend_asset": "test/task2-panel-sidebar-only-20261107.js",
       "backend_existing_gate": "freight-api staging v75: reject physical execution until transport document is approved",
-      "test_status": "JS syntax + asset integrity PASS; GitHub Pages served bytes and authorized E2E not independently verified",
+      "test_status": "Source and asset hashes verified, served Pages and authorized E2E pending",
       "production_changed": false,
       "navigation_asset": "test/issue28-document-navigation-20261107.js",
-      "visibility_fix": "Process menu visible when no winner exists; execution stage names visible as locked until document approval"
+      "visibility_fix": "Process menu visible when no winner exists; execution stage names visible as locked until document approval",
+      "navigation_rule": "Use the left sidebar only. No duplicate top process links/cards. Contextual action controls and execution tabs remain."
     }
   ]
 }
