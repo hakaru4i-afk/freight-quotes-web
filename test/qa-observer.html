@@ -58,6 +58,7 @@ footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
 <div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Открыть прогоны и логи</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Требования и ошибки</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/28" target="_blank" rel="noopener noreferrer">Отложенная транспортная заявка</a></div>
 <p class="meta">Сейчас автоматический workflow проверяет только опубликованную страницу и доступные без входа сценарии. Полный цикл Owner → Carrier → ВЭД → закрытие будет учитываться в счётчиках лишь после настройки и подтверждения защищённых E2E.</p>
 </section>
+<section class="live panel" aria-label="Проверки тестовой базы"><h2>Фактическая инвентаризация staging · без изменения данных</h2><p>Это отдельная проверка целостности в базе. Она не заменяет авторизованные E2E-сценарии и не добавляет PASS в счётчики.</p><ul id="inspection"></ul></section>
 <div class="toolbar">
 <div><button class="pill" id="all" aria-pressed="true">Все проверки</button> <button class="pill" id="todo" aria-pressed="false">Неподтверждённые</button> <button class="pill" id="errors" aria-pressed="false">Ошибки</button></div>
 <span class="meta" id="updated">Загрузка матрицы…</span>
@@ -75,6 +76,7 @@ function formatCount(g){const total=g.cases.length,pass=g.cases.filter(x=>x.stat
 function view(){
  if(!current)return;
  const a=current.task1,b=current.task2,items=[...a.cases,...b.cases];
+ const inspected=document.getElementById("inspection");inspected.replaceChildren();for(const v of current.inspections||[]){const li=el("li",undefined,"case");li.append(el("span",v.id,"id"));const d=el("div");d.append(el("b",v.name));d.append(el("small",v.facts.join(" · ")+" — "+v.note));li.append(d);inspected.append(li)}
  document.getElementById("count1").textContent=formatCount(a);
  document.getElementById("count2").textContent=formatCount(b);
  document.getElementById("pending").textContent=String(items.filter(x=>x.status==="PENDING_E2E").length);
