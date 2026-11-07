@@ -35,6 +35,7 @@ async function fixture(t){
   const req=route.request(),url=new URL(req.url()),path=url.pathname.split("/freight-api")[1]||"";
   const respond=(status,payload)=>route.fulfill({status,contentType:"application/json",body:JSON.stringify(payload),headers:{"Access-Control-Allow-Origin":"*"}});
   if(req.method()==="OPTIONS")return route.fulfill({status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS"}});
+  if(path==="/api/test-cabinets")return respond(200,{environment:"staging",presets:[],users:[]});
   if(path==="/api/session")return respond(200,{role:"owner"});
   if(path==="/api/access")return respond(200,{access:{owner:true,permissions:["workspace.read","requests.manage","documents.read"]},users:[],roles:[],profiles:[],roleProfiles:[]});
   if(path==="/api/data")return respond(200,{role:"owner",bids:[],answers:[],selections:[],reports:[],approvals:[],notifications:[],requests:[]});
