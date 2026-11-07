@@ -58,8 +58,8 @@
       "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/28",
       "category": "development",
       "name": "Разделение транспортной заявки и исполнения перевозки на самостоятельные процессы",
-      "status": "staging_code_updated_duplicate_cards_removed_live_pages_unverified",
-      "release": "1.19.19 · тестовая",
+      "status": "staging_document_only_code_committed_static_qa_passed_live_pages_unverified",
+      "release": "1.19.20 · тестовая",
       "related": [
         "https://github.com/hakaru4i-afk/freight-quotes/issues/47",
         "https://github.com/hakaru4i-afk/freight-quotes-web/issues/17"
@@ -79,11 +79,21 @@
       ],
       "frontend_asset": "test/task2-panel-sidebar-only-20261107.js",
       "backend_existing_gate": "freight-api staging v75: reject physical execution until transport document is approved",
-      "test_status": "Source and asset hashes verified, served Pages and authorized E2E pending",
+      "test_status": "static component assertions and JS parse PASS; GitHub Actions and live Pages/browser E2E pending",
       "production_changed": false,
       "navigation_asset": "test/issue28-document-navigation-20261107.js",
       "visibility_fix": "Process menu visible when no winner exists; execution stage names visible as locked until document approval",
-      "navigation_rule": "Use the left sidebar only. No duplicate top process links/cards. Contextual action controls and execution tabs remain."
+      "navigation_rule": "Use the left sidebar only. No duplicate top process links/cards. Contextual action controls and execution tabs remain.",
+      "document_only_commit": "bf4a29b7749c7f221fd101fae5827cd161430b98",
+      "document_only_rule": "Only transport document editor, corrections and approval in #transport-applications; shipment stages, tracking, document set, claims and execution history stay in separate #approved-shipments.",
+      "removed_from_document": [
+        "documents set",
+        "shipment stages",
+        "claims",
+        "execution history",
+        "duplicate navigation link"
+      ],
+      "staging_app_sha": "e476749cf36b67dc1ced185d872466627ec0fc67"
     }
   ]
 }
