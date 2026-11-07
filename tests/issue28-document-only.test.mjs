@@ -23,6 +23,24 @@ test("document workspace only contains application document and approval",()=>{
   assert.ok(!details.includes(enc("История этапов и решений")),"execution history must not be rendered here");
 });
 
+test("transport application cards show document states instead of cargo movement stage",()=>{
+  const start=app.indexOf('className:"transport-order"+');
+  const end=app.indexOf('}function Ky(',start);
+  assert.ok(start>=0&&end>start);
+  const list=app.slice(start,end);
+  assert.match(list,/className:"badge",children:To\[E\.booking\?\.state\]/);
+  assert.doesNotMatch(list,/Co\[E\.execution\?\.stage\|\|E\.cargo_status\]/);
+  assert.match(list,/E\.booking\?\.state==="approved"/);
+  assert.match(list,/E\.booking\?\.state==="pending"/);
+  assert.match(list,/E\.booking\?\.state==="rejected"/);
+  const dictionary=app.slice(app.indexOf('To={'),app.indexOf('};function vf(',app.indexOf('To={')));
+  assert.ok(dictionary.includes(enc('Транспортная заявка на согласовании')));
+  assert.ok(dictionary.includes(enc('Транспортная заявка согласована')));
+  const summary=app.slice(app.indexOf('function Yy('),app.indexOf('}function Cf(',app.indexOf('function Yy(')));
+  assert.ok(summary.includes(enc('Открыть транспортную заявку')));
+  assert.ok(!summary.includes(enc('Открыть заявку и этапы перевозки')));
+});
+
 test("standalone execution workspace and sidebar remain intact",()=>{
   assert.ok(app.includes('id:"transport-applications"'));
   assert.ok(app.includes('id:"approved-shipments"'));
