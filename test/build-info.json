@@ -1,7 +1,7 @@
 {
   "environment": "staging",
-  "version": "stg47-issue17-formal-export-api68-20261106",
-  "releaseVersion": "1.19.11",
+  "version": "stg47-issue17-sample-faithful-api69-20261107",
+  "releaseVersion": "1.19.12",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 68,
+    "backendVersion": 69,
     "frontendScript": "task2-panel-260ba5a1c29f.js",
     "frontendSha": "d19e3c2f10ea543a0bf2c73a07b9a94014c3ab93",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -28,11 +28,11 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "bf185c969b9757ccc63b890276977e55b6ba00f3",
-    "backendSourceSha": "e5a897f767072e4e4b116478008ec9ef019b1b9c",
+    "backendSourceCommit": "990804ac51873657b6191e967c1e753372a1ee2f",
+    "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "Staging code patched, Pages deployment and authorized E2E verification required for acceptance.",
+    "stagingBuildNote": "Page/build source and API69 published; served-byte and authorized owner acceptance required",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 68,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V68_ACTIVE; FULL_ACCEPTANCE_PENDING",
+    "lastObservedBackendVersion": 69,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V69_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -97,8 +97,8 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
-    "backendBundleSHA256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
-    "backendActiveBundleSha256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
+    "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
+    "backendActiveBundleSha256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -163,7 +163,7 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 68,
+    "backendVersion": 69,
     "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
@@ -177,7 +177,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 68,
+    "apiVersion": 69,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -242,10 +242,10 @@
   "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js",
   "carrierDocument": {
     "issue": 17,
-    "build": "issue17-compact-document-20261106",
-    "apiVersion": 68,
-    "apiBundleSha256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
-    "backendSourceCommit": "bf185c969b9757ccc63b890276977e55b6ba00f3",
+    "build": "issue17-sample-faithful-20261107",
+    "apiVersion": 69,
+    "apiBundleSha256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
+    "backendSourceCommit": "990804ac51873657b6191e967c1e753372a1ee2f",
     "productionChanged": false,
     "originalDocxVisualComparison": "OPEN; canonical structure from EXECUTION BRIEF",
     "files": {
@@ -283,6 +283,14 @@
       "approvedLegalTemplate": "OPEN",
       "productionChanged": false,
       "apiHealthBuild": "issue17-compact-document-20261106"
+    },
+    "sampleTemplates": {
+      "road": "BDX99",
+      "rail": "BEA47",
+      "status": "STAGING_API_V69_PUBLISHED_PENDING_AUTHORIZED_OWNER_QA",
+      "details": "Two separate document mappings, no blank output fields, no sample-specific contract clauses",
+      "legacyStoragePreserved": true,
+      "fullAcceptance": "OPEN"
     }
   }
 }
