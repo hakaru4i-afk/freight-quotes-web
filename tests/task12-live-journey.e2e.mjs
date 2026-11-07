@@ -169,6 +169,35 @@ async function carrierTakeExecution(page){
   assert.equal(response.status(),200,"CARRIER_TAKE_FAILED");
   return {taken:true,httpStatus:response.status()};
 }
+async function carrierExecutionWithoutVed(page){
+  await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().click();
+  const panel=page.locator("#task2-root");
+  await panel.locator('form[data-t2-form="save"]').waitFor({state:"visible",timeout:14000});
+  // A forbidden VED dispatch must block the test BEFORE it can create that task.
+  const vedControls=await panel.locator('option').filter({hasText:/создать задачу ВЭД/i}).count();
+  assert.equal(vedControls,0,"UNAPPROVED_VED_DISPATCH_PRESENT_IN_EXECUTION");
+  const form=panel.locator('form[data-t2-form="save"]');
+  await form.locator('input[name="actual_departure"]').fill("2027-06-06T10:00");
+  await form.locator('input[name="location"]').fill("Yiwu logistics hub");
+  await form.locator('input[name="location_date"]').fill("2027-06-06T10:30");
+  const saved=page.waitForResponse(r=>r.url().includes("/api/task2")&&r.request().method()==="POST",{timeout:22000});
+  await form.locator('button[type="submit"]').click();
+  const res=await saved;
+  assert.equal(res.status(),200,"CARRIER_EXECUTION_SAVE_FAILED");
+  return {trackingSaved:true,apiStatus:res.status(),vedDispatchPresent:false};
+}
+async function ownerReviewCompletion(page){
+  await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().click();
+  const root=page.locator("#task2-root");
+  await root.getByText(order).first().waitFor({state:"visible",timeout:12000});
+  const finish=root.locator('[data-t2-action="finish"]');
+  assert.equal(await finish.count(),1,"OWNER_CLOSURE_ACTION_MISSING");
+  const resPromise=page.waitForResponse(r=>r.url().includes("/api/task2")&&r.request().method()==="POST",{timeout:22000});
+  await finish.click();
+  const response=await resPromise;
+  assert.equal(response.status(),200,"OWNER_CLOSE_BLOCKED_BY_INCOMPLETE_STAGES");
+  return {completionAccepted:true,httpStatus:response.status()};
+}
 let browser;
 try{
   await mkdir("reports",{recursive:true});
@@ -185,6 +214,8 @@ try{
   await step("carrier_b_submit_real_quote",()=>makeCarrierBid(carrierB.page,1780));
   await step("owner_choose_real_winner",()=>ownerChooseWinner(owner.page));
   await step("winning_carrier_take_into_work",()=>carrierTakeExecution(carrierA.page));
+  await step("carrier_execution_without_ved_dispatch",()=>carrierExecutionWithoutVed(carrierA.page));
+  await step("owner_attempt_completion",()=>ownerReviewCompletion(owner.page));
   // Further process gates need real authenticated browser flows:
   // route/tracking, document Storage SHA, delivery, claim, closure, rollback.
   // Deliberately NOT marked release-ready by this partial journey.
