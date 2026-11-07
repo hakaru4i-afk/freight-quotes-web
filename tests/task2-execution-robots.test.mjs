@@ -17,7 +17,7 @@ async function fixture(t,{role="carrier",mode="Авто",container=""}={}){
   if(url.pathname==="/fixture"){res.writeHead(200,{"content-type":"text/html; charset=utf-8"});res.end(HTML);return}
   if(url.pathname==="/task2.js"){res.writeHead(200,{"content-type":"text/javascript; charset=utf-8"});res.end(appJs);return}
   if(url.pathname!=="/api/task2"){send(res,{error:"Not found"},404);return}
-  if(req.method()==="GET"){
+  if(req.method==="GET"){
     if(!url.searchParams.has("order"))return send(res,{role,items:[{order_code:order,registration_no:shipment.registration_no,process_status:state.status}]});
     return send(res,detail);
   }
