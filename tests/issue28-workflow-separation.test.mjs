@@ -14,7 +14,7 @@ const gitBlob=(s)=>createHash("sha1").update(Buffer.from("blob "+Buffer.byteLeng
 test("deferred: no create/approval of transport application blocks execution for carrier",()=>{
  assert.match(script,/Исполнение перевозок/);
  assert.match(script,/Перевозка принята в работу/);
- assert.match(script,/const started=!!d\.state/);
+ assert.match(script,/started=!!d\.state/);
  assert.match(script,/Ожидается принятие перевозки/);
  assert.doesNotMatch(script,/d\.booking_state!=="approved"|else if\(d\.booking_state/);
  assert.doesNotMatch(script,/Исполнение и трекинг откроются после согласования/);
