@@ -68,6 +68,7 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   await page.locator('[data-lw2-go="ships"]').first().click();
   assert.equal(new URL(page.url()).hash,"#approved-shipments");
   await page.goto(host+"/fixture#transport-applications",{waitUntil:"networkidle"});
+  await page.waitForFunction(()=>location.hash==="#approved-shipments",null,{timeout:5000});
   assert.equal(new URL(page.url()).hash,"#approved-shipments");
   await page.setViewportSize({width:390,height:844});
   await page.goto(host+"/fixture",{waitUntil:"networkidle"});
