@@ -4,23 +4,24 @@ import fs from "node:fs";
 import {createHash} from "node:crypto";
 
 const read=(path)=>fs.readFileSync(new URL("../"+path,import.meta.url),"utf8");
-const scriptName="task2-panel-visible-20261107.js";
+const scriptName="task2-panel-sidebar-only-20261107.js";
 const script=read("test/"+scriptName);
 const css=read("test/task2-process-split-20261107.css");
 const html=read("test/index.html");
 const build=JSON.parse(read("test/build-info.json"));
 const gitBlob=(s)=>createHash("sha1").update(Buffer.from("blob "+Buffer.byteLength(s)+"\0")).update(s).digest("hex");
 
-test("two process cards and stage labels remain visible before selection or document approval",()=>{
-  assert.match(script,/const workflowNav=/);
+test("left sidebar remains the only process navigation; stages stay visible before approval",()=>{
+  assert.doesNotMatch(script,/const workflowNav=|t2-workflow-nav|t2-workflow-link/);
   assert.match(script,/const lockedTabs=/);
-  assert.match(script,/Пока нет согласованной перевозки|Нет перевозок на этапе исполнения/);
+  assert.match(script,/Нет перевозок на этапе исполнения/);
   assert.match(script,/root\.innerHTML=html\+.*lockedTabs/);
   assert.match(script,/Ожидается согласование транспортной заявки/);
-  assert.match(script,/Перейти к транспортным заявкам/);
-  const documentNav=read("test/issue28-document-navigation-20261107.js");
-  assert.match(documentNav,/transport-applications/);
-  assert.match(documentNav,/approved-shipments/);
+  const sidebar=read("test/issue28-document-navigation-20261107.js");
+  assert.match(sidebar,/a\[href="#transport-applications"\]/);
+  assert.match(sidebar,/Транспортные заявки/);
+  assert.doesNotMatch(sidebar,/document\.createElement\("nav"\)|issue28-document-process-nav|nav\.append/);
+  assert.doesNotMatch(css,/t2-workflow-nav|t2-workflow-link|issue28-document-process-nav|issue28-process-tile/);
 });
 test("transport application and execution have different routes and statuses",()=>{
   assert.match(script,/location\.hash="#transport-applications"/);
