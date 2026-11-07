@@ -126,7 +126,10 @@ const jobDescriptions={
  "Staging: public availability & QA evidence contract":["Публикация и контроль матрицы","Проверка доступности опубликованных ресурсов и наличия контрольной матрицы. Не входит под пользователем."],
  "Staging: real desktop/mobile browser smoke (not authenticated E2E)":["Браузер · мобильный и компьютер","Проверка страницы входа, языков и ошибок JavaScript без входа в роли."],
  "T1-01 / Owner create shipment / isolated browser validation":["T1-01 · Форма Владельца (изолированный браузер)","Проверяется реальная форма, но API заменён изолированными тестовыми ответами. Статус не равен полному авторизованному E2E."],
- "Scope safeguard":["Защита рабочей среды","Проверка ограничения тестов публичным staging-smoke, без изменений production."]
+ "Robots: execute 37 mapped checks, report PASS/PARTIAL/FAIL/BLOCKED":["Роботы: 37 групп","Контрактные и браузерные проверки, отдельные FAIL и PARTIAL; это не 37 полных E2E."],
+ "Protected QA: real Owner/Carrier/Logistic authentication and denial checks":["Настоящая авторизация · изолированная QA","Проверка входа и отказов по реальным сессиям; строго без production, блокируется при отсутствии защищённых доступов."],
+ "Release decision: 37 authenticated E2E + security + restore (fail closed)":["Допуск к production","При отсутствии доказательств хотя бы одного обязательного критерия выпуск блокируется."],
+ "Scope safeguard":["Защита рабочей среды","Проверка, что автоматические сценарии не изменяют production."]
 };
 function renderJobs(jobs,runUrl){
  const root=document.getElementById("live-jobs");root.replaceChildren();
@@ -138,7 +141,8 @@ function renderJobs(jobs,runUrl){
   card.dataset.result=result;
   card.append(el("strong",title));
   card.append(el("small",description));
-  card.append(el("span",result==="success"?"✓ PASS · только технический тест":result==="in_progress"?"Выполняется":result==="failure"?"✕ FAIL · техническая ошибка":result==="queued"?"Ожидает запуска":result.toUpperCase()));
+  const isGate=j.name.startsWith("Release decision:"),isReal=j.name.startsWith("Protected QA:");
+  card.append(el("span",result==="success"?(isGate?"✓ Критерии допуска пройдены":isReal?"✓ Авторизация QA пройдена":"✓ Технический PASS / частичная проверка"):result==="in_progress"?"Выполняется":result==="failure"?(isGate?"✕ ВЫПУСК ЗАПРЕЩЁН":isReal?"✕ Авторизованная проверка заблокирована":"✕ Тесты сообщили об ошибке"):result==="queued"?"Ожидает запуска":result.toUpperCase()));
   root.append(card);
  }
  if(!known.length)root.append(el("p","Детали заданий пока недоступны. Посмотрите журнал GitHub Actions.","meta"));
