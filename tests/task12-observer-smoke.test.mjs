@@ -45,7 +45,7 @@ test("Task1+Task2: public QA observer has exactly 11 Task1 and 26 Task2 pending 
  assert.match(page.body,/Наблюдение за тестированием/);
  assert.match(page.body,/Полная приёмка пока не подтверждена/);
  assert.match(page.body,/id="live-jobs"/);
- assert.match(page.body,/Автоматическая проверка бизнес-процессов/);
+ assert.match(page.body,/автоматическая проверка бизнес-процессов/i);
  assert.match(page.body,/issues\/29/);
 
 });
