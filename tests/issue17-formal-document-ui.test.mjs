@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 const read = file => fs.readFileSync(new URL('../test/'+file,import.meta.url),'utf8');
-const panel=read('task2-panel-processes-20261107-3ccb1c05.js');
+const panel=read('task2-panel-visible-20261107.js');
 const panelCurrent=read('task2-panel.js');
 const i18n=read('task2-i18n.js');
 const guidance=read('task2-guidance-42dc6ccc8a20.js');
@@ -53,7 +53,7 @@ test('staging uses exact asset-content SHA prefixes for cache-busting',()=>{
     const buf=fs.readFileSync(new URL('../test/'+file,import.meta.url));
     return createHash('sha1').update('blob '+buf.length+String.fromCharCode(0)).update(buf).digest('hex');
   };
-  const resources=['transport-application.css','app.js','task2-panel-processes-20261107-3ccb1c05.js','task2-i18n.js','task2-guidance-42dc6ccc8a20.js'];
+  const resources=['transport-application.css','app.js','task2-panel-visible-20261107.js','task2-i18n.js','task2-guidance-42dc6ccc8a20.js'];
   for(const file of resources){
     assert.ok(index.includes(file+'?v='+blob(file).slice(0,12)),file+' has stale version in staging HTML');
   }
