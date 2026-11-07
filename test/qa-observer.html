@@ -32,10 +32,10 @@ ul{list-style:none;padding:0;margin:0}.case{display:grid;grid-template-columns:a
 .case b{display:block;font-size:13.5px;font-weight:600;line-height:1.45}.case small{color:#bdcdd9;font-size:11px}.status{font-size:11px;margin-top:5px;display:inline-block;border-radius:5px;padding:4px 7px;background:#233c52;color:#d3e4ef}
 .case[data-status=PASS] .status{background:#123e35;color:#9be6c8}.case[data-status=FAIL] .status{background:#512a2a;color:#ffc4bc}
 .case[data-status=BLOCKED] .status{background:#493718;color:#ffdaa1}
-.live{margin-top:19px}.live h2{font-size:18px;margin:0 0 10px}.live p{color:#aac3d4;line-height:1.5}
+.live{margin-top:19px}.live h2{font-size:18px;margin:0 0 10px}.live p{color:#aac3d4;line-height:1.5}.live-jobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 20px}.live-job{background:#0e283a;border:1px solid #365569;border-radius:12px;padding:14px}.live-job strong{display:block;font-size:13px;line-height:1.5;margin-bottom:8px}.live-job small{display:block;color:#a9c4d8;line-height:1.45}.live-job span{font-size:12px;display:block;font-weight:700;margin-top:10px}.live-job[data-result=success] span{color:#80e5ba}.live-job[data-result=failure] span{color:#ffc0ae}.live-job[data-result=in_progress] span{color:#f4d196}button.action{background:transparent;cursor:pointer;font:inherit;font-weight:700}button.action:hover{background:#23465a}
 .actions{display:flex;gap:10px;flex-wrap:wrap}.action{display:inline-flex;align-items:center;border:1px solid #5287a0;text-decoration:none;border-radius:9px;padding:11px 15px;color:#e3f3ff;font-size:13px;font-weight:700}.action.primary{background:#73d8c9;color:#072e38;border-color:#73d8c9}
 footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
-@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.panels{grid-template-columns:1fr}.shell{padding:19px 14px 40px}.metric{padding:15px}.metric strong{font-size:27px}}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.panels{grid-template-columns:1fr}.live-jobs{grid-template-columns:1fr}.shell{padding:19px 14px 40px}.metric{padding:15px}.metric strong{font-size:27px}}
 @media(max-width:375px){.grid{grid-template-columns:1fr 1fr}.metric strong{font-size:23px}.case .id{min-width:39px}}
 </style>
 </head>
@@ -51,13 +51,14 @@ footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
 <div class="metric"><small>Неподтверждено</small><strong id="pending">—</strong></div>
 <div class="metric"><small>Ошибки / блокеры</small><strong id="failed">—</strong></div>
 </section>
-<div class="notice"><strong>Полная приёмка пока не подтверждена</strong><span>Отдельные пройденные технические проверки не заменяют реальное создание заявки, работу перевозчиков и завершение перевозки. Транспортная заявка и её согласование исключены из текущего тестирования, сохранены в будущем плане.</span></div>
+<div class="notice"><strong>Полная приёмка пока не подтверждена</strong><span>Зелёный GitHub Actions подтверждает техническую доступность и проверки интерфейса <b>без авторизации</b>. Полный цикл Owner → 3 перевозчика → ВЭД → закрытие ещё не был запущен. Создание и согласование транспортной заявки отложено, требования сохранены.</span></div>
 <section class="live panel" aria-label="Автоматические прогоны">
-<h2>Наблюдение за автоматическими проверками</h2>
-<p id="live-state" role="status">Проверяем последнюю запись GitHub Actions…</p>
-<div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Открыть прогоны и логи</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Требования и ошибки</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/28" target="_blank" rel="noopener noreferrer">Отложенная транспортная заявка</a></div>
-<p class="meta">Сейчас автоматический workflow проверяет только опубликованную страницу и доступные без входа сценарии. Полный цикл Owner → Carrier → ВЭД → закрытие будет учитываться в счётчиках лишь после настройки и подтверждения защищённых E2E.</p>
+<h2>Последний запуск · технические проверки</h2>
+<p id="live-state" role="status">Получаем сведения о последнем запуске GitHub Actions…</p><div id="live-jobs" class="live-jobs" aria-label="Фактический результат каждого задания"><p class="meta">Загружаем результаты заданий…</p></div>
+<div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Запустить / повторить технические проверки</a><button class="action" id="refresh-qa" type="button">Обновить результаты сейчас</button><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Требования и ошибки</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/28" target="_blank" rel="noopener noreferrer">Отложенная транспортная заявка</a></div>
+<p class="meta">Кнопка запуска открывает GitHub Actions: выберите <b>Run workflow</b>. Этот workflow пока не выполняет авторизованные E2E — это отдельный этап разработки и настройки защищённой изолированной QA-среды.</p>
 </section>
+<section class="live panel" aria-label="Что ещё не запущено"><h2>Следующий этап · автоматическая проверка бизнес-процессов</h2><p>Это <strong>план работ, не активный запуск</strong>. Нужны изолированные тестовые пользователи с ролями, защищённые доступы, реальные браузерные действия и доказательства для каждого пункта.</p><div class="actions"><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/29" target="_blank" rel="noopener noreferrer">Открыть задачу на полный E2E и список блокеров</a></div></section>
 <section class="live panel" aria-label="Проверки тестовой базы"><h2>Фактическая инвентаризация staging · без изменения данных</h2><p>Это отдельная проверка целостности в базе. Она не заменяет авторизованные E2E-сценарии и не добавляет PASS в счётчики.</p><ul id="inspection"></ul></section>
 <div class="toolbar">
 <div><button class="pill" id="all" aria-pressed="true">Все проверки</button> <button class="pill" id="todo" aria-pressed="false">Неподтверждённые</button> <button class="pill" id="errors" aria-pressed="false">Ошибки</button></div>
@@ -104,18 +105,51 @@ async function load(){
  try{const r=await fetch("./qa-observer.json?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);const j=await r.json();if(!j.task1?.cases||!j.task2?.cases)throw Error("Некорректная матрица");current=j;view()}
  catch(e){document.getElementById("updated").textContent="Матрица недоступна: "+e.message}
 }
-async function live(){
- try{
-  const url="https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml/runs?per_page=1";
-  const r=await fetch(url,{headers:{Accept:"application/vnd.github+json"},cache:"no-store"});if(!r.ok)throw Error("GitHub API HTTP "+r.status);
-  const j=await r.json();const run=j.workflow_runs?.[0];
-  const target=document.getElementById("live-state");
-  if(!run){target.textContent="Первый запуск ещё не зарегистрирован. Откройте GitHub Actions для ручного запуска.";return}
-  target.replaceChildren(el("strong",run.status==="completed"?(run.conclusion==="success"?"Служебные автопроверки: PASS": "Служебные автопроверки: "+run.conclusion):"Выполняется: "+run.status));
-  target.append(el("span"," · Запуск #"+run.run_number+" · "+new Date(run.created_at).toLocaleString("ru-RU")+" · "));
-  const link=el("a","Смотреть шаги и журнал");link.href=run.html_url;link.target="_blank";link.rel="noopener noreferrer";target.append(link)
- }catch(e){document.getElementById("live-state").textContent="Статус GitHub Actions не удалось загрузить автоматически ("+e.message+"). Логи доступны по ссылке ниже."}
+const jobDescriptions={
+ "Staging: public availability & QA evidence contract":["Публикация и контроль матрицы","Проверка доступности опубликованных ресурсов и наличия контрольной матрицы. Не входит под пользователем."],
+ "Staging: real desktop/mobile browser smoke (not authenticated E2E)":["Браузер · мобильный и компьютер","Проверка страницы входа, языков и ошибок JavaScript без входа в роли."],
+ "Scope safeguard":["Защита рабочей среды","Проверка ограничения тестов публичным staging-smoke, без изменений production."]
+};
+function renderJobs(jobs,runUrl){
+ const root=document.getElementById("live-jobs");root.replaceChildren();
+ const known=Array.isArray(jobs)?jobs.filter(x=>jobDescriptions[x.name]):[];
+ for(const j of known){
+  const [title,description]=jobDescriptions[j.name];
+  const card=el("article",undefined,"live-job");
+  const result=j.status==="completed"?(j.conclusion||"unknown"):(j.status||"queued");
+  card.dataset.result=result;
+  card.append(el("strong",title));
+  card.append(el("small",description));
+  card.append(el("span",result==="success"?"✓ PASS · только технический тест":result==="in_progress"?"Выполняется":result==="failure"?"✕ FAIL · техническая ошибка":result==="queued"?"Ожидает запуска":result.toUpperCase()));
+  root.append(card);
+ }
+ if(!known.length)root.append(el("p","Детали заданий пока недоступны. Посмотрите журнал GitHub Actions.","meta"));
 }
+async function live(){
+ const target=document.getElementById("live-state");
+ try{
+  const endpoint="https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/actions/";
+  const config={headers:{"Accept":"application/vnd.github+json"},cache:"no-store"};
+  const res=await fetch(endpoint+"workflows/task12-observer.yml/runs?per_page=1",config);
+  if(!res.ok)throw Error("GitHub API: "+res.status);
+  const data=await res.json();
+  const run=data.workflow_runs?.[0];
+  if(!run){target.textContent="Запусков пока нет. Для проверки откройте GitHub Actions.";renderJobs([]);return}
+  target.replaceChildren();
+  const status=run.status==="completed"?(run.conclusion==="success"?"Технические проверки: успешно": "Технические проверки: "+run.conclusion):"Технические проверки: "+run.status;
+  target.append(el("strong",status));
+  target.append(el("span"," · Запуск #"+run.run_number+" · "+new Date(run.created_at).toLocaleString("ru-RU")+" · "));
+  const link=el("a","Смотреть подробный журнал");link.href=run.html_url;link.target="_blank";link.rel="noopener noreferrer";target.append(link);
+  const jobsResp=await fetch(endpoint+"runs/"+encodeURIComponent(run.id)+"/jobs?per_page=100",config);
+  if(!jobsResp.ok)throw Error("Результаты заданий: "+jobsResp.status);
+  const j=await jobsResp.json();
+  renderJobs(j.jobs,run.html_url);
+ }catch(e){
+  target.textContent="Сведения о запуске временно недоступны: "+e.message+". Проверьте GitHub Actions по ссылке.";
+  document.getElementById("live-jobs").replaceChildren(el("p","Автопроверки не получают статус полного E2E.","meta"));
+ }
+}
+document.getElementById("refresh-qa").addEventListener("click",()=>{load();live()});
 load();live();setInterval(()=>{if(!document.hidden){load();live()}},90000);
 </script>
 </body></html>
