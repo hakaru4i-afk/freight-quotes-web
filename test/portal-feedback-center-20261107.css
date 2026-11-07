@@ -58,3 +58,38 @@
 #portal-feedback-root .pf-empty{padding:18px;background:#f7faf8;border:1px dashed #bed3c3;border-radius:8px;color:#496557!important;font-size:13px}
 @media(max-width:800px){#portal-feedback-root .pf-workspace{grid-template-columns:1fr}#portal-feedback-root .pf-list{max-height:none}#portal-feedback-root .pf-details{margin-top:12px}}
 @media(max-width:420px){#portal-feedback-root .pf-shell{padding:12px}#portal-feedback-root .pf-metrics{gap:6px}#portal-feedback-root .pf-metrics>div{padding:9px}#portal-feedback-root .pf-metrics strong{font-size:20px}#portal-feedback-root .pf-detail dl{grid-template-columns:1fr}#portal-feedback-root .pf-actions button{flex:1 1 100%}}
+
+/* Contrast regression fix: override portal-wide text fill rules inside dark header. */
+#portal-feedback-root .pf-header{
+  background:#102f38!important;
+  color:#f5fbf8!important;
+  -webkit-text-fill-color:#f5fbf8!important;
+  padding:18px 20px;
+  border-radius:10px;
+}
+#portal-feedback-root .pf-header h1,
+#portal-feedback-root .pf-header h1 *{
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+#portal-feedback-root .pf-header p{
+  color:#e2f3ec!important;
+  -webkit-text-fill-color:#e2f3ec!important;
+  opacity:1!important;
+}
+#portal-feedback-root .pf-header .pf-kicker{
+  color:#b7e7d3!important;
+  -webkit-text-fill-color:#b7e7d3!important;
+  opacity:1!important;
+}
+#portal-feedback-root .pf-header .pf-secondary{
+  color:#15563d!important;
+  -webkit-text-fill-color:#15563d!important;
+  background:#fff!important;
+  flex-shrink:0;
+}
+@media(max-width:420px){
+  #portal-feedback-root .pf-header{padding:14px;}
+}
