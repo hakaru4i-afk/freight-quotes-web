@@ -72,7 +72,7 @@ async function fixture(t){
  }
  return {page,posted,errors,order};
 }
-const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] label").filter({hasText:label}).locator("input,textarea,select").first();
+const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] .field").filter({hasText:label}).locator("input,textarea,select").first();
 test("T1-01 isolated browser: empty order and deadline cannot publish",async(t)=>{
  const {page,order,errors}=await fixture(t);
  const button=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
