@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "61e74835f0da5df76bd3e5d53ee6dcbe8487f176",
+  "servedAppBlobSha": "c7b74a9bb78299210ce318f59726b34240b0c5ac",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -350,5 +350,17 @@
     "postAwardDocumentStatusFix": true,
     "postAwardDocumentStatusCommit": "a2f9f76eab51a5fa937a48543c9d74659df4fdc8",
     "currentScope": "Preserve existing fill/save/send/approve transport application; fix document status in transport application list. Full post-award refactor remains isolated and not released."
+  },
+  "ownerRequiredValidationFix": {
+    "issue": "T1-01",
+    "date": "2026-11-07",
+    "frontendBlob": "c7b74a9bb78299210ce318f59726b34240b0c5ac",
+    "uiStatus": "STAGING_SOURCE_UPDATED; LIVE_SERVE_AND_E2E_PENDING",
+    "sharedStagingApiVersion": 75,
+    "sharedStagingApiPatched": false,
+    "isolatedQaApiVersion": 12,
+    "isolatedQaApiPatched": true,
+    "sourceBranch": "qa/task12-release-candidate-20261107",
+    "productionChanged": false
   }
 }
