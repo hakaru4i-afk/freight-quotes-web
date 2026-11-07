@@ -176,10 +176,57 @@ jobs:
             echo "::error::AUTH_QA_BLOCKED: missing safe QA credentials/parity or real login failure; no production access."
             exit 1
           fi
+  real-business-journey:
+    name: "Real QA browser: Owner creates, Carriers bid, Owner selects, Carrier executes"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check browser journey syntax before connecting to the test system
+        run: node --check tests/task12-live-journey.e2e.mjs
+      - name: Install isolated Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run real browser journey against isolated QA API only
+        id: journey
+        continue-on-error: true
+        env:
+          QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
+          QA_OWNER_PASSWORD: ${{ secrets.QA_OWNER_PASSWORD }}
+          QA_CARRIER_A_LOGIN: ${{ secrets.QA_CARRIER_A_LOGIN }}
+          QA_CARRIER_A_PASSWORD: ${{ secrets.QA_CARRIER_A_PASSWORD }}
+          QA_CARRIER_B_LOGIN: ${{ secrets.QA_CARRIER_B_LOGIN }}
+          QA_CARRIER_B_PASSWORD: ${{ secrets.QA_CARRIER_B_PASSWORD }}
+        run: |
+          mkdir -p reports
+          node tests/task12-live-journey.e2e.mjs
+      - name: Upload private full browser journey evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task12-isolated-real-browser-journey
+          path: reports/task12-private-real-business-journey.json
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Fail closed if real journey was not completed
+        if: always()
+        env:
+          JOURNEY_OUTCOME: ${{ steps.journey.outcome }}
+        run: |
+          if [ "$JOURNEY_OUTCOME" != success ]; then
+            echo "::error::REAL_QA_JOURNEY_BLOCKED: inspect restricted evidence artifact; no production access"
+            exit 1
+          fi
   production-release-gate:
     name: "Release decision: 37 authenticated E2E + security + restore (fail closed)"
     if: always()
-    needs: [all-robots, authenticated-qa-preflight]
+    needs: [all-robots, authenticated-qa-preflight, real-business-journey]
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     permissions:
