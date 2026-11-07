@@ -1,0 +1,61 @@
+/* Staging-only: readable official carrier transport document, 2026-11-07. */
+.carrier-portal .compact-transport-document,
+[data-cabinet-role] .compact-transport-document {
+  color: #192e25 !important;
+  background: #fff !important;
+  color-scheme: light;
+}
+.carrier-portal .compact-transport-document :is(h2,h3,h4,p,dt,dd,label,span,small),
+[data-cabinet-role] .compact-transport-document :is(h2,h3,h4,p,dt,dd,label,span,small) {
+  color: #243d32 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: currentColor;
+}
+.carrier-portal .compact-transport-document :is(details,details[open],.transport-group),
+[data-cabinet-role] .compact-transport-document :is(details,details[open],.transport-group) {
+  background: #fff !important;
+  color: #243d32 !important;
+}
+.carrier-portal .compact-transport-document details > summary,
+[data-cabinet-role] .compact-transport-document details > summary {
+  color: #174b38 !important;
+  opacity: 1 !important;
+  background: #edf5ee !important;
+  border-radius: 4px;
+  padding: 9px 12px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1.45;
+}
+.carrier-portal .compact-transport-document :is(input,select,textarea),
+[data-cabinet-role] .compact-transport-document :is(input,select,textarea) {
+  background: #fff !important;
+  color: #182f25 !important;
+  -webkit-text-fill-color: #182f25 !important;
+  border: 1px solid #809d8d !important;
+  opacity: 1 !important;
+}
+.carrier-portal .compact-transport-document :is(input,textarea)::placeholder,
+[data-cabinet-role] .compact-transport-document :is(input,textarea)::placeholder {
+  color: #52685c !important;
+  opacity: 1 !important;
+}
+.carrier-portal .compact-transport-document .field small,
+[data-cabinet-role] .compact-transport-document .field small {
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+  color: #41594d !important;
+}
+.carrier-portal .compact-transport-document button:disabled,
+[data-cabinet-role] .compact-transport-document button:disabled {
+  opacity: 1 !important;
+  color: #35483e !important;
+  background: #e0e6e1 !important;
+  border: 1px solid #9faea3 !important;
+  cursor: not-allowed;
+}
+.carrier-portal .compact-transport-document .transport-actions button:not(:disabled),
+[data-cabinet-role] .compact-transport-document .transport-actions button:not(:disabled) {
+  color: #fff !important;
+  background: #176448 !important;
+}
