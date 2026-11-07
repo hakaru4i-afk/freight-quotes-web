@@ -55,11 +55,20 @@ async function fixture(t){
    throw Error("Owner form absent. URL="+page.url()+" BODY="+snapshot+" JSERRORS="+JSON.stringify(errors.slice(0,5))+" REQFAIL="+JSON.stringify(failedRequests.slice(0,5))+" ORIGINAL="+e.message.slice(0,220));
  }
  if(!await order.isVisible()){
-  const nav=page.locator('a[href="#create-request"],button[data-section="create-request"]').first();
-  if(await nav.count())await nav.click();
-  else await page.evaluate(()=>window.dispatchEvent(new HashChangeEvent("hashchange")));
+  const nav=page.locator('.cabinet-sidebar nav a[href="#create-request"]').first();
+  if(await nav.count())await nav.evaluate(el=>el.click());
+  else await page.evaluate(()=>{location.hash="#create-request";window.dispatchEvent(new HashChangeEvent("hashchange"))});
  }
- await order.waitFor({state:"visible",timeout:20000});
+ try{await order.waitFor({state:"visible",timeout:4500})}catch(e){
+   const state=await page.evaluate(()=>({
+     hash:location.hash,
+     nav:[...document.querySelectorAll('.cabinet-sidebar nav a')].map(x=>({href:x.getAttribute('href'),current:x.getAttribute('aria-current')})).filter(x=>x.href==="#create-request"),
+     panels:[...document.querySelectorAll('.cabinet-panel[data-section="create-request"]')].map(x=>({hidden:x.hidden,display:getComputedStyle(x).display,outer:x.outerHTML.slice(0,280)})),
+     body:(document.body?.innerText||"").slice(0,550)
+   }));
+   await page.screenshot({path:"reports/t1-01-hidden-form.png",fullPage:true}).catch(()=>{});
+   throw Error("Owner form hidden after sidebar click. STATE="+JSON.stringify(state)+" ERRORS="+JSON.stringify(errors.slice(0,5))+" ORIGINAL="+e.message.slice(0,150));
+ }
  return {page,posted,errors,order};
 }
 const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] label").filter({hasText:label}).locator("input,textarea,select").first();
