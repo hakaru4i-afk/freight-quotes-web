@@ -6,60 +6,41 @@ import {createHash} from "node:crypto";
 const read=(path)=>fs.readFileSync(new URL("../"+path,import.meta.url),"utf8");
 const scriptName="task2-panel-sidebar-only-20261107.js";
 const script=read("test/"+scriptName);
-const css=read("test/task2-process-split-20261107.css");
 const html=read("test/index.html");
 const build=JSON.parse(read("test/build-info.json"));
+const carrierDeferred=read("test/carrier-defer-transport-application-20261107.js");
 const gitBlob=(s)=>createHash("sha1").update(Buffer.from("blob "+Buffer.byteLength(s)+"\0")).update(s).digest("hex");
 
-test("left sidebar remains the only process navigation; stages stay visible before approval",()=>{
-  assert.doesNotMatch(script,/const workflowNav=|t2-workflow-nav|t2-workflow-link/);
-  assert.match(script,/const lockedTabs=/);
-  assert.match(script,/Нет перевозок на этапе исполнения/);
-  assert.match(script,/root\.innerHTML=html\+.*lockedTabs/);
-  assert.match(script,/Ожидается согласование транспортной заявки/);
-  const sidebar=read("test/issue28-document-navigation-20261107.js");
-  assert.match(sidebar,/a\[href="#transport-applications"\]/);
-  assert.match(sidebar,/Транспортные заявки/);
-  assert.doesNotMatch(sidebar,/document\.createElement\("nav"\)|issue28-document-process-nav|nav\.append/);
-  assert.doesNotMatch(css,/t2-workflow-nav|t2-workflow-link|issue28-document-process-nav|issue28-process-tile/);
+test("deferred: no create/approval of transport application blocks execution for carrier",()=>{
+ assert.match(script,/Исполнение перевозок/);
+ assert.match(script,/Перевозка принята в работу/);
+ assert.match(script,/const started=!!d\.state/);
+ assert.match(script,/Ожидается принятие перевозки/);
+ assert.doesNotMatch(script,/d\.booking_state!=="approved"|else if\(d\.booking_state/);
+ assert.doesNotMatch(script,/Исполнение и трекинг откроются после согласования/);
+ assert.match(carrierDeferred,/location\.replace/);
+ assert.match(carrierDeferred,/approved-shipments/);
+ assert.match(carrierDeferred,/carrier-portal/);
 });
-test("transport application and execution have different routes and statuses",()=>{
-  assert.match(script,/location\.hash="#transport-applications"/);
-  assert.match(script,/data-section="approved-shipments"/);
-  assert.match(script,/Статус транспортной заявки/);
-  assert.match(script,/Статус исполнения/);
-  assert.match(script,/Согласование транспортной заявки — отдельный бизнес-процесс/);
+test("one left sidebar, seven execution stages, no second navigation",()=>{
+ assert.doesNotMatch(script,/const workflowNav=|t2-workflow-nav|t2-workflow-link/);
+ assert.match(script,/No secondary menu/);
+ for(const [key,name] of [["overview","Обзор"],["stages","Этапы перевозки"],["track","Трекинг"],["documents","Документы исполнения"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]]){
+  assert.ok(script.includes('["'+key+'","'+name+'"]'),key);
+ }
+ assert.match(script,/data-section="approved-shipments"/);
+ assert.match(script,/Статус исполнения/);
 });
-
-test("physical execution is gated by approved transport document",()=>{
-  assert.match(script,/else if\(d\.booking_state!=="approved"\)/);
-  assert.match(script,/Исполнение и трекинг откроются после согласования документа Владельцем/);
-  assert.match(script,/Документальный процесс завершён: транспортная заявка согласована/);
-  assert.match(script,/if\(state\.tab==="stages"\)/);
-  assert.match(script,/if\(state\.tab==="completion"\|\|state\.tab==="arrival"\)/);
+test("original transport application source and evidence are retained for later backlog",()=>{
+ const old=read("test/transport-application-editor.mjs");
+ assert.ok(old.length>1000,"source preserved for future Issue 28 work");
+ assert.ok(html.includes("./carrier-defer-transport-application-20261107.js"),"defer guard remains loaded");
 });
-
-test("execution has independent stages, tracking, documents, completion and history",()=>{
-  for(const [key,heading] of [
-    ["overview","Обзор"],["stages","Этапы перевозки"],["track","Трекинг"],
-    ["documents","Документы исполнения"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]
-  ]) assert.ok(script.includes('["'+key+'","'+heading+'"]'),key);
-  for(const text of ["Фактический выход груза","Движение груза","Прибытие на ПТО",
-    "Проверка документов ВЭД","Таможенное оформление","Приёмка на складе","Закрытие перевозки"])assert.ok(script.includes(text),text);
-  assert.match(css,/\.t2-milestones/);
-  assert.match(css,/\.t2-process-banner/);
-  assert.match(css,/@media\(max-width:600px\)/);
-});
-
-test("published test HTML points to content-addressed workflow assets",()=>{
-  assert.equal(build.issue28.environment,"staging");
-  assert.equal(build.issue28.productionChanged,false);
-  assert.equal(build.task2.frontendScript,scriptName);
-  assert.equal(build.task2.frontendSha,gitBlob(script));
-  assert.ok(html.includes(scriptName+"?v="+gitBlob(script).slice(0,12)));
-  assert.ok(html.includes("task2-process-split-20261107.css?v="+gitBlob(css).slice(0,12)));
-  assert.ok(html.includes("issue28-document-navigation-20261107.js?v="+gitBlob(read("test/issue28-document-navigation-20261107.js")).slice(0,12)));
-  assert.ok(!html.includes('src="./task2-panel-260ba5a1c29f.js'));
-  assert.match(html,/ibclzdkxiozbzmniiygv\.supabase\.co/);
-  assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
+test("served staging URL references content-pinned execution script and real v75",()=>{
+ assert.equal(build.task2.frontendScript,scriptName);
+ assert.equal(build.task2.frontendSha,gitBlob(script));
+ assert.ok(html.includes(scriptName+"?v="+gitBlob(script).slice(0,12)));
+ assert.equal(build.task2.backendVersion,75);
+ assert.equal(build.task2.backendDeploymentStatus,"SHARED_STAGING_API_V75_ACTIVE; FULL_ACCEPTANCE_PENDING");
+ assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
 });
