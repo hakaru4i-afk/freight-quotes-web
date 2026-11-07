@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "generatedAt": null,
+  "environment": "isolated-ui-and-public-readonly-staging",
+  "fullAuthorizedE2e": false,
+  "warning": "Первый запуск роботов ещё не завершился.",
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml",
+  "commit": null,
+  "checks": {
+    "PARTIAL": 0,
+    "BLOCKED": 37,
+    "FAIL": 0,
+    "PASS_E2E": 0
+  },
+  "scenarios": []
+}
