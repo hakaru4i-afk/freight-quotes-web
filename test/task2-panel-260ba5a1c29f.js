@@ -72,12 +72,13 @@
      root.innerHTML=html+'<div class="t2-empty">Пока нет согласованной перевозки для этого кабинета. После выбора Владельцем одного победителя заявка появится здесь.</div>';
      return;
    }
+   const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":i.booking_state==="approved"?"Исполнение":i.booking_state==="pending"?"Документ на согласовании":i.booking_state==="rejected"?"Документ на доработке":"Подготовка документа";
    html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+state.items.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
-    esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+(i.process_status||"ожидает"))+'</option>').join("")+'</select></label></div>';
+    esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+workflowLabel(i))+'</option>').join("")+'</select></label></div>';
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
-     readonly("Выбранный перевозчик",o.carrier_login)+readonly("Статус",x.status||"Ожидает принятия")+'</div>';
+     readonly("Выбранный перевозчик",o.carrier_login)+readonly("Этап",x.status==="completed"?"Завершена":!started?"Ожидает принятия":d.booking_state==="approved"?"Исполнение":d.booking_state==="pending"?"Документ на согласовании":d.booking_state==="rejected"?"Документ на доработке":"Подготовка документа")+'</div>';
    if(!started){
      html+='<div class="t2-empty"><h3>Шаг 1 · Принятие заявки</h3><p>После выбора победителя перевозчик принимает работу в разделе «Мои заявки». До принятия перевозка не передаётся в исполнение.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else if(d.booking_state!=="approved"){
