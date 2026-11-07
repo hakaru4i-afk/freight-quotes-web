@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": null,
+  "environment": "staging",
+  "status": "RELEASE_BLOCKED",
+  "canDeployProduction": false,
+  "note": "36 частичных проверок не доказывают 37 полных E2E. Запуск release gate публикует фактическое решение.",
+  "frontendCandidateSha": null,
+  "backendCandidateSha": null,
+  "robotPartialChecks": 36,
+  "robotFailures": 1,
+  "authenticatedE2ePassed": 0,
+  "authenticatedE2eRequired": 37,
+  "blockers": [
+    {
+      "id": "E2E_37_37",
+      "reason": "Полные авторизованные сценарии в изолированной QA-базе ещё не запущены"
+    },
+    {
+      "id": "T1_01_REQUIRED_FIELDS",
+      "reason": "Обязательные поля не проверяются сервером в активном staging API"
+    },
+    {
+      "id": "SECURITY_ROLES_AND_IDOR",
+      "reason": "Нет полной отрицательной проверки прав, чужих файлов, API и сессий"
+    },
+    {
+      "id": "FILES_STORAGE_SHA",
+      "reason": "Загрузка, байтовая целостность и скачивание Storage не подтверждены"
+    },
+    {
+      "id": "ISOLATED_RESTORE",
+      "reason": "Откат и восстановление БД/Storage не подтверждены"
+    },
+    {
+      "id": "PRODUCTION_BACKUP_AND_RESTORE",
+      "reason": "Нужно доказательство реального зашифрованного production backup и отдельного восстановления"
+    }
+  ],
+  "checks": [],
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml"
+}
