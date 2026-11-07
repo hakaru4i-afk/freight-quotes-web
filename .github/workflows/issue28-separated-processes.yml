@@ -4,11 +4,13 @@ on:
     branches: [main]
     paths:
       - 'test/index.html'
+      - 'test/app.js'
       - 'test/task2-panel-sidebar-only-20261107.js'
       - 'test/issue28-document-navigation-20261107.js'
       - 'test/task2-process-split-20261107.css'
       - 'test/build-info.json'
       - 'tests/issue28-workflow-separation.test.mjs'
+      - 'tests/issue28-document-only.test.mjs'
       - '.github/workflows/issue28-separated-processes.yml'
   workflow_dispatch:
 permissions:
@@ -21,7 +23,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Check staging execution script syntax
-        run: node --check test/task2-panel-sidebar-only-20261107.js
+      - name: Check staging app and execution syntax
+        run: |
+          node --check test/app.js
+          node --check test/task2-panel-sidebar-only-20261107.js
       - name: Verify process boundaries and cache-safe assets
-        run: node --test tests/issue28-workflow-separation.test.mjs
+        run: node --test tests/issue28-workflow-separation.test.mjs tests/issue28-document-only.test.mjs
