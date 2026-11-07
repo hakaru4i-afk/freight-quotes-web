@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": null,
+  "generatedAt": "2026-11-07T14:48:07.641Z",
   "environment": "staging",
   "status": "RELEASE_BLOCKED",
   "canDeployProduction": false,
-  "note": "36 частичных проверок не доказывают 37 полных E2E. Запуск release gate публикует фактическое решение.",
-  "frontendCandidateSha": null,
+  "note": "Данный gate никогда не разворачивает production автоматически. Даже после READY нужно отдельное явное разрешение Владельца.",
+  "frontendCandidateSha": "2d32def363eea0b92645c62ed7e3a7892a3e48ca",
   "backendCandidateSha": null,
   "robotPartialChecks": 36,
   "robotFailures": 1,
@@ -14,29 +14,106 @@
   "blockers": [
     {
       "id": "E2E_37_37",
-      "reason": "Полные авторизованные сценарии в изолированной QA-базе ещё не запущены"
+      "reason": "Требуются 37 независимых авторизованных E2E-сценариев с проверенным ответом API и доказательством. Отсутствуют: T1-01, T1-02, T1-03, T1-04, T1-05, T1-06, T1-07, T1-08, T1-09, T1-10, T1-11, T2-01, T2-02, T2-03, T2-04, T2-05, T2-06, T2-07, T2-08, T2-09, T2-10, T2-11, T2-12, T2-13, T2-14, T2-15, T2-16, T2-17, T2-18, T2-19, T2-20, T2-21, T2-22, T2-23, T2-24, T2-25, T2-26"
     },
     {
-      "id": "T1_01_REQUIRED_FIELDS",
-      "reason": "Обязательные поля не проверяются сервером в активном staging API"
+      "id": "E2E_RUN_PROVENANCE",
+      "reason": "Доказательства должны относиться именно к этой версии frontend/API и текущему автоматическому запуску."
     },
     {
       "id": "SECURITY_ROLES_AND_IDOR",
-      "reason": "Нет полной отрицательной проверки прав, чужих файлов, API и сессий"
+      "reason": "Независимые роли Owner/CarrierA/B/ВЭД/Поставщик; запреты доступа к чужой заявке, файлам, данным и операциям подтверждены."
     },
     {
       "id": "FILES_STORAGE_SHA",
-      "reason": "Загрузка, байтовая целостность и скачивание Storage не подтверждены"
+      "reason": "Тестовые файлы загружены и скачаны байт-в-байт через авторизованный Storage, чужому перевозчику отказано."
+    },
+    {
+      "id": "VISUAL_DESKTOP_MOBILE",
+      "reason": "Проверка читаемости, контрастности, невидимых кнопок, перекрытий и 390×844/desktop с артефактами."
+    },
+    {
+      "id": "VERSION_AND_DEPLOYED_PARITY",
+      "reason": "Фактически отданный Pages frontend и staging API должны точно соответствовать протестированной паре."
     },
     {
       "id": "ISOLATED_RESTORE",
-      "reason": "Откат и восстановление БД/Storage не подтверждены"
+      "reason": "Восстановление БД/Storage в независимой QA-среде, изоляция от общей staging и контроль отката."
     },
     {
       "id": "PRODUCTION_BACKUP_AND_RESTORE",
-      "reason": "Нужно доказательство реального зашифрованного production backup и отдельного восстановления"
+      "reason": "Реальный зашифрованный бэкап production с SHA-256, обратным чтением и отдельным восстановлением; без него выпуск запрещён."
+    },
+    {
+      "id": "T1_01_REQUIRED_FIELDS",
+      "reason": "Открытый дефект T1-01: кнопка и сервер должны запрещать публикацию с пустыми обязательными полями."
+    },
+    {
+      "id": "NO_CRITICAL_FAILURES",
+      "reason": "До выпуска должно быть ноль FAIL и открытых критичных замечаний; зелёный smoke не является приёмкой."
     }
   ],
-  "checks": [],
-  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml"
+  "checks": [
+    {
+      "id": "E2E_37_37",
+      "status": "BLOCKED",
+      "note": "Требуются 37 независимых авторизованных E2E-сценариев с проверенным ответом API и доказательством. Отсутствуют: T1-01, T1-02, T1-03, T1-04, T1-05, T1-06, T1-07, T1-08, T1-09, T1-10, T1-11, T2-01, T2-02, T2-03, T2-04, T2-05, T2-06, T2-07, T2-08, T2-09, T2-10, T2-11, T2-12, T2-13, T2-14, T2-15, T2-16, T2-17, T2-18, T2-19, T2-20, T2-21, T2-22, T2-23, T2-24, T2-25, T2-26",
+      "evidenceId": null
+    },
+    {
+      "id": "E2E_RUN_PROVENANCE",
+      "status": "BLOCKED",
+      "note": "Доказательства должны относиться именно к этой версии frontend/API и текущему автоматическому запуску.",
+      "evidenceId": null
+    },
+    {
+      "id": "SECURITY_ROLES_AND_IDOR",
+      "status": "BLOCKED",
+      "note": "Независимые роли Owner/CarrierA/B/ВЭД/Поставщик; запреты доступа к чужой заявке, файлам, данным и операциям подтверждены.",
+      "evidenceId": null
+    },
+    {
+      "id": "FILES_STORAGE_SHA",
+      "status": "BLOCKED",
+      "note": "Тестовые файлы загружены и скачаны байт-в-байт через авторизованный Storage, чужому перевозчику отказано.",
+      "evidenceId": null
+    },
+    {
+      "id": "VISUAL_DESKTOP_MOBILE",
+      "status": "BLOCKED",
+      "note": "Проверка читаемости, контрастности, невидимых кнопок, перекрытий и 390×844/desktop с артефактами.",
+      "evidenceId": null
+    },
+    {
+      "id": "VERSION_AND_DEPLOYED_PARITY",
+      "status": "BLOCKED",
+      "note": "Фактически отданный Pages frontend и staging API должны точно соответствовать протестированной паре.",
+      "evidenceId": null
+    },
+    {
+      "id": "ISOLATED_RESTORE",
+      "status": "BLOCKED",
+      "note": "Восстановление БД/Storage в независимой QA-среде, изоляция от общей staging и контроль отката.",
+      "evidenceId": null
+    },
+    {
+      "id": "PRODUCTION_BACKUP_AND_RESTORE",
+      "status": "BLOCKED",
+      "note": "Реальный зашифрованный бэкап production с SHA-256, обратным чтением и отдельным восстановлением; без него выпуск запрещён.",
+      "evidenceId": null
+    },
+    {
+      "id": "T1_01_REQUIRED_FIELDS",
+      "status": "BLOCKED",
+      "note": "Открытый дефект T1-01: кнопка и сервер должны запрещать публикацию с пустыми обязательными полями.",
+      "evidenceId": null
+    },
+    {
+      "id": "NO_CRITICAL_FAILURES",
+      "status": "BLOCKED",
+      "note": "До выпуска должно быть ноль FAIL и открытых критичных замечаний; зелёный smoke не является приёмкой.",
+      "evidenceId": null
+    }
+  ],
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42383159227"
 }
