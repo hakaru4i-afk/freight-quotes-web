@@ -11,13 +11,20 @@ on:
       - 'test/build-info.json'
       - 'tests/issue28-workflow-separation.test.mjs'
       - 'tests/issue28-document-only.test.mjs'
+      - 'tests/issue28-served-staging.test.mjs'
       - '.github/workflows/issue28-separated-processes.yml'
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   workflow-separation:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,3 +36,5 @@ jobs:
           node --check test/task2-panel-sidebar-only-20261107.js
       - name: Verify process boundaries and cache-safe assets
         run: node --test tests/issue28-workflow-separation.test.mjs tests/issue28-document-only.test.mjs
+      - name: Verify deployed GitHub Pages serves latest staging build
+        run: node --test tests/issue28-served-staging.test.mjs
