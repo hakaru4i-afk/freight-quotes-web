@@ -31,7 +31,7 @@ ul{list-style:none;padding:0;margin:0}.case{display:grid;grid-template-columns:a
 .case .id{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:#7ad4df;min-width:46px;padding-top:3px}
 .case b{display:block;font-size:13.5px;font-weight:600;line-height:1.45}.case small{color:#bdcdd9;font-size:11px}.status{font-size:11px;margin-top:5px;display:inline-block;border-radius:5px;padding:4px 7px;background:#233c52;color:#d3e4ef}
 .case[data-status=PASS] .status{background:#123e35;color:#9be6c8}.case[data-status=FAIL] .status{background:#512a2a;color:#ffc4bc}
-.case[data-status=BLOCKED] .status{background:#493718;color:#ffdaa1}
+.case[data-status=BLOCKED] .status{background:#493718;color:#ffdaa1}.case .qa-substatus{display:inline-block;margin:6px 0 5px;background:#532e2d;color:#ffc4bc;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:700}.qa-evidence{display:block;margin-top:8px;font-size:12px}
 .live{margin-top:19px}.live h2{font-size:18px;margin:0 0 10px}.live p{color:#aac3d4;line-height:1.5}.live-jobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 20px}.live-job{background:#0e283a;border:1px solid #365569;border-radius:12px;padding:14px}.live-job strong{display:block;font-size:13px;line-height:1.5;margin-bottom:8px}.live-job small{display:block;color:#a9c4d8;line-height:1.45}.live-job span{font-size:12px;display:block;font-weight:700;margin-top:10px}.live-job[data-result=success] span{color:#80e5ba}.live-job[data-result=failure] span{color:#ffc0ae}.live-job[data-result=in_progress] span{color:#f4d196}button.action{background:transparent;cursor:pointer;font:inherit;font-weight:700}button.action:hover{background:#23465a}
 .actions{display:flex;gap:10px;flex-wrap:wrap}.action{display:inline-flex;align-items:center;border:1px solid #5287a0;text-decoration:none;border-radius:9px;padding:11px 15px;color:#e3f3ff;font-size:13px;font-weight:700}.action.primary{background:#73d8c9;color:#072e38;border-color:#73d8c9}
 footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
@@ -81,7 +81,7 @@ function view(){
  document.getElementById("count1").textContent=formatCount(a);
  document.getElementById("count2").textContent=formatCount(b);
  document.getElementById("pending").textContent=String(items.filter(x=>x.status==="PENDING_E2E").length);
- document.getElementById("failed").textContent=String(items.filter(x=>["FAIL","BLOCKED"].includes(x.status)).length);
+ document.getElementById("failed").textContent=String(items.filter(x=>["FAIL","BLOCKED"].includes(x.status)||x.automation?.status==="FAIL").length);
  document.getElementById("updated").textContent="Статусы от "+(current.updatedAt||"не указано");
  document.getElementById("progress1").style.width=(100*a.cases.filter(x=>x.status==="PASS").length/a.cases.length)+"%";
  document.getElementById("progress2").style.width=(100*b.cases.filter(x=>x.status==="PASS").length/b.cases.length)+"%";
@@ -90,10 +90,20 @@ function view(){
   const root=document.getElementById(id);root.replaceChildren();
   for(const x of group.cases){
    if(filter==="todo"&&x.status==="PASS")continue;
-   if(filter==="errors"&&!["FAIL","BLOCKED"].includes(x.status))continue;
+   if(filter==="errors"&&!["FAIL","BLOCKED"].includes(x.status)&&x.automation?.status!=="FAIL")continue;
    const li=el("li",undefined,"case");li.dataset.status=x.status;
    li.append(el("span",x.id,"id"));
    const detail=el("div");detail.append(el("b",x.title));detail.append(el("span",labels[x.status]||x.status,"status"));
+   if(x.automation?.status==="FAIL"){
+    li.dataset.automated="FAIL";
+    detail.append(el("span","FAIL · браузерная проверка интерфейса (не полный E2E)","qa-substatus"));
+    detail.append(el("small",x.automation.summary||"Ошибка проверки интерфейса"));
+    const evidence=x.automation.evidenceUrl||"";
+    if(evidence.startsWith("https://github.com/hakaru4i-afk/freight-quotes-web/actions/")){
+      const a=el("a","Посмотреть автоматический тест и журнал","qa-evidence");
+      a.href=evidence;a.target="_blank";a.rel="noopener noreferrer";detail.append(a);
+    }
+  }
    if(x.evidence?.length) detail.append(el("small","Доказательства: "+x.evidence.length));
    li.append(detail);root.append(li);
   }
