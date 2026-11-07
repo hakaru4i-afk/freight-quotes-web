@@ -43,7 +43,7 @@ test("annulled/hidden requests do not offer late rate preparation in carrier vie
  assert.match(panel,/String\(i\.workflow_status\|\|""\)\.toLowerCase\(\)!=="annulled"/);
  assert.match(panel,/Подготовить позднюю ставку/);
  assert.doesNotMatch(panel,/>Взять в работу<\/a>/);
- assert.equal(info.task2.backendVersion,69);
+ assert.equal(info.task2.backendVersion,75);
  assert.equal(info.stagingAnnulledLateBidFix.order,"76");
  assert.equal(info.stagingAnnulledLateBidFix.productionChanged,false);
 });
