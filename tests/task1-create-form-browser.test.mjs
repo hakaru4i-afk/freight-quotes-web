@@ -41,7 +41,7 @@ async function fixture(t){
   if(path==="/api/data")return respond(200,{role:"owner",bids:[],answers:[],selections:[],reports:[],approvals:[],notifications:[],requests:[]});
   if(path==="/api/documents"&&req.method()==="GET")return respond(200,{files:[],access:"QA-ISOLATED-ONLY"});
   if(path==="/api/workload")return respond(200,{total:0,requests:0,shipments:0,categories:[],counts:{deliveries:0,incidents:0},items:[]});
-  if(path.startsWith("/api/requests")&&req.method()==="GET")return respond(404,{error:"QA: no existing request"});
+  if(path.startsWith("/api/requests")&&req.method()==="GET")return respond(200,{request:null});
   if(path==="/api/requests"&&req.method()==="POST"){
    const body=req.postDataJSON();posted.push(body);
    if(!body.order||!body.deadline)return respond(400,{error:"QA: missing order/deadline"});
