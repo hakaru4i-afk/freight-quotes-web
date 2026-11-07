@@ -26,7 +26,9 @@ async function fixture(t){
  const browser=await chromium.launch({headless:true});
  t.after(async()=>{await browser.close();await new Promise(ok=>srv.close(ok))});
  const page=await browser.newPage({viewport:{width:1366,height:900}});
- const posted=[],errors=[];
+ const posted=[],errors=[],failedRequests=[];
+ page.on("console",m=>{if(m.type()==="error")errors.push("console: "+m.text().slice(0,300))});
+ page.on("requestfailed",r=>failedRequests.push(r.url()+": "+r.failure()?.errorText));
  page.on("pageerror",e=>errors.push(e.message));
  page.on("dialog",d=>d.accept());
  await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/**",async(route)=>{
@@ -46,7 +48,11 @@ async function fixture(t){
  });
  await page.goto("http://127.0.0.1:"+srv.address().port+"/test/#create-request",{waitUntil:"domcontentloaded",timeout:30000});
  const order=page.locator('input[aria-label="Номер заказа *"]').first();
- await order.waitFor({state:"attached",timeout:20000});
+ try{await order.waitFor({state:"attached",timeout:9000})}catch(e){
+   await page.screenshot({path:"reports/t1-01-page-diagnostic.png",fullPage:true}).catch(()=>{});
+   const snapshot=(await page.locator("body").innerText().catch(()=>"(no body)")).slice(0,1500);
+   throw Error("Owner form absent. URL="+page.url()+" BODY="+snapshot+" JSERRORS="+JSON.stringify(errors.slice(0,5))+" REQFAIL="+JSON.stringify(failedRequests.slice(0,5))+" ORIGINAL="+e.message.slice(0,220));
+ }
  if(!await order.isVisible()){
   const nav=page.locator('a[href="#create-request"],button[data-section="create-request"]').first();
   if(await nav.count())await nav.click();
