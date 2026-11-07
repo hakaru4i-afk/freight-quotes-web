@@ -17,9 +17,9 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 69,
-    "frontendScript": "task2-panel-260ba5a1c29f.js",
-    "frontendSha": "d19e3c2f10ea543a0bf2c73a07b9a94014c3ab93",
+    "backendVersion": 75,
+    "frontendScript": "task2-panel-processes-20261107-3ccb1c05.js",
+    "frontendSha": "7ba20702dc94fee5fe465a1700c100466512995c",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
@@ -45,7 +45,7 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 69,
+    "lastObservedBackendVersion": 75,
     "backendDeploymentStatus": "SHARED_STAGING_API_V69_ACTIVE; FULL_ACCEPTANCE_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -98,7 +98,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
+    "backendActiveBundleSha256": "22583e8bb59904461f2bc6d2858f41752c5ebcf81ae090d8fa625b5dcaf962be",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -163,8 +163,8 @@
     "frontendCommit": "7881036c424564e282d45b92571e189b00ee97db",
     "frontendBlob": "cbc94a22d2ffbec27c69969ad4a3120d3ba79289",
     "endpoint": "/api/carrier",
-    "backendVersion": 69,
-    "backendSha256": "7480133bf215dc4c400769fcb9759a4766fd8b9f91a4d9417cd31bc764483461",
+    "backendVersion": 75,
+    "backendSha256": "22583e8bb59904461f2bc6d2858f41752c5ebcf81ae090d8fa625b5dcaf962be",
     "status": "DEPLOYED_STAGING_NEEDS_AUTH_E2E",
     "productionChanged": false
   },
@@ -292,5 +292,37 @@
       "legacyStoragePreserved": true,
       "fullAcceptance": "OPEN"
     }
+  },
+  "issue28": {
+    "issue": 28,
+    "version": "1.19.17",
+    "environment": "staging",
+    "documentProcess": {
+      "route": "#transport-applications",
+      "backendTable": "freight.shipment_bookings",
+      "approvalRequired": true
+    },
+    "executionProcess": {
+      "route": "#approved-shipments",
+      "backendTable": "freight.shipment_task2_state",
+      "tabs": [
+        "overview",
+        "stages",
+        "track",
+        "documents",
+        "completion",
+        "claims",
+        "history"
+      ]
+    },
+    "executionGate": "Backend rejects physical execution unless transport document is approved",
+    "codeSource": "test/task2-panel-260ba5a1c29f.js",
+    "servedAsset": "task2-panel-processes-20261107-3ccb1c05.js",
+    "servedAssetBlobSha": "7ba20702dc94fee5fe465a1700c100466512995c",
+    "stylesheet": "task2-process-split-20261107.css",
+    "cssBlobSha": "b48029eafe134e33ec8dcd19b907303581218bbf",
+    "serverVersion": 75,
+    "status": "FRONTEND_COMMITTED; AUTHORIZED_BROWSER_E2E_PENDING",
+    "productionChanged": false
   }
 }
