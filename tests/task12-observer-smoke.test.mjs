@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
+import {createHash} from "node:crypto";
 
 const base="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 async function get(path){
@@ -43,6 +44,10 @@ test("Task1+Task2: public QA observer has exactly 11 Task1 and 26 Task2 pending 
  const page=await get("qa-observer.html");
  assert.match(page.body,/Наблюдение за тестированием/);
  assert.match(page.body,/Полная приёмка пока не подтверждена/);
+ assert.match(page.body,/id="live-jobs"/);
+ assert.match(page.body,/Автоматическая проверка бизнес-процессов/);
+ assert.match(page.body,/issues\/29/);
+
 });
 test("Task1+Task2: deferred transport document is not silently removed or counted as E2E PASS",async()=>{
  const data=JSON.parse(await readFile("test/qa-observer.json","utf8"));
@@ -50,4 +55,20 @@ test("Task1+Task2: deferred transport document is not silently removed or counte
  assert.equal(data.releaseState,"FULL_ACCEPTANCE_PENDING");
  const evidence=[...data.task1.cases,...data.task2.cases].filter(x=>x.status==="PASS");
  for(const x of evidence)assert.ok(x.evidence.length>0,x.id+" PASS must have evidence");
+});
+
+test("Task1+Task2: GitHub Pages serves the latest observer HTML and matrix byte-for-byte",async()=>{
+  const names=["qa-observer.html","qa-observer.json"];
+  for(const name of names){
+    const local=await readFile("test/"+name,"utf8");
+    const expected=createHash("sha256").update(local).digest("hex");
+    let actual="";
+    for(let tries=0;tries<15;tries++){
+      const remote=await get(name);
+      actual=createHash("sha256").update(remote.body).digest("hex");
+      if(actual===expected)break;
+      if(tries<14)await new Promise(r=>setTimeout(r,12000));
+    }
+    assert.equal(actual,expected,"Published "+name+" does not match repository HEAD. Pages is still serving an older version.");
+  }
 });
