@@ -10,6 +10,7 @@ on:
       - 'test/qa-observer.html'
       - 'tests/task12-observer-smoke.test.mjs'
       - '.github/workflows/task12-observer.yml'
+      - 'tests/task1-create-form-browser.test.mjs'
 permissions:
   contents: read
 concurrency:
@@ -64,6 +65,31 @@ jobs:
           path: reports/
           if-no-files-found: ignore
           retention-days: 30
+  owner-form-browser:
+    name: "T1-01 / Owner create shipment / isolated browser validation"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run real Owner-form UI with isolated API doubles; report missing validation as FAIL
+        run: |
+          mkdir -p reports
+          node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/t1-01-browser.xml tests/task1-create-form-browser.test.mjs
+      - name: Save T1-01 evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: task1-t101-isolated-browser-evidence
+          path: reports/
+          retention-days: 30
+          if-no-files-found: ignore
   policy:
     name: "Scope safeguard"
     runs-on: ubuntu-24.04
