@@ -74,9 +74,23 @@ async function fixture(t){
 }
 const input=(page,label)=>{
  const root=page.locator(".cabinet-panel[data-section='create-request']");
- const scope=label==="№ задач Битрикс"?root:root.locator("fieldset.request-owner-fields");
- return scope.locator(".field").filter({hasText:new RegExp("^\\s*"+label)}).locator("input,textarea,select").first();
+ const selectors={
+  "Краткое описание":'input[placeholder^="Что перевозим"]',
+  "Контакт отправителя":'input[placeholder^="Имя, телефон"]',
+  "Пункт погрузки":'input[placeholder^="Страна, город, адрес склада"]',
+  "Вес брутто, кг":'input[placeholder^="Например, 1250"]',
+  "Конечная точка прибытия":'input[placeholder^="Страна, город, адрес доставки"]',
+  "Условия перевозки · Incoterms":'fieldset.request-owner-fields select',
+  "Дата готовности":'fieldset.request-owner-fields input[type=date]',
+  "Объём, м³":'input[placeholder^="Например, 8,4"]',
+  "Груз":'input[placeholder^="Наименование, упаковка"]',
+  "Ставки принимаются до":'fieldset.request-owner-fields input[type=datetime-local]'
+ };
+ const selector=selectors[label];
+ if(!selector)throw Error("T1-01 selector missing for "+label);
+ return root.locator(selector).first();
 };
+
 test("T1-01 isolated browser: empty order and deadline cannot publish",async(t)=>{
  const {page,order,errors}=await fixture(t);
  const button=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
