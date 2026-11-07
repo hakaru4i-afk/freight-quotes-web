@@ -4,13 +4,24 @@ import fs from "node:fs";
 import {createHash} from "node:crypto";
 
 const read=(path)=>fs.readFileSync(new URL("../"+path,import.meta.url),"utf8");
-const scriptName="task2-panel-processes-20261107-3ccb1c05.js";
+const scriptName="task2-panel-visible-20261107.js";
 const script=read("test/"+scriptName);
 const css=read("test/task2-process-split-20261107.css");
 const html=read("test/index.html");
 const build=JSON.parse(read("test/build-info.json"));
 const gitBlob=(s)=>createHash("sha1").update(Buffer.from("blob "+Buffer.byteLength(s)+"\0")).update(s).digest("hex");
 
+test("two process cards and stage labels remain visible before selection or document approval",()=>{
+  assert.match(script,/const workflowNav=/);
+  assert.match(script,/const lockedTabs=/);
+  assert.match(script,/Пока нет согласованной перевозки|Нет перевозок на этапе исполнения/);
+  assert.match(script,/root\.innerHTML=html\+.*lockedTabs/);
+  assert.match(script,/Ожидается согласование транспортной заявки/);
+  assert.match(script,/Перейти к транспортным заявкам/);
+  const documentNav=read("test/issue28-document-navigation-20261107.js");
+  assert.match(documentNav,/transport-applications/);
+  assert.match(documentNav,/approved-shipments/);
+});
 test("transport application and execution have different routes and statuses",()=>{
   assert.match(script,/location\.hash="#transport-applications"/);
   assert.match(script,/data-section="approved-shipments"/);
@@ -46,6 +57,7 @@ test("published test HTML points to content-addressed workflow assets",()=>{
   assert.equal(build.task2.frontendSha,gitBlob(script));
   assert.ok(html.includes(scriptName+"?v="+gitBlob(script).slice(0,12)));
   assert.ok(html.includes("task2-process-split-20261107.css?v="+gitBlob(css).slice(0,12)));
+  assert.ok(html.includes("issue28-document-navigation-20261107.js?v="+gitBlob(read("test/issue28-document-navigation-20261107.js")).slice(0,12)));
   assert.ok(!html.includes('src="./task2-panel-260ba5a1c29f.js'));
   assert.match(html,/ibclzdkxiozbzmniiygv\.supabase\.co/);
   assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
