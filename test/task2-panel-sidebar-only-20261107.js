@@ -70,7 +70,7 @@
    // No secondary menu: the cabinet's left navigation is the only navigation.
    let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
    if(!state.items.length){
-     root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>Раздел уже доступен. После выбора победителя и согласования транспортной заявки здесь появится исполнение. Для оформления документа откройте «Транспортные заявки».</p></div>'+lockedTabs;
+     root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>Раздел уже доступен. После выбора победителя и согласования транспортной заявки здесь появится исполнение. Для оформления документа откройте «Транспортные заявки».</p></div>';
      return;
    }
    const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":i.booking_state==="approved"?"Исполнение":i.booking_state==="pending"?"Документ на согласовании":i.booking_state==="rejected"?"Документ на доработке":"Подготовка документа";
@@ -86,7 +86,7 @@
      html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен принять работу в разделе «Мои заявки», затем подготовить транспортный документ. Физическое исполнение пока заблокировано.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else if(d.booking_state!=="approved"){
      const documentState=d.booking_state==="pending"?"Документ находится на согласовании у Владельца":d.booking_state==="rejected"?"Документ возвращён перевозчику на исправление":"Нужно подготовить и отправить транспортную заявку";
-     html+='<div class="t2-empty"><h3>Ожидается согласование транспортной заявки</h3><p>'+esc(documentState)+'. Исполнение и трекинг откроются после согласования документа Владельцем.</p><button type="button" class="t2-btn" data-t2-open-transport>Перейти к документу</button></div>'+lockedTabs;
+     html+='<div class="t2-empty"><h3>Ожидается согласование транспортной заявки</h3><p>'+esc(documentState)+'. Исполнение и трекинг откроются после согласования документа Владельцем.</p><button type="button" class="t2-btn" data-t2-open-transport>Перейти к документу</button></div>';
    }else{
      html+='<div class="t2-process-banner"><div><strong>Документальный процесс завершён: транспортная заявка согласована.</strong><span>Сейчас открыт отдельный процесс исполнения. Здесь фиксируются только фактические события и документы перевозки.</span></div><button type="button" class="t2-btn ghost" data-t2-open-transport>К транспортной заявке</button></div>';
      const savedTab=state.tab;
