@@ -67,15 +67,11 @@
    if(!root)return;
    const chosen=state.items.find(i=>i.order_code===state.selected),d=state.detail;
    const heading='<header class="t2-heading"><div><h2>Исполнение перевозок</h2><p>Этапы движения груза, трекинг, документы исполнения и завершение. Согласование транспортной заявки — отдельный бизнес-процесс.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
-   // Navigation and upcoming execution stages are visible even when there is no awarded or approved shipment.
-   const workflowNav='<div class="t2-workflow-nav" aria-label="Бизнес-процессы перевозки">'+
-     '<a class="t2-workflow-link" href="#transport-applications"><strong>1. Транспортные заявки</strong><span>Подготовка документа, согласование и исправления</span></a>'+
-     '<a class="t2-workflow-link is-current" href="#approved-shipments" aria-current="page"><strong>2. Исполнение перевозок</strong><span>Этапы, трекинг, документы, завершение</span></a></div>';
    const lockedTabs='<nav class="t2-tabs t2-tabs-locked" aria-label="Этапы исполнения пока недоступны">'+
      tabs.map(([,title])=>'<button type="button" disabled title="После согласования транспортной заявки">'+esc(title)+'</button>').join("")+'</nav>';
-   let html=heading+workflowNav+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
+   let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
    if(!state.items.length){
-     root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>Раздел уже доступен. После выбора победителя и согласования транспортной заявки здесь появится исполнение. Для оформления документа откройте «Транспортные заявки».</p><a class="t2-btn ghost" href="#transport-applications">Перейти к транспортным заявкам</a></div>'+lockedTabs;
+     root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>Раздел уже доступен. После выбора победителя и согласования транспортной заявки здесь появится исполнение. Для оформления документа откройте «Транспортные заявки».</p></div>'+lockedTabs;
      return;
    }
    const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":i.booking_state==="approved"?"Исполнение":i.booking_state==="pending"?"Документ на согласовании":i.booking_state==="rejected"?"Документ на доработке":"Подготовка документа";
