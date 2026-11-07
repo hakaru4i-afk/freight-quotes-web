@@ -13,7 +13,7 @@
  let records=[];
  const info={ready:false,error:"",counts:{},transit:0,other:0,docs:null,newOrders:null,arrival:null};
  function findNav(label){
-   const nodes=[...document.querySelectorAll(".cabinet-sidebar button,.carrier-sidebar button,.carrier-nav button,aside button,nav button")];
+   const nodes=[...document.querySelectorAll(".cabinet-sidebar nav a,.cabinet-sidebar button,.carrier-sidebar button,.carrier-nav button,aside button,nav button")];
    const equals=nodes.find(n=>n.textContent.trim().toLowerCase()===label.toLowerCase());
    return equals||nodes.find(n=>n.textContent.trim().toLowerCase().includes(label.toLowerCase()));
  }
@@ -29,7 +29,7 @@
    return (modes.find(m=>m.test.test(val))||null)?.key||"unknown";
  }
  function sourceCount(name){
-   const metrics=[...document.querySelectorAll(".carrier-metrics .metric")];
+   const metrics=[...document.querySelectorAll(".overview-metrics .overview-metric,.carrier-metrics .metric")];
    const el=metrics.find(x=>x.textContent.toLowerCase().includes(name.toLowerCase()));
    if(!el)return null;
    const match=(el.querySelector("strong")?.textContent||el.textContent).match(/\d+/);
@@ -111,18 +111,13 @@
  function setup(){
    const portal=document.querySelector(".carrier-portal");
    if(!portal)return;
-   const hero=portal.querySelector(".workspace-hero");
+   const hero=portal.querySelector('.cabinet-panel[data-section="overview"] .overview-welcome');
    if(!hero||!hero.getClientRects().length)return;
-   const main=hero.closest(".carrier-main")||hero.parentElement;
+   const main=hero.closest('.cabinet-panel[data-section="overview"]')||hero.parentElement;
    if(!main)return;
    hero.setAttribute("data-lw2-hero","");
-   const title=hero.querySelector("h1");
-   if(title&&!title.textContent.includes("Добрый день"))title.textContent="Добрый день!";
-   const headline=hero.querySelector(".eyebrow");
-   if(headline)headline.textContent="РАБОЧЕЕ ПРОСТРАНСТВО";
-   const lead=hero.querySelector(".intro");
-   if(lead)lead.textContent="Заявки, транспортные документы, перевозки и контроль сроков — в одном рабочем пространстве.";
-   const old=main.querySelector(".carrier-metrics");
+   // Preserve original React text nodes: the approved new copy is rendered via scoped CSS.
+   const old=main.querySelector(".overview-metrics")||main.querySelector(".carrier-metrics");
    if(old)old.setAttribute("data-lw2-old-metrics","");
    if(!document.getElementById("lw2-dashboard")){
      const box=document.createElement("section");box.id="lw2-dashboard";box.className="lw2-dashboard";box.setAttribute("aria-label","Рабочая сводка Logistics Workspace 2.0");hero.insertAdjacentElement("afterend",box);
@@ -131,6 +126,7 @@
        if(b.dataset.lw2Go)go(b.dataset.lw2Go);
        if(b.hasAttribute("data-lw2-refresh")){loaded=false;getData();}
      });
+     loaded=false;records=[];info.ready=false;info.error="";info.counts={};info.docs=null;info.transit=0;info.other=0;
      render();getData();
    }
  }
