@@ -124,6 +124,11 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Объём, м³").fill("12.5");
  await input(page,"Груз").fill("QA packaged cargo");
  await input(page,"Ставки принимаются до").fill("2027-06-15T12:00");
+ const publish=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
+ await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
+ assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
+ await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
+ assert.equal(await publish.isEnabled(),true,"Complete request must enable publication");
  await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
  await page.waitForFunction(()=>!!document.querySelector(".cabinet-panel[data-section='create-request'] .notice")?.textContent.includes("Опубликовано"),null,{timeout:12000}).catch(()=>{});
@@ -135,7 +140,8 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  assert.equal(p.logistics.incoterm,"EXW");
  assert.equal(p.logistics.cargo,"QA packaged cargo");
  assert.equal(p.logistics.volume,"12.5");
- assert.ok(typeof p.bitrixTask==="string","Bitrix field must be represented even when optional");
+ assert.equal(p.logistics.dangerous_goods,"yes");
+ assert.match(p.logistics.dangerous_details,/UN3481/);
  assert.equal(p.deadline,"2027-06-15T12:00");
  assert.deepEqual(errors,[],"JavaScript errors in Owner form");
 });
