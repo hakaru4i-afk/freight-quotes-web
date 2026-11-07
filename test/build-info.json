@@ -96,7 +96,7 @@
     "actRevisionGuard": true,
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
-    "backendBuild": "issue17-formal-export-20261106",
+    "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
     "backendActiveBundleSha256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
     "slPenaltyRetention": {
@@ -133,7 +133,8 @@
       "reason": "GitHub Pages served old bytes under stable path despite publishing new repository source",
       "validation": "published smoke and exact-source CI PENDING",
       "productionChanged": false
-    }
+    },
+    "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
   },
   "lateBidUiSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
@@ -241,7 +242,7 @@
   "lateBidUiScript": "late-bid-staging-3ff2c9ab03f5.js",
   "carrierDocument": {
     "issue": 17,
-    "build": "issue17-formal-export-20261106",
+    "build": "issue17-compact-document-20261106",
     "apiVersion": 68,
     "apiBundleSha256": "d44f803c2e54ceae9bd6f18bf89d286406ca1b42ddd1f770f4ccebacdab9d7fa",
     "backendSourceCommit": "bf185c969b9757ccc63b890276977e55b6ba00f3",
@@ -261,7 +262,7 @@
       "transport-application-editor-8c01c7cdb211.mjs"
     ],
     "formalExport": {
-      "stage": "STAGING_API_V68_DEPLOYED",
+      "stage": "STAGING_API_V68_ACTIVE",
       "version": "1.19.11",
       "removedInternalFields": [
         "template-layout-code",
@@ -280,7 +281,8 @@
       "ci": "PASS",
       "originalDocxVisualComparison": "OPEN",
       "approvedLegalTemplate": "OPEN",
-      "productionChanged": false
+      "productionChanged": false,
+      "apiHealthBuild": "issue17-compact-document-20261106"
     }
   }
 }
