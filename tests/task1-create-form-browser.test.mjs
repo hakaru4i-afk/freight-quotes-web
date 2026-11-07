@@ -99,7 +99,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  const {page,order,posted,errors}=await fixture(t);
  await order.fill("QA-T101-COMPLETE");
  await page.waitForTimeout(700); // Let request-detail lookup settle before updating controlled form fields.
- await input(page,"№ задач Битрикс").fill("5316, 5324, 5325");
+ await page.locator(".cabinet-panel[data-section='create-request'] .request-identifiers textarea").fill("5316, 5324, 5325");
  await input(page,"Краткое описание").fill("QA isolated form test");
  await input(page,"Контакт отправителя").fill("Test sender");
  await input(page,"Пункт погрузки").fill("Yiwu, China");
