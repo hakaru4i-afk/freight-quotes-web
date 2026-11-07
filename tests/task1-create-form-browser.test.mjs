@@ -72,7 +72,11 @@ async function fixture(t){
  }
  return {page,posted,errors,order};
 }
-const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] .field").filter({hasText:new RegExp("^\\s*"+label)}).locator("input,textarea,select").first();
+const input=(page,label)=>{
+ const root=page.locator(".cabinet-panel[data-section='create-request']");
+ const scope=label==="№ задач Битрикс"?root:root.locator("fieldset.request-owner-fields");
+ return scope.locator(".field").filter({hasText:new RegExp("^\\s*"+label)}).locator("input,textarea,select").first();
+};
 test("T1-01 isolated browser: empty order and deadline cannot publish",async(t)=>{
  const {page,order,errors}=await fixture(t);
  const button=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
@@ -94,6 +98,7 @@ test("T1-01 isolated browser: invalid mandatory shipment data must not be publis
 test("T1-01 isolated browser: complete shipment preserves data in publication request",async(t)=>{
  const {page,order,posted,errors}=await fixture(t);
  await order.fill("QA-T101-COMPLETE");
+ await page.waitForTimeout(700); // Let request-detail lookup settle before updating controlled form fields.
  await input(page,"№ задач Битрикс").fill("5316, 5324, 5325");
  await input(page,"Краткое описание").fill("QA isolated form test");
  await input(page,"Контакт отправителя").fill("Test sender");
