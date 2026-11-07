@@ -28,7 +28,7 @@ async function fixture(t,{role="carrier",mode="Авто",container=""}={}){
     const fields=payload.fields||{};
     if(fields.new_plan_date)detail.plans.push({planned_departure:fields.new_plan_date,reason:fields.new_plan_reason||""});
     if(fields.actual_departure)state.actual_departure=fields.actual_departure;
-    if(fields.pto_yes&&!state.pto_at){state.pto_at=fields.pto_date;detail.tasks.push({id:"pto-1",status:"open",task_type:"pto_review",description:"Check PТО",inherited_bitrix_tasks:shipment.bitrix_task})}
+    if(fields.pto_yes&&!state.pto_at){state.pto_at=fields.pto_date;/* current active process does not create VED tasks */}
     if(fields.customs_date)state.customs_at=fields.customs_date;
     if(fields.container_no)detail.containers=[{container_no:fields.container_no}];
     if(fields.location)detail.points.push({location_text:fields.location,observed_at:fields.location_date,comment:fields.location_comment||""});
@@ -85,7 +85,7 @@ test("T2-18 ROBOT: auto, rail, sea and air execution render without transport ap
   assert.deepEqual(errors,[],mode+" execution errors");
  }
 });
-test("T2-20 ROBOT: PТО creates one VED review task on event submission",async t=>{
+test("T2-20 ROBOT: PТО tracks arrival without dispatching tasks to VED",async t=>{
  const {page,posts,detail}=await fixture(t);
  const form=page.locator('form[data-t2-form="save"]');
  await form.locator('select[name="pto_yes"]').selectOption("yes");
@@ -93,7 +93,7 @@ test("T2-20 ROBOT: PТО creates one VED review task on event submission",async 
  await save(page);
  const event=posts.find(x=>x.action==="save");
  assert.equal(event.fields.pto_yes,true);
- assert.equal(detail.tasks.filter(x=>x.task_type==="pto_review").length,1);
+ assert.equal(detail.tasks.filter(x=>x.task_type==="pto_review").length,0,"Active process must not dispatch to VED");
  assert.ok(detail.state.pto_at);
 });
 test("T2-21 ROBOT: container is optional during tracking, can be added later",async t=>{
