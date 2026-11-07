@@ -112,7 +112,17 @@ test("T1-01 isolated browser: invalid mandatory shipment data must not be publis
 test("T1-01 isolated browser: complete shipment preserves data in publication request",async(t)=>{
  const {page,order,posted,errors}=await fixture(t);
  await order.fill("QA-T101-COMPLETE");
- await page.waitForTimeout(700); // Let request-detail lookup settle before updating controlled form fields.
+ await page.waitForTimeout(700); // Allow request lookup to settle without hiding the form.
+ const summaryField=input(page,"Краткое описание");
+ try {
+   await summaryField.waitFor({state:"visible",timeout:7000});
+ } catch(e) {
+   const state=await page.evaluate(()=>({hash:location.hash,body:(document.body?.innerText||"").slice(0,650),
+     panel:[...document.querySelectorAll('.cabinet-panel[data-section="create-request"]')].map(p=>({hidden:p.hidden,fieldset:p.querySelector("fieldset.request-owner-fields")?.outerHTML.slice(0,300)})),
+     requestFields:[...document.querySelectorAll("fieldset.request-owner-fields input")].map(x=>x.getAttribute("placeholder")).slice(0,12)}));
+   await page.screenshot({path:"reports/t1-01-positive-form-not-found.png",fullPage:true}).catch(()=>{});
+   throw Error("T1-01 OWNER_FORM_FIELDS_MISSING_AFTER_ORDER "+JSON.stringify(state).slice(0,1400));
+ }
  // Bitrix multi-task field is exercised separately in T1-05; keep this T1-01 scenario focused on required shipment data.
  await input(page,"Краткое описание").fill("QA isolated form test");
  await input(page,"Контакт отправителя").fill("Test sender");
