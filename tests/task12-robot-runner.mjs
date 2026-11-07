@@ -77,6 +77,7 @@ for(let index=0;index<allFiles.length;index++){
  console.log("[QA ROBOT]",index+1+"/"+allFiles.length,name);
  executed[name]=await runTest(name);
  console.log("[QA ROBOT]",name,executed[name].status,"duration",executed[name].durationMs+"ms");
+ if(executed[name].status!=="PASS")console.error("[QA ROBOT DETAILS]",name,executed[name].excerpt.slice(-3000));
 }
 const stamp=new Date().toISOString();
 const runId=process.env.GITHUB_RUN_ID||null;
