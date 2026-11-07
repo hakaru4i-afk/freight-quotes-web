@@ -80,5 +80,5 @@ await mkdir("reports",{recursive:true});
 await writeFile("reports/task12-release-readiness.json",JSON.stringify(summary,null,2)+"\n");
 console.log("RELEASE_GATE",summary.status,"checks="+validations.length,"blocked="+blockers.length,"fullE2E="+summary.authenticatedE2ePassed+"/"+ids.length);
 console.log("REPORT reports/task12-release-readiness.json");
-for(const b of blockers)console.log("BLOCKED",b.id,b.reason.slice(0,370));
+for(const b of blockers)console.log("BLOCKED",b.id,String(b.note||"").slice(0,370));
 if(blockers.length)process.exitCode=1;
