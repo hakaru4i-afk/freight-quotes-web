@@ -1,0 +1,34 @@
+name: Logistics Workspace 2.0 staging visual QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test/lw2-*'
+      - 'test/index.html'
+      - 'tests/lw2-dashboard-browser.test.mjs'
+      - '.github/workflows/lw2-dashboard-visual.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  visual-staging:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Validate actual carrier overview selectors, layout and links
+        run: node --test tests/lw2-dashboard-browser.test.mjs
+      - name: Upload rendered desktop/mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lw2-staging-browser-screenshots
+          path: |
+            lw2-desktop-qa.png
+            lw2-mobile-qa.png
+          if-no-files-found: ignore
