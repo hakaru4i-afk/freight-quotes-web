@@ -72,7 +72,7 @@ async function fixture(t){
  }
  return {page,posted,errors,order};
 }
-const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] .field").filter({hasText:label}).locator("input,textarea,select").first();
+const input=(page,label)=>page.locator(".cabinet-panel[data-section='create-request'] .field").filter({hasText:new RegExp("^\\s*"+label)}).locator("input,textarea,select").first();
 test("T1-01 isolated browser: empty order and deadline cannot publish",async(t)=>{
  const {page,order,errors}=await fixture(t);
  const button=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
@@ -105,6 +105,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Объём, м³").fill("12.5");
  await input(page,"Груз").fill("QA packaged cargo");
  await input(page,"Ставки принимаются до").fill("2027-06-15T12:00");
+ await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
  await page.waitForFunction(()=>!!document.querySelector(".cabinet-panel[data-section='create-request'] .notice")?.textContent.includes("Опубликовано"),null,{timeout:12000}).catch(()=>{});
  const p=posted.find(x=>x.order==="QA-T101-COMPLETE");
