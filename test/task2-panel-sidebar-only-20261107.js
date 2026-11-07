@@ -67,8 +67,7 @@
    if(!root)return;
    const chosen=state.items.find(i=>i.order_code===state.selected),d=state.detail;
    const heading='<header class="t2-heading"><div><h2>Исполнение перевозок</h2><p>Этапы движения груза, трекинг, документы исполнения и завершение. Согласование транспортной заявки — отдельный бизнес-процесс.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
-   const lockedTabs='<nav class="t2-tabs t2-tabs-locked" aria-label="Этапы исполнения пока недоступны">'+
-     tabs.map(([,title])=>'<button type="button" disabled title="После согласования транспортной заявки">'+esc(title)+'</button>').join("")+'</nav>';
+   // No secondary menu: the cabinet's left navigation is the only navigation.
    let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
    if(!state.items.length){
      root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>Раздел уже доступен. После выбора победителя и согласования транспортной заявки здесь появится исполнение. Для оформления документа откройте «Транспортные заявки».</p></div>'+lockedTabs;
@@ -84,14 +83,18 @@
      readonly("Статус транспортной заявки",d.booking_state==="approved"?"Согласована":d.booking_state==="pending"?"На согласовании":d.booking_state==="rejected"?"Возвращена на исправление":d.booking_state==="in_progress"?"Подготовка документа":"Не оформлена")+
      readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Не начато":d.booking_state==="approved"?"В работе":"Ожидает согласования документа")+'</div>';
    if(!started){
-     html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен принять работу в разделе «Мои заявки», затем подготовить транспортный документ. Физическое исполнение пока заблокировано.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>'+lockedTabs;
+     html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен принять работу в разделе «Мои заявки», затем подготовить транспортный документ. Физическое исполнение пока заблокировано.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else if(d.booking_state!=="approved"){
      const documentState=d.booking_state==="pending"?"Документ находится на согласовании у Владельца":d.booking_state==="rejected"?"Документ возвращён перевозчику на исправление":"Нужно подготовить и отправить транспортную заявку";
      html+='<div class="t2-empty"><h3>Ожидается согласование транспортной заявки</h3><p>'+esc(documentState)+'. Исполнение и трекинг откроются после согласования документа Владельцем.</p><button type="button" class="t2-btn" data-t2-open-transport>Перейти к документу</button></div>'+lockedTabs;
    }else{
      html+='<div class="t2-process-banner"><div><strong>Документальный процесс завершён: транспортная заявка согласована.</strong><span>Сейчас открыт отдельный процесс исполнения. Здесь фиксируются только фактические события и документы перевозки.</span></div><button type="button" class="t2-btn ghost" data-t2-open-transport>К транспортной заявке</button></div>';
-     html+='<nav class="t2-tabs">'+tabs.map(([key,title])=>'<button type="button" data-t2-tab="'+key+'" class="'+(state.tab===key?"active":"")+'">'+esc(title)+'</button>').join("")+'</nav>';
-     html+='<div class="t2-stage">'+renderTab(d,carrier,staff)+'</div>';
+     const savedTab=state.tab;
+     html+=tabs.map(([key,title])=>{
+       state.tab=key;
+       return '<section class="t2-stage" data-t2-section="'+esc(key)+'"><h3>'+esc(title)+'</h3>'+renderTab(d,carrier,staff)+'</section>';
+     }).join("");
+     state.tab=savedTab;
    }
    root.innerHTML=html;
  }
