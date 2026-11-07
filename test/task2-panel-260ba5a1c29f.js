@@ -79,8 +79,12 @@
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
      readonly("Выбранный перевозчик",o.carrier_login)+readonly("Статус",x.status||"Ожидает принятия")+'</div>';
    if(!started){
-     html+='<div class="t2-empty">Ставка выбрана, документы и исходные данные доступны для сверки. '+(carrier?'<button type="button" class="t2-btn" data-t2-action="take">Взять перевозку в работу</button>':'Ожидается действие выбранного перевозчика.')+'</div>';
+     html+='<div class="t2-empty"><h3>Шаг 1 · Принятие заявки</h3><p>После выбора победителя перевозчик принимает работу в разделе «Мои заявки». До принятия перевозка не передаётся в исполнение.</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
+   }else if(d.booking_state!=="approved"){
+     const documentState=d.booking_state==="pending"?"Документ находится на согласовании у Владельца":d.booking_state==="rejected"?"Документ возвращён перевозчику на исправление":"Нужно подготовить и отправить транспортную заявку";
+     html+='<div class="t2-empty"><h3>Шаг 2 · Транспортная заявка</h3><p>'+esc(documentState)+'. Исполнение и трекинг откроются после согласования документа Владельцем.</p><button type="button" class="t2-btn" data-t2-open-transport>Открыть транспортную заявку</button></div>';
    }else{
+     html+='<div class="t2-alert">Транспортная заявка согласована Владельцем. Доступен этап исполнения перевозки.</div>';
      html+='<nav class="t2-tabs">'+tabs.map(([key,title])=>'<button type="button" data-t2-tab="'+key+'" class="'+(state.tab===key?"active":"")+'">'+esc(title)+'</button>').join("")+'</nav>';
      html+='<div class="t2-stage">'+renderTab(d,carrier,staff)+'</div>';
    }
