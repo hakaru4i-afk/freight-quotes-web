@@ -473,6 +473,16 @@
  });
  const observer=new MutationObserver(mount);
  observer.observe(document.documentElement,{childList:true,subtree:true});
+ window.addEventListener("carrier-flow-open-execution",async event=>{
+   const order=String(event.detail?.order||"");
+   if(!order)return;
+   try{
+     if(!state.items.some(item=>item.order_code===order))await loadList();
+     if(!state.items.some(item=>item.order_code===order))return;
+     state.selected=order;
+     await loadDetail();
+   }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
+ });
  document.addEventListener("DOMContentLoaded",mount);
  mount();
 })();
