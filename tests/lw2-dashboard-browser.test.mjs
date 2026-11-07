@@ -9,8 +9,8 @@ import path from "node:path";
 const html=[
 '<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
 '<link rel="stylesheet" href="/test/style.css"><link rel="stylesheet" href="/test/carrier-dashboard-compact-20261107.css">',
-'<link rel="stylesheet" href="/test/lw2-staging-20261107.css"></head><body>',
-'<div class="cabinet-app carrier-portal"><div class="cabinet-layout">',
+'<link rel="stylesheet" href="/test/lw2-staging-20261107.css"><link rel="stylesheet" href="/test/carrier-defer-transport-application-20261107.css"></head><body>',
+'<div class="cabinet-app carrier-portal" data-cabinet-role="carrier"><div class="cabinet-layout">',
 '<aside class="cabinet-sidebar"><nav><a href="#overview">Главная</a><a href="#carrier-orders">Мои заявки</a>',
 '<a href="#transport-applications">Транспортные заявки</a><a href="#approved-shipments">Исполнение перевозок</a>',
 '<a href="#portal-feedback">Предложения</a></nav></aside>',
@@ -21,7 +21,7 @@ const html=[
 '<div class="overview-orbit"><span>Service Level</span><strong>92<small>/100</small></strong><small>Обычный режим</small></div>',
 '</section><div class="overview-metrics"><a class="overview-metric" href="#carrier-orders"><span>Непрочитанных заявок</span>',
 '<strong>3</strong><small>Открыть</small></a></div><section class="overview-card"><h2>Ближайшие сроки и действия</h2></section>',
-'</div></main></div></div></div><script defer src="/test/lw2-staging-20261107.js"></script></body></html>'
+'</div></main></div></div></div><script defer src="/test/lw2-staging-20261107.js"></script><script defer src="/test/carrier-defer-transport-application-20261107.js"></script></body></html>'
 ].join("");
 const rows=[
  {order_code:"TR-26-000101",mode:"Авто",process_status:"in_progress"},
@@ -55,6 +55,9 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   assert.equal(await page.locator(".overview-welcome").getAttribute("data-lw2-hero"),"");
   assert.equal(await page.locator("#lw2-dashboard .lw2-kpi").count(),4);
   assert.equal(await page.locator("#lw2-dashboard .lw2-type").count(),4);
+  assert.equal(await page.locator('a[href="#transport-applications"]').evaluate(el=>getComputedStyle(el).display),"none");
+  assert.ok(!(await page.locator("#lw2-dashboard .lw2-kpis").innerText()).includes("Транспортные заявки"));
+  assert.ok((await page.locator("#lw2-dashboard .lw2-kpis").innerText()).includes("Ожидают ставки"));
   assert.equal(await page.locator("#lw2-dashboard .lw2-donut .lw2-hole strong").textContent(),"4");
   assert.equal(await page.locator("#lw2-dashboard .lw2-kpi").nth(2).locator("strong").textContent(),"2");
   assert.equal(await page.locator(".overview-metrics").evaluate(el=>getComputedStyle(el).display),"none");
@@ -63,6 +66,8 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   assert.equal(await page.locator(".overview-orbit strong").textContent(),"92/100");
   await page.screenshot({path:"lw2-desktop-qa.png",fullPage:true});
   await page.locator('[data-lw2-go="ships"]').first().click();
+  assert.equal(new URL(page.url()).hash,"#approved-shipments");
+  await page.goto(host+"/fixture#transport-applications",{waitUntil:"networkidle"});
   assert.equal(new URL(page.url()).hash,"#approved-shipments");
   await page.setViewportSize({width:390,height:844});
   await page.goto(host+"/fixture",{waitUntil:"networkidle"});
