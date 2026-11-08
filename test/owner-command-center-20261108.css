@@ -313,3 +313,54 @@ body.lw-cc-owner-view .test-cabinets a{
    grid-template-columns:1fr!important;top:56px!important;max-height:76vh!important;
  }
 }
+
+/* OWNER-COMMAND-04 · Approved command-03 design, completed across the whole Owner cabinet.
+   No new navigation or business actions; unchanged for every non-Owner role. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active{
+ --pr-bg:#071527;--pr-surface:#102a45;--pr-text:#e9f3ff;
+ --pr-muted:#a9c4db;--pr-line:#31516f;--pr-accent:#159fff;
+ --pr-on:#061c31;--pr-tint:#163957;--pr-nav:#06192d;
+ --pr-nav-text:#cbdff3;--pr-glow:#168fd5;--pr-mix:#4573a6;
+ --pr-warm:#b57c5b;--cab-ink:#e9f3ff;--cab-muted:#a9c4db;
+ --ink:#e9f3ff;--muted:#a9c4db;--line:#31516f;
+ background:#071527!important;
+}
+/* The old 1750px dashboard cap created the empty margin seen on wide monitors. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active #lw-owner-command{
+ width:100%!important;max-width:none!important;margin:0!important;
+}
+/* Every Owner section keeps the same dark shell and a readable content surface. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-body,
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content{
+ min-width:0!important;max-width:none!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"]){
+ color:var(--pr-text)!important;min-width:0;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"]) :is(.tablewrap,.section){
+ background-color:#102a45;border-color:#31516f;color:var(--pr-text);
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"]) :is(.card,.shipment-card){
+ color:var(--pr-text);border-color:var(--pr-line);
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"]) :is(a,.field-help){
+ overflow-wrap:anywhere;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content:has(> .cabinet-panel:not([data-section="overview"]):not([hidden])){
+ padding:17px 22px 32px!important;
+}
+@media(min-width:1440px){
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-owner-nav>a{font-size:12px!important}
+ #lw-owner-command .lw-cc-sub,
+ #lw-owner-command .lw-cc-kpi-info small,
+ #lw-owner-command .lw-cc-route-row strong{font-size:11px!important}
+ #lw-owner-command .lw-cc-hero h1{font-size:clamp(25px,2.5vw,33px)!important}
+}
+@media(max-width:760px){
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active #lw-owner-command{
+  width:100%!important;max-width:none!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content:has(> .cabinet-panel:not([data-section="overview"]):not([hidden])){
+  padding:12px!important;
+ }
+}
