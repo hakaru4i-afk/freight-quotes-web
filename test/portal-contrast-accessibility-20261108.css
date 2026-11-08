@@ -275,3 +275,24 @@
 #task2-root .t2-stage[data-t2-section="history"] {
   margin-top:24px!important;
 }
+
+/* TRACK-UX-02: paired planned date / reason, full-width actual departure below. */
+#task2-root [data-t2-form="save"] .t2-date-reason-row {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ gap:18px!important;
+ align-items:start!important;
+ width:100%!important;
+ min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row>.t2-field {
+ width:100%!important;min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row textarea {
+ min-height:52px!important;
+}
+@media(max-width:680px){
+ #task2-root [data-t2-form="save"] .t2-date-reason-row {
+  grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+ }
+}
