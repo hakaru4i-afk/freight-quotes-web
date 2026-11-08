@@ -9,7 +9,9 @@ async function hoverState(page,id){
  return locator.evaluate(el=>{
   const st=getComputedStyle(el),after=getComputedStyle(el,"::after");
   return {filter:st.filter,bg:st.backgroundColor,image:st.backgroundImage,color:st.color,
-    transform:st.transform,pseudo:after.display,content:after.content};
+    transform:st.transform,pseudo:after.display,content:after.content,hover:el.matches(":hover"),
+    roleClass:el.closest("[data-cabinet-role]")?.className,
+    darkSelector:el.matches(':is(.carrier-portal,.staff-portal[data-cabinet-role="owner"]) :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"])')};
  });
 }
 test("glare-free hover across eight roles, forms, tabs and login at desktop and mobile",{timeout:240000},async()=>{
