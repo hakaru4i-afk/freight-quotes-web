@@ -61,7 +61,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - name: Chromium desktop and 390px: no duplicate panels or accept actions
+      - name: "Chromium desktop and 390px: no duplicate panels or accept actions"
         run: node --test tests/carrier-acceptance-singleton-browser.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
