@@ -296,3 +296,13 @@
   grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
  }
 }
+
+#task2-root .t2-plans-current{background:#f0f5fc;border:1px solid #c8d8ea;border-radius:12px;padding:16px;margin:0 0 12px;color:#1b344e}
+#task2-root .t2-plans-current>strong{display:block;color:#17334f;font-size:16px;margin-bottom:12px}
+#task2-root .t2-plan-history{display:grid;gap:8px}
+#task2-root .t2-plan-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:12px;background:#fff;border:1px solid #d8e3ef;border-radius:8px;align-items:center}
+#task2-root .t2-plan-entry span{color:#304862;font-size:14px}
+#task2-root .t2-plan-entry b{color:#16324d;font-size:15px}
+#task2-root .t2-plan-entry small{grid-column:1/-1;color:#435973;font-size:13px}
+#task2-root .t2-plan-next{font-weight:700;color:#183e69;margin:12px 0}
+@media(max-width:680px){#task2-root .t2-plan-entry{grid-template-columns:1fr}}
