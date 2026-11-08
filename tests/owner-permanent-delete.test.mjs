@@ -24,6 +24,6 @@ test("delete clears selected card instead of loading a missing request",()=>{
  assert.ok(!app.includes(ru("История останется только владельцу в корзине.")));
 });
 test("Owner FAQ documents no trash and separately preserved archives in three languages",()=>{
- for(const entry of ["Корзины","нет. Архив", "no trash or restore", "没有回收站"])
+ for(const entry of ["корзины","нет. Архив", "no trash or restore", "没有回收站"])
   assert.ok(faq.includes(entry),entry);
 });
