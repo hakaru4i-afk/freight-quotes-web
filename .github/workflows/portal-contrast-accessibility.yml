@@ -1,0 +1,72 @@
+name: "LW Contrast 04 / all-role staging QA"
+on:
+  push:
+    branches: [main]
+    paths:
+      - test/portal-contrast-accessibility-20261108.css
+      - test/index.html
+      - tests/portal-contrast-accessibility-browser.test.mjs
+      - .github/workflows/portal-contrast-accessibility.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: "Validate CSS scope, test syntax and production isolation"
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tests/portal-contrast-accessibility-browser.test.mjs
+          grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04' test/index.html
+          grep -Fq 'offer-row-unavailable' test/portal-contrast-accessibility-20261108.css
+          grep -Fq 'tbody tr:not([class*="offer-row-"]):hover' test/portal-contrast-accessibility-20261108.css
+          ! grep -Fq 'portal-contrast-accessibility-20261108.css' index.html
+  served:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Verify exactly published contrast CSS and cache key (staging only)"
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..35}; do
+            curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/contrast-index.html || true
+            curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/portal-contrast-accessibility-20261108.css?qa=$GITHUB_SHA" -o /tmp/contrast-staging.css || true
+            if grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04' /tmp/contrast-index.html 2>/dev/null \
+              && cmp -s test/portal-contrast-accessibility-20261108.css /tmp/contrast-staging.css; then
+              echo "PASS: served stylesheet and version match staging source"
+              sha256sum /tmp/contrast-staging.css
+              exit 0
+            fi
+            sleep 7
+          done
+          echo '::error::Staging contrast styles not published byte-for-byte'
+          exit 1
+  browser:
+    needs: served
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: "Check 8 role palettes and readable table/alerts on desktop and mobile"
+        run: node --test tests/portal-contrast-accessibility-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lw-contrast-04-desktop-mobile
+          path: portal-contrast-*-*.png
+          if-no-files-found: ignore
