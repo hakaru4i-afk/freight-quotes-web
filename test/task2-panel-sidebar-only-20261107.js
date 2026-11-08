@@ -220,7 +220,9 @@
          '<button type="submit" class="t2-btn" style="width:116px;min-height:38px;align-self:end">Сохранить</button></form>'+
          '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
-         form("save",field("container_no","№ контейнера (необязательно)","text",tips.number),"Сохранить");
+         '<form data-t2-form="container" class="t2-container-compact" style="display:grid!important;grid-template-columns:minmax(0,1fr) 116px;gap:10px;align-items:end;width:100%;margin:0 0 14px">'+
+         '<label style="display:flex;flex-direction:column;gap:4px;min-width:0"><span>№ контейнера (необязательно)</span><input type="text" name="container_no" maxlength="50" placeholder="Введите номер контейнера" required style="width:100%;height:38px;min-width:0;box-sizing:border-box"></label>'+
+         '<button type="submit" class="t2-btn" style="width:116px;height:38px;margin:0">Сохранить</button></form>';
      }
      /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
@@ -520,6 +522,20 @@
        const after=(state.detail?.plans||[]).length;
        if(after<=before){alertText("Сервер не подтвердил добавление переноса. Данные не считаются сохранёнными.",true);}
        else alertText("Перенос № "+after+" сохранён. Следующая строка доступна.");
+     }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
+   }
+   if(kind==="container"){
+     const value=String(data.container_no||"").trim();
+     if(!value){alertText("Введите номер контейнера",true);return;}
+     const button=f.querySelector('button[type="submit"]');
+     if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     try{
+       const result=await update("save",{fields:{container_no:value}});
+       if(!result?.ok)return;
+       const found=(state.detail?.containers||[]).some(c=>String(c.container_no||"").trim()===value);
+       if(found)alertText("Номер контейнера сохранён: "+value);
+       else alertText("Сервер ответил, но номер контейнера не найден в обновлённых данных. Проверьте сохранение.",true);
      }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
      return;
    }
