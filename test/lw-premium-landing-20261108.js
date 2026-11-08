@@ -28,7 +28,7 @@
   hero.querySelectorAll(".cycle-stage-strip > div b").forEach((n,i)=>{if(t.stripe[i])setText(n,t.stripe[i])});
   let partners=root.querySelector("#lw-partners");
   if(!partners){partners=document.createElement("section");partners.id="lw-partners";partners.className="lw-partners";partners.innerHTML='<div><h2></h2><p></p></div><div class="lw-partner-mark" aria-hidden="true">↗</div>';hero.after(partners)}
-  setText(partners.querySelector("h2"),t.partnerTitle);setText(partners.querySelector("p"),t.partnerInfo);
+  if(!partners.querySelector("#lw-contact-form")){setText(partners.querySelector("h2"),t.partnerTitle);setText(partners.querySelector("p"),t.partnerInfo);}
   root.setAttribute("data-lw-public","20261108");
  }
  function request(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;sync()})}
