@@ -118,7 +118,8 @@ class GlobalRouteView extends HTMLElement {
         message.hidden = !fallback;
         if (fallback) message.textContent = '3D недоступен. Маршрут открыт на 2D-карте.';
         reset.disabled = false;
-      } catch {
+      } catch (error) {
+        console.warn(`Global View ${name} initialization failed`, error);
         delete loading[name];
         if (signal.aborted || current !== revision) return;
         if (name === '3d') {
