@@ -119,12 +119,12 @@ class GlobalRouteView extends HTMLElement {
     calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
       distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
-      const totalText = result.totalKm == null ? 'Общий километраж: нет точного расчёта' : 'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км';
+      const totalText = result.totalKm == null ? 'Общий километраж: нет точного расчёта' : 'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км' + (result.estimated ? ' (ориентировочно)' : '');
       distancePanel.append(node('p', 'gv-coverage-label', totalText));
       if (result.totalKm == null && result.knownKm > 0) distancePanel.append(node('p', '', 'Подтверждённые участки: ' + result.knownKm.toLocaleString('ru-RU') + ' км'));
       const legList = node('ol', 'gv-distance-legs');
       for (const leg of result.legs) {
-        const label = leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' : ({
+        const label = leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' + (leg.estimated ? ' (по центрам городов)' : '') : ({
           COORDINATES_MISSING: 'нет координат',
           EXACT_ADDRESS_REQUIRED: 'требуется точный адрес',
           LEG_MODES_REQUIRED: 'укажите транспорт каждого участка',
@@ -133,7 +133,7 @@ class GlobalRouteView extends HTMLElement {
         }[leg.reason] || 'расчёт недоступен');
         legList.append(node('li', '', leg.from + ' → ' + leg.to + ': ' + label));
       }
-      distancePanel.append(legList, node('small', '', 'Расчёт по дорожной сети доступен только для автомобильных участков с точными координатами. Остальные расстояния не подменяются прямой линией.'));
+      distancePanel.append(legList, node('small', '', 'Автомобильные участки рассчитываются по дорожной сети. При координатах центра города километраж ориентировочный. Для других видов транспорта расстояние по прямой не подставляется.'));
     }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Расчёт временно недоступен')); });
     info.append(activities, summary);
 
