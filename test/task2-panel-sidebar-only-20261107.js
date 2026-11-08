@@ -9,7 +9,7 @@
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
  const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
- const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],,["history","История"]];
+ const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
   number:"Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.",
   actual:"Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.",
