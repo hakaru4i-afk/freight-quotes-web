@@ -125,3 +125,38 @@ test("role inbox escapes malicious labels before browser insertion; no fake clic
  assert.ok(q.isOpen("open"));
  assert.equal(q.isOpen("completed"),false);
 });
+
+test("pending-work banner mounts on every role home, including VED child and dark Owner command",()=>{
+ const sourceForPaint=code
+  .replace(/\}\)\(\);\s*$/, "globalThis.__renderQA={paint,state,makeTask};})();")
+  .replace(/refresh\(true\);\s*queue\(\);\s*globalThis\.__renderQA/, "globalThis.__renderQA");
+ for(const role of ["owner","carrier","logistic","supplier","designer","content","purchasing","certification"]){
+  const domRole=role==="logistic"?"ved":role;
+  let mounted=null;
+  const home={contains(el){return el===mounted;},prepend(el){mounted=el;}};
+  const panel={querySelector(s){return s==="#ved-home-20261108"&&role==="logistic"||s==="#lw-owner-command"&&role==="owner"?home:null;},contains:home.contains,prepend:home.prepend};
+  const cabinet={querySelector(s){return s.includes("overview")?panel:null;},dataset:{cabinetRole:domRole}};
+  const doc={
+   documentElement:{lang:"ru"},addEventListener(){},
+   querySelector(s){return s==='.cabinet-app[data-cabinet-role="'+domRole+'"]'?cabinet:null;},
+   querySelectorAll(s){return s===".cabinet-app"?[cabinet]:[];},
+   getElementById(){return mounted;},
+   createElement(){return {dataset:{},setAttribute(){},innerHTML:""};},
+   hidden:false
+  };
+  const ctx={document:doc,window:{addEventListener(){}},MutationObserver:class{observe(){}},requestAnimationFrame(){},fetch:async()=>({ok:false,status:403,json:async()=>({})}),console};
+  vm.runInNewContext(sourceForPaint,ctx);
+  const q=ctx.__renderQA;
+  q.state.role=role;
+  q.state.supported=!["content","purchasing","certification"].includes(role);
+  q.state.items=q.state.supported?[q.makeTask("task","Проверить <img onerror=alert(1)>","Заказ 123","approved-shipments","123")]:[];
+  q.state.total=q.state.items.length;
+  q.state.loading=false;
+  q.paint();
+  assert.ok(mounted,'Inbox was not mounted for '+role);
+  assert.match(mounted.innerHTML,/Задачи, ожидающие выполнения/);
+  assert.doesNotMatch(mounted.innerHTML,/<img/);
+  if(q.state.supported) assert.match(mounted.innerHTML,/href="#approved-shipments"/);
+  else assert.match(mounted.innerHTML,/не подключён источник/);
+ }
+});
