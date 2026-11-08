@@ -150,18 +150,15 @@
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
-       html+=form("save",'<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
-         '<div class="t2-plans-current"><strong>Сохранённые плановые даты</strong>'+
-         '<div class="t2-plan-history">'+
-         '<div class="t2-plan-entry"><span>Исходная плановая дата · неизменяемая</span><b>'+fmt(x.original_departure||o.pickup)+'</b></div>'+
-         (plans.length?plans.map((p,i)=>'<div class="t2-plan-entry"><span>Перенос № '+(i+1)+(i===plans.length-1?' · текущая плановая дата':'')+'</span><b>'+fmt(p.planned_departure)+'</b><small>Причина: '+esc(p.reason||"не указана")+'</small></div>').join(""):'<p>Переносов пока нет.</p>')+
-         '</div></div>'+
-         '<p class="t2-plan-next">Добавить следующий перенос (новая дата и причина)</p>'+
-         '<div class="t2-date-reason-row">'+
-         field("new_plan_date","Новая плановая дата выхода (при переносе, Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
-         field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
-         '</div>'+
-         field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
+       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><p>Допускается не более четырёх последовательных переносов.</p></div>'+
+         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
+           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
+           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
+           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
+           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая плановая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина переноса</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Укажите причину"></label><button class="t2-btn" type="submit">Сохранить</button></form>';
+         }).join("")+'</div>';
+       html+=form("save",         field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
          '<div class="t2-block-title">2. Где находится груз</div>'+
          field("location","Текущее местонахождение (город, станция, терминал)","text",tips.location)+
          field("location_date","Когда груз был в этом месте (Минск)","datetime-local",tips.date)+
@@ -435,6 +432,11 @@
        const saved=await update("upload",{},fd);
        if(!saved?.ok)return;
      }return;
+   }
+   if(kind==="plan"){
+     if((state.detail?.plans||[]).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
+     if(!data.new_plan_date||!String(data.new_plan_reason||"").trim()){alertText("Укажите новую дату и причину",true);return;}
+     return update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
    }
    if(kind==="save"){
      const fields={};
