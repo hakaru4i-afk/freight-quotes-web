@@ -27,7 +27,19 @@ function apply(){
  active.removeAttribute('aria-hidden');
  active.removeAttribute('tabindex');
  active.style.setProperty('display','flex','important');
- cabinet.dataset.vedWorkspace='active-shipments-20261108';
+ const panel=cabinet.querySelector('.cabinet-panel[data-section="overview"]');
+ if(panel&&!panel.querySelector('#ved-home-20261108')){
+  const home=document.createElement('section');
+  home.id='ved-home-20261108';
+  home.innerHTML='<div class="ved-home-kicker">РАБОЧЕЕ ПРОСТРАНСТВО ВЭД</div>'+
+   '<h2>Контроль активных перевозок</h2>'+
+   '<p>Здесь отображаются только перевозки, которые выбранный перевозчик-победитель уже принял в работу. До принятия заявки и ставки для ВЭД недоступны.</p>'+
+   '<div class="ved-home-actions"><a class="ved-home-primary" href="#approved-shipments">Открыть активные перевозки →</a></div>'+
+   '<div class="ved-home-note"><strong>Что доступно в перевозке</strong><span>Исходная заявка владельца, вложенные документы, предложение победителя, маршрут и исполнение. Предложения остальных перевозчиков недоступны.</span></div>';
+  panel.append(home);
+  panel.dataset.vedHomeReady='true';
+ }
+ if(cabinet.dataset.vedWorkspace!=='active-shipments-20261108')cabinet.dataset.vedWorkspace='active-shipments-20261108';
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
 new MutationObserver(schedule).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
