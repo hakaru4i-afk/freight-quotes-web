@@ -78,6 +78,21 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     assert.match(detail.high,/76–100%/);
     assert.match(detail.route,/Нинбо/);
     assert.match(detail.table,/DEMO-ORDER-A/);
+    // Group label is implemented with ::before. When its anchor becomes the
+    // active route, the global navigation active-marker must NOT paint a long
+    // cyan vertical stroke through the "01 · Заявки и ставки" heading.
+    const group = await page.locator('.lw-owner-nav a[href="#create-request"]').evaluate(el=>{
+      el.setAttribute("aria-current","page");
+      const style=getComputedStyle(el,"::before");
+      const height=style.height, bottom=style.bottom;
+      return {height,bottom,backgroundImage:style.backgroundImage,
+        backgroundColor:style.backgroundColor,content:style.content};
+    });
+    assert.equal(group.bottom,"auto","Owner heading inherited the vertical active marker bottom constraint");
+    assert.equal(group.backgroundImage,"none","Owner group heading inherited the active-marker gradient");
+    assert.equal(group.backgroundColor,"rgba(0, 0, 0, 0)","Owner group heading inherited the active-marker background");
+    assert.ok(parseFloat(group.height)<24,"Owner group label created a long cyan strip: "+JSON.stringify(group));
+    assert.match(group.content,/Заявки и ставки/);
     assert.equal(detail.sidebar,true);
     assert.equal(detail.oldHidden,true);
     assert.ok(Math.abs(detail.shellLeft)<=2,"Unexpected left layout gutter: "+JSON.stringify(detail));
