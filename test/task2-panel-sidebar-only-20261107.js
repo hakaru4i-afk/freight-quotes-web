@@ -151,6 +151,12 @@
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
        html+=form("save",'<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-plans-current"><strong>Сохранённые плановые даты</strong>'+
+         '<div class="t2-plan-history">'+
+         '<div class="t2-plan-entry"><span>Исходная плановая дата · неизменяемая</span><b>'+fmt(x.original_departure||o.pickup)+'</b></div>'+
+         (plans.length?plans.map((p,i)=>'<div class="t2-plan-entry"><span>Перенос № '+(i+1)+(i===plans.length-1?' · текущая плановая дата':'')+'</span><b>'+fmt(p.planned_departure)+'</b><small>Причина: '+esc(p.reason||"не указана")+'</small></div>').join(""):'<p>Переносов пока нет.</p>')+
+         '</div></div>'+
+         '<p class="t2-plan-next">Добавить следующий перенос (новая дата и причина)</p>'+
          '<div class="t2-date-reason-row">'+
          field("new_plan_date","Новая плановая дата выхода (при переносе, Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
          field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
@@ -169,7 +175,7 @@
          field("container_no","№ контейнера (необязательно)","text",tips.number),
          "Сохранить изменения");
      }
-     html+='<h3>История переносов плановой даты</h3><div class="t2-stack">'+(plans.length?plans.map(p=>'<div class="t2-item">'+fmt(p.planned_departure)+' · '+esc(p.reason||"Исходная дата")+'</div>').join(""):'<p class="t2-muted">Переносов ещё не было. Исходный план сохраняется.</p>')+'</div>';
+     /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
      html+='<h3>Движение груза</h3><div class="t2-stack">'+(pts.length?pts.map(p=>'<div class="t2-item"><div><strong>'+esc(p.location_text)+'</strong><br><small>'+fmt(p.observed_at)+' · '+esc(p.comment||"")+'</small></div><small>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</small></div>').join(""):'<p class="t2-muted">Контрольных точек пока нет.</p>')+'</div>';
      if(pts.length){
