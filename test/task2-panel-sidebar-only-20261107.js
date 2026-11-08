@@ -171,7 +171,7 @@
        html+='<div class="t2-actual-row">'+
         '<span class="t2-actual-label">Фактическое отправление</span>'+
         (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
-         '<form data-t2-form="actual" class="t2-actual-form"><label><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
          '</div>';
        html+=form("save",
          '<div class="t2-block-title">2. Где находится груз</div>'+
