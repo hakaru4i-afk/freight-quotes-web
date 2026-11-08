@@ -1,3 +1,4 @@
+import { calculateMapDistances } from './distance.mjs?v=km01';
 import { modes, placeIndex, routeModel } from './route-model.mjs?v=gv06';
 
 const node = (tag, className, text) => {
@@ -111,6 +112,29 @@ class GlobalRouteView extends HTMLElement {
     if (located < total) summary.append(node('p', 'gv-warning', 'Для остальных пунктов нужны однозначные названия или координаты.'));
     if (route.mode === 'multi') summary.append(node('p', 'gv-warning', 'Вид транспорта на отдельных участках не указан.'));
     if (lookupFailed) summary.append(node('p', 'gv-warning', 'Справочник городов временно недоступен.'));
+    const distancePanel = node('section', 'gv-distance');
+    distancePanel.setAttribute('aria-live', 'polite');
+    distancePanel.append(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Рассчитываем расстояния…'));
+    summary.append(distancePanel);
+    calculateMapDistances(route, { signal }).then(result => {
+      if (signal.aborted) return;
+      distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
+      const totalText = result.totalKm == null ? 'Общий километраж: нет точного расчёта' : 'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км';
+      distancePanel.append(node('p', 'gv-coverage-label', totalText));
+      if (result.totalKm == null && result.knownKm > 0) distancePanel.append(node('p', '', 'Подтверждённые участки: ' + result.knownKm.toLocaleString('ru-RU') + ' км'));
+      const legList = node('ol', 'gv-distance-legs');
+      for (const leg of result.legs) {
+        const label = leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' : ({
+          COORDINATES_MISSING: 'нет координат',
+          EXACT_ADDRESS_REQUIRED: 'требуется точный адрес',
+          LEG_MODES_REQUIRED: 'укажите транспорт каждого участка',
+          NETWORK_ROUTER_REQUIRED: 'нет источника расчёта для этого транспорта',
+          ROUTER_UNAVAILABLE: 'сервис маршрутизации недоступен'
+        }[leg.reason] || 'расчёт недоступен');
+        legList.append(node('li', '', leg.from + ' → ' + leg.to + ': ' + label));
+      }
+      distancePanel.append(legList, node('small', '', 'Расчёт по дорожной сети доступен только для автомобильных участков с точными координатами. Остальные расстояния не подменяются прямой линией.'));
+    }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Расчёт временно недоступен')); });
     info.append(activities, summary);
 
     const loading = {};
