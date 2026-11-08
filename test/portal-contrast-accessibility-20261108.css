@@ -3,17 +3,36 @@
    keeping the agreed dark workspaces, semantic decision colours and light forms.
    Loaded AFTER role themes and hover fixes; no DOM/API/authorization changes. */
 
+/* LW-CONTRAST-ALL: keep foreground, text fill and surface in the same scope.
+   The role themes still provide their own accents and surface design. */
+:root {
+  --lw-contrast-light-ink: #172d44;
+  --lw-contrast-light-muted: #344b64;
+  --lw-contrast-light-surface: #f3f7fc;
+  --lw-contrast-dark-ink: #f3f9ff;
+  --lw-contrast-dark-muted: #cbdced;
+  --lw-contrast-dark-surface: #1b3b57;
+  --lw-contrast-disabled-ink: #33465b;
+  --lw-contrast-disabled-surface: #e4eaf0;
+  --lw-contrast-error-ink: #79261f;
+  --lw-contrast-error-surface: #fff0ed;
+  --lw-contrast-warning-ink: #573c12;
+  --lw-contrast-warning-surface: #fff4da;
+  --lw-contrast-focus-light: #174f94;
+  --lw-contrast-focus-dark: #87d8ff;
+}
+
 /* Readable dark workspace tables in every role. The generic legacy rule
    "tbody tr:hover{background:#f9fcfb}" caused white-on-white Owner rows. */
-.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"])
-  .tablewrap:not(.compact-transport-document .tablewrap)
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
   tbody tr:not([class*="offer-row-"]):hover {
-  background:#1b3b57 !important;color:#eef6ff !important;
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
 }
-.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"])
-  .tablewrap:not(.compact-transport-document .tablewrap)
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
   tbody tr:not([class*="offer-row-"]):hover > td {
-  background:#1b3b57 !important;color:#eef6ff !important;
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
 }
 /* Never apply a dark-row hover to explicitly light document surfaces. */
 .cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
@@ -73,7 +92,7 @@
 /* Outcome badges are light surfaces even when placed on a dark table. */
 .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap td .badge {
   background:#e5f0ed !important;color:#284b42 !important;
-  -webkit-text-fill-color:#284b42;opacity:1 !important;
+  -webkit-text-fill-color:currentColor;opacity:1 !important;
   border:1px solid #a9c8bf !important;
 }
 /* A dark CTA should never have dark text over dark blue on coloured rows. */
@@ -81,7 +100,7 @@
   tr[class*="offer-row-"] .btn:not(.secondary):not(:disabled),
 .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
   tr[class*="offer-row-"] .btn:not(.secondary):hover:not(:disabled) {
-  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
   background:#185d99 !important;border-color:#2a76b6 !important;
   box-shadow:0 2px 7px #09274329 !important;text-shadow:none !important;
 }
@@ -89,7 +108,7 @@
   tr[class*="offer-row-"] .btn.secondary:not(:disabled),
 .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
   tr[class*="offer-row-"] .btn.secondary:hover:not(:disabled) {
-  color:#f3f9ff !important;-webkit-text-fill-color:#f3f9ff !important;
+  color:#f3f9ff !important;-webkit-text-fill-color:currentColor !important;
   background:#173d5b !important;border-color:#436e8d !important;
   box-shadow:0 2px 7px #09274326 !important;text-shadow:none !important;
 }
@@ -105,24 +124,19 @@
 .cabinet-app[data-cabinet-role] :is(.cabinet-sidebar nav a,.cabinet-topbar a,.cabinet-topbar button) {
   text-shadow:none !important;
 }
-/* Sidebar palettes are not uniform: Owner/Carrier are navy, staff
-   workspaces use light sidebars. Do not force light text onto light menus. */
-.cabinet-app.carrier-portal .cabinet-sidebar nav a:not([aria-current="page"]),
-.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active
-  .cabinet-sidebar nav a:not([aria-current="page"]) {
-  color:#d1e3f4 !important;opacity:1 !important;
+/* Prism sidebars are dark for both cabinet shells. Selected links retain their
+   role-specific text/background pair and bypass the normal/hover override. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]) {
+  color:var(--lw-contrast-dark-muted) !important;
+  -webkit-text-fill-color:currentColor;
+  opacity:1;
 }
-.cabinet-app.carrier-portal .cabinet-sidebar nav a:not([aria-current="page"]):hover,
-.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active
-  .cabinet-sidebar nav a:not([aria-current="page"]):hover {
-  color:#f5faff !important;
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]):hover {
+  color:var(--lw-contrast-dark-ink) !important;
 }
-.cabinet-app.staff-portal:not(.lw-cc-active) .cabinet-sidebar nav a:not([aria-current="page"]) {
-  color:#253a50 !important;opacity:1 !important;
-}
-.cabinet-app.staff-portal:not(.lw-cc-active) .cabinet-sidebar nav a:not([aria-current="page"]):hover {
-  color:#163348 !important;background:#d9e8f1 !important;
-}
+
 /* State is not removed from disabled controls. */
 .cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
 .cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:focus-visible {
@@ -136,28 +150,28 @@
 
 /* LW-CONTRAST-05: Issue 63 / VED execution header. Keep text and surface in sync. */
 .cabinet-app #task2-root .t2-heading {
-  background:#f3f7fc !important;
+  background:var(--lw-contrast-light-surface) !important;
   border:1px solid #cad7e6 !important;
   border-radius:14px !important;
   padding:18px 20px !important;
-  color:#1b304b !important;
+  color:var(--lw-contrast-light-ink) !important;
 }
 .cabinet-app #task2-root .t2-heading h2,
 .cabinet-app #task2-root .t2-heading p,
 .cabinet-app #task2-root .t2-heading div {
-  color:#1b304b !important;
-  -webkit-text-fill-color:#1b304b !important;
+  color:var(--lw-contrast-light-ink) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-ink) !important;
   opacity:1 !important;
   text-shadow:none !important;
 }
 .cabinet-app #task2-root .t2-heading p {
-  color:#344b64 !important;
-  -webkit-text-fill-color:#344b64 !important;
+  color:var(--lw-contrast-light-muted) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-muted) !important;
   font-size:14px !important;
   line-height:1.55 !important;
 }
 .cabinet-app #task2-root .t2-heading .t2-btn {
-  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
   background:#2058a8 !important;border-color:#2058a8 !important;
   opacity:1 !important;
 }
@@ -165,5 +179,52 @@
   background:#fff !important;color:#253b56 !important;
 }
 .cabinet-app #task2-root .t2-empty :is(h3,p) {
-  color:#253b56 !important;-webkit-text-fill-color:#253b56 !important;opacity:1 !important;
+  color:#253b56 !important;-webkit-text-fill-color:currentColor !important;opacity:1 !important;
+}
+
+/* Text-bearing alerts own an opaque surface, including in nested dark panels. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .error {
+  color:var(--lw-contrast-error-ink) !important;
+  background:var(--lw-contrast-error-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .warning {
+  color:var(--lw-contrast-warning-ink) !important;
+  background:var(--lw-contrast-warning-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page)
+  :is(.warning,.error) :is(p,span,small,strong,em):not(.btn):not(.badge) {
+  color:inherit !important;
+  -webkit-text-fill-color:currentColor;
+}
+
+/* Disabled state is conveyed by its own pair, not a translucent label.
+   Map widgets and document-specific controls keep their component palette. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(button.btn,input,select,textarea):disabled {
+  opacity:1 !important;
+  color:var(--lw-contrast-disabled-ink) !important;
+  -webkit-text-fill-color:currentColor !important;
+  background:var(--lw-contrast-disabled-surface) !important;
+  border-color:#a4b3c1 !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(input,textarea)::placeholder {
+  opacity:1;
+  -webkit-text-fill-color:currentColor;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.field,.t2-stage,.compact-transport-document) :is(a,button,input,textarea,select,summary):focus-visible {
+  outline-color:var(--lw-contrast-focus-light) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar,.sw-sidebar) :is(a,button):focus-visible {
+  outline-color:var(--lw-contrast-focus-dark) !important;
+}
+@media (max-width:480px) {
+  :is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+    :is(.cabinet-sidebar nav a,.sw-sidebar nav button,.cabinet-panel .btn,.sw-page .btn) {
+    white-space:normal;
+    overflow-wrap:anywhere;
+    min-width:0;
+    height:auto;
+  }
 }

@@ -1,4 +1,4 @@
-name: "LW Contrast 04 / all-role staging QA"
+name: "LW Contrast All / all-role staging QA"
 on:
   push:
     branches: [main]
@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check tests/portal-contrast-accessibility-browser.test.mjs
-          grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04-final' test/index.html
+          grep -Eq 'portal-contrast-accessibility-20261108.css\?v=[a-z0-9-]+' test/index.html
           grep -Fq 'offer-row-unavailable' test/portal-contrast-accessibility-20261108.css
           grep -Fq 'tbody tr:not([class*="offer-row-"]):hover' test/portal-contrast-accessibility-20261108.css
           ! grep -Fq 'portal-contrast-accessibility-20261108.css' index.html
@@ -38,10 +38,11 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          ASSET=$(grep -Eo 'portal-contrast-accessibility-20261108.css\?v=[a-z0-9-]+' test/index.html)
           for attempt in {1..35}; do
             curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/contrast-index.html || true
             curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/portal-contrast-accessibility-20261108.css?qa=$GITHUB_SHA" -o /tmp/contrast-staging.css || true
-            if grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04-final' /tmp/contrast-index.html 2>/dev/null \
+            if grep -Fq "$ASSET" /tmp/contrast-index.html 2>/dev/null \
               && cmp -s test/portal-contrast-accessibility-20261108.css /tmp/contrast-staging.css; then
               echo "PASS: served stylesheet and version match staging source"
               sha256sum /tmp/contrast-staging.css
@@ -62,11 +63,13 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - name: "Check 8 role palettes and readable table/alerts on desktop and mobile"
+      - name: "Check role palettes and interaction states on desktop and mobile"
         run: node --test tests/portal-contrast-accessibility-browser.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: lw-contrast-04-desktop-mobile
-          path: portal-contrast-*-*.png
+          name: lw-contrast-all-desktop-mobile
+          path: |
+            portal-contrast-*-*.png
+            portal-contrast-protocol.json
           if-no-files-found: ignore
