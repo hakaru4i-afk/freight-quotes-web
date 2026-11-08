@@ -66,6 +66,8 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
       overflow:document.documentElement.scrollWidth-window.innerWidth,
       oldHidden:getComputedStyle($(".overview-welcome")).display==="none",
       hero:dashboard.querySelector(".lw-cc-hero")?.getBoundingClientRect().height,
+      heroPhoto:getComputedStyle(dashboard.querySelector(".lw-cc-hero-image")).backgroundImage,
+      planePhoto:getComputedStyle(dashboard.querySelector(".lw-cc-hero-image"),"::after").backgroundImage,
       dashboardWidth:dashboard.getBoundingClientRect().width,
       availableWidth:(()=>{const c=$(".cabinet-content"),style=getComputedStyle(c);return c.getBoundingClientRect().width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)})(),
       links:[...dashboard.querySelectorAll("a[href]")].map(x=>x.getAttribute("href"))
@@ -86,7 +88,9 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display!=="none"),true,"Role panel should open");
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display==="none"),true,"Escape closes role panel");
-    assert.ok(detail.hero>=130);
+    assert.ok(detail.hero>=(size.width<=760?160:190));
+    assert.match(detail.heroPhoto,/lw-approved-freight-20261108\.jpg/);
+    assert.match(detail.planePhoto,/lw-approved-plane-20261108\.jpg/);
     assert.ok(detail.dashboardWidth >= detail.availableWidth-4, "Dashboard still has the 1750px centered cap: "+JSON.stringify(detail));
     assert.ok(detail.overflow<=8,"No horizontal page overflow: "+JSON.stringify(detail));
     assert.ok(detail.links.includes("#carrier-service"));
