@@ -8,12 +8,12 @@ function apply(){
  if(!nav)return;
  for(const a of nav.querySelectorAll('a[href^="#"]')){
   const section=a.getAttribute('href').slice(1);
-  const keep=section==='overview';
+  const keep=section==='overview'||section==='approved-shipments';
   a.hidden=!keep;
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
   else{a.removeAttribute('aria-hidden');a.removeAttribute('tabindex')}
  }
- cabinet.dataset.vedWorkspace='single-section-20261108';
+ cabinet.dataset.vedWorkspace='active-shipments-20261108';
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
 new MutationObserver(schedule).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
