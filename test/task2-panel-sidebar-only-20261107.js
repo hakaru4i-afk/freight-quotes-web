@@ -151,8 +151,10 @@
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
        html+=form("save",'<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-date-reason-row">'+
          field("new_plan_date","Новая плановая дата выхода (при переносе, Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
          field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
+         '</div>'+
          field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
          '<div class="t2-block-title">2. Где находится груз</div>'+
          field("location","Текущее местонахождение (город, станция, терминал)","text",tips.location)+
