@@ -195,15 +195,18 @@
              }).join('')+
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
-       html+=form("save",
-         '<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
-         (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
-           '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — прибыл на ПТО</option></select><small>Проверка документов должна быть выполнена заранее, до прибытия на ПТО.</small></label>'+
-           field("pto_date","Дата прибытия на ПТО (Минск)","datetime-local",tips.date))+
-         (x.customs_at?readonly("Дата завершения таможенного оформления",fmt(x.customs_at)):field("customs_date","Дата завершения импортного таможенного оформления (Минск)","datetime-local",tips.date))+
+       html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
+         '<form data-t2-form="save" class="t2-pto-compact" style="display:grid!important;grid-template-columns:minmax(140px,.7fr) minmax(190px,1fr) minmax(190px,1fr) 116px;gap:10px;align-items:end;width:100%;margin:0 0 14px">'+
+         (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
+           '<label class="t2-pto-cell"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да</option></select></label>')+
+         (x.pto_at?'<div class="t2-pto-cell"><small>Дата прибытия</small><strong>'+fmt(x.pto_at)+'</strong></div>':
+           '<label class="t2-pto-cell"><span>Дата прибытия (Минск)</span><input type="datetime-local" name="pto_date"></label>')+
+         (x.customs_at?'<div class="t2-pto-cell"><small>Таможенное оформление завершено</small><strong>'+fmt(x.customs_at)+'</strong></div>':
+           '<label class="t2-pto-cell"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
+         '<button type="submit" class="t2-btn" style="width:116px;min-height:38px;align-self:end">Сохранить</button></form>'+
+         '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
-         field("container_no","№ контейнера (необязательно)","text",tips.number),
-         "Сохранить изменения");
+         form("save",field("container_no","№ контейнера (необязательно)","text",tips.number),"Сохранить");
      }
      /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
