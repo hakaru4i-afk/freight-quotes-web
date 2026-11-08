@@ -2,14 +2,16 @@
 (()=>{'use strict';
 let queued=false;
 function apply(){
- const cabinet=document.querySelector('.cabinet-app[data-cabinet-role="ved"]');
+ const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\\s*)Кабинет ВЭД(?:\\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"]');
  if(!cabinet)return;
+ cabinet.dataset.vedHomeScope='true';
  const nav=cabinet.querySelector('.cabinet-sidebar nav');
  if(!nav)return;
  for(const a of nav.querySelectorAll('a[href^="#"]')){
   const section=a.getAttribute('href').slice(1);
   const keep=section==='overview'||section==='approved-shipments';
   a.hidden=!keep;
+  if(!keep)a.style.setProperty('display','none','important');
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
   else{a.removeAttribute('aria-hidden');a.removeAttribute('tabindex')}
  }
@@ -38,6 +40,10 @@ function apply(){
    '<div class="ved-home-note"><strong>Что доступно в перевозке</strong><span>Исходная заявка владельца, вложенные документы, предложение победителя, маршрут и исполнение. Предложения остальных перевозчиков недоступны.</span></div>';
   panel.append(home);
   panel.dataset.vedHomeReady='true';
+ }
+ if(panel){
+  panel.dataset.vedHomeReady='true';
+  for(const child of panel.children)if(child.id!=='ved-home-20261108')child.style.setProperty('display','none','important');
  }
  if(cabinet.dataset.vedWorkspace!=='active-shipments-20261108')cabinet.dataset.vedWorkspace='active-shipments-20261108';
 }
