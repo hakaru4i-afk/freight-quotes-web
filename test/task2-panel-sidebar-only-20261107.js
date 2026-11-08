@@ -115,7 +115,7 @@
    }else{
      html+='<div class="t2-process-banner"><div><strong>Перевозка принята в работу.</strong><span>Доступны этапы, трекинг, документы, сообщения и закрытие перевозки.</span></div></div>';
      const savedTab=state.tab;
-     html+=tabs.filter(([key])=>state.role!=="ved"||key!=="completion").map(([key,title])=>{
+     html+=tabs.filter(([key])=>key!=="completion"||!["ved","logistic"].includes(state.role)).map(([key,title])=>{
        state.tab=key;
        return '<section class="t2-stage" data-t2-section="'+esc(key)+'"><h3>'+esc(title)+'</h3>'+renderTab(d,carrier,staff)+'</section>';
      }).join("");
@@ -280,7 +280,7 @@
    return "";
  }
  function taskCard(t){
-   const active=t.status!=="completed"&&t.status!=="cancelled",staff=state.role==="owner"||state.role==="logistic";
+   const active=t.status!=="completed"&&t.status!=="cancelled",staff=["owner","logistic","ved"].includes(state.role);
    return '<article class="t2-item"><div><strong>'+esc(t.task_type)+'</strong> '+badge(t.status)+'<p>'+esc(t.description)+'</p><small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
       (staff&&active?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">Завершить задачу ВЭД</button>':"")+'</article>';
  }
