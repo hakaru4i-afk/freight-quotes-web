@@ -13,6 +13,20 @@ function apply(){
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
   else{a.removeAttribute('aria-hidden');a.removeAttribute('tabindex')}
  }
+ let active=nav.querySelector('a[href="#approved-shipments"]');
+ if(!active){
+  active=document.createElement('a');
+  active.href='#approved-shipments';
+  active.className='ved-active-shipments-link';
+  active.textContent='Активные перевозки';
+  const overview=nav.querySelector('a[href="#overview"]');
+  if(overview)overview.insertAdjacentElement('afterend',active);
+  else nav.append(active);
+ }
+ active.hidden=false;
+ active.removeAttribute('aria-hidden');
+ active.removeAttribute('tabindex');
+ active.style.setProperty('display','flex','important');
  cabinet.dataset.vedWorkspace='active-shipments-20261108';
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;apply()})}
