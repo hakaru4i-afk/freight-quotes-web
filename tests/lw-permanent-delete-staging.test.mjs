@@ -28,13 +28,13 @@ test("production root entrypoint not used as staging asset", () => {
   assert.match(page, /src="\.\/app\.js\?v=/);
 });
 
-test("approved Owner command-03 still has full-width layout, role switch and SL", () => {
+test("approved Owner command-04 still has full-width layout, role switch and SL", () => {
   const css = readFileSync("test/owner-command-center-20261108.css", "utf8");
   const js = readFileSync("test/owner-command-center-20261108.js", "utf8");
   const nav = readFileSync("test/owner-workspace-compact-20261108.js", "utf8");
   const help = readFileSync("test/current-workspace-help-20261108.js", "utf8");
-  assert.ok(page.includes("owner-command-center-20261108.css?v=command-03"));
-  assert.ok(page.includes("owner-command-center-20261108.js?v=command-03"));
+  assert.ok(page.includes("owner-command-center-20261108.css?v=command-04"));
+  assert.ok(page.includes("owner-command-center-20261108.js?v=command-04"));
   assert.ok(css.includes("Exact full-bleed approved layout"));
   assert.ok(css.includes("max-width:none!important;width:100%!important;margin:0!important"));
   assert.ok(css.includes("grid-template-columns:220px minmax(0,1fr)!important"));
