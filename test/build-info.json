@@ -1,7 +1,7 @@
 {
   "environment": "staging",
   "version": "issue28-post-award-document-staging-20261107",
-  "releaseVersion": "1.19.21",
+  "releaseVersion": "1.19.22",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
@@ -361,6 +361,24 @@
     "isolatedQaApiVersion": 12,
     "isolatedQaApiPatched": true,
     "sourceBranch": "qa/task12-release-candidate-20261107",
+    "productionChanged": false
+  },
+  "helpRelease": {
+    "id": "WEB-30",
+    "releasedAt": "2026-11-08",
+    "scope": "general FAQ, contextual role instructions, visible field-level tips",
+    "languages": [
+      "ru",
+      "en",
+      "zh"
+    ],
+    "sourceFile": "current-workspace-help-20261108.js",
+    "sourceGitBlob": "cd5d79d74867609954fba2e327a28a2d536a3c30",
+    "cacheKey": "guide-03",
+    "documentationIssue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/30",
+    "syntax": "PASS",
+    "liveServed": "PENDING_GITHUB_ACTIONS",
+    "roleE2E": "PENDING",
     "productionChanged": false
   }
 }
