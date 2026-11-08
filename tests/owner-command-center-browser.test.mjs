@@ -32,7 +32,7 @@ async function setup(page,role="owner"){
   for(const existing of [...fixtureRoot.children])existing.style.display="none";
   fixtureRoot.append(preview);
   const app=document.createElement("div");app.className="cabinet-app staff-portal";app.setAttribute("data-cabinet-role",role);
-  app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+id+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
+  app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+id+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div class="bar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></div><div class="bar"><span class="cabinet-online"><i></i>Кабинет работает</span><button class="btn secondary" type="button">Выйти</button></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
   fixtureRoot.append(app);
  },{fixture,routes,role});
 }
