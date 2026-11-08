@@ -360,3 +360,12 @@
 #task2-root .t2-weekly-row.is-saved{background:#eef8f1!important}
 #task2-root .t2-weekly-row.is-pending{color:#53687d!important}
 @media(max-width:760px){#task2-root .t2-weekly-row{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-02: stable single-line desktop layout, no inherited field stacking */
+#task2-root form.t2-weekly-row{display:grid!important;grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important;align-items:end!important;gap:10px!important;width:100%!important;box-sizing:border-box!important}
+#task2-root form.t2-weekly-row label{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;width:100%!important}
+#task2-root form.t2-weekly-row label input{width:100%!important;max-width:100%!important;margin:0!important}
+#task2-root form.t2-weekly-row button{width:100%!important;white-space:nowrap!important}
+#task2-root .t2-weekly-tracking>.t2-muted{margin:0 0 4px!important}
+@media(min-width:761px){#task2-root form.t2-weekly-row{grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important}}
+@media(max-width:760px){#task2-root form.t2-weekly-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#task2-root form.t2-weekly-row>strong{grid-column:1/-1}#task2-root form.t2-weekly-row>button{grid-column:1/-1}}
