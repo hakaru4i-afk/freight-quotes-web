@@ -91,3 +91,18 @@
   :where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing)
     :is(button,.btn,.t2-btn,[role="button"]){transition:none!important}
 }
+
+/* LW-HOVER-02 · explicit Owner/Carrier unclassed buttons.
+   Avoid cascade ambiguity from older deeply nested form styles. */
+.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app.carrier-portal[data-cabinet-role="carrier"] .cabinet-content .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app[data-cabinet-role="carrier"] .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled) {
+ background:#1b405c!important;
+ background-image:none!important;
+ color:#f0f8ff!important;
+ border-color:#547b98!important;
+ filter:none!important;
+ text-shadow:none!important;
+ box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
+}
