@@ -39,4 +39,13 @@
 .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"] .overview-metric strong{font-size:25px!important}
 @media(max-width:990px){.test-cabinets.lw-preview-compact{grid-template-columns:1fr!important;gap:9px!important}.lw-preview-compact .cabinet-preview-info small{display:none!important}.staff-portal[data-cabinet-role="owner"] .cabinet-layout{grid-template-columns:205px minmax(0,1fr)!important}}
 @media(max-width:760px){.test-cabinets.lw-preview-compact{margin:8px!important;padding:12px!important}.lw-preview-compact .cabinet-role-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.lw-preview-compact .test-cabinet-actions .field{grid-template-columns:1fr!important;gap:4px!important}.staff-portal[data-cabinet-role="owner"] .cabinet-layout{grid-template-columns:1fr!important}.staff-portal[data-cabinet-role="owner"] .cabinet-content{padding:13px 12px 22px!important}.staff-portal[data-cabinet-role="owner"] .cabinet-topbar{padding:12px!important}.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"] .overview-welcome{padding:15px!important;gap:10px!important}.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"] .overview-orbit{width:87px!important;height:87px!important;min-width:87px!important}.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"] .overview-welcome h2{font-size:25px!important}}
-@media(max-width:390px){.lw-preview-compact .cabinet-role-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* Compact mobile role selector: all roles remain reachable by internal horizontal scroll. */
+@media(max-width:760px){
+  .test-cabinets.lw-preview-compact{gap:7px!important}
+  .lw-preview-compact .cabinet-role-grid{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;overflow-y:hidden!important;max-width:100%!important;min-width:0!important;padding:0 0 4px!important;gap:6px!important;scroll-snap-type:x proximity;scrollbar-width:thin}
+  .lw-preview-compact .cabinet-role-grid>.btn{flex:0 0 135px!important;max-width:135px!important;min-height:36px!important;scroll-snap-align:start}
+  .lw-preview-compact .issue47-owner-registers{gap:4px 12px!important}
+  .lw-preview-compact .issue47-owner-registers a{font-size:10px!important}
+}
+
