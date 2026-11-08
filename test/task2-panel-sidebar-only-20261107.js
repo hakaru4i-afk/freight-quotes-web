@@ -9,7 +9,7 @@
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
  const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
- const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]];
+ const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],,["history","История"]];
  const tips={
   number:"Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.",
   actual:"Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.",
@@ -242,11 +242,11 @@
      if(staff&&x.status!=="completed"){
        html+='<p>Если обязательные этапы завершены, ВЭД или Владелец может проверить возможность закрытия.</p>';
        html+='<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
-       html+=' <button class="t2-btn ghost" type="button" data-t2-tab="claims">Оформить претензию</button>';
+       
      }
      return html;
    }
-   if(state.tab==="claims"){
+   if(false && state.tab==="claims"){
      const acts=d.acts||[];
      let html='<p class="t2-muted">Претензия может закрываться только ВЭД/Владельцем, даже после согласования акта перевозчиком или указания номера контейнера.</p>';
      html+='<div class="t2-stack">'+acts.map(a=>'<div class="t2-item"><span><strong>Акт · '+esc(a.transport)+'</strong><br><small>Редакция '+a.revision+' · '+esc(a.state)+' · '+fmt(a.changed_at)+'</small><br>'+esc(a.data?.description||"")+'</span>'+
