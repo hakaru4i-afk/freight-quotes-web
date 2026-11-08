@@ -6,7 +6,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:""};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]];
  const tips={
@@ -175,9 +175,20 @@
          '</div>';
        html+=form("save",
          '<div class="t2-block-title">2. Где находится груз</div>'+
-         field("location","Текущее местонахождение (город, станция, терминал)","text",tips.location)+
-         field("location_date","Когда груз был в этом месте (Минск)","datetime-local",tips.date)+
-         field("location_comment","Комментарий к местонахождению (необязательно)","textarea",tips.comment)+
+         '<div class="t2-weekly-tracking">'+
+         (()=>{const raw=o.delivery_days??o.transit_days??o.eta_days??o.delivery_term_days??o.duration_days;
+           const days=Number(raw),valid=Number.isFinite(days)&&days>0&&days<=3650;
+           const planned=valid?Math.ceil(days/7):0;
+           const count=Math.max(planned,pts.length+1)+state.extraTrackingRows;
+           return '<p class="t2-muted">'+(valid?'Плановый срок: '+days+' дн. · Контрольных недель: '+planned:'Срок доставки в днях не указан. Уточните срок в предложении перевозчика для автоматического графика.')+
+             '. Каждая запись: местонахождение и дата. Остаток км рассчитывается по подтверждённому маршруту.</p>'+
+             Array.from({length:Math.min(count,525)},(_,i)=>{const p=pts[i];
+               return p?'<div class="t2-weekly-row is-saved"><strong>Неделя '+(i+1)+'</strong><span>'+esc(p.location_text||"—")+'</span><span>'+fmt(p.observed_at)+'</span><span>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</span></div>':
+               i===pts.length?'<form data-t2-form="weekly-point" class="t2-weekly-row"><strong>Неделя '+(i+1)+'</strong><label><span>Место</span><input name="location" required placeholder="Город, станция или порт"></label><label><span>Дата (Минск)</span><input name="location_date" type="datetime-local" required></label><button class="t2-btn" type="submit">Сохранить</button></form>':
+               '<div class="t2-weekly-row is-pending"><strong>Неделя '+(i+1)+'</strong><span>—</span><span>—</span><span>Ожидает предыдущую запись</span></div>';
+             }).join('')+
+             '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
+         })()+'</div>'+
          '<div class="t2-block-title">3. ПТО и таможня</div>'+
          (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
            '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
@@ -448,6 +459,13 @@
        if(!saved?.ok)return;
      }return;
    }
+   if(kind==="weekly-point"){
+     if(!String(data.location||"").trim()||!data.location_date){alertText("Укажите местонахождение и дату.",true);return;}
+     const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     try{await update("save",{fields:{location:String(data.location).trim(),location_date:minskISO(data.location_date)}});}
+     finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
+   }
    if(kind==="actual"){
      if(state.detail?.state?.actual_departure){alertText("Фактическая дата уже зафиксирована. Повторное сохранение запрещено.",true);return;}
      if(!data.actual_departure){alertText("Укажите фактическую дату отправления.",true);return;}
@@ -529,6 +547,7 @@
      const act=state.detail?.acts?.find(x=>x.id===hit.dataset.id);
      await update("act_response",{actId:hit.dataset.id,revision:act?.revision,response,reason});return;
    }
+   if(hit.dataset.t2Action==="extra-weekly-point"){state.extraTrackingRows++;show();return;}
    if(hit.dataset.t2Action==="finish"){await update("finish",{});return;}
    if(hit.dataset.t2Action==="take"){await update("take",{});return;}
  }
