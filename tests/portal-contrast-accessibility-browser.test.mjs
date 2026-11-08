@@ -121,7 +121,11 @@ test("shared component palettes / text and background at desktop and mobile",{ti
      const record=async(state,selectors)=>protocol.push({role,viewport,state,samples:await readable(page,selectors)});
      await record("default-selected-disabled",["#light-notice-copy","#nav-item","#nav-current","#error-copy","#warning-copy",
        "#field::placeholder","#disabled-button","#red-small","#red-copy","#red-label","#green-small","#green-copy",
-       "#green-label","#amber-cell","#neutral-cell","#red-button","#green-button"]);
+       "#green-label","#amber-cell","#neutral-cell"]);
+     for(const selector of ["#red-button","#green-button"]){
+      await page.locator(selector).scrollIntoViewIfNeeded();
+      await record("button-default",[selector]);
+     }
      await page.locator("#nav-item").hover();
      await record("menu-hover",["#nav-item"]);
      await page.locator("#answer-row").hover();
@@ -192,7 +196,16 @@ test("staging app role shells with synthetic sessions at both viewports",{timeou
       return nodes.map((_,i)=>'[data-contrast-qa="'+i+'"]');
      },menu);
      assert.ok(selectors.length,"role navigation has no visible text");
-     const samples=await readable(page,selectors);
+     const visible=await page.evaluate(selectors=>selectors.filter(selector=>{
+      const r=document.querySelector(selector).getBoundingClientRect();
+      return r.top>=0&&r.bottom<=innerHeight&&r.left>=0&&r.right<=innerWidth;
+     }),selectors);
+     const deferred=selectors.filter(selector=>!visible.includes(selector));
+     const samples=await readable(page,visible);
+     for(const selector of deferred){
+      await page.locator(selector).scrollIntoViewIfNeeded();
+      samples.push(...await readable(page,[selector]));
+     }
      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
      protocol.push({role,viewport,actualRole:await shell.first().getAttribute("data-cabinet-role"),samples,overflow});
      if(["owner","carrier","logistic","supplier","content"].includes(role))
