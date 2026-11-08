@@ -80,6 +80,9 @@ test("semantic text contrast in eight role cabinets / light alerts and dark tabl
      await page.goto("about:blank");
      await page.setContent(html(role));
      for(const styles of css)await page.addStyleTag({content:styles});
+     // Fixture injects CSS after DOM; real Pages parses linked styles before the DOM.
+     // Wait for the legacy nav color transition so sampling checks final contrast.
+     await page.waitForTimeout(280);
      await readable(page,"#light-notice-copy");
      await readable(page,"#nav-item");
      await page.locator("#answer-row").hover();
