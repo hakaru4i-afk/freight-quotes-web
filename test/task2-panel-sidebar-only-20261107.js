@@ -66,7 +66,7 @@
    const root=pane.querySelector("#"+eid);
    if(!root)return;
    const chosen=state.items.find(i=>i.order_code===state.selected),d=state.detail;
-   const heading='<header class="t2-heading"><div><h2>Исполнение перевозок</h2><p>Этапы перевозки, документы, трекинг, прибытие и завершение. Работа начинается после принятия выбранной заявки перевозчиком.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
+   const heading='<header class="t2-heading"><div><h2>'+(state.role==="ved"?"Активные перевозки":"Исполнение перевозок")+'</h2><p>Этапы перевозки, документы, трекинг, прибытие и завершение. Работа начинается после принятия выбранной заявки перевозчиком.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
    // No secondary menu: the cabinet's left navigation is the only navigation.
    let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
    if(!state.items.length){
@@ -78,6 +78,10 @@
     esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+workflowLabel(i))+'</option>').join("")+'</select></label></div>';
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
+   if(state.role==="ved" && (!started || x.status==="awaiting_take")){
+     root.innerHTML=heading+'<div class="t2-empty"><h3>Нет активных перевозок</h3><p>Перевозка появится после подтверждённого принятия победителем.</p></div>';
+     return;
+   }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
      readonly("Выбранный перевозчик",o.carrier_login)+
      readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Ожидает принятия":"В работе")+'</div>';
@@ -217,7 +221,22 @@
  }
  async function loadList(){
    const list=await get("");
-   state.role=list.role;state.items=list.items||[];
+   state.role=list.role;
+   const incoming=list.items||[];
+   if(state.role==="ved"){
+     // Defense in depth: VED must not display shipments pending carrier acceptance.
+     // The backend MUST enforce the same rule for list, detail and file endpoints.
+     const accepted=incoming.filter(item=>item.process_status!=="awaiting_take" &&
+       ["in_progress","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
+     const checked=[];
+     for(const item of accepted){
+       try{
+         const detail=await get("?order="+encodeURIComponent(item.order_code));
+         if(detail?.state && detail?.shipment?.carrier_login && detail.state.status!=="awaiting_take")checked.push(item);
+       }catch(_){/* inaccessible: do not display */ }
+     }
+     state.items=checked;
+   }else state.items=incoming;
    if(!state.items.some(o=>o.order_code===state.selected))state.selected=state.items[0]?.order_code||"";
    await loadDetail();
  }
