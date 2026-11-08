@@ -149,12 +149,12 @@ if(n++>800)break;
 if(["hidden","password","submit","button","reset"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries,.cabinet-sidebar,.language-control"))continue;
 if(!field.getClientRects().length)continue;
 const label=field.closest("label")||field.labels?.[0]||field.closest(".field,.form-field,.t2-field");
-const named=field.getAttribute("aria-label")||field.getAttribute("data-label")||field.placeholder||field.name||"";if(!label&&!named)continue;
+const named=field.getAttribute?.("aria-label")||field.getAttribute?.("data-label")||field.placeholder||field.name||"";if(!label&&!named)continue;
 let helper=field.nextElementSibling;if(!helper?.classList.contains("lw-field-help")){
 helper=document.createElement("small");helper.className="lw-field-help";field.insertAdjacentElement("afterend",helper);}
 const info=((label?.textContent||named).replace(helper.textContent,"")+" "+(field.name||"")+" "+(field.placeholder||"")).slice(0,260);
 const rule=H.find(row=>row[0].test(info));const hint=field.type==="checkbox"?(l==="ru"?"Отметьте после выполнения указанного условия.":l==="en"?"Check only when the stated condition is met.":"仅满足条件后勾选。"):field.type==="radio"?(l==="ru"?"Выберите соответствующий фактам вариант.":l==="en"?"Choose the correct option.":"选择符合实际情况的选项。"):(rule?rule[1][l==="ru"?0:l==="en"?1:2]:generic[l]);field.title=hint;
-if(helper.textContent!==hint)helper.textContent=hint; if(!helper.id)helper.id="lw-field-help-"+(++hintId);const described=(field.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean);if(!described.includes(helper.id))field.setAttribute("aria-describedby",[...described,helper.id].join(" "));
+if(helper.textContent!==hint)helper.textContent=hint; if(!helper.id)helper.id="lw-field-help-"+(++hintId);const described=(field.getAttribute?.("aria-describedby")||"").split(/\s+/).filter(Boolean);if(!described.includes(helper.id))field.setAttribute?.("aria-describedby",[...described,helper.id].join(" "));
 }}
 function tick(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;update()})}
 window.lwCurrentHelpEnabled=true;
