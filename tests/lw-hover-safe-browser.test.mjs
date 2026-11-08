@@ -10,7 +10,7 @@ async function hoverState(page,id){
   const st=getComputedStyle(el),after=getComputedStyle(el,"::after");
   return {filter:st.filter,bg:st.backgroundColor,image:st.backgroundImage,color:st.color,
     transform:st.transform,pseudo:after.display,content:after.content,hover:el.matches(":hover"),
-    roleClass:el.closest("[data-cabinet-role]")?.className,
+    roleClass:el.closest("[data-cabinet-role]")?.className,forcedColors:matchMedia("(forced-colors: active)").matches,forcedColorAdjust:st.forcedColorAdjust,
     darkSelector:el.matches(':is(.carrier-portal,.staff-portal[data-cabinet-role="owner"]) :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"])'),
     cssDebug:(()=>{const sheet=[...document.styleSheets].find(x=>x.href?.includes("lw-hover-safe-20261108.css"));let rs;try{rs=[...sheet.cssRules]}catch(e){return String(e)}return {href:sheet.href,number:rs.length,disabled:sheet.disabled,media:sheet.media.mediaText,node:sheet.ownerNode?.outerHTML?.slice(0,250),matches:rs.filter(x=>x.selectorText?.includes('button:not(.btn):not(.t2-btn)')).map(x=>x.cssText.slice(0,320))}})(),
     matchingStyles:(()=>{const a=[];for(const sheet of document.styleSheets){let rules;try{rules=[...sheet.cssRules]}catch(e){continue}
