@@ -133,6 +133,41 @@ designer:{ru:[["Куда прикреплять результат?","В наз�
 logistic:{ru:[["Можно выбирать победителя?","Нет. Победителя выбирает Владелец; задачи ВЭД в текущем цикле не создаются."]],en:[["Can I award a carrier?","No. Only the Owner selects a winner; no VED tasks in the active process."]],zh:[["可以选中标方吗？","不可以。只有所有者可选定；当前无外贸任务。"]]},
 certification:{ru:[["Какие документы доступны?","Только материалы назначенных вам задач в рамках предоставленных прав."]],en:[["Which files can I see?","Only files associated with assigned and authorized tasks."]],zh:[["可以访问哪些文件？","仅可访问已分配且已授权任务的文件。"]]}
 };
+const ownerNavigationGuide={
+ru:{
+title:"Карта разделов кабинета владельца · 08.11.2026",
+sections:[
+["Рабочий стол","Моя нагрузка: задачи, сроки и быстрые переходы. Кнопка «Новая заявка» на главной — только быстрый переход к той же форме, а не второй процесс."],
+["01 · Заявки и ставки","Новая заявка → Реестр заявок → Рассмотрение ставок → Сроки и ответы → Тендеры. «Рассмотрение» выбирает ставку; «Сроки и ответы» контролирует дедлайны и ответы."],
+["02 · Исполнение","Исполнение перевозок → Чаты по заявкам → Претензии и акты → Инциденты. Претензия относится к конкретной перевозке, журнал инцидентов — к учёту случаев."],
+["03 · Контрагенты","Поставщики и документы; Дизайн и контент. Это разные задания и документы, их не объединяем."],
+["04 · Контроль и аналитика","Аналитика и отчёты; Рейтинг и Service Level; SLA и отправки; Работа сайта. SLA контролирует рассылки и метрики, а не заменяет сроки в заявке."],
+["05 · Управление","Пользователи и доступ; Уровни доступа; Центр доработок. Первый раздел — учётные записи, второй — права, третий — замечания/разработки."],
+["Справка","Помощь / FAQ. Отдельная транспортная заявка скрыта из активного меню: её процесс отложен, исходный код сохранён."]
+]},
+en:{
+title:"Owner workspace navigation · 08 Nov 2026",
+sections:[
+["Workspace","My Workload: tasks, deadlines and shortcuts. New Request on the dashboard opens the same form, not another workflow."],
+["01 · Requests & quotes","New Request → Request Register → Offer Review → Deadlines & Replies → Tenders. Review selects rates; deadlines track responses."],
+["02 · Execution","Shipment Execution → Request Chats → Claims & Acts → Incidents. Claims belong to a shipment; incidents have a separate log."],
+["03 · Partners","Suppliers & Documents; Design & Content are separate authorized workflows."],
+["04 · Oversight & analytics","Analytics; Carrier SL; SLA & Dispatches; Site Monitor. SLA metrics do not replace request deadlines."],
+["05 · Administration","Users & Access; Access Levels; Improvement Center. Accounts, permissions and improvement reports are separate."],
+["Help","Help / FAQ. The separate transport application is deferred and hidden from the active menu; its sources remain preserved."]
+]},
+zh:{
+title:"所有者工作台导航 · 2026年11月8日",
+sections:[
+["工作台","我的工作量：任务、截止日期及快捷入口。首页的新询价按钮只打开同一表单，不会创建重复流程。"],
+["01 · 询价与报价","新询价 → 询价登记 → 报价评审 → 截止及答复 → 招标。报价评审用于选价，截止及答复用于监控响应。"],
+["02 · 运输执行","运输执行 → 询价聊天 → 索赔与凭证 → 事件登记。索赔针对具体运输，事件登记是独立日志。"],
+["03 · 合作伙伴","供应商及文件；设计及内容属于不同的授权流程。"],
+["04 · 分析与监控","分析报表；承运商 SL；SLA 与发送；网站监控。SLA 不替代询价截止时间。"],
+["05 · 管理","用户及访问；权限级别；改进中心。账户、权限和改进建议各自独立。"],
+["帮助","帮助与常见问题。独立运输申请已从当前菜单隐藏，功能留待后续开发。"]
+]}
+};
 const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
 let queued=false,hintId=0;
 function update(){
@@ -142,7 +177,7 @@ if(!box){box=document.createElement("section");box.id="lw-current-help";host.pre
 if(box.dataset.version!==key){box.dataset.version=key;
 box.innerHTML="<h2>"+escapeHtml(data.title)+"</h2><p>"+escapeHtml(data.flow)+"</p>"+
 (data.roles[r]?"<h3>"+escapeHtml((roleTitles[r]||[r,r,r])[l==="ru"?0:l==="en"?1:2])+" · "+escapeHtml(l==="ru"?"Инструкция по кабинету":l==="en"?"Role guide":"岗位操作指南")+"</h3><ol>"+data.roles[r].map(a=>"<li>"+escapeHtml(a)+"</li>").join("")+"</ol>":"")+(roleQuestions[r]?.[l]?"<h3>"+escapeHtml(l==="ru"?"FAQ по кабинету":l==="en"?"Role FAQ":"岗位常见问题")+"</h3>"+roleQuestions[r][l].map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join(""):"")+
-"<h3>FAQ</h3>"+data.faq.map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
+(r==="owner"?"<section class=\"lw-owner-guide\"><h3>"+escapeHtml(ownerNavigationGuide[l].title)+"</h3><dl>"+ownerNavigationGuide[l].sections.map(([section,body])=>"<dt>"+escapeHtml(section)+"</dt><dd>"+escapeHtml(body)+"</dd>").join("")+"</dl></section>":"")+"<h3>FAQ</h3>"+data.faq.map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
 const root=document.querySelector(".cabinet-app");if(!root)return;
 let n=0;for(const field of root.querySelectorAll("input,textarea,select")){
 if(n++>800)break;
