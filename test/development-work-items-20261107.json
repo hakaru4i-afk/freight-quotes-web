@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-11-07",
+  "updated_at": "2026-11-08",
   "environment": "staging",
   "production_untouched": true,
   "items": [
@@ -103,7 +103,34 @@
         "tests/issue28-workflow-separation.test.mjs",
         "tests/issue28-served-staging.test.mjs"
       ],
-      "qa_status": "code structural checks and JS syntax passed; GitHub Pages live proof and authorized roles end-to-end pending"
+      "qa_status": "code structural checks and JS syntax passed; GitHub Pages live proof and authorized roles end-to-end pending",
+      "active_policy_20261108": "Создание/согласование транспортной заявки перевозчиком и участие ВЭД в активном цикле временно отложены; документы и исторические разработки сохранены."
+    },
+    {
+      "id": "WEB-30",
+      "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/30",
+      "category": "development",
+      "name": "Общий FAQ, инструкции по кабинетам и понятные подсказки у каждого поля (RU/EN/ZH)",
+      "status": "staging_source_published_live_and_authorized_e2e_pending",
+      "release": "1.19.22 · тестовая",
+      "date": "2026-11-08",
+      "acceptance": [
+        "Общий FAQ не содержит обязательных транспортной заявки и ВЭД",
+        "Инструкции соответствуют действующей логике кабинетов",
+        "У каждого видимого заполняемого поля есть понятная подсказка",
+        "В Предложениях пояснены тип обращения, описание, статусы и дата выпуска",
+        "Все материалы RU/EN/ZH",
+        "Страница /test/ выдаёт актуальный JS без кеша",
+        "Проверен полный обход ролей и мобильная ширина 390px"
+      ],
+      "frontend_commits": [
+        "3ff5773727bbb3d7b12cccd058597d2ff5534599",
+        "9242e107b175003a9b1a15c521592aa30a0d1ecb"
+      ],
+      "frontend_asset": "test/current-workspace-help-20261108.js",
+      "frontend_asset_blob": "63186144ab06574c4a0c04309e9463c1e10db265",
+      "tests": "JavaScript parsed in V8; authenticated and live served tests pending",
+      "production_changed": false
     }
   ]
 }
