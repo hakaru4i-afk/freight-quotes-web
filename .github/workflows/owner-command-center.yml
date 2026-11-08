@@ -1,0 +1,76 @@
+name: Owner approved dark command center staging QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - "test/owner-command-center-20261108.js"
+      - "test/owner-command-center-20261108.css"
+      - "test/owner-command-hero-20261108.svg"
+      - "test/current-workspace-help-20261108.js"
+      - "test/index.html"
+      - "tests/owner-command-center.test.mjs"
+      - "tests/owner-command-center-browser.test.mjs"
+      - ".github/workflows/owner-command-center.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  code:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Dashboard source, permissions and data checks
+        run: node --test tests/owner-command-center.test.mjs
+  served:
+    needs: code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify exact assets served by staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..27}; do
+            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/index.html?check=$GITHUB_SHA" -o /tmp/owner-index.html || true
+            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-center-20261108.js?check=$GITHUB_SHA" -o /tmp/owner-js.js || true
+            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-center-20261108.css?check=$GITHUB_SHA" -o /tmp/owner-css.css || true
+            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-hero-20261108.svg?check=$GITHUB_SHA" -o /tmp/owner-hero.svg || true
+            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?check=$GITHUB_SHA" -o /tmp/owner-help.js || true
+            if grep -q 'owner-command-center-20261108.js?v=command-02' /tmp/owner-index.html 2>/dev/null \
+              && cmp -s test/owner-command-center-20261108.js /tmp/owner-js.js \
+              && cmp -s test/owner-command-center-20261108.css /tmp/owner-css.css \
+              && cmp -s test/owner-command-hero-20261108.svg /tmp/owner-hero.svg \
+              && cmp -s test/current-workspace-help-20261108.js /tmp/owner-help.js; then
+              echo "PASS exact dark Owner dashboard + hero + FAQ served by staging"
+              sha256sum /tmp/owner-js.js /tmp/owner-css.css /tmp/owner-help.js
+              exit 0
+            fi
+            echo "Awaiting Pages deployment for run $GITHUB_SHA (attempt $attempt)"
+            sleep 8
+          done
+          echo "::error::Published staging assets do not match source"
+          exit 1
+  browser:
+    needs: served
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Verify SL, navigation, role safety and visual screenshots
+        run: node --test tests/owner-command-center-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owner-command-center-screens
+          path: owner-command-center-*.png
+          if-no-files-found: ignore
