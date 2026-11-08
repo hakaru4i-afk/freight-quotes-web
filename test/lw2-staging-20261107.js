@@ -18,7 +18,15 @@
    return equals||nodes.find(n=>n.textContent.trim().toLowerCase().includes(label.toLowerCase()));
  }
  function go(name){
-   const mapped={orders:["Мои заявки","Заявки"],ships:["Мои перевозки","Исполнение перевозок"],feedback:["Предложения"]};
+   // Feedback is a separate development-request workflow, not carrier quotes.
+   // Never match the ambiguous word "Предложения" (also in "Мои предложения").
+   if(name==="feedback"){
+     const target=document.querySelector('.cabinet-sidebar nav a[href="#portal-feedback"],.cabinet-sidebar button[data-section="portal-feedback"],.carrier-sidebar a[href="#portal-feedback"]');
+     if(target){target.click();return;}
+     location.hash="#portal-feedback";
+     return;
+   }
+   const mapped={orders:["Мои заявки","Заявки"],ships:["Мои перевозки","Исполнение перевозок"]};
    const list=mapped[name]||[];
    for(const n of list){const b=findNav(n);if(b){b.click();return;}}
    const hashes={orders:"#carrier-orders",ships:"#approved-shipments",feedback:"#portal-feedback"};
