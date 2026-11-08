@@ -41,3 +41,40 @@ test("RU/EN/ZH locales retain document language on live staging portal",async()=
   }
  }finally{await browser.close();}
 });
+
+
+test("LW-PUBLIC-01 staging landing has exactly one visible sign-in and a globe",async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  for(const viewport of [{width:390,height:844},{width:1366,height:768}]){
+   const page=await browser.newPage({viewport});
+   const errors=[];page.on("pageerror",e=>errors.push(e.message));
+   const response=await page.goto(url+"?page=login",{waitUntil:"domcontentloaded",timeout:40000});
+   assert.equal(response?.status(),200);
+   await page.locator('.cycle-landing[data-lw-public="20261108"]').waitFor({timeout:25000});
+   const result=await page.evaluate(()=>{
+    const visible=e=>!!e.getClientRects().length&&getComputedStyle(e).visibility!=="hidden";
+    const loginControls=[...document.querySelectorAll('.cycle-landing button, .cycle-landing a')].filter(e=>visible(e)&&/^(Войти|Sign in|登录)/i.test((e.textContent||"").trim()));
+    return {
+     loginControls:loginControls.map(e=>({text:e.textContent.trim(),inForm:!!e.closest(".cycle-login form")})),
+     h1:document.querySelector(".cycle-hero h1")?.textContent?.trim(),
+     globe:visible(document.querySelector(".lw-globe")),
+     partner:visible(document.querySelector(".lw-partner-cta")),
+     overflowing:document.documentElement.scrollWidth>innerWidth+4,
+     loadingOldCTA:visible(document.querySelector(".cycle-hero-links .cycle-cta")),
+     loadingHeaderLogin:visible(document.querySelector(".cycle-header .cycle-signin-link")),
+    };
+   });
+   assert.equal(result.h1?.replace(/\s/g,""),"LogisticsWorkspace");
+   assert.equal(result.loginControls.length,1,"Visible duplicate login actions: "+JSON.stringify(result.loginControls));
+   assert.equal(result.loginControls[0].inForm,true,"Only remaining login action must be in form");
+   assert.equal(result.globe,true,"Glowing 3D globe missing");
+   assert.equal(result.partner,true,"Partnership section entry missing");
+   assert.equal(result.loadingOldCTA,false,"Old hero login CTA still visible");
+   assert.equal(result.loadingHeaderLogin,false,"Old header login CTA still visible");
+   assert.equal(result.overflowing,false,"Horizontal overflow at "+viewport.width);
+   assert.deepEqual(errors,[],"Browser errors at "+viewport.width);
+   await page.close();
+  }
+ } finally{await browser.close()}
+});
