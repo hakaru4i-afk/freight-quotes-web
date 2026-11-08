@@ -1,0 +1,74 @@
+name: Owner permanent deletion / staging smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - "test/app.js"
+      - "test/index.html"
+      - "test/current-workspace-help-20261108.js"
+      - "tests/owner-permanent-delete.test.mjs"
+      - ".github/workflows/owner-permanent-delete.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  code:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Verify registry, FAQ, permanent delete and syntax
+        run: node --test tests/owner-permanent-delete.test.mjs
+  served-staging:
+    needs: code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm exact live staging JS and HTML bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..30}; do
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?audit=$GITHUB_SHA" -o /tmp/lw-index.html || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/app.js?audit=$GITHUB_SHA" -o /tmp/lw-app.js || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?audit=$GITHUB_SHA" -o /tmp/lw-help.js || true
+            if grep -Fq 'app.js?v=fd2eb1f108c7' /tmp/lw-index.html 2>/dev/null \
+               && cmp -s test/app.js /tmp/lw-app.js \
+               && cmp -s test/current-workspace-help-20261108.js /tmp/lw-help.js; then
+              echo 'PASS: published staging app and FAQ exactly match repository'
+              sha256sum /tmp/lw-app.js /tmp/lw-help.js
+              exit 0
+            fi
+            sleep 8
+          done
+          echo 'FAIL: Pages is not serving the expected staging app'
+          exit 1
+  api-negative:
+    needs: code
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Check staging API health and unauthenticated deletion rejection
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api'
+          curl -fsSL --max-time 20 "$BASE/health" -o /tmp/lw-health.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('/tmp/lw-health.json'))
+          assert d.get('ok') is True and d.get('environment') == 'staging' and d.get('projectRef') == 'ibclzdkxiozbzmniiygv', d
+          print('PASS: staging health endpoint environment and project')
+          PY
+          code=$(curl -sS -o /tmp/lw-denied.json -w '%{http_code}' --max-time 20 \
+            -X POST "$BASE/api/registry" \
+            -H 'Origin: https://hakaru4i-afk.github.io' \
+            -H 'Content-Type: application/json' \
+            --data '{"kind":"request","id":"no-such-order","reason":"negative test","action":"delete"}')
+          test "$code" = 403 || { echo "FAIL: unauthenticated delete returned HTTP $code"; exit 1; }
+          echo 'PASS: unauthenticated request delete denied'
