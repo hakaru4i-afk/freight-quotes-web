@@ -1,0 +1,123 @@
+/* LW-CONTRAST-04 | 2026-11-08 | STAGING ONLY.
+   Fix unreadable text in Owner response monitoring and bid comparisons while
+   keeping the agreed dark workspaces, semantic decision colours and light forms.
+   Loaded AFTER role themes and hover fixes; no DOM/API/authorization changes. */
+
+/* Readable dark workspace tables in every role. The generic legacy rule
+   "tbody tr:hover{background:#f9fcfb}" caused white-on-white Owner rows. */
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"])
+  .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover {
+  background:#1b3b57 !important;color:#eef6ff !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"])
+  .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover > td {
+  background:#1b3b57 !important;color:#eef6ff !important;
+}
+/* Never apply a dark-row hover to explicitly light document surfaces. */
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover,
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover > td {
+  background:#e6f0eb !important;color:#1b3c30 !important;
+}
+
+/* Owner uses a light notice/warning on a dark cabinet, but its new shell
+   previously passed along white foreground text. Keep light alerts readable. */
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel :is(.notice,.warning,.error,.offer-legend) {
+  color:#234338 !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .warning {color:#63451d !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .error {color:#853025 !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel
+  :is(.notice,.warning,.error,.offer-legend) :is(p,span,small,.small,.quiet,b,strong,em):not(.btn) {
+  color:inherit !important;opacity:1 !important;
+}
+/* No white notice text after visiting Owner's dark overview. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-panel:not([data-section="overview"]) .notice a:not(.btn) {
+  color:#075f69 !important;text-decoration:underline;
+}
+
+/* Real offers: each scored row is deliberately pastel. Owner's global
+   dark-shell typography (.small,.quiet) must NOT bleed onto pastel cells.
+   Keep semantic backgrounds: red=unavailable, green=good/selected, etc. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td {
+  color:#20392f !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-unavailable > td {color:#622c2d !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-review > td {color:#4b380f !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-alternative > td {color:#283e51 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td
+  :is(p,.small,.quiet,small,time,span,strong,b,em,a):not(.btn):not(.offer-label):not(.badge) {
+  color:inherit !important;opacity:1 !important;
+  -webkit-text-fill-color:currentColor;
+}
+/* A label is a signal with its own readable foreground. */
+.cabinet-app[data-cabinet-role] .cabinet-panel :is(.offer-label-good,.offer-label-review,.offer-label-alternative,.offer-label-unavailable) {
+  opacity:1 !important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-good {color:#075532 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-review {color:#634300 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-alternative {color:#283e56 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-unavailable {color:#702222 !important;}
+
+/* Outcome badges are light surfaces even when placed on a dark table. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap td .badge {
+  background:#e5f0ed !important;color:#284b42 !important;
+  -webkit-text-fill-color:#284b42;opacity:1 !important;
+  border:1px solid #a9c8bf !important;
+}
+/* A dark CTA should never have dark text over dark blue on coloured rows. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):hover:not(:disabled) {
+  color:#fff !important;-webkit-text-fill-color:#fff !important;
+  background:#185d99 !important;border-color:#2a76b6 !important;
+  box-shadow:0 2px 7px #09274329 !important;text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:hover:not(:disabled) {
+  color:#f3f9ff !important;-webkit-text-fill-color:#f3f9ff !important;
+  background:#173d5b !important;border-color:#436e8d !important;
+  box-shadow:0 2px 7px #09274326 !important;text-shadow:none !important;
+}
+
+/* Dense tables, explanations and menu labels: small text must stay legible. */
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap th {
+  font-size:12px !important;font-weight:700 !important;line-height:1.5 !important;
+  letter-spacing:.015em !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap td {
+  font-size:13px;line-height:1.55;
+}
+.cabinet-app[data-cabinet-role] :is(.cabinet-sidebar nav a,.cabinet-topbar a,.cabinet-topbar button) {
+  text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]) {
+  color:var(--pr-nav-text,#c2d5e7) !important;opacity:1 !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]):hover {
+  color:#f5faff !important;
+}
+/* State is not removed from disabled controls. */
+.cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
+.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:focus-visible {
+  outline:2px solid #87d8ff !important;outline-offset:3px !important;
+}
+@media(max-width:480px){
+  .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap {
+    max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+}
