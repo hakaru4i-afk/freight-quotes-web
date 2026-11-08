@@ -9,7 +9,7 @@ const hero=readFileSync("test/owner-command-hero-20261108.svg","utf8");
 test("published Owner module is unique and staging-only",()=>{
  for(const name of ["owner-command-center-20261108.js","owner-command-center-20261108.css"])assert.equal(html.split(name).length-1,1,name);
  assert.match(html,/owner-command-center-20261108.js\?v=command-04/);
- assert.match(html,/owner-command-center-20261108.css\?v=command-05/);
+ assert.match(html,/owner-command-center-20261108.css\?v=command-06/);
  assert.ok(!html.includes("https://hakaru4i-afk.github.io/freight-quotes-web/?page="),"must not call production");
 });
 test("valid JS and SVG, roles and source-backed data only",()=>{
@@ -45,4 +45,13 @@ test("desktop mobile styling, owner only and original overview retained",()=>{
  assert.ok(css.includes("max-width:none!important;margin:0!important"),"remove centered dashboard width cap");
  assert.ok(js.includes('cab.classList.add("lw-cc-active")'),"Owner shell must survive tab navigation");
  assert.ok(js.includes("syncRolePanel(cab,true)"),"header role picker must stay mounted");
+});
+
+test("Owner group heading does not inherit the active-link cyan vertical stroke",()=>{
+ assert.match(css,/OWNER-COMMAND-06/);
+ assert.match(css,/\.lw-owner-nav>a\[data-lw-owner-group-start\]::before/);
+ const fix=css.slice(css.lastIndexOf("OWNER-COMMAND-06"));
+ for(const marker of ["bottom:auto!important","width:max-content!important","height:auto!important","background:none!important","box-shadow:none!important"]){
+  assert.ok(fix.includes(marker),"missing pseudo marker reset "+marker);
+ }
 });
