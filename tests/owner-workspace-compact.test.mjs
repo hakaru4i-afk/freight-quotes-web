@@ -56,7 +56,7 @@ test("role-safe grouping, no duplicate links, original hrefs and navigation pres
  assert.equal(links[5].dataset.lwOwnerGroupStart,"01 · 询价与报价");
 });
 test("owner FAQ explains menu hierarchy and distinctions RU EN ZH",()=>{
- for(const txt of ["Карта разделов кабинета владельца","Owner workspace navigation","所有者工作台导航","Рассмотрение ставок","Сроки и ответы","Претензии и акты","Инциденты","Пользователи и доступ","Уровни доступа","Транспортная заявка скрыта","ownerNavigationGuide[l]"])
+ for(const txt of ["Карта разделов кабинета владельца","Owner workspace navigation","所有者工作台导航","Рассмотрение ставок","Сроки и ответы","Претензии и акты","Инциденты","Пользователи и доступ","Уровни доступа","транспортная заявка скрыта","ownerNavigationGuide[l]"])
   assert.ok(help.includes(txt),txt);
  for(const txt of ["roleQuestions","lw-field-help","aria-describedby","owner:","carrier:","purchasing:","supplier:"])
   assert.ok(help.includes(txt),txt);
