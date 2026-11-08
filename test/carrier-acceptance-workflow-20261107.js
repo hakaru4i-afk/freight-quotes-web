@@ -35,7 +35,10 @@ function singleRoot(parent){
 function render(){
  const parent=node();if(!parent||!visible())return;
  const root=singleRoot(parent);
- if(!loaded){root.innerHTML='<p class="carrier-flow-loading" role="status">'+e(t().refresh)+'…</p>';return;}
+ // Do not show a giant empty "Обновить..." banner while the API loads.
+ // The normal "Мои заявки" refresh button remains available.
+ if(!loaded){root.hidden=true;root.innerHTML="";return;}
+ root.hidden=false;
  if(role!=="carrier"){root.remove();return;}
  const dict=t();
  const sorted=items.slice().sort((a,b)=>Number(stage(a)[0]==="awaiting")-Number(stage(b)[0]==="awaiting")).reverse();
