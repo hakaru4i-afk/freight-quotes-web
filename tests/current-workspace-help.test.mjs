@@ -20,7 +20,7 @@ test("current help parses and contains localized workflow and feedback guidance"
   for(const token of ["«Предложения»","«Мои перевозки»","Excel или WPS","运输申请目前暂缓","Transport-application drafting is deferred","field.type==="])
     assert.ok(source.includes(token),token);
   assert.match(source,/getClientRects/);
-  assert.match(source,/portal-feedback-root/,{message:"Portal-feedback forms should receive field help, not be skipped"});
+  assert.ok(!source.includes('field.closest("#lw-current-help,#lw-owner-inquiries,#portal-feedback-root")'),"Suggestions fields must not be excluded");
 });
 function mock(){
   const events={};
