@@ -57,6 +57,7 @@ test("carrier acceptance remains a single actionable panel through container rer
     });
     await page.waitForFunction(()=>document.querySelectorAll("#carrier-awarded-workflow").length===1);
     assert.equal(await page.locator("#carrier-awarded-workflow [data-flow-action='take']").count(),1,"one acceptance CTA");
+    await page.screenshot({path:"carrier-acceptance-singleton-"+viewport.width+".png",fullPage:true});
     await page.evaluate(()=>{location.hash="#overview"});
     await page.evaluate(()=>{location.hash="#carrier-orders"});
     await page.waitForFunction(()=>document.querySelectorAll("#carrier-awarded-workflow [data-flow-action='take']").length===1);
