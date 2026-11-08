@@ -1,11 +1,11 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-08T21:58:37.475Z",
+  "generatedAt": "2026-11-08T22:01:47.091Z",
   "environment": "isolated-ui-and-public-readonly-staging",
   "fullAuthorizedE2e": false,
   "warning": "Unit/source/browser-with-mocked-API results are NOT full authenticated staging E2E. No production writes. BLOCKED groups are not successful.",
-  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42527617048",
-  "commit": "03abd37d43dba0c2ac3692f81a6db62caf3470a6",
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42527829502",
+  "commit": "30c45f29426fb07ca70b4463ea020a8f2390ec75",
   "checks": {
     "PARTIAL": 26,
     "BLOCKED": 5,
@@ -439,151 +439,151 @@
       "file": "task1-create-form-browser.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 15323
+      "durationMs": 16325
     },
     {
       "file": "issue47-owner-cabinets.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 92
+      "durationMs": 118
     },
     {
       "file": "task12-role-robots.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 5324
+      "durationMs": 5832
     },
     {
       "file": "qa-anonymous-roles.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 9154
+      "durationMs": 6525
     },
     {
       "file": "issue47-help-locales.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 82
+      "durationMs": 102
     },
     {
       "file": "issue47-agreed-roles-and-owner-registers.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 90
+      "durationMs": 116
     },
     {
       "file": "qa-publication-gate.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 88
+      "durationMs": 115
     },
     {
       "file": "task12-real-api-security-negative.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 16138
+      "durationMs": 12700
     },
     {
       "file": "issue47-live-mobile.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 11109
+      "durationMs": 10745
     },
     {
       "file": "issue47-carrier-workspace-deadlines.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 130
+      "durationMs": 166
     },
     {
       "file": "issue47-carrier-round-status.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 99
+      "durationMs": 122
     },
     {
       "file": "issue47-carrier-xlsx.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 96
+      "durationMs": 111
     },
     {
       "file": "issue47-bid-edit-route.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 98
+      "durationMs": 115
     },
     {
       "file": "issue47-insurance-excel-import.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 94
+      "durationMs": 112
     },
     {
       "file": "issue47-task2-csv.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 90
+      "durationMs": 113
     },
     {
       "file": "issue47-legacy-csv-integrity.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 94
+      "durationMs": 115
     },
     {
       "file": "issue47-late-ui.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 104
+      "durationMs": 129
     },
     {
       "file": "task2-contrast.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 90
+      "durationMs": 104
     },
     {
       "file": "issue47-owner-optional-reason.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 91
+      "durationMs": 117
     },
     {
       "file": "issue28-workflow-separation.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 98
+      "durationMs": 118
     },
     {
       "file": "task2-execution-robots.test.mjs",
       "status": "BLOCKED",
       "exitCode": null,
-      "durationMs": 85010
+      "durationMs": 85011
     },
     {
       "file": "issue17-formal-document-ui.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 94
+      "durationMs": 120
     },
     {
       "file": "issue47-menu-clarity.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 98
+      "durationMs": 123
     },
     {
       "file": "issue47-task2-i18n.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 85
+      "durationMs": 102
     },
     {
       "file": "lw2-dashboard-browser.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 2083
+      "durationMs": 2377
     }
   ]
 }
