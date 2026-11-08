@@ -1,20 +1,32 @@
 {
-  "version": "owner-command-05-staging-20261108",
+  "version": "owner-command-06-staging-20261108",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "OWNER-COMMAND-05 · тестовая",
+    "version": "OWNER-COMMAND-06 · тестовая",
     "date": "2026-11-08",
-    "title": "Баннер владельца: детализированный транспорт вместо схематичных рисунков",
+    "title": "Удалена тонкая голубая полоса в левом меню владельца",
     "changes": [
-      "Заменена упрощённая векторная транспортная сцена в главном баннере кабинета владельца на ранее подготовленные детализированные изображения контейнеровоза, грузовика, поезда и самолёта; реальное изображение используется из /test/lw-approved-freight-20261108.jpg и /test/lw-approved-plane-20261108.jpg.",
-      "Сохранён утверждённый тёмный Owner Command Center, расположение текстов, кнопок и остальных блоков, включая Service Level.",
-      "Баннер адаптирован для широких и мобильных экранов, подложка текста затемнена для читаемости, верхний самолёт не блокирует интерактивные элементы.",
-      "Тест GitHub Actions #42493644228: исходники, точная выдача опубликованных файлов, Chromium на 2048/1440/390 px с проверкой фотоматериалов, SL, ролей и верстки — 3/3 jobs PASS. В браузерном тесте KPI и заявки — демонстрационные; авторизованная бизнес-приёмка Owner отдельно.",
-      "Публикация только в staging; production без изменений."
+      "Устранён конфликт CSS: глобальная подсветка активного пункта меню накладывалась на заголовок группы «01 · Заявки и ставки» и растягивала псевдоэлемент ::before в вертикальную бирюзовую полосу.",
+      "Для всех групп Owner сброшены наследуемые размеры и фон псевдоэлемента; названия групп и подсветка активной кнопки сохранены.",
+      "Исправление опубликовано в staging как owner-command-center-20261108.css?v=command-06. Остальной дизайн, баннер, SL, заявки и роли не изменялись.",
+      "GitHub Actions #42495521598: источник, побайтовая проверка GitHub Pages и браузерный тест Chromium 2048/1440/390 px — 3/3 PASS. Скриншот подтверждает отсутствие линии.",
+      "Синяя широкая полоса с иконками снаружи сайта относится к браузеру Opera и управляется настройками Opera, а не порталом."
     ]
   },
   "releases": [
+    {
+      "version": "OWNER-COMMAND-06 · тестовая",
+      "date": "2026-11-08",
+      "title": "Удалена тонкая голубая полоса в левом меню владельца",
+      "changes": [
+        "Устранён конфликт CSS: глобальная подсветка активного пункта меню накладывалась на заголовок группы «01 · Заявки и ставки» и растягивала псевдоэлемент ::before в вертикальную бирюзовую полосу.",
+        "Для всех групп Owner сброшены наследуемые размеры и фон псевдоэлемента; названия групп и подсветка активной кнопки сохранены.",
+        "Исправление опубликовано в staging как owner-command-center-20261108.css?v=command-06. Остальной дизайн, баннер, SL, заявки и роли не изменялись.",
+        "GitHub Actions #42495521598: источник, побайтовая проверка GitHub Pages и браузерный тест Chromium 2048/1440/390 px — 3/3 PASS. Скриншот подтверждает отсутствие линии.",
+        "Синяя широкая полоса с иконками снаружи сайта относится к браузеру Opera и управляется настройками Opera, а не порталом."
+      ]
+    },
     {
       "version": "OWNER-COMMAND-05 · тестовая",
       "date": "2026-11-08",
@@ -389,7 +401,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T15:06:00.000Z",
+  "updatedAt": "2026-11-08T15:38:00.000Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -558,7 +570,7 @@
     "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
   },
   "ownerCommandPatch": {
-    "id": "OWNER-COMMAND-05",
+    "id": "OWNER-COMMAND-06",
     "environment": "staging",
     "date": "2026-11-08",
     "approvedReference": "second owner screenshot; dark full-width command center",
@@ -568,7 +580,7 @@
       "9d1ad5807a0a1002a323a103e6b85b32bd7b180d"
     ],
     "guideCommit": "7f4a2ee1392ef972ee54adb804aba76464ba669c",
-    "indexCommit": "23bb66c332841c74a44e330fbbb4ab8178326dcc",
+    "indexCommit": "6f80e8b867b780449ec7a535415e6f05094c9edf",
     "checks": {
       "source": "PASS",
       "served": "PASS",
@@ -585,18 +597,24 @@
       "detailedHeroBrowser1440": "PASS",
       "detailedHeroBrowser390": "PASS",
       "detailedHeroBrowser2048": "PASS",
-      "browserMockDataOnly": true
+      "browserMockDataOnly": true,
+      "sidebarGroupMarker": "PASS",
+      "code": "PASS",
+      "browser2048": "PASS",
+      "browser1440": "PASS",
+      "browser390": "PASS"
     },
     "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42492023810",
     "productionChanged": false,
-    "releaseGate": "STAGING_DEPLOYED_VISUAL_APPROVAL_PENDING",
+    "releaseGate": "STAGING_DEPLOYED_OWNER_ACCEPTANCE_PENDING",
     "heroMode": "approved_photographic_transport",
     "heroAssets": [
       "lw-approved-freight-20261108.jpg",
       "lw-approved-plane-20261108.jpg"
     ],
-    "cssCommit": "7cec7ff04e04a436d65ccf5b3a85a9dda1c890a5",
-    "heroCache": "command-05",
-    "browserQaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42493644228"
+    "cssCommit": "c285c8167b21b27d7e7a95d4ba44296ed8ebf36f",
+    "heroCache": "command-06",
+    "browserQaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42495521598",
+    "cssBlob": "84eb6b9cee0b1aedc00ff29e551706f19bd4fc89"
   }
 }
