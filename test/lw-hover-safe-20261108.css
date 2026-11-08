@@ -1,0 +1,93 @@
+/* LW-HOVER-01 · 2026-11-08 · STAGING
+   Common, low-glare interaction system for every cabinet and login.
+   Loaded LAST after existing styles. Does not change actions or disabled state.
+   The previous global [data-cabinet-role] .btn::after white sweep was a source
+   of unreadable white-on-white highlights, particularly on dark cabinet cards. */
+
+:where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing,.test-cabinets)
+  :is(button,.btn,.t2-btn,[role="button"],input[type="submit"],input[type="button"]):hover:not(:disabled):not([aria-disabled="true"]) {
+  filter:none!important;
+  -webkit-filter:none!important;
+  opacity:1!important;
+  text-shadow:none!important;
+  transform:none!important;
+  box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease!important;
+}
+/* Remove the white shimmer overlay entirely. Preserve actual button labels/icons. */
+[data-cabinet-role] .btn::after,
+[data-cabinet-role] .btn:hover::after {
+  display:none!important;
+  content:none!important;
+}
+
+/* Primary buttons: preserve the role accent but stop hover from flashing white.
+   The --pr-on token ensures text stays legible against its own accent. */
+[data-cabinet-role] .btn:not(.secondary):not(.ghost):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:linear-gradient(115deg,
+    color-mix(in srgb,var(--pr-accent,#087f79) 91%,#092a42),
+    color-mix(in srgb,var(--pr-accent,#087f79) 79%,var(--pr-mix,#36566f)))!important;
+  color:var(--pr-on,#061c31)!important;
+  border-color:var(--pr-accent,#3783a8)!important;
+}
+[data-cabinet-role] .btn:is(.secondary,.ghost):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:color-mix(in srgb,var(--pr-surface,#17344c) 90%,var(--pr-tint,#355877))!important;
+  color:var(--pr-text,#e9f3ff)!important;
+  border-color:var(--pr-line,#45647e)!important;
+}
+/* Owner header buttons are secondary controls, not bright main call-to-actions. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-topbar .btn:hover:not(:disabled) {
+  background:#183c58!important;color:#eaf6ff!important;border-color:#547a99!important;
+}
+/* Ordinary unclassed buttons in dark cards must not become white rectangles. */
+:is(.carrier-portal,.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:#1b405c!important;
+  color:#f0f8ff!important;
+  border-color:#547b98!important;
+}
+/* Dark execution tabs and other T2 controls retain their active-state meaning. */
+.carrier-portal #task2-root .t2-tabs button:hover:not(:disabled):not(.active) {
+  background:#254a63!important;color:#f0f8ff!important;border-color:#628eaa!important;
+}
+.carrier-portal #task2-root .t2-tabs button.active:hover:not(:disabled) {
+  background:#176b53!important;color:#fff!important;border-color:#78c7a9!important;
+}
+/* Light panels inside otherwise dark carrier and owner workspaces. */
+#task2-root .t2-stage button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.compact-transport-document button:not(.btn):not(.t2-btn):hover:not(:disabled),
+#portal-feedback-root button:not(.btn):not(.t2-btn):hover:not(:disabled) {
+  background:#e6f0ec!important;color:#174b3a!important;border-color:#83ac9c!important;
+}
+#task2-root .t2-stage .t2-btn.ghost:hover:not(:disabled) {
+  background:#e5f1e9!important;color:#145b44!important;border-color:#85ae9b!important;
+}
+/* Keep login gold buttons golden, not dazzling white/yellow on hover. */
+.cycle-landing .cycle-login .auth-card form>.btn:hover:not(:disabled) {
+  background:linear-gradient(110deg,#e7a23b,#cb781c)!important;
+  color:#20170c!important;border-color:#edb15e!important;
+}
+.cycle-landing .cycle-role-tabs button:hover:not(:disabled):not([aria-selected="true"]) {
+  background:#283b50!important;color:#f0f7ff!important;border-color:#506d83!important;
+}
+/* The navigation highlight remains visible, but without glare or motion. */
+[data-cabinet-role] :is(.cabinet-sidebar nav a,.sw-sidebar nav button):hover {
+  filter:none!important;transform:none!important;text-shadow:none!important;
+  box-shadow:none!important;
+}
+#lw-owner-command :is(.lw-cc-kpi,.lw-cc-action):hover {
+  filter:none!important;
+  transform:none!important;
+  box-shadow:0 3px 10px rgba(0,13,26,.2)!important;
+}
+/* Accessible keyboard focus is not replaced with the hover outline. */
+:where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing)
+  :is(button,.btn,.t2-btn,[role="button"],a):focus-visible {
+  outline:2px solid #8ed6ff!important;
+  outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  :where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing)
+    :is(button,.btn,.t2-btn,[role="button"]){transition:none!important}
+}
