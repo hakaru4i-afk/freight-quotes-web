@@ -382,5 +382,28 @@
     "productionChanged": false,
     "liveProof": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42479181350",
     "roleLocaleFieldSmoke": "PASS"
+  },
+  "permanentDeletionPatch": {
+    "id": "LW-DELETE-01",
+    "environment": "staging",
+    "date": "2026-11-08",
+    "backendVersion": 77,
+    "backendSha256": "5967fcea31abbaacad86a21077f9c3ab2d7abacb13d8ae6673916c88d740f548",
+    "frontendCommit": "4f4b72f038e1f4c99bc88cb408cb7e20f797f736",
+    "frontendBlob": "fd2eb1f108c7e66ec8baad3de492b654b4ed6982",
+    "frontendCache": "fd2eb1f108c7",
+    "faqCommit": "68b57503ceea21d0908331b3051a98e63ee3c77d",
+    "checks": {
+      "source": "PASS",
+      "publishedBytes": "PASS",
+      "anonymousApiDenial": "PASS",
+      "sqlRollbackDryRun": "PASS",
+      "authenticatedOwnerDeletion": "PENDING",
+      "storagePurge": "PENDING",
+      "historicalHiddenCleanup": "NOT_RUN"
+    },
+    "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42487781435",
+    "productionChanged": false,
+    "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
   }
 }
