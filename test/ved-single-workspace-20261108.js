@@ -2,7 +2,7 @@
 (()=>{'use strict';
 let queued=false;
 function apply(){
- const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\\s*)Кабинет ВЭД(?:\\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"]');
+ const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\s*)Кабинет ВЭД(?:\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"]');
  if(!cabinet)return;
  cabinet.dataset.vedHomeScope='true';
  const nav=cabinet.querySelector('.cabinet-sidebar nav');
