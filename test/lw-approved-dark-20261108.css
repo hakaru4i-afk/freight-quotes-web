@@ -1,0 +1,121 @@
+
+/* LW-PUBLIC-02 — APPROVED DESIGN. Cinematic orange/graphite globe from the user's selected reference. Staging only. */
+body:has(.cycle-landing){background:#090d15!important;color:#f5f5f6!important}
+body:has(.cycle-landing) .language-bar{background:#090d15!important;max-width:1600px!important;padding:12px 30px 0!important}
+body:has(.cycle-landing) .language-control{background:#10151cf0!important;border:1px solid #654d37!important;border-radius:30px!important;color:#f6f6f6!important}
+body:has(.cycle-landing) .language-control button{color:#dddce1!important}
+body:has(.cycle-landing) .language-control button[aria-pressed="true"]{background:#ffa62c!important;color:#18120d!important;border-radius:14px!important;font-weight:800!important}
+.cycle-landing{color:#f5f6f7!important;width:calc(100% - 24px)!important;max-width:1600px!important;--cycle-lime:#ffa72a!important;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important}
+.cycle-header{padding:20px 30px 23px!important;gap:16px!important;background:#0a0d14!important;border-bottom:1px solid #a3763b47!important;border-radius:18px 18px 0 0!important}
+.cycle-brand{color:#f7f7f7!important;font-size:clamp(20px,2vw,27px)!important;letter-spacing:-.055em!important;font-weight:760!important;gap:13px!important;white-space:nowrap!important}
+.cycle-brand>span{display:block!important;width:48px!important;min-width:48px!important;height:32px!important;transform:none!important;background:linear-gradient(125deg,transparent 0 13%,#ffa428 13% 42%,transparent 42% 54%,#f9f4eb 54% 80%,transparent 80%)!important;border-radius:0!important;clip-path:polygon(0 0,100% 0,80% 100%,0 100%)!important;font-size:0!important}
+.cycle-brand>div{line-height:1.02!important}
+.cycle-brand small{display:none!important}
+.cycle-header nav{gap:30px!important;justify-content:flex-end!important;flex-wrap:wrap}
+.cycle-header nav a{color:#e2e2e4!important;font-weight:530!important;font-size:14px!important;white-space:nowrap}
+.cycle-header nav a:hover{color:#ffb451!important}
+.cycle-header .cycle-signin-link{display:none!important}
+.cycle-hero{display:grid!important;grid-template-columns:minmax(0,47%) minmax(0,25%) minmax(0,28%)!important;gap:0!important;position:relative!important;isolation:isolate!important;min-height:765px!important;overflow:hidden!important;margin:0!important;padding:65px 33px 112px!important;background:linear-gradient(115deg,#090c12 0%,#0e121a 58%,#090b11 100%)!important;border:0!important;border-radius:0 0 18px 18px!important;color:#f7f7f8!important;box-shadow:inset 0 12px 25px #0005!important}
+.cycle-hero::before{content:""!important;position:absolute!important;z-index:0!important;left:0!important;top:0!important;width:100%!important;height:100%!important;inset:auto!important;background:radial-gradient(ellipse at 21% 35%,#9d582b22 0%,transparent 45%),linear-gradient(90deg,transparent 48%,#0c0e1788 75%,#05060955)!important;opacity:1!important;pointer-events:none!important}
+.cycle-hero::after{content:""!important;position:absolute!important;z-index:1!important;left:0!important;bottom:92px!important;top:auto!important;right:0!important;width:100%!important;height:220px!important;border:0!important;border-radius:0!important;transform:none!important;background:url("./lw-approved-freight-20261108.jpg") center bottom / 100% 100% no-repeat!important;opacity:.99!important;pointer-events:none!important;filter:none!important}
+.lw-globe{position:absolute!important;display:block!important;z-index:1!important;pointer-events:none!important;left:-2%!important;top:1px!important;right:auto!important;width:53%!important;height:633px!important;aspect-ratio:auto!important;opacity:1!important;filter:drop-shadow(0 0 20px #ffae4d19)!important;background:url("./lw-approved-globe-20261108.jpg") center center / 100% 100% no-repeat!important}
+.lw-approved-plane{position:absolute;pointer-events:none;z-index:2;left:53%;top:345px;width:260px;height:145px;background:url("./lw-approved-plane-20261108.jpg") center/contain no-repeat;mix-blend-mode:screen;opacity:.94}
+.cycle-art{display:none!important}
+.cycle-intro{position:relative!important;z-index:4!important;grid-column:2!important;grid-row:1!important;align-self:start!important;max-width:none!important;min-width:0!important;padding:0 21px 0 0!important;pointer-events:none}
+.cycle-eyebrow{display:none!important}
+.cycle-intro h1{font-size:clamp(39px,3.55vw,59px)!important;line-height:1.03!important;letter-spacing:-.055em!important;margin:13px 0 27px!important;font-weight:780!important;color:#f7f6f7!important;max-width:100%!important;overflow-wrap:anywhere!important}
+.cycle-intro h1 span{display:block!important;color:#f7f6f7!important}
+.cycle-intro h1::after{content:"";display:inline-block;width:18px;height:29px;margin-left:12px;background:#ef871d;clip-path:polygon(35% 0,100% 0,61% 100%,0 100%);vertical-align:baseline}
+.cycle-lead{color:#babdc6!important;font-size:15px!important;line-height:1.55!important;max-width:330px!important;font-weight:430!important}
+.cycle-hero-links,.cycle-hero-links .lw-partner-cta,.cycle-hero-links .lw-partner-hint,.cycle-hero-links .cycle-cta{display:none!important}
+.cycle-login{grid-column:3!important;grid-row:1!important;align-self:start!important;z-index:5!important;width:100%!important;max-width:390px!important;min-width:0!important;margin:0!important;transform:none!important;border-radius:27px!important;background:linear-gradient(135deg,#29292acb,#17191cdd)!important;border:1px solid #c68b4f9c!important;box-shadow:0 0 26px #f9973242,0 12px 36px #0008,inset 0 0 38px #c66f1612!important;backdrop-filter:blur(12px)!important;color:#f8f7f8!important}
+.cycle-login-top{display:none!important}
+.cycle-login .auth-form-wrap{background:transparent!important;padding:30px 29px 25px!important}
+.cycle-login .auth-card{background:transparent!important;border:0!important;box-shadow:none!important}
+.cycle-login .auth-card h2{color:#f9f9f9!important;font-size:27px!important;line-height:1.15!important;letter-spacing:-.02em!important;font-weight:740!important;margin:7px 0 25px!important}
+.cycle-login .auth-card>.small{display:none!important}
+.cycle-login .auth-card .field{color:#c9cbd1!important;font-size:12px!important;gap:7px!important;font-weight:560!important}
+.cycle-login .auth-card label{color:#e5e5e8!important}
+.cycle-login .auth-card input{height:50px!important;min-height:50px!important;border-radius:11px!important;border:1px solid #56575e!important;box-shadow:inset 0 0 10px #0004!important;background:#202228!important;color:#fafafa!important;font-size:14px!important}
+.cycle-login .auth-card input::placeholder{color:#aeb0b5!important}
+.cycle-login .auth-card input:focus{outline:2px solid #f9a53b!important;outline-offset:1px!important}
+.cycle-login .auth-card form>.btn{min-height:54px!important;background:linear-gradient(110deg,#ffb23d,#ed861a)!important;border:1px solid #ffc369!important;border-radius:12px!important;color:#17130d!important;font-weight:800!important;font-size:16px!important;box-shadow:0 0 22px #fa922239!important}
+.cycle-login .auth-card form>.btn:hover{background:linear-gradient(110deg,#ffcc69,#ff9c22)!important}
+.cycle-login .auth-card a,.cycle-login .auth-card .section .btn{color:#ffb457!important}
+.cycle-login .auth-card .small,.cycle-login .auth-card .help-login{color:#afafb8!important}
+.cycle-stage-strip{position:absolute!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;z-index:5!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;height:93px!important;margin:0!important;padding:12px 4%!important;gap:0!important;border:0!important;border-top:1px solid #b48b5948!important;border-radius:0!important;background:linear-gradient(90deg,#0f1115ed,#111418ea)!important;backdrop-filter:blur(9px)!important;box-shadow:0 -10px 30px #0a0a0a68!important}
+.cycle-stage-strip>div{display:flex!important;align-items:center!important;justify-content:center!important;gap:16px!important;min-width:0!important;height:100%!important;border:0!important;border-right:1px solid #a5a6b040!important;border-radius:0!important;padding:0 12px!important;background:none!important;box-shadow:none!important;color:#f5f4f4!important}
+.cycle-stage-strip>div:last-child{border-right:0!important}
+.cycle-stage-strip>div:nth-child(3){display:none!important}
+.cycle-stage-strip>div>span,.cycle-stage-strip>div>i{display:none!important}
+.cycle-stage-strip>div>b{font-size:clamp(13px,1.45vw,20px)!important;line-height:1.3!important;font-weight:530!important;color:#eeeef1!important;max-width:190px!important}
+.cycle-stage-strip>div::before{font-family:Arial, sans-serif;font-size:31px;line-height:1;color:#f49a2a;display:block}
+.cycle-stage-strip>div:nth-child(1)::before{content:"◇"}
+.cycle-stage-strip>div:nth-child(2)::before{content:"⇄"}
+.cycle-stage-strip>div:nth-child(4)::before{content:"▱"}
+.lw-partners{background:#151c24!important;border-color:#614731!important;color:#e8e9ec!important;box-shadow:0 10px 30px #0003!important}
+.lw-partners h2{color:#fff!important}.lw-partners p{color:#b6bdca!important}
+.lw-partners .lw-partner-mark{color:#ffb04a!important;background:#4a3320!important}
+.cycle-process{background:#0c131e!important;border-radius:20px!important;margin-top:24px!important;padding:50px 30px!important}
+.cycle-process h2,.cycle-process h3,.cycle-process p{color:#eef1f5!important}
+.cycle-section-label{color:#ffad4a!important}
+.cycle-role-panel,.cycle-role-workspace{background:#151e2b!important;color:#ecedf2!important;border-color:#424d57!important}
+.cycle-role-panel p{color:#c6cbd1!important}
+.cycle-role-tabs button{color:#e6e7eb!important;background:#1c2634!important;border:1px solid #414750!important}
+.cycle-role-tabs button[aria-selected="true"]{background:#96561d!important;border-color:#f5a23b!important;color:#fff!important}
+.cycle-role-tags span{color:#ffcc86!important}
+.cycle-footer{color:#9da9b6!important}
+.cycle-footer a{color:#ffa73b!important}
+@media(max-width:1210px){
+ .cycle-header nav{gap:20px!important}
+ .cycle-hero{grid-template-columns:minmax(0,43%) minmax(0,28%) minmax(0,29%)!important;padding:45px 22px 104px!important;min-height:710px!important}
+ .lw-globe{width:58%!important;left:-8%!important;height:600px!important}
+ .cycle-intro h1{font-size:clamp(36px,4vw,51px)!important}
+ .cycle-lead{font-size:13px!important}
+ .cycle-login .auth-form-wrap{padding:22px!important}
+ .lw-approved-plane{left:50%;top:330px;width:185px;height:105px}
+ .cycle-hero::after{height:190px!important}
+}
+@media(max-width:880px){
+ .cycle-hero{grid-template-columns:minmax(0,1fr) 350px!important;gap:20px!important;min-height:680px!important;padding:45px 25px 105px!important}
+ .cycle-intro{grid-column:1!important;grid-row:1!important;z-index:4!important;padding:0 8px!important}
+ .cycle-login{grid-column:2!important;grid-row:1!important;z-index:5!important}
+ .lw-globe{left:-110px!important;top:100px!important;width:640px!important;height:530px!important;opacity:.45!important}
+ .lw-approved-plane{display:none!important}
+ .cycle-hero::after{height:175px!important}
+}
+@media(max-width:760px){
+ body:has(.cycle-landing) .language-bar{padding:10px 12px 0!important}
+ .cycle-landing{width:calc(100% - 16px)!important}
+ .cycle-header{padding:14px 16px!important;gap:10px!important;border-radius:14px 14px 0 0!important}
+ .cycle-brand{font-size:19px!important}
+ .cycle-brand>span{width:34px!important;min-width:34px!important;height:23px!important}
+ .cycle-header nav{gap:8px!important}
+ .cycle-header nav a:not([data-lw-cooperation]){display:none!important}
+ .cycle-header nav a[data-lw-cooperation]{font-size:11px!important}
+ .cycle-hero{display:flex!important;flex-direction:column!important;min-height:815px!important;gap:14px!important;padding:28px 17px 97px!important}
+ .cycle-intro{width:100%!important;padding:0!important;z-index:4!important}
+ .cycle-intro h1{font-size:clamp(39px,11vw,60px)!important;max-width:440px!important;margin:5px 0 14px!important}
+ .cycle-intro h1::after{height:18px;width:12px;margin-left:7px}
+ .cycle-lead{font-size:13px!important;line-height:1.45!important;max-width:370px!important}
+ .lw-globe{top:100px!important;left:-155px!important;width:610px!important;height:530px!important;opacity:.4!important}
+ .cycle-login{position:relative!important;align-self:center!important;width:100%!important;max-width:420px!important;margin:0!important;z-index:5!important}
+ .cycle-login .auth-form-wrap{padding:20px!important}
+ .cycle-login .auth-card h2{font-size:24px!important;margin:4px 0 14px!important}
+ .cycle-login .auth-card input{height:44px!important;min-height:44px!important}
+ .cycle-login .auth-card form>.btn{min-height:47px!important}
+ .cycle-hero::after{height:150px!important;bottom:75px!important;opacity:.83!important}
+ .cycle-stage-strip{height:75px!important;padding:8px 5px!important}
+ .cycle-stage-strip>div{gap:5px!important;padding:0 4px!important}
+ .cycle-stage-strip>div::before{font-size:18px!important}
+ .cycle-stage-strip>div>b{font-size:11px!important;max-width:100px!important}
+ .lw-partners{margin:16px 0!important;padding:16px!important}
+ .cycle-process{padding:20px 15px!important}
+}
+@media(max-width:390px){
+ .cycle-header{padding:12px 10px!important}
+ .cycle-brand{font-size:17px!important}
+ .cycle-hero{padding-left:13px!important;padding-right:13px!important}
+ .cycle-intro h1{font-size:40px!important}
+}
+@media(prefers-reduced-motion:reduce){.lw-approved-plane,.lw-globe{animation:none!important}}
