@@ -10,17 +10,16 @@ export async function calculateMapDistances(route,{signal,fetchImpl=fetch}={}){
  for(let i=0;i<legs.length;i++){
   const a=stops[i].position,b=stops[i+1].position;
   if(!valid(a)||!valid(b)){legs[i].reason='COORDINATES_MISSING';continue}
-  if(a.approximate||b.approximate){legs[i].reason='EXACT_ADDRESS_REQUIRED';continue}
-  if(a.lat===b.lat&&a.lng===b.lng){legs[i]={...legs[i],status:'calculated',km:0,reason:null,source:'identical coordinates'};continue}
+  if(a.lat===b.lat&&a.lng===b.lng){legs[i]={...legs[i],status:'calculated',km:0,reason:null,estimated:!!(a.approximate||b.approximate),source:'identical coordinates'};continue}
   try{
    const coords=`${a.lng},${a.lat};${b.lng},${b.lat}`;
    const response=await fetchImpl(`${ROUTER}/route/v1/driving/${coords}?overview=false&steps=false`,{signal});
    if(!response.ok)throw Error('ROUTER_HTTP_'+response.status);
    const data=await response.json(),meters=data?.routes?.[0]?.distance;
    if(data.code!=='Ok'||!Number.isFinite(meters)||meters<0)throw Error('NO_ROUTE');
-   knownMeters+=meters;legs[i]={...legs[i],status:'calculated',km:Math.round(meters/10)/100,reason:null,source:'OSRM road network (demo)'};
+   knownMeters+=meters;legs[i]={...legs[i],status:'calculated',km:Math.round(meters/10)/100,reason:null,estimated:!!(a.approximate||b.approximate),source:'OSRM road network (demo)'};
   }catch(error){if(signal?.aborted)throw error;legs[i].reason='ROUTER_UNAVAILABLE'}
  }
  const complete=legs.every(x=>x.status==='calculated');
- return {status:complete?'complete':'partial',totalKm:complete?Math.round(knownMeters/10)/100:null,knownKm:Math.round(knownMeters/10)/100,legs,source:'OSRM road network (demo)',calculatedAt:new Date().toISOString()};
+ return {status:complete?'complete':'partial',estimated:legs.some(x=>x.estimated),totalKm:complete?Math.round(knownMeters/10)/100:null,knownKm:Math.round(knownMeters/10)/100,legs,source:'OSRM road network (demo)',calculatedAt:new Date().toISOString()};
 }
