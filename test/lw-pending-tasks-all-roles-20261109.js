@@ -66,6 +66,11 @@ async function fetchTask2(role){
  if(!Array.isArray(d.items))throw Error("Unexpected shipment list");
  const rows=d.items.filter(x=>x&&x.order_code&&x.process_status!=="completed");
  const tasks=[],errors=[];
+ let assignedLogin="";
+ if(role==="logistic"){
+  try{const access=await get("/api/access");assignedLogin=String(access.access?.login||"").trim().toLowerCase();}
+  catch(_){errors.push("Не удалось проверить персональные назначения");}
+ }
  for(const x of rows){
   if(role==="carrier"&&x.process_status==="awaiting_take"){
    tasks.push(makeTask("take:"+x.order_code,word("take"),x.registration_no||x.order_code,"approved-shipments",x.order_code,x.created));
@@ -85,7 +90,8 @@ async function fetchTask2(role){
    for(const t of Array.isArray(d.tasks)?d.tasks:[]){
     if(!isOpen(t.status))continue;
     if(role==="logistic"){
-     if(t.assigned_role!=="logistic"||t.assigned_login||!docTasks.has(t.task_type))continue;
+     if(t.assigned_role!=="logistic"||!docTasks.has(t.task_type))continue;
+     if(t.assigned_login&&String(t.assigned_login).toLowerCase()!==assignedLogin)continue;
      tasks.push(makeTask("ved:"+t.id,word("ved"),(x.registration_no||x.order_code)+" · "+(t.description||t.task_type),"approved-shipments",x.order_code,t.created_at));
     }else if(role==="carrier"){
      if(t.assigned_role!=="carrier"||t.task_type!=="container_number")continue;
