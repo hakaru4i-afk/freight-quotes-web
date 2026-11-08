@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {chromium} from "playwright";
+import {readFileSync} from "node:fs";
 const URL="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const roles=["owner","carrier","logistic","supplier","designer","content_manager","purchasing_manager","certification"];
 async function hoverState(page,id){
@@ -12,7 +13,7 @@ async function hoverState(page,id){
     transform:st.transform,pseudo:after.display,content:after.content,hover:el.matches(":hover"),
     roleClass:el.closest("[data-cabinet-role]")?.className,forcedColors:matchMedia("(forced-colors: active)").matches,forcedColorAdjust:st.forcedColorAdjust,
     darkSelector:el.matches(':is(.carrier-portal,.staff-portal[data-cabinet-role="owner"]) :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"])'),
-    cssDebug:(()=>{const sheet=[...document.styleSheets].find(x=>x.href?.includes("lw-hover-safe-20261108.css"));let rs;try{rs=[...sheet.cssRules]}catch(e){return String(e)}return {href:sheet.href,number:rs.length,disabled:sheet.disabled,media:sheet.media.mediaText,node:sheet.ownerNode?.outerHTML?.slice(0,250),matches:rs.filter(x=>x.selectorText?.includes('button:not(.btn):not(.t2-btn)')).map(x=>x.cssText.slice(0,320))}})(),
+    cssDebug:(()=>{const sheet=[...document.styleSheets].at(-1);let rs;try{rs=[...sheet.cssRules]}catch(e){return String(e)}return {inline:true,number:rs.length,matches:rs.filter(x=>x.selectorText?.includes('button:not(.btn):not(.t2-btn)')).map(x=>x.cssText.slice(0,320))}})(),
     matchingStyles:(()=>{const a=[];for(const sheet of document.styleSheets){let rules;try{rules=[...sheet.cssRules]}catch(e){continue}
       for(const rule of rules){try{if(rule.selectorText&&el.matches(rule.selectorText)&&(rule.style?.getPropertyValue('background')||rule.style?.getPropertyValue('background-color')||rule.style?.getPropertyValue('color'))){a.push({selector:rule.selectorText.slice(0,150),background:rule.style.background,backgroundColor:rule.style.backgroundColor,color:rule.style.color,priority:rule.style.getPropertyPriority('background'),source:sheet.href?.split('/').at(-1)})}}catch(e){}}
     }return a.slice(-20)})()};
@@ -24,8 +25,11 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport});
    try{
-    await page.goto(URL+"?qa=lw-hover-01",{waitUntil:"domcontentloaded",timeout:45000});
-    await page.waitForFunction(()=>[...document.styleSheets].some(x=>x.href?.includes("lw-hover-safe-20261108.css")),{timeout:20000});
+    // Isolated DOM: the portal's own MutationObservers otherwise delete synthetic
+    // feedback panels. The served step separately verifies the exact CSS on Pages.
+    await page.goto("about:blank");
+    await page.addStyleTag({content:readFileSync("test/style.css","utf8")});
+    await page.addStyleTag({content:readFileSync("test/lw-hover-safe-20261108.css","utf8")});
     await page.evaluate(roles=>{
       const root=document.getElementById("root");if(root)root.style.display="none";
       const box=document.createElement("div");box.id="hover-qa-fixture";
