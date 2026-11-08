@@ -1,4 +1,4 @@
-/* LW-GUIDE-01: current role FAQ and inline visible field help, staging only. */
+/* LW-GUIDE-02: current role FAQ and inline visible field help, staging only. */
 (()=>{"use strict";
 const DATA={
 ru:{
@@ -12,12 +12,14 @@ faq:[
 ["Как работать с документами?","Загружайте файлы в конкретный заказ/заявку, проверяйте их сохранение и скачивание. Чужие файлы недоступны."],
 ["Чем отличаются номера?","TR — неизменный регистрационный номер. Номер заказа компании, номер заказа поставщика и номера Bitrix — разные поля."],
 ["Где транспортная заявка и ВЭД?","Создание транспортной заявки отложено. Автоматические задачи ВЭД исключены из текущего активного сценария."],
-["Как сообщить об ошибке?","Сохраните номер заявки, роль, действие, время и скриншот; после исправления в staging повторите тот же шаг."],
+["Как сообщить об ошибке?","Откройте «Предложения», выберите «Исправление», «Доработка» или «Разработка», опишите экран и ожидаемый результат. Владелец изменит статус в «Центре доработок»."],
+["Как заполнить Excel-шаблон?","Скачайте шаблон в форме, заполните колонки в Excel или WPS, загрузите файл и проверьте перенос. Импорт не отправляет ставку: после него нажмите штатную кнопку отправки."],
+["Что означают статусы предложений?","Отправлено → Прочитано → Оценено → В работе → Выпуск (с датой) → Завершено. Возможен «Отказано в разработке». Завершение отмечают после проверки."],
 ["Как новому партнёру связаться с компанией?","На публичной странице есть форма «Сотрудничество». Владелец получает обращение и отдельно решает вопрос о доступе."]
 ],
 roles:{
 owner:["Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","Просматривайте обращения потенциальных партнёров в «Помощь / FAQ»."],
-carrier:["Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу», затем фактический выход, контрольные точки и файлы.","Проигравшие не исполняют перевозку."],
+carrier:["Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу» в «Мои заявки», затем «Мои перевозки» для исполнения, трекинга и файлов. Транспортная заявка сейчас отложена.","Проигравшие не исполняют перевозку.","Для обращения по сайту откройте «Предложения», выберите тип и напишите описание."],
 logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не утверждайте ставку вместо Владельца; задачи ВЭД пока не создаются."],
 supplier:["Откройте назначенный заказ поставщика.","Загрузите запрошенные документы, укажите фактическую готовность, если поле доступно.","При запросе добавьте фото погрузки и проверьте сохранение.","Не используйте чужие заявки; о недоступных полях сообщите Владельцу."],
 designer:["Откройте назначенные задания, если раздел доступен.","Проверьте материалы товара и требования.","Прикрепите результат и отметьте выполнение через доступные элементы."],
@@ -35,12 +37,14 @@ faq:[
 ["How do files work?","Upload files to their request/order and verify saving and downloads. Other users' private files are restricted."],
 ["Which numbers matter?","TR registration, company order, supplier order and Bitrix tasks are separate references."],
 ["Transport application and foreign trade?","The transport application is deferred and foreign-trade tasks are excluded from the active workflow."],
-["Found a bug?","Provide role, request number, action, timestamp and screenshot; re-test after the staging fix."],
+["Found a bug?","Open Suggestions, select Fix, Improvement or Development, and describe the screen and expected result. The Owner processes it in Improvement Center."],
+["How do I use the Excel template?","Download the form template, fill separate columns in Excel or WPS, upload and review the transfer. Import does not submit an offer; press Submit afterwards."],
+["What are suggestion statuses?","Submitted → Read → Evaluated → In progress → Release (with a date) → Completed, or Rejected. Completion requires verification."],
 ["How do new partners join?","Use the public Partnership form. The Owner receives requests and grants accounts separately."]
 ],
 roles:{
 owner:["Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner inquiries in Help / FAQ."],
-carrier:["Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If selected, accept execution and update tracking and documents.","Unselected carriers cannot execute."],
+carrier:["Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If awarded, accept in My Requests, then use My Shipments for execution, tracking and files. Transport-application drafting is deferred.","Unselected carriers cannot execute.","Report portal issues using the Suggestions form."],
 logistic:["Review permitted requests and offers.","Check route, timing and files.","Do not select the winner; no active foreign-trade handoff."],
 supplier:["Open assigned orders.","Enter readiness and attach documents where enabled.","Attach loading photos if requested.","Report unavailable fields to the Owner."],
 designer:["Open assigned tasks.","Check materials and instructions.","Upload output and mark completed where enabled."],
@@ -58,12 +62,14 @@ faq:[
 ["如何上传文件？","上传到对应订单并确认保存，不得查看他人的受限文件。"],
 ["编号有什么区别？","TR 登记号、公司订单号、供应商订单号和 Bitrix 任务编号各不相同。"],
 ["运输申请和外贸任务呢？","运输申请暂缓，外贸任务已从当前流程移除。"],
-["发现问题怎么办？","提供角色、申请号、操作、时间和截图，修复后重测。"],
+["发现问题怎么办？","在“建议”中选择修复、改进或开发，描述页面和期望结果。所有者在改进中心处理。"],
+["如何使用 Excel 模板？","下载表格模板，在 Excel 或 WPS 中逐列填写，上传后检查。导入不会自动提交报价，还需要点击提交。"],
+["建议状态如何变化？","已提交 → 已阅读 → 已评估 → 处理中 → 发布（附日期）→ 已完成；也可能被拒绝。验证后才能标记完成。"],
 ["如何成为合作伙伴？","使用公开合作表单；负责人审核后单独开通账号。"]
 ],
 roles:{
 owner:["创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在帮助栏目查看合作申请。"],
-carrier:["打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中选后接单、更新跟踪和文件。","未中选不能执行运输。"],
+carrier:["打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中标后在“我的申请”接单，在“我的运输”处理追踪和文件；运输申请目前暂缓。","未中选不能执行运输。","通过“建议”提交网站修复或改进要求。"],
 logistic:["查看权限内的报价和申请。","核对路线、时效和文件。","不可代替负责人选择报价。"],
 supplier:["打开分配的订单。","在可用字段填写备货时间和文件。","按要求上传装货照片。","向负责人反馈缺失功能。"],
 designer:["查看指定设计任务。","核对产品资料。","提交材料和结果。"],
@@ -99,6 +105,11 @@ const H=[
 [/вложени|файл|документ|upload|file|附件|文件/,["Загрузите документ именно этого заказа; проверьте результат.","Upload this order's document and verify saving.","上传对应订单文件并确认保存。"]],
 [/фото|photo|图片/,["Чёткое фото фактической погрузки или товара.","Clear actual loading/product photo.","清晰的实际装货照片。"]],
 [/контакт|contact|联系人/,["Имя и рабочий телефон/email ответственного.","Contact name and reachable email/phone.","联系人及可用电话或邮箱。"]],
+[/тип обращения|request.?type|category|类别/,["Выберите «Доработка», «Исправление» или «Разработка».","Choose Improvement, Fix or Development.","选择改进、修复或开发类型。"]],
+[/описани|description|说明/,["Опишите экран, действие, ошибку и ожидаемый результат без паролей.","Describe the screen, action, problem and expected result; no passwords.","描述页面、操作、问题和期望结果，不要提供密码。"]],
+[/статус|status|状态/,["Укажите фактический статус; «Завершено» — только после проверки.","Select actual status; mark Completed only after verification.","选择实际状态；仅验证后标记完成。"]],
+[/дата выпуска|release.?date|发布日期/,["Укажите назначенную дату публикации обновления.","Enter the scheduled release date.","填写已安排的发布日期。"]],
+[/срок|date|日期/,["Проверьте дату, часовой пояс и является ли срок плановым или фактическим.","Check date, time zone, and whether planned or actual.","核对日期、时区及计划/实际类型。"]],
 [/коммент|примечан|note|备注/,["Только фактическое пояснение, без паролей.","Relevant factual note, no passwords.","实际说明，不要填写密码。"]]
 ];
 const lang=()=>{let l=(document.documentElement.lang||"ru").toLowerCase();return l.startsWith("en")?"en":l.startsWith("zh")?"zh":"ru"};
@@ -117,14 +128,14 @@ box.innerHTML="<h2>"+escapeHtml(data.title)+"</h2><p>"+escapeHtml(data.flow)+"</
 const root=document.querySelector(".cabinet-app");if(!root)return;
 let n=0;for(const field of root.querySelectorAll("input,textarea,select")){
 if(n++>800)break;
-if(["hidden","password","submit","button","radio","checkbox"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries,#portal-feedback-root"))continue;
+if(["hidden","password","submit","button"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries"))continue;
 if(!field.getClientRects().length)continue;
 const label=field.closest("label")||field.labels?.[0]||field.closest(".field,.form-field,.t2-field");
 if(!label)continue;
 let helper=field.nextElementSibling;if(!helper?.classList.contains("lw-field-help")){
 helper=document.createElement("small");helper.className="lw-field-help";field.insertAdjacentElement("afterend",helper);}
-const info=(label.textContent+" "+field.name+" "+field.placeholder).slice(0,260);
-const rule=H.find(row=>row[0].test(info)),hint=rule?rule[1][l==="ru"?0:l==="en"?1:2]:generic[l];
+const info=(label.textContent.replace(helper.textContent,"")+" "+(field.name||"")+" "+(field.placeholder||"")).slice(0,260);
+const rule=H.find(row=>row[0].test(info));const hint=field.type==="checkbox"?(l==="ru"?"Отметьте после выполнения указанного условия.":l==="en"?"Check only when the stated condition is met.":"仅满足条件后勾选。"):field.type==="radio"?(l==="ru"?"Выберите соответствующий фактам вариант.":l==="en"?"Choose the correct option.":"选择符合实际情况的选项。"):(rule?rule[1][l==="ru"?0:l==="en"?1:2]:generic[l]);field.title=hint;
 if(helper.textContent!==hint)helper.textContent=hint;
 }}
 function tick(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;update()})}
