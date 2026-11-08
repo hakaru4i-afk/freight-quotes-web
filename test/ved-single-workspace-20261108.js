@@ -10,6 +10,7 @@ function apply(){
  for(const a of nav.querySelectorAll('a[href^="#"]')){
   const section=a.getAttribute('href').slice(1);
   const keep=section==='overview'||section==='approved-shipments';
+  if(section==='approved-shipments')a.textContent='Активные перевозки';
   a.hidden=!keep;
   if(!keep)a.style.setProperty('display','none','important');
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
@@ -25,6 +26,8 @@ function apply(){
   if(overview)overview.insertAdjacentElement('afterend',active);
   else nav.append(active);
  }
+ active.textContent='Активные перевозки';
+ for(const el of active.querySelectorAll('span'))el.textContent='Активные перевозки';
  active.hidden=false;
  active.removeAttribute('aria-hidden');
  active.removeAttribute('tabindex');
