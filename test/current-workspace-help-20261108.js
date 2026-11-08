@@ -5,6 +5,7 @@ ru:{
 title:"Инструкции и FAQ · Logistics Workspace",
 flow:"Действующий цикл: заявка владельца → ставки перевозчиков → выбор одной ставки → исполнение победителем → завершение.",
 faq:[
+["Что означает «Удалить навсегда»?","Только Владелец может удалить заявку целиком из тестового портала. Удаляются связанные раунды, ставки, тендеры, документы, чаты и файлы; корзины и восстановления нет. Архив завершённых перевозок — отдельный раздел, это не корзина."],
 ["Как начать работу?","Войдите с данными администратора. Слева доступны только разделы вашей роли. Начните с «Главная» и назначенных задач."],
 ["Чем заявка отличается от перевозки?","Заявка собирает ставки. Исполнение начинается отдельно после выбора победителя. Это разные меню и статусы."],
 ["Кто выбирает победителя?","Только Владелец выбирает одну конкретную ставку; участие и допуск не означают победу."],
@@ -18,7 +19,7 @@ faq:[
 ["Как новому партнёру связаться с компанией?","На публичной странице есть форма «Сотрудничество». Владелец получает обращение и отдельно решает вопрос о доступе."]
 ],
 roles:{
-owner:["Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","Просматривайте обращения потенциальных партнёров в «Помощь / FAQ»."],
+owner:["Удаление заявки доступно только Владельцу: «Реестр заявок» → карточка → «Удалить навсегда». Подтвердите необратимое удаление. Архив и аннулирование — другие операции.","Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","Просматривайте обращения потенциальных партнёров в «Помощь / FAQ»."],
 carrier:["Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу» в «Мои заявки», затем «Мои перевозки» для исполнения, трекинга и файлов. Транспортная заявка сейчас отложена.","Проигравшие не исполняют перевозку.","Для обращения по сайту откройте «Предложения», выберите тип и напишите описание."],
 logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не утверждайте ставку вместо Владельца; задачи ВЭД пока не создаются."],
 supplier:["Откройте назначенный заказ поставщика.","Загрузите запрошенные документы, укажите фактическую готовность, если поле доступно.","При запросе добавьте фото погрузки и проверьте сохранение.","Не используйте чужие заявки; о недоступных полях сообщите Владельцу."],
@@ -30,6 +31,7 @@ certification:["Проверьте назначенные документы п�
 en:{
 title:"Instructions & FAQ · Logistics Workspace",flow:"Current workflow: Owner request → carrier quotes → one winning offer → execution → closure.",
 faq:[
+["What does Delete permanently mean?","Only the Owner may permanently delete a request and its linked quotes, tenders, messages, documents and stored files in staging. There is no trash or restore. Completed-shipment archives are separate."],
 ["How do I start?","Sign in with administrator-issued credentials. Use the left menu for your assigned role."],
 ["Request versus shipment?","The request collects rates. Shipment execution starts separately once the Owner selects a winner."],
 ["Who chooses the winner?","Only the Owner selects a specific winning offer."],
@@ -43,7 +45,7 @@ faq:[
 ["How do new partners join?","Use the public Partnership form. The Owner receives requests and grants accounts separately."]
 ],
 roles:{
-owner:["Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner inquiries in Help / FAQ."],
+owner:["Only the Owner can permanently delete a request in Registry → request card → Delete permanently. Confirm irreversible deletion. Archiving and annulment are different actions.","Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner inquiries in Help / FAQ."],
 carrier:["Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If awarded, accept in My Requests, then use My Shipments for execution, tracking and files. Transport-application drafting is deferred.","Unselected carriers cannot execute.","Report portal issues using the Suggestions form."],
 logistic:["Review permitted requests and offers.","Check route, timing and files.","Do not select the winner; no active foreign-trade handoff."],
 supplier:["Open assigned orders.","Enter readiness and attach documents where enabled.","Attach loading photos if requested.","Report unavailable fields to the Owner."],
@@ -55,6 +57,7 @@ certification:["Review assigned documents.","Upload evidence in permitted fields
 zh:{
 title:"操作说明与常见问题 · Logistics Workspace",flow:"当前流程：负责人询价 → 承运商报价 → 选择唯一报价 → 执行运输 → 完成。",
 faq:[
+["永久删除是什么意思？","只有负责人可在测试环境中永久删除询价及关联报价、招标、聊天、文件和存储对象。没有回收站或恢复功能。已完成运输的归档是独立业务。"],
 ["如何开始？","使用管理员提供的账号登录，从左侧菜单查看允许的任务。"],
 ["询价和运输的区别？","询价收集报价，选出唯一中标报价后进入独立的运输执行流程。"],
 ["谁选中标报价？","只有负责人有权选择具体的中标报价。"],
@@ -68,7 +71,7 @@ faq:[
 ["如何成为合作伙伴？","使用公开合作表单；负责人审核后单独开通账号。"]
 ],
 roles:{
-owner:["创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在帮助栏目查看合作申请。"],
+owner:["只有负责人可在登记表的询价详情中执行永久删除，且不可恢复。归档及作废是独立操作。","创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在帮助栏目查看合作申请。"],
 carrier:["打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中标后在“我的申请”接单，在“我的运输”处理追踪和文件；运输申请目前暂缓。","未中选不能执行运输。","通过“建议”提交网站修复或改进要求。"],
 logistic:["查看权限内的报价和申请。","核对路线、时效和文件。","不可代替负责人选择报价。"],
 supplier:["打开分配的订单。","在可用字段填写备货时间和文件。","按要求上传装货照片。","向负责人反馈缺失功能。"],
