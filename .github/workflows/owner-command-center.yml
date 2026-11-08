@@ -41,7 +41,7 @@ jobs:
             curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-center-20261108.css?check=$GITHUB_SHA" -o /tmp/owner-css.css || true
             curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-hero-20261108.svg?check=$GITHUB_SHA" -o /tmp/owner-hero.svg || true
             curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?check=$GITHUB_SHA" -o /tmp/owner-help.js || true
-            if grep -q 'owner-command-center-20261108.js?v=command-03' /tmp/owner-index.html 2>/dev/null \
+            if grep -q 'owner-command-center-20261108.js?v=command-04' /tmp/owner-index.html 2>/dev/null \
               && cmp -s test/owner-command-center-20261108.js /tmp/owner-js.js \
               && cmp -s test/owner-command-center-20261108.css /tmp/owner-css.css \
               && cmp -s test/owner-command-hero-20261108.svg /tmp/owner-hero.svg \
