@@ -38,8 +38,8 @@ jobs:
           for attempt in {1..18}; do
             curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/index.html?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-index.html || true
             curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-guide.js || true
-            if [[ -s /tmp/faq-index.html && -s /tmp/faq-guide.js ]] && grep -q "current-workspace-help-20261108.js?v=command-02" /tmp/faq-index.html && cmp -s test/current-workspace-help-20261108.js /tmp/faq-guide.js; then
-              echo "PASS: Live GitHub Pages /test/ serves the exact source FAQ bytes and command-02 HTML."
+            if [[ -s /tmp/faq-index.html && -s /tmp/faq-guide.js ]] && grep -q "current-workspace-help-20261108.js?v=command-03" /tmp/faq-index.html && cmp -s test/current-workspace-help-20261108.js /tmp/faq-guide.js; then
+              echo "PASS: Live GitHub Pages /test/ serves the exact source FAQ bytes and command-03 HTML."
               sha256sum test/current-workspace-help-20261108.js /tmp/faq-guide.js
               exit 0
             fi
