@@ -236,3 +236,13 @@
     height:auto;
   }
 }
+
+/* TRACK-UX-01: readable grouped tracking form, all screen sizes. */
+#task2-root [data-t2-form="save"] .t2-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;max-width:840px!important;}
+#task2-root [data-t2-form="save"] .t2-block-title{grid-column:1/-1!important;background:#eaf1fa!important;color:#173653!important;-webkit-text-fill-color:#173653!important;border-left:4px solid #3676c9!important;padding:13px 16px!important;border-radius:8px!important;font-size:16px!important;font-weight:750!important;margin:18px 0 2px!important;}
+#task2-root [data-t2-form="save"] .t2-field{display:flex!important;flex-direction:column!important;gap:7px!important;min-width:0!important;}
+#task2-root [data-t2-form="save"] .t2-field>span{font-size:15px!important;line-height:1.45!important;font-weight:650!important;color:#1b344e!important;-webkit-text-fill-color:#1b344e!important;}
+#task2-root [data-t2-form="save"] .t2-field>small{font-size:13px!important;line-height:1.45!important;color:#4b5d73!important;-webkit-text-fill-color:#4b5d73!important;}
+#task2-root [data-t2-form="save"] :is(input,select,textarea){width:100%!important;min-height:44px!important;box-sizing:border-box!important;font-size:16px!important;background:#fff!important;color:#1a314a!important;-webkit-text-fill-color:#1a314a!important;border:1px solid #a9bacd!important;border-radius:9px!important;}
+#task2-root [data-t2-form="save"] textarea{min-height:80px!important;resize:vertical!important;}
+@media(max-width:600px){#task2-root [data-t2-form="save"] .t2-fields{gap:12px!important;}#task2-root [data-t2-form="save"] .t2-block-title{font-size:15px!important;}}
