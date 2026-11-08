@@ -221,7 +221,7 @@
  }
  async function loadList(){
    const list=await get("");
-   state.role=list.role;
+   state.role=(document.querySelector('.cabinet-role')?.textContent||'').includes('ВЭД')?'ved':list.role;
    const incoming=list.items||[];
    if(state.role==="ved"){
      // Defense in depth: VED must not display shipments pending carrier acceptance.
