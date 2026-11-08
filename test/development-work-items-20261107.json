@@ -111,7 +111,7 @@
       "issue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/30",
       "category": "development",
       "name": "Общий FAQ, инструкции по кабинетам и понятные подсказки у каждого поля (RU/EN/ZH)",
-      "status": "staging_source_published_live_and_authorized_e2e_pending",
+      "status": "staging_served_automated_smoke_pass_authorized_e2e_pending",
       "release": "1.19.22 · тестовая",
       "date": "2026-11-08",
       "acceptance": [
@@ -125,12 +125,16 @@
       ],
       "frontend_commits": [
         "3ff5773727bbb3d7b12cccd058597d2ff5534599",
-        "9242e107b175003a9b1a15c521592aa30a0d1ecb"
+        "9242e107b175003a9b1a15c521592aa30a0d1ecb",
+        "eb52bd7e319d5a741cc6110908ad1c6f7771f9b0",
+        "f2c4f7b8900c4fcfd5259f3e1884e2471c74462a"
       ],
       "frontend_asset": "test/current-workspace-help-20261108.js",
-      "frontend_asset_blob": "63186144ab06574c4a0c04309e9463c1e10db265",
+      "frontend_asset_blob": "cd5d79d74867609954fba2e327a28a2d536a3c30",
       "tests": "JavaScript parsed in V8; authenticated and live served tests pending",
-      "production_changed": false
+      "production_changed": false,
+      "test_status": "CI run 42479181350: static+DOM+exact served bytes PASS; authorized E2E and 390x844 still pending",
+      "evidence": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42479181350"
     }
   ]
 }
