@@ -140,7 +140,7 @@ const ownerNavigationGuide={
 ru:{
 title:"Карта разделов кабинета владельца · 08.11.2026",
 sections:[
-["Рабочий стол","Новый тёмный рабочий стол: показатели заявок, решений, тендеров, перевозок, распределение транспорта, маршруты, таблица и срочные действия. Цифры поступают из тестовой базы; «—» означает отсутствие доступных данных, а не ноль. Большая панель переключения ролей скрыта: нажмите «Просмотр кабинетов» в верхней строке. Кнопка «Новая заявка» открывает существующую форму, а не второй процесс."],
+["Рабочий стол","Новый тёмный рабочий стол: показатели заявок, решений, тендеров, перевозок, распределение транспорта, маршруты, таблица и срочные действия. Цифры поступают из тестовой базы; «—» означает отсутствие доступных данных, а не ноль. Кнопка «Просмотр кабинетов» доступна в верхней строке любого раздела владельца; постоянной большой панели или пустой полосы слева нет. Кнопка «Новая заявка» открывает существующую форму, а не второй процесс."],
 ["01 · Заявки и ставки","Новая заявка → Реестр заявок → Рассмотрение ставок → Сроки и ответы → Тендеры. «Рассмотрение» выбирает ставку; «Сроки и ответы» контролирует дедлайны и ответы."],
 ["02 · Исполнение","Исполнение перевозок → Чаты по заявкам → Претензии и акты → Инциденты. Претензия относится к конкретной перевозке, журнал инцидентов — к учёту случаев."],
 ["03 · Контрагенты","Поставщики и документы; Дизайн и контент. Это разные задания и документы, их не объединяем."],
@@ -151,7 +151,7 @@ sections:[
 en:{
 title:"Owner workspace navigation · 08 Nov 2026",
 sections:[
-["Workspace","The dark Owner dashboard shows live requests, decisions, tenders, shipments, transport types, routes and actions. A dash means unavailable data, not zero. The role preview is collapsed under the View Cabinets button in the header; New Request opens the existing workflow."],
+["Workspace","The dark Owner dashboard shows live requests, decisions, tenders, shipments, transport types, routes and actions. A dash means unavailable data, not zero. The View Cabinets button remains in the header on every Owner page; no permanently displayed role panel. New Request opens the existing workflow."],
 ["01 · Requests & quotes","New Request → Request Register → Offer Review → Deadlines & Replies → Tenders. Review selects rates; deadlines track responses."],
 ["02 · Execution","Shipment Execution → Request Chats → Claims & Acts → Incidents. Claims belong to a shipment; incidents have a separate log."],
 ["03 · Partners","Suppliers & Documents; Design & Content are separate authorized workflows."],
@@ -162,7 +162,7 @@ sections:[
 zh:{
 title:"所有者工作台导航 · 2026年11月8日",
 sections:[
-["工作台","深色所有者主页展示真实的询价、待办、招标、运输、路线及紧急事项；“—”表示无法读取数据，不代表零。角色切换已收起到顶部的“查看工作台”按钮；新询价按钮打开现有流程。"],
+["工作台","深色所有者主页展示真实的询价、待办、招标、运输、路线及紧急事项；“—”表示无法读取数据，不代表零。“查看工作台”按钮在所有者的每个页面顶部均可使用，不再显示固定的大型角色面板；新询价按钮仍打开原有流程。"],
 ["01 · 询价与报价","新询价 → 询价登记 → 报价评审 → 截止及答复 → 招标。报价评审用于选价，截止及答复用于监控响应。"],
 ["02 · 运输执行","运输执行 → 询价聊天 → 索赔与凭证 → 事件登记。索赔针对具体运输，事件登记是独立日志。"],
 ["03 · 合作伙伴","供应商及文件；设计及内容属于不同的授权流程。"],
