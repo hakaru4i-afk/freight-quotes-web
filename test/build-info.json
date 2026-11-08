@@ -408,5 +408,39 @@
     "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42487781435",
     "productionChanged": false,
     "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
+  },
+  "pendingTasksCenter": {
+    "id": "LW-TASKS-ALL-ROLES-20261109",
+    "version": "2026-11-09.1",
+    "scope": "staging-only",
+    "script": "lw-pending-tasks-all-roles-20261109.js",
+    "frontendSha": "8a8789444787b1c286a0a2c64c4bbe5eada351a1",
+    "css": "lw-pending-tasks-all-roles-20261109.css",
+    "roles": [
+      "owner",
+      "carrier",
+      "logistic",
+      "supplier",
+      "designer",
+      "content",
+      "purchasing",
+      "certification"
+    ],
+    "fullyIntegrated": [
+      "owner",
+      "carrier",
+      "logistic",
+      "supplier",
+      "designer"
+    ],
+    "unconnectedTaskFeeds": [
+      "content",
+      "purchasing",
+      "certification"
+    ],
+    "refreshPolicy": "login, return to main screen, focus if stale after 60s, manual refresh; no background polling",
+    "dataSource": "existing session-filtered authorized APIs",
+    "qaStatus": "SOURCE_AND_UNIT_CI_PASS; AUTHORIZED_BROWSER_ROLE_E2E_PENDING",
+    "productionChanged": false
   }
 }
