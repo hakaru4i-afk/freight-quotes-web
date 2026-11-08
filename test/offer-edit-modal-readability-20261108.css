@@ -30,3 +30,29 @@ body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-
 :is(input,select,textarea):focus-visible {
   outline:2px solid #2377ad !important;outline-offset:2px;
 }
+
+/* 02: fix actual user-entered VALUES on navy inputs.
+   The previous patch only addressed the labels; dark-shell CSS inherited
+   near-black text into dark inputs. Explicitly set foreground, caret,
+   placeholder and WebKit text-fill on every state, including focus. */
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):is(:hover,:focus,:active,:disabled) {
+  color:#f8fcff !important;
+  -webkit-text-fill-color:#f8fcff !important;
+  caret-color:#ffffff !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,textarea)::placeholder {
+  color:#cbd9e7 !important;
+  -webkit-text-fill-color:#cbd9e7 !important;
+  opacity:1 !important;
+}
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+select option {
+  color:#172d40 !important;
+  background:#fff !important;
+}
