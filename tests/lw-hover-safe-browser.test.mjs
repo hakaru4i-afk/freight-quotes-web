@@ -11,7 +11,8 @@ async function hoverState(page,id){
   return {filter:st.filter,bg:st.backgroundColor,image:st.backgroundImage,color:st.color,
     transform:st.transform,pseudo:after.display,content:after.content,hover:el.matches(":hover"),
     roleClass:el.closest("[data-cabinet-role]")?.className,
-    darkSelector:el.matches(':is(.carrier-portal,.staff-portal[data-cabinet-role="owner"]) :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"])')};
+    darkSelector:el.matches(':is(.carrier-portal,.staff-portal[data-cabinet-role="owner"]) :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"])'),
+    cssDebug:(()=>{const sheet=[...document.styleSheets].find(x=>x.href?.includes("lw-hover-safe-20261108.css"));let rs;try{rs=[...sheet.cssRules]}catch(e){return String(e)}return {href:sheet.href,number:rs.length,matches:rs.filter(x=>x.selectorText?.includes('button:not(.btn):not(.t2-btn)')).map(x=>x.cssText.slice(0,320))}})()};
  });
 }
 test("glare-free hover across eight roles, forms, tabs and login at desktop and mobile",{timeout:240000},async()=>{
