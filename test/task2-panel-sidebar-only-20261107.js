@@ -176,8 +176,14 @@
        html+='<div class="t2-block-title">2. Еженедельный трекинг груза</div>'+
 
          '<div class="t2-weekly-tracking">'+
-         (()=>{const raw=o.delivery_days??o.transit_days??o.eta_days??o.delivery_term_days??o.duration_days;
-           const days=Number(raw),valid=Number.isFinite(days)&&days>0&&days<=3650;
+         (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
+           const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
+           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\\d{1,4})(?:\\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
+           let raw;
+           for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key];if(Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}
+           if(raw===undefined){for(const source of sources){if(!source||typeof source!=="object")continue;for(const [key,v] of Object.entries(source)){if(/(?:delivery|transit|eta|duration|срок).*(?:day|дн|time|term)|(?:day|дн).*(?:delivery|transit)/i.test(key)&&Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}}
+           
+           const days=parseDays(raw),valid=Number.isFinite(days)&&days>0&&days<=3650;
            const planned=valid?Math.ceil(days/7):0;
            const count=Math.max(planned,pts.length+1)+state.extraTrackingRows;
            return '<p class="t2-muted">'+(valid?'Плановый срок: '+days+' дн. · Контрольных недель: '+planned:'Срок доставки в днях не указан. Уточните срок в предложении перевозчика для автоматического графика.')+
