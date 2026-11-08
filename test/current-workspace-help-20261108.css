@@ -9,3 +9,11 @@
 #lw-current-help details p{color:#526a7e;line-height:1.65}
 .cabinet-app .lw-field-help{display:block!important;font-size:11px!important;line-height:1.45!important;font-weight:400!important;color:#54758a!important;margin:6px 0 2px!important;width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
 @media(max-width:640px){#lw-current-help{padding:16px}#lw-current-help h2{font-size:21px}}
+
+/* OWNER-WORKSPACE-01: help synchronized with the Owner menu structure. */
+#lw-current-help .lw-owner-guide{margin:18px 0;padding:16px 18px;border:1px solid #d9e9e2;background:#f5faf8;border-radius:12px}
+#lw-current-help .lw-owner-guide h3{margin:0 0 13px!important;color:#184c44}
+#lw-current-help .lw-owner-guide dl{display:grid;grid-template-columns:minmax(150px,.75fr) minmax(0,2.2fr);gap:10px 15px;margin:0}
+#lw-current-help .lw-owner-guide dt{font-size:12px;font-weight:800;color:#205a50}
+#lw-current-help .lw-owner-guide dd{font-size:12px;line-height:1.55;margin:0;color:#34574f;overflow-wrap:anywhere}
+@media(max-width:650px){#lw-current-help .lw-owner-guide{padding:12px}#lw-current-help .lw-owner-guide dl{grid-template-columns:1fr;gap:4px}#lw-current-help .lw-owner-guide dd{margin:0 0 9px}}
