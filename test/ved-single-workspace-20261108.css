@@ -17,3 +17,17 @@
 .cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a[hidden]{display:none!important;visibility:hidden!important;}
 .cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link{display:flex!important;align-items:center;gap:12px;color:#e9f3ff!important;opacity:1!important;visibility:visible!important;font-size:14px;font-weight:650;padding:14px 20px;border-radius:14px;text-decoration:none;}
 .cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link:hover,.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link[aria-current="page"]{background:#244b76!important;color:#fff!important;}
+
+/* VED home: remove legacy owner/carrier metrics and links, not role permissions. */
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"][data-ved-home-ready="true"] > :not(#ved-home-20261108){display:none!important;}
+#ved-home-20261108{display:grid;gap:16px;max-width:1040px;margin:0 auto;padding:32px 22px 48px;color:#20344e!important;}
+#ved-home-20261108 .ved-home-kicker{font-size:12px;letter-spacing:.14em;font-weight:750;color:#41628b!important;}
+#ved-home-20261108 h2{font-size:clamp(26px,3vw,40px);line-height:1.15;letter-spacing:-.03em;color:#172c49!important;margin:0;}
+#ved-home-20261108 p{font-size:16px;line-height:1.6;max-width:750px;color:#40546c!important;margin:0;}
+#ved-home-20261108 .ved-home-actions{margin:8px 0 12px;}
+#ved-home-20261108 .ved-home-primary{display:inline-flex;padding:15px 20px;border-radius:12px;background:#1e5ac5;color:#fff!important;font-weight:750;text-decoration:none;}
+#ved-home-20261108 .ved-home-primary:hover{background:#1648a3;color:#fff!important;}
+#ved-home-20261108 .ved-home-note{display:grid;gap:8px;background:#f0f5fb;border:1px solid #ccd9e9;border-radius:16px;padding:22px;color:#40546c!important;line-height:1.55;}
+#ved-home-20261108 .ved-home-note strong{font-size:16px;color:#20344e!important;}
+#ved-home-20261108 .ved-home-note span{color:#40546c!important;}
+@media(max-width:600px){#ved-home-20261108{padding:22px 12px;}#ved-home-20261108 .ved-home-primary{width:100%;justify-content:center;}}
