@@ -352,7 +352,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T13:58:00Z",
+  "updatedAt": "2026-11-08T14:09:35.439Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
