@@ -411,10 +411,10 @@
   },
   "pendingTasksCenter": {
     "id": "LW-TASKS-ALL-ROLES-20261109",
-    "version": "2026-11-09.1",
+    "version": "2026-11-09.2",
     "scope": "staging-only",
     "script": "lw-pending-tasks-all-roles-20261109.js",
-    "frontendSha": "8a8789444787b1c286a0a2c64c4bbe5eada351a1",
+    "frontendSha": "9f7fd685b3b55803baa510de7bdf815cc2b557f4",
     "css": "lw-pending-tasks-all-roles-20261109.css",
     "roles": [
       "owner",
@@ -440,7 +440,9 @@
     ],
     "refreshPolicy": "login, return to main screen, focus if stale after 60s, manual refresh; no background polling",
     "dataSource": "existing session-filtered authorized APIs",
-    "qaStatus": "SOURCE_AND_UNIT_CI_PASS; AUTHORIZED_BROWSER_ROLE_E2E_PENDING",
-    "productionChanged": false
+    "qaStatus": "UNIT_CI_PASS_ALL_ROLE_DATA_AND_DOM; GITHUB_PAGES_PUBLISH_PENDING_FINAL; REAL_AUTHORIZED_E2E_PENDING",
+    "productionChanged": false,
+    "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
+    "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
   }
 }
