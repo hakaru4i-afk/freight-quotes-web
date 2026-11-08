@@ -115,7 +115,7 @@
    }else{
      html+='<div class="t2-process-banner"><div><strong>Перевозка принята в работу.</strong><span>Доступны этапы, трекинг, документы, сообщения и закрытие перевозки.</span></div></div>';
      const savedTab=state.tab;
-     html+=tabs.map(([key,title])=>{
+     html+=tabs.filter(([key])=>state.role!=="ved"||key!=="completion").map(([key,title])=>{
        state.tab=key;
        return '<section class="t2-stage" data-t2-section="'+esc(key)+'"><h3>'+esc(title)+'</h3>'+renderTab(d,carrier,staff)+'</section>';
      }).join("");
@@ -136,7 +136,7 @@
    }
    if(state.tab==="documents"){
      let html='<h3>Документы исполнения перевозки</h3><p class="t2-muted">Здесь находятся сопроводительные файлы, запросы ВЭД и переписка во время перевозки.</p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
-     html+='<h3>Запросы и задачи ВЭД</h3><div class="t2-stack">'+tasks.filter(t=>["missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
+     html+='<h3>Документы и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
         field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small></label>',"Направить запрос ВЭД");
@@ -166,7 +166,7 @@
        '<div class="t2-milestones">'+milestones.map(([n,label,done,detail])=>
          '<div class="t2-milestone '+(done?"is-done":"is-pending")+'"><span class="t2-milestone-number">'+n+'</span><div><strong>'+esc(label)+'</strong><p>'+detail+'</p></div><span class="t2-milestone-status">'+(done?"Зафиксировано":"Ожидается")+'</span></div>'
        ).join("")+'</div>'+
-       '<p><button type="button" class="t2-btn" data-t2-tab="track">Перейти к трекингу</button> <button type="button" class="t2-btn ghost" data-t2-tab="completion">Проверить завершение</button></p>';
+       '<p><button type="button" class="t2-btn" data-t2-tab="track">Перейти к трекингу</button>'+(state.role==="owner"?' <button type="button" class="t2-btn ghost" data-t2-tab="completion">Проверить завершение</button>':'')+'</p>';
    }
    if(state.tab==="track"){
      const sourceDate=x.original_departure||o.pickup||"—";
@@ -238,9 +238,9 @@
    if(state.tab==="completion"||state.tab==="arrival"){
      let html='<h3>Завершение перевозки</h3><div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
      html+='<p class="t2-muted">Перевозчик регистрирует фактические события во вкладке «Трекинг». Здесь ВЭД и Владелец проверяют обязательные этапы и принимают решение о закрытии перевозки.</p>';
-     html+='<h3>Задачи проверки документов и склада</h3><div class="t2-stack">'+tasks.filter(t=>["pto_review","warehouse_acceptance"].includes(t.task_type)).map(taskCard).join("")+'</div>';
-     if(staff&&x.status!=="completed"){
-       html+='<p>Если обязательные этапы завершены, ВЭД или Владелец может проверить возможность закрытия.</p>';
+     // ВЭД выполняет единственную автоматическую задачу проверки документов во вкладке «Документы»; дополнительных задач при закрытии нет.
+     if(state.role==="owner"&&x.status!=="completed"){
+       html+='<p>Владелец проверяет фактические события и завершает перевозку. Это не создаёт задач ВЭД.</p>';
        html+='<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
        
      }
