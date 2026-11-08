@@ -211,7 +211,7 @@
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
        html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
-         '<form data-t2-form="save" class="t2-pto-compact" style="display:grid!important;grid-template-columns:minmax(140px,.7fr) minmax(190px,1fr) minmax(190px,1fr) 116px;gap:10px;align-items:end;width:100%;margin:0 0 14px">'+
+         '<form data-t2-form="save" class="t2-pto-compact" style="display:grid!important;grid-template-columns:minmax(140px,.7fr) minmax(190px,1fr) minmax(190px,1fr) 116px;gap:10px;align-items:start;width:100%;margin:0 0 14px">'+
          (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
            '<label class="t2-pto-cell"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да</option></select></label>')+
          (x.pto_at?'<div class="t2-pto-cell"><small>Дата прибытия</small><strong>'+fmt(x.pto_at)+'</strong></div>':
