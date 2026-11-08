@@ -27,7 +27,7 @@
  };
  const stagingReg=n=>n?(String(n).startsWith("TEST-")?String(n):"TEST-"+String(n)):"";
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- const fmt=s=>s?new Date(s).toLocaleString("ru-RU",{timeZone:"Europe/Minsk"}):"—";
+ const fmt=s=>{if(!s)return "—";const d=new Date(s);if(Number.isNaN(d.getTime())){const m=String(s).match(/^(\\d{4})-(\\d{2})-(\\d{2})/);return m?m[3]+"."+m[2]+"."+m[1]:String(s);}return d.toLocaleString("ru-RU",{timeZone:"Europe/Minsk"});};
  const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
  const badge=s=>'<span class="t2-badge">'+esc(s||"—")+"</span>";
  const field=(name,label,type,tip,extra="")=>'<label class="t2-field"><span>'+esc(label)+' <span class="t2-help" title="'+esc(tip||tips[name]||label)+'" aria-label="Подсказка: '+esc(label)+'">?</span></span>'+
@@ -151,12 +151,12 @@
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
        html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
-         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><p>Допускается не более четырёх последовательных переносов.</p></div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
          '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
            const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
            if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
            if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
-           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая плановая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина переноса</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Укажите причину"></label><button class="t2-btn" type="submit">Сохранить</button></form>';
+           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
          }).join("")+'</div>';
        html+=form("save",         field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
          '<div class="t2-block-title">2. Где находится груз</div>'+
@@ -436,7 +436,19 @@
    if(kind==="plan"){
      if((state.detail?.plans||[]).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
      if(!data.new_plan_date||!String(data.new_plan_reason||"").trim()){alertText("Укажите новую дату и причину",true);return;}
-     return update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
+     const button=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
+     if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     if(feedback)feedback.textContent="Проверяем сохранение…";
+     const before=(state.detail?.plans||[]).length;
+     try{
+       const result=await update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
+       if(!result?.ok){if(feedback)feedback.textContent="Не удалось сохранить. Проверьте сообщение об ошибке.";return;}
+       await loadDetail();
+       const after=(state.detail?.plans||[]).length;
+       if(after<=before){alertText("Сервер не подтвердил добавление переноса. Данные не считаются сохранёнными.",true);}
+       else alertText("Перенос № "+after+" сохранён. Следующая строка доступна.");
+     }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
    }
    if(kind==="save"){
      const fields={};
