@@ -192,3 +192,124 @@ body:has(.lw-cc-active) .test-cabinets a{color:#a0d9ff!important}
  #lw-owner-command .lw-cc-create{margin-left:auto}
  #lw-owner-command .lw-cc-hero h1{font-size:23px!important}
 }
+
+/* OWNER-COMMAND-03 · Exact full-bleed approved layout: no centered outer gutter or permanent role panel. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active,
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-layout,
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-body{
+ max-width:none!important;width:100%!important;margin:0!important;min-width:0!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-layout{
+ display:grid!important;grid-template-columns:220px minmax(0,1fr)!important;
+ align-items:stretch!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-sidebar{
+ width:220px!important;max-width:220px!important;min-width:0!important;
+ background:#061729!important;box-shadow:none!important;border-right:1px solid #24435e!important;
+ position:sticky!important;top:0!important;align-self:start!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>span{
+ font-size:0!important;position:relative!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>span::after{
+ content:"🌐";font-size:22px;position:absolute;inset:0;display:grid;place-items:center;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>div{
+ font-size:0!important;line-height:1.15!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>div::before{
+ content:"Freight Quotes";font-size:17px;font-weight:800;color:#f8fbff;
+ display:block;letter-spacing:-.03em;white-space:nowrap;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>div>span{
+ font-size:0!important;letter-spacing:0!important;margin-top:3px!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-brand>div>span::after{
+ content:"Логистический портал";display:block;color:#a6c0d9;font-size:9px;
+ letter-spacing:.02em!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar{
+ padding:9px 16px!important;gap:12px!important;min-height:60px!important;
+ justify-content:space-between!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar>.bar:last-child{
+ display:flex!important;align-items:center!important;justify-content:flex-end!important;
+ flex-wrap:wrap!important;gap:9px!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar h1{
+ color:#f9fcff!important;font-size:18px!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-cc-role-trigger{
+ background:linear-gradient(125deg,#123759,#0d2846)!important;
+ border:1px solid #3a6891!important;color:#f4fbff!important;border-radius:9px!important;
+ padding:9px 12px!important;min-height:34px!important;font-size:11px!important;
+ font-weight:750!important;white-space:nowrap!important;cursor:pointer!important;
+ box-shadow:none!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-cc-role-trigger[aria-expanded="true"]{
+ border-color:#40b2f3!important;background:#175486!important;
+}
+.staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-cc-environment{
+ color:#91efcf!important;background:#10394a;border:1px solid #246966;border-radius:8px;
+ padding:7px 9px;font-size:10px;white-space:nowrap;line-height:1.3;
+}
+body.lw-cc-owner-view .test-cabinets.lw-preview-compact,
+body.lw-cc-owner-view .test-cabinets{
+ display:none!important;
+}
+body.lw-cc-role-open.lw-cc-owner-view .test-cabinets.lw-preview-compact,
+body.lw-cc-role-open.lw-cc-owner-view .test-cabinets{
+ display:grid!important;position:fixed!important;right:12px!important;left:auto!important;
+ top:66px!important;bottom:auto!important;
+ width:min(810px,calc(100vw - 24px))!important;max-width:810px!important;
+ max-height:min(72vh,460px)!important;overflow-y:auto!important;
+ margin:0!important;padding:15px!important;
+ box-shadow:0 25px 75px #000a,0 0 0 1px #5b91b060!important;
+ z-index:4000!important;grid-template-columns:minmax(190px,.65fr) minmax(0,1.35fr)!important;
+}
+body.lw-cc-owner-view .environment-banner{
+ display:none!important;
+}
+body.lw-cc-owner-view .test-cabinets a{
+ color:#83d8ff!important;
+}
+#lw-owner-command .lw-cc-map-deco{
+ background:linear-gradient(90deg,#062440a3,#051e37a0),url("./logistics-world.png") center 52%/cover no-repeat,
+ linear-gradient(120deg,#0a3556,#082642)!important;
+}
+#lw-owner-command .lw-cc-map-deco::before{
+ background:radial-gradient(ellipse at 50% 55%,transparent 0%,#0716297a 88%)!important;
+}
+@media(max-width:990px){
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-layout{
+   grid-template-columns:205px minmax(0,1fr)!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-sidebar{
+   width:205px!important;max-width:205px!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar{
+   padding:9px 12px!important;
+ }
+}
+@media(max-width:760px){
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-layout{
+   grid-template-columns:minmax(0,1fr)!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-sidebar{
+   width:auto!important;max-width:none!important;min-height:0!important;
+   position:relative!important;height:auto!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar>.bar:last-child{
+   gap:5px!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-cc-role-trigger{
+   font-size:10px!important;padding:8px!important;white-space:normal!important;
+ }
+ .staff-portal[data-cabinet-role="owner"].lw-cc-active .lw-cc-environment{
+   font-size:9px!important;padding:6px!important;
+ }
+ body.lw-cc-role-open.lw-cc-owner-view .test-cabinets,
+ body.lw-cc-role-open.lw-cc-owner-view .test-cabinets.lw-preview-compact{
+   grid-template-columns:1fr!important;top:56px!important;max-height:76vh!important;
+ }
+}
