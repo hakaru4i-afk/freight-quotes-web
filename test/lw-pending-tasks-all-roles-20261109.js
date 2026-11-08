@@ -72,7 +72,8 @@ async function fetchTask2(role){
   }
  }
  // Read at most 32 relevant shipments, in small groups, to avoid flooding the user's session.
- const active=rows.filter(x=>x.process_status!=="awaiting_take").slice(0,32);
+ const candidates=rows.filter(x=>x.process_status!=="awaiting_take");
+ const active=candidates.slice(0,32);
  for(let i=0;i<active.length;i+=4){
   const outcome=await Promise.allSettled(active.slice(i,i+4).map(x=>get("/api/task2?order="+encodeURIComponent(x.order_code))));
   outcome.forEach((o,j)=>{
@@ -93,7 +94,7 @@ async function fetchTask2(role){
    }
   });
  }
- if(rows.length-active.length>32)errors.push("Не все перевозки проверены");
+ if(candidates.length>active.length)errors.push("Не все перевозки проверены");
  return {tasks,total:tasks.length,errors,supported:true};
 }
 async function fetchCarrier(){
@@ -159,12 +160,12 @@ function homeTarget(){
 }
 function paint(){
  const target=homeTarget();if(!target)return;
- let root=target.querySelector("#"+ROOT_ID);
+ let root=document.getElementById(ROOT_ID);
  if(!root){
   root=document.createElement("section");
   root.id=ROOT_ID;root.className="lw-pending-task-box";root.setAttribute("aria-label",word("heading"));
-  target.prepend(root);
  }
+ if(!target.contains(root))target.prepend(root);
  const items=unique(state.items),count=Math.max(items.length,state.total||0);
  let status=state.loading?'<div class="lw-pending-status">'+esc(word("loading"))+'</div>':
   !state.supported?'<div class="lw-pending-status">'+esc(word("unsupported"))+'</div>':
@@ -188,7 +189,7 @@ async function refresh(force=false){
   const session=await get("/api/session");
   const role=toRole(session.authenticated?session.role:"");
   if(!roles.has(role)){state.role="";state.items=[];state.total=0;state.loaded=false;return;}
-  if(role!==state.role){state.role=role;state.items=[];state.total=0;state.loaded=false;}
+  if(role!==state.role){state.role=role;state.items=[];state.total=0;state.loaded=false;state.errors=[];state.supported=false;}
   paint();
   const result=await loadRole(role);
   if(token!==state.request)return;
@@ -200,7 +201,7 @@ async function refresh(force=false){
 }
 function mount(){
  if(!state.role||!homeTarget())return;
- if(!homeTarget().querySelector("#"+ROOT_ID))paint();
+ if(!homeTarget().contains(document.getElementById(ROOT_ID)))paint();
 }
 function queue(){
  if(scheduled)return;scheduled=true;
