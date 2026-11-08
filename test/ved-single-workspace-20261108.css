@@ -1,0 +1,15 @@
+/* VED-01 staging: scope fixes strictly to VED role, no authorization changes. */
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] {
+ color:#172b45!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(h1,h2,h3,h4,strong,b) {
+ color:#152842!important;opacity:1!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(p,small,.small,.quiet,.muted,span,li) {
+ color:#43536b!important;opacity:1!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(.btn,button,[role="button"]) {
+ -webkit-text-fill-color:initial;opacity:1!important;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav a[hidden] {display:none!important;}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(input,textarea,select) {color:#142b45!important;background:#fff!important;}
