@@ -76,7 +76,7 @@ test("public endpoint rejects unauthenticated reading and malformed submission",
   await ctx.close();
  }finally{await browser.close()}
 });
-test("one real QA cooperation submission reaches server",async()=>{
+test("one real QA cooperation submission reaches server",{skip:process.env.LW_SUBMIT_QA!=="1"},async()=>{
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1366,height:768}});
@@ -96,4 +96,22 @@ test("one real QA cooperation submission reaches server",async()=>{
   assert.match(body.reference,/^[0-9a-f]{8}$/);
   await page.locator(".lw-contact-result.lw-ok").waitFor({timeout:10000});
  }finally{await browser.close()}
+});
+
+test("public FAQ route DOM inspection",async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:1366,height:768}});
+  await page.goto(url+"?page=help",{waitUntil:"domcontentloaded",timeout:40000});
+  await page.waitForTimeout(1400);
+  const info=await page.evaluate(()=>({
+    title:document.title,
+    url:location.href,
+    h:[...document.querySelectorAll("h1,h2,h3")].map(n=>({tag:n.tagName,txt:n.textContent.trim().slice(0,90),cls:n.className})).slice(0,20),
+    children:[...document.querySelectorAll("#root>*,main,section")].map(n=>({tag:n.tagName,cls:n.className,id:n.id})).slice(0,25),
+    text:document.body.textContent.slice(0,600)
+  }));
+  console.log("LW_PUBLIC_HELP_DOM="+JSON.stringify(info));
+  assert.ok(info.text.length>15);
+ } finally {await browser.close();}
 });
