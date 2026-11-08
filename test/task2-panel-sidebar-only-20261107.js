@@ -48,7 +48,7 @@
    '<small>'+esc(tip||tips[name]||"")+'</small></label>';
  const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
  const form=(kind,body,button="Сохранить изменения",hidden=false)=>
-  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div><div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>'+
+  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(kind==="request_docs"?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
   (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+'</form>';
  const call=async(params,files)=>{
    const options={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)};
