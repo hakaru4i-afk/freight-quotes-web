@@ -9,12 +9,15 @@ function apply(){
  if(!nav)return;
  for(const a of nav.querySelectorAll('a[href^="#"]')){
   const section=a.getAttribute('href').slice(1);
-  const keep=section==='overview'||section==='approved-shipments';
+  const label=(a.textContent||'').trim().toLowerCase();
+  const keep=section==='overview'||section==='approved-shipments'||
+    /^(help|faq|feedback|suggestions|proposals|chats|chat|messages|support)$/.test(section)||
+    /помощ|faq|предложени|чат|сообщени|инструкци/i.test(label);
   if(section==='approved-shipments')a.textContent='Активные перевозки';
   a.hidden=!keep;
   if(!keep)a.style.setProperty('display','none','important');
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
-  else{a.removeAttribute('aria-hidden');a.removeAttribute('tabindex')}
+  else{a.style.removeProperty('display');a.removeAttribute('aria-hidden');a.removeAttribute('tabindex')}
  }
  let active=nav.querySelector('a[href="#approved-shipments"]');
  if(!active){
