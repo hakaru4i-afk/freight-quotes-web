@@ -635,7 +635,7 @@
     "cssPath": "test/lw-hover-safe-20261108.css",
     "cssBlob": "2abd6be426ac2f89df3ef9b2de747ca106165208",
     "cssCommit": "3c837a640423ece56b704a4321918b5d37125376",
-    "indexAsset": "lw-hover-safe-20261108.css?v=lw-hover-01",
+    "indexAsset": "lw-hover-safe-20261108.css?v=lw-hover-02",
     "checks": {
       "source": "PASS",
       "served": "PASS",
@@ -645,6 +645,7 @@
       "realAuthenticatedE2E": "PENDING"
     },
     "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42498939587",
-    "productionChanged": false
+    "productionChanged": false,
+    "indexVersion": "lw-hover-02"
   }
 }
