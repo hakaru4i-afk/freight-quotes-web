@@ -21,10 +21,20 @@ function stage(item){
  if(item.process_status==="awaiting_take")return ["awaiting","take",null];
  return ["performing","execution","#approved-shipments"];
 }
+/* React can recreate the request container while the carrier route stays active.
+   Reuse the existing acceptance panel globally instead of prepending a second
+   copy to whichever wrapper is currently resolved by node(). */
+function singleRoot(parent){
+ const roots=[...document.querySelectorAll("#"+ROOT_ID)];
+ let root=roots.find(el=>parent.contains(el))||roots[0]||null;
+ if(!root){root=document.createElement("section");root.id=ROOT_ID;root.className="carrier-awarded-workflow";}
+ for(const duplicate of roots){if(duplicate!==root)duplicate.remove();}
+ if(root.parentElement!==parent)parent.prepend(root);
+ return root;
+}
 function render(){
  const parent=node();if(!parent||!visible())return;
- let root=parent.querySelector("#"+ROOT_ID);
- if(!root){root=document.createElement("section");root.id=ROOT_ID;root.className="carrier-awarded-workflow";parent.prepend(root);}
+ const root=singleRoot(parent);
  if(!loaded){root.innerHTML='<p class="carrier-flow-loading" role="status">'+e(t().refresh)+'…</p>';return;}
  if(role!=="carrier"){root.remove();return;}
  const dict=t();
@@ -93,7 +103,9 @@ let scheduled=false;
 const observer=new MutationObserver(()=>{
  if(!visible()||scheduled)return;
  const parent=node();
- if(!parent||parent.querySelector("#"+ROOT_ID))return;
+ if(!parent)return;
+ const roots=[...document.querySelectorAll("#"+ROOT_ID)];
+ if(roots.length===1&&parent.contains(roots[0]))return;
  scheduled=true;requestAnimationFrame(()=>{scheduled=false;render();});
 });
 observer.observe(document.documentElement,{childList:true,subtree:true});
