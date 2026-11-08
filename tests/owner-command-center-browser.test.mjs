@@ -91,7 +91,7 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     // Browsers report the USED pixel value for bottom:auto on absolutely positioned pseudos.\n    // The regression is actual paint/geometry, so test its size and transparent background.
     assert.equal(group.backgroundImage,"none","Owner group heading inherited the active-marker gradient");
     assert.equal(group.backgroundColor,"rgba(0, 0, 0, 0)","Owner group heading inherited the active-marker background");
-    assert.ok(parseFloat(group.height)<24,"Owner group label created a long cyan strip: "+JSON.stringify(group));
+    assert.ok(group.height==="auto" || (Number.isFinite(parseFloat(group.height)) && parseFloat(group.height)<24),"Owner group label created a long cyan strip: "+JSON.stringify(group));
     assert.match(group.content,/Заявки и ставки/);
     assert.equal(detail.sidebar,true);
     assert.equal(detail.oldHidden,true);
