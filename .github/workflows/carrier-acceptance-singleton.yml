@@ -1,0 +1,71 @@
+name: Carrier acceptance singleton / staging
+on:
+  push:
+    branches: [main]
+    paths:
+      - test/carrier-acceptance-workflow-20261107.js
+      - test/index.html
+      - tests/carrier-acceptance-singleton-browser.test.mjs
+      - .github/workflows/carrier-acceptance-singleton.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax, one action handler and cache key
+        run: |
+          set -euo pipefail
+          node --check test/carrier-acceptance-workflow-20261107.js
+          node --check tests/carrier-acceptance-singleton-browser.test.mjs
+          grep -Fq 'function singleRoot(parent)' test/carrier-acceptance-workflow-20261107.js
+          grep -Fq 'carrier-acceptance-workflow-20261107.js?v=0afa7c6c7bf6' test/index.html
+          ! grep -Fq 'carrier-acceptance-workflow-20261107.js' index.html
+  served:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify served script and HTML cache key on staging only
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..36}; do
+            curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/accept-index.html || true
+            curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/carrier-acceptance-workflow-20261107.js?qa=$GITHUB_SHA" -o /tmp/accept-workflow.js || true
+            if grep -Fq 'carrier-acceptance-workflow-20261107.js?v=0afa7c6c7bf6' /tmp/accept-index.html 2>/dev/null \
+              && cmp -s test/carrier-acceptance-workflow-20261107.js /tmp/accept-workflow.js; then
+              echo 'PASS: staging has exact singleton workflow and updated cache key'
+              sha256sum /tmp/accept-workflow.js
+              exit 0
+            fi
+            sleep 7
+          done
+          echo '::error::Staging script has not been published byte-for-byte'
+          exit 1
+  browser:
+    needs: served
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Chromium desktop and 390px: no duplicate panels or accept actions
+        run: node --test tests/carrier-acceptance-singleton-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carrier-singleton-desktop-mobile
+          path: carrier-acceptance-singleton-*.png
+          if-no-files-found: ignore
