@@ -173,8 +173,8 @@
         (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
          '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
          '</div>';
-       html+=form("save",
-         '<div class="t2-block-title">2. Где находится груз</div>'+
+       html+='<div class="t2-block-title">2. Еженедельный трекинг груза</div>'+
+
          '<div class="t2-weekly-tracking">'+
          (()=>{const raw=o.delivery_days??o.transit_days??o.eta_days??o.delivery_term_days??o.duration_days;
            const days=Number(raw),valid=Number.isFinite(days)&&days>0&&days<=3650;
@@ -188,7 +188,8 @@
                '<div class="t2-weekly-row is-pending"><strong>Неделя '+(i+1)+'</strong><span>—</span><span>—</span><span>Ожидает предыдущую запись</span></div>';
              }).join('')+
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
-         })()+'</div>'+
+         })()+'</div>';
+       html+=form("save",
          '<div class="t2-block-title">3. ПТО и таможня</div>'+
          (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
            '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
