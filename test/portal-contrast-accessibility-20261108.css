@@ -105,11 +105,23 @@
 .cabinet-app[data-cabinet-role] :is(.cabinet-sidebar nav a,.cabinet-topbar a,.cabinet-topbar button) {
   text-shadow:none !important;
 }
-.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]) {
+/* Sidebar palettes are not uniform: Owner/Carrier are navy, staff
+   workspaces use light sidebars. Do not force light text onto light menus. */
+.cabinet-app.carrier-portal .cabinet-sidebar nav a:not([aria-current="page"]),
+.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-sidebar nav a:not([aria-current="page"]) {
   color:#d1e3f4 !important;opacity:1 !important;
 }
-.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]):hover {
+.cabinet-app.carrier-portal .cabinet-sidebar nav a:not([aria-current="page"]):hover,
+.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-sidebar nav a:not([aria-current="page"]):hover {
   color:#f5faff !important;
+}
+.cabinet-app.staff-portal:not(.lw-cc-active) .cabinet-sidebar nav a:not([aria-current="page"]) {
+  color:#253a50 !important;opacity:1 !important;
+}
+.cabinet-app.staff-portal:not(.lw-cc-active) .cabinet-sidebar nav a:not([aria-current="page"]):hover {
+  color:#163348 !important;background:#d9e8f1 !important;
 }
 /* State is not removed from disabled controls. */
 .cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
