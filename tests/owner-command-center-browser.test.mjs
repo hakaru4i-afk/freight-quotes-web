@@ -18,7 +18,7 @@ const fixture={
 const routes=["overview","create-request","request-registry","offers","answers","tender-hub","approved-shipments","winner-chats","transport-claims","incident-journal","supplier-orders","content-tasks","management-reports","carrier-service","sla","site-monitor","team","access-levels","portal-feedback","help"];
 async function setup(page,role="owner"){
  await page.goto(base+"?page=login",{waitUntil:"domcontentloaded",timeout:40000});
- await page.waitForFunction(()=>window.lwOwnerCommandVersion==="owner-command-03",{timeout:20000});
+ await page.waitForFunction(()=>window.lwOwnerCommandVersion==="owner-command-04",{timeout:20000});
  await page.evaluate(({fixture,routes,role})=>{
   const original=window.fetch;
   window.fetch=(input,opts)=>{const name=String(input);
@@ -33,6 +33,7 @@ async function setup(page,role="owner"){
   fixtureRoot.append(preview);
   const app=document.createElement("div");app.className="cabinet-app staff-portal";app.setAttribute("data-cabinet-role",role);
   app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+id+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div class="bar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></div><div class="bar"><span class="cabinet-online"><i></i>Кабинет работает</span><button class="btn secondary" type="button">Выйти</button></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
+  app.querySelector(".cabinet-content").insertAdjacentHTML("beforeend", '<section class="cabinet-panel" data-section="request-registry" hidden><div class="card"><h2>Реестр заявок</h2><label>Номер заказа <input placeholder="Номер заказа" value="WS26180"></label></div></section>');
   fixtureRoot.append(app);
  },{fixture,routes,role});
 }
@@ -62,6 +63,8 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
       overflow:document.documentElement.scrollWidth-window.innerWidth,
       oldHidden:getComputedStyle($(".overview-welcome")).display==="none",
       hero:dashboard.querySelector(".lw-cc-hero")?.getBoundingClientRect().height,
+      dashboardWidth:dashboard.getBoundingClientRect().width,
+      availableWidth:(()=>{const c=$(".cabinet-content"),style=getComputedStyle(c);return c.getBoundingClientRect().width-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight)})(),
       links:[...dashboard.querySelectorAll("a[href]")].map(x=>x.getAttribute("href"))
      };
     });
@@ -81,6 +84,7 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     await page.keyboard.press("Escape");
     assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display==="none"),true,"Escape closes role panel");
     assert.ok(detail.hero>=130);
+    assert.ok(detail.dashboardWidth >= detail.availableWidth-4, "Dashboard still has the 1750px centered cap: "+JSON.stringify(detail));
     assert.ok(detail.overflow<=8,"No horizontal page overflow: "+JSON.stringify(detail));
     assert.ok(detail.links.includes("#carrier-service"));
     await page.locator('[data-lw-cc-tab="shipments"]').click();
@@ -89,6 +93,32 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     assert.match(await page.locator("#lw-owner-command table").innerText(),/TN-26-001/);
     assert.deepEqual(errors,[]);
     await page.screenshot({path:"owner-command-center-"+size.width+".png",fullPage:true});
+    // The Owner shell (dark background, full width, role picker) must survive leaving Overview.
+    await page.evaluate(()=>{
+      document.querySelector('.cabinet-panel[data-section="overview"]').hidden=true;
+      document.querySelector('.cabinet-panel[data-section="request-registry"]').hidden=false;
+      window.dispatchEvent(new Event("hashchange"));
+    });
+    await page.waitForFunction(()=>document.querySelector('.cabinet-app[data-cabinet-role="owner"]')?.classList.contains("lw-cc-active") && document.body.classList.contains("lw-cc-owner-view"));
+    const section=await page.evaluate(()=>{
+      const cab=document.querySelector('.cabinet-app[data-cabinet-role="owner"]');
+      const card=document.querySelector('.cabinet-panel[data-section="request-registry"] .card');
+      const page=document.querySelector(".cabinet-layout");
+      return {background:getComputedStyle(cab).backgroundColor,surface:getComputedStyle(cab).getPropertyValue("--pr-surface").trim(),
+        text:getComputedStyle(card).color,roleButton:!!document.querySelector(".lw-cc-role-trigger"),
+        roleHidden:getComputedStyle(document.querySelector(".test-cabinets")).display==="none",
+        shellWidth:page.getBoundingClientRect().width,left:page.getBoundingClientRect().left};
+    });
+    assert.equal(section.surface,"#102a45", "Owner workspace sections must share the approved dark palette");
+    assert.equal(section.text,"rgb(233, 243, 255)", "Owner forms must remain readable on dark cards");
+    assert.equal(section.roleButton,true,"Role picker must remain in header on other pages");
+    assert.equal(section.roleHidden,true,"No persistent role panel/extra strip on other pages");
+    assert.ok(Math.abs(section.left)<=2 && Math.abs(section.shellWidth-size.width)<=8,JSON.stringify(section));
+    await page.locator(".lw-cc-role-trigger").click();
+    assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display!=="none"),true);
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display==="none"),true);
+    if(size.width>=1400)await page.screenshot({path:"owner-command-center-section-"+size.width+".png",fullPage:true});
    }finally{await page.close()}
   }
   const page=await browser.newPage({viewport:{width:1180,height:800}});
