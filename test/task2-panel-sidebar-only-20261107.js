@@ -196,9 +196,9 @@
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
        html+=form("save",
-         '<div class="t2-block-title">3. ПТО и таможня</div>'+
+         '<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
          (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
-           '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
+           '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — прибыл на ПТО</option></select><small>Проверка документов должна быть выполнена заранее, до прибытия на ПТО.</small></label>'+
            field("pto_date","Дата прибытия на ПТО (Минск)","datetime-local",tips.date))+
          (x.customs_at?readonly("Дата завершения таможенного оформления",fmt(x.customs_at)):field("customs_date","Дата завершения импортного таможенного оформления (Минск)","datetime-local",tips.date))+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
