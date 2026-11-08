@@ -189,12 +189,15 @@ async function refresh(force=false){
  if(refreshing)return;
  const now=Date.now();
  if(!force&&state.loaded&&now-state.updated<60000)return;
- refreshing=true;state.loading=true;paint();
+ refreshing=true;state.loading=true;
+ if(force){state.items=[];state.total=0;state.errors=[];state.loaded=false;}
+ paint();
  let token=++state.request;
  try{
   const session=await get("/api/session");
   const role=toRole(session.authenticated?session.role:"");
-  if(!roles.has(role)){state.role="";state.items=[];state.total=0;state.loaded=false;return;}
+  if(!roles.has(role)){state.role="";state.items=[];state.total=0;state.loaded=false;
+   document.getElementById(ROOT_ID)?.remove();return;}
   if(role!==state.role){state.role=role;state.items=[];state.total=0;state.loaded=false;state.errors=[];state.supported=false;}
   paint();
   const result=await loadRole(role);
