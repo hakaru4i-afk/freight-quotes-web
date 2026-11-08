@@ -35,7 +35,7 @@ jobs:
           for attempt in {1..32}; do
             curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/hover-index.html || true
             curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/lw-hover-safe-20261108.css?qa=$GITHUB_SHA" -o /tmp/hover.css || true
-            if grep -q 'lw-hover-safe-20261108.css?v=lw-hover-02' /tmp/hover-index.html 2>/dev/null \
+            if grep -q 'lw-hover-safe-20261108.css?v=lw-hover-03' /tmp/hover-index.html 2>/dev/null \
               && cmp -s test/lw-hover-safe-20261108.css /tmp/hover.css; then
               echo "PASS exact hover shield on staging"
               sha256sum /tmp/hover.css
@@ -57,7 +57,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - name: Eight roles, light forms, login and responsive hover
+      - name: Isolated eight-role matrix and actual served sign-in hover
         run: node --test tests/lw-hover-safe-browser.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()

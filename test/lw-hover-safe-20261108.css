@@ -107,3 +107,18 @@
  box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
  transition:none!important; /* Prevent first-frame white-to-dark flash */
 }
+
+/* LW-HOVER-03: light document widgets retain their light-on-dark contrast rules.
+   The ID in :is() gives precedence over legacy role-specific plain-button rules,
+   without changing other controls or the active/disabled states. */
+.cabinet-app :is(#portal-feedback-root,.compact-transport-document)
+  button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:#e6f0ec!important;
+  background-image:none!important;
+  color:#174b3a!important;
+  border-color:#83ac9c!important;
+  filter:none!important;
+  box-shadow:0 2px 9px rgba(0,14,28,.12)!important;
+  text-shadow:none!important;
+  transition:none!important;
+}

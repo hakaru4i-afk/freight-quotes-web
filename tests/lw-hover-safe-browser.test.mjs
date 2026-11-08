@@ -39,6 +39,12 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
        parent.className="cabinet-app "+(role==="owner"?"staff-portal lw-cc-active":role==="carrier"?"carrier-portal":"staff-portal");
        parent.dataset.cabinetRole=role;parent.style.cssText="min-height:0;padding:7px";
        parent.innerHTML='<div class="cabinet-body"><header class="cabinet-topbar"><button class="btn secondary" id="hover-qa-'+role+'-header">Профиль</button></header><main class="cabinet-content"><section class="cabinet-panel"><button class="btn" id="hover-qa-'+role+'-primary">Создать заявку</button><button class="btn secondary" id="hover-qa-'+role+'-secondary">Отказаться</button><button id="hover-qa-'+role+'-plain">Подтвердить</button><button class="btn" disabled id="hover-qa-'+role+'-disabled">Недоступно</button></section></main></div>';
+       if(role==="owner" || role==="carrier"){
+         const light=document.createElement("div");
+         light.className="compact-transport-document";
+         light.innerHTML='<button id="hover-qa-'+role+'-lightdoc">Подписать документ</button>';
+         parent.querySelector(".cabinet-panel").append(light);
+       }
        box.append(parent);
       }
       const carrier=box.querySelector('[data-cabinet-role="carrier"] .cabinet-panel');
@@ -64,6 +70,11 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
           assert.equal(state.color,"rgb(240, 248, 255)",JSON.stringify({role,type,state}));
         }
       }
+      if(role==="owner" || role==="carrier"){
+        const state=await hoverState(page,role+"-lightdoc");
+        assert.equal(state.bg,"rgb(230, 240, 236)",JSON.stringify({role,state}));
+        assert.equal(state.color,"rgb(23, 75, 58)",JSON.stringify({role,state}));
+      }
       const opacity=await page.locator("#hover-qa-"+role+"-disabled").evaluate(el=>getComputedStyle(el).opacity);
       assert.ok(Number(opacity)<=0.6,"disabled button unchanged: "+role);
     }
@@ -77,6 +88,39 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
       }
     }
     await page.screenshot({path:"lw-hover-safe-"+viewport.width+".png",fullPage:true});
+   }finally{await page.close()}
+  }
+ }finally{await browser.close()}
+});
+// This check uses the real published staging login DOM, not a synthetic cabinet.
+// Authorized checks across real role cabinets remain a separate E2E requirement.
+test("actual served staging login hover has no white glare on desktop and mobile",{timeout:130000},async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
+   const page=await browser.newPage({viewport});
+   const errors=[]; page.on("pageerror",e=>errors.push(e.message));
+   try{
+    const response=await page.goto(URL+"?page=login",{waitUntil:"domcontentloaded",timeout:40000});
+    assert.equal(response?.status(),200,"Published staging page is inaccessible");
+    const button=page.locator(".cycle-landing .cycle-login .auth-card form>.btn").first();
+    await button.waitFor({state:"visible",timeout:30000});
+    await button.hover();
+    const actual=await button.evaluate(el=>{
+      const st=getComputedStyle(el);
+      return {hover:el.matches(":hover"),filter:st.filter,shadow:st.textShadow,background:st.backgroundImage,color:st.color,
+        shield:[...document.styleSheets].some(s=>s.href?.includes("lw-hover-safe-20261108.css?v=lw-hover-03")),
+        bodyOverflow:document.documentElement.scrollWidth-innerWidth};
+    });
+    assert.equal(actual.hover,true,JSON.stringify(actual));
+    assert.equal(actual.shield,true,"Actual published CSS cache version not installed");
+    assert.equal(actual.filter,"none",JSON.stringify(actual));
+    assert.equal(actual.shadow,"none",JSON.stringify(actual));
+    assert.match(actual.background,/linear-gradient/,"Login hover must retain subdued gold gradient");
+    assert.equal(actual.color,"rgb(32, 23, 12)",JSON.stringify(actual));
+    assert.ok(actual.bodyOverflow<=4,"Mobile layout overflow: "+JSON.stringify(actual));
+    assert.deepEqual(errors,[],"Actual staging login JavaScript errors");
+    await page.screenshot({path:"lw-hover-safe-served-login-"+viewport.width+".png",fullPage:true});
    }finally{await page.close()}
   }
  }finally{await browser.close()}
