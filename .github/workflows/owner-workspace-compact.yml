@@ -1,0 +1,50 @@
+name: Owner workspace hierarchy / compact staging QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - "test/owner-workspace-compact-20261108.js"
+      - "test/owner-workspace-compact-20261108.css"
+      - "test/current-workspace-help-20261108.js"
+      - "test/current-workspace-help-20261108.css"
+      - "test/index.html"
+      - "tests/owner-workspace-compact.test.mjs"
+      - ".github/workflows/owner-workspace-compact.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  code-and-dom:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax and DOM behavior
+        run: node --test tests/owner-workspace-compact.test.mjs
+  served-staging:
+    needs: code-and-dom
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Confirm the exact released staging JS and CSS bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..25}; do
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?sha=$GITHUB_SHA" -o /tmp/owner-index.html || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/owner-workspace-compact-20261108.js?sha=$GITHUB_SHA" -o /tmp/owner.js || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/owner-workspace-compact-20261108.css?sha=$GITHUB_SHA" -o /tmp/owner.css || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?sha=$GITHUB_SHA" -o /tmp/owner-help.js || true
+            if grep -q "owner-workspace-compact-20261108.js?v=owner-01" /tmp/owner-index.html 2>/dev/null && cmp -s test/owner-workspace-compact-20261108.js /tmp/owner.js && cmp -s test/owner-workspace-compact-20261108.css /tmp/owner.css && cmp -s test/current-workspace-help-20261108.js /tmp/owner-help.js; then
+              echo "PASS: exact staged owner hierarchy, compact CSS and refreshed FAQ are served."
+              sha256sum /tmp/owner.js /tmp/owner.css /tmp/owner-help.js
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::Pages is not serving the exact current assets"
+          exit 1
