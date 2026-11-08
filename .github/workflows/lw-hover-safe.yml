@@ -1,0 +1,67 @@
+name: LW no-glare hover · all roles staging QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - test/lw-hover-safe-20261108.css
+      - test/index.html
+      - tests/lw-hover-safe.test.mjs
+      - tests/lw-hover-safe-browser.test.mjs
+      - .github/workflows/lw-hover-safe.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: CSS sources, role coverage and production isolation
+        run: node --test tests/lw-hover-safe.test.mjs
+  served:
+    needs: source
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exact staging CSS and cache key
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..32}; do
+            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/hover-index.html || true
+            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/lw-hover-safe-20261108.css?qa=$GITHUB_SHA" -o /tmp/hover.css || true
+            if grep -q 'lw-hover-safe-20261108.css?v=lw-hover-01' /tmp/hover-index.html 2>/dev/null \
+              && cmp -s test/lw-hover-safe-20261108.css /tmp/hover.css; then
+              echo "PASS exact hover shield on staging"
+              sha256sum /tmp/hover.css
+              exit 0
+            fi
+            echo "Awaiting Pages deployment (attempt $attempt)"
+            sleep 7
+          done
+          echo "::error::Staging CSS not published byte-for-byte"
+          exit 1
+  browser:
+    needs: served
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Eight roles, light forms, login and responsive hover
+        run: node --test tests/lw-hover-safe-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lw-hover-safe-screens
+          path: lw-hover-safe-*.png
+          if-no-files-found: ignore
