@@ -12,7 +12,8 @@
       "Подсказки к видимым формам показывают формат и назначение поля, включая флажки, тип обращения, описание, статусы и сроки «Предложений». Языки: RU/EN/ZH.",
       "Excel-шаблон описан корректно: импорт переносит значения, но не отправляет ставку; отправка выполняется отдельно.",
       "Frontend asset test/current-workspace-help-20261108.js blob 63186144ab06574c4a0c04309e9463c1e10db265; cache key guide-02, HTML commit 9242e107b175003a9b1a15c521592aa30a0d1ecb.",
-      "Проверка синтаксиса JS PASS. Проверка фактически отданной версии GitHub Pages, вход под всеми ролями, 390×844 и полный E2E до подтверждения остаются открытыми. Production и Supabase не менялись."
+      "Проверка синтаксиса JS PASS. Проверка фактически отданной версии GitHub Pages, вход под всеми ролями, 390×844 и полный E2E до подтверждения остаются открытыми. Production и Supabase не менялись.",
+      "Независимая проверка GitHub Actions #42479181350: синтаксис, локализации/роли/подсказки и байтовое совпадение реально отданного staging JavaScript — PASS."
     ]
   },
   "releases": [
@@ -341,7 +342,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T12:09:50.446Z",
+  "updatedAt": "2026-11-08T12:14:14.274Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -429,10 +430,12 @@
       "id": "WEB-30",
       "codeSyntax": "PASS",
       "frontendLinked": true,
-      "servedPage": "PENDING_INDEPENDENT_PROOF",
+      "servedPage": "PASS_EXACT_BYTES",
       "authorizedRoleE2E": "PENDING",
       "mobile390x844": "PENDING",
-      "productionTouched": false
+      "productionTouched": false,
+      "servedEvidence": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42479181350",
+      "roleLocaleFieldSmoke": "PASS"
     }
   },
   "task2Complete": false,
