@@ -7,7 +7,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
@@ -49,7 +49,8 @@
  const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
  const form=(kind,body,button="Сохранить изменения",hidden=false)=>
   '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(kind==="request_docs"?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
-  (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+'</form>';
+  (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+
+  (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':"")+'</form>';
  const call=async(params,files)=>{
    const options={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)};
    if(files){delete options.headers;options.body=files;}
@@ -67,6 +68,11 @@
  function alertText(msg,error=false){
    state.notice=(error?"Ошибка: ":"")+msg;
    const node=document.querySelector("#t2-alert");if(node){node.textContent=state.notice;node.className=error?"t2-alert error":"t2-alert";}
+ }
+ function requestFeedback(message,error=false){
+   state.requestStatus={order:state.selected,message,error};
+   const node=document.querySelector('#task2-root form[data-t2-form="request_docs"] .t2-request-feedback');
+   if(node){node.textContent=message;node.style.color=error?"#a12626":"#176c44";}
  }
  function getTarget(){return document.querySelector('.cabinet-panel[data-section="approved-shipments"]')}
  function show(){
@@ -139,7 +145,7 @@
      html+='<h3>Документы и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
-        field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small></label>',"Направить запрос ВЭД");
+        field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small><small data-t2-selected-documents aria-live="polite">Выберите документ и нажмите «Направить запрос ВЭД».</small></label>',"Направить запрос ВЭД");
      }
      if(x.status!=="completed"){
        html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
@@ -341,10 +347,17 @@
        const yes=window.confirm("Номер контейнера не указан. Отправить перевозчику запрос на заполнение?\nОК = Да, отправить запрос.\nОтмена = Нет, завершить без номера.");
        result=await call({...payload,answer:yes?"yes":"no"});
      }
-     await loadList();
-     alertText((result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote);
-     return result;
-   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false};}finally{state.busy=false;}
+     let refreshError="";
+     try{await loadList();}catch(e){
+       if(action!=="request_docs")throw e;
+       refreshError=e.message||"Ошибка обновления";
+     }
+     const message=action==="request_docs"
+       ?("Запрос отправлен ВЭД. Создана задача"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+(refreshError?". Список не обновился: "+refreshError:"")+".")
+       :(result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote;
+     alertText(message);
+     return {...result,refreshError};
+   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false,error:e.message||"Ошибка"};}finally{state.busy=false;}
  }
  async function downloadDoc(id){
    try{
@@ -559,7 +572,28 @@
      if(fields.pto_yes&&!fields.pto_date){alertText("Укажите дату прибытия на ПТО",true);return;}
      return update("save",{fields,...(csvMeta?{csv:csvMeta}:{})});
    }
-   if(kind==="request_docs")data.types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
+   if(kind==="request_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
+     const description=String(data.description||"").trim();
+     if(!types.length&&!description){
+       requestFeedback("Выберите документ или напишите, что требуется.",true);
+       f.querySelector('select[name="types"]')?.focus();
+       return;
+     }
+     data.description=description||(data.kind==="transport_documents"?"Просим предоставить документы на перевозку: ":"Просим предоставить недостающие документы: ")+types.join(", ");
+     data.types=types;
+     if(state.busy){requestFeedback("Запрос уже отправляется. Дождитесь результата.");return;}
+     const btn=f.querySelector('button[type="submit"]');
+     if(btn){btn.disabled=true;btn.textContent="Отправляем…";}
+     requestFeedback("Отправляем запрос в ВЭД…");
+     try{
+       const result=await update("request_docs",{...data,...(csvMeta?{csv:csvMeta}:{})});
+       if(result?.ok)requestFeedback("✓ Запрос отправлен ВЭД. Задача"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+" создана."+(result.refreshError?" Не удалось обновить список: "+result.refreshError:""));
+       else requestFeedback("Запрос не отправлен. "+(result?.error||"Проверьте поля и повторите."),true);
+     }catch(e){requestFeedback("Запрос не отправлен. "+(e.message||"Ошибка"),true);}
+     finally{const active=document.querySelector('#task2-root form[data-t2-form="request_docs"] button[type="submit"]');if(active){active.disabled=false;active.textContent="Направить запрос ВЭД";}}
+     return;
+   }
    if(kind==="act"){
      const action=data.action;delete data.action;const latest=state.detail?.acts?.[0];return update(action,{data,...(latest&&["draft","disputed","sent"].includes(latest.state)?{expectedRevision:latest.revision}:{}),...(csvMeta?{csv:csvMeta}:{})});
    }
@@ -624,6 +658,11 @@
  document.addEventListener("submit",ev=>{onSubmit(ev).catch(e=>alertText(e.message,true));});
  document.addEventListener("change",async ev=>{
    if(ev.target.id==="t2-select"){state.selected=ev.target.value;try{await loadDetail();}catch(e){alertText(e.message,true);}}
+   if(ev.target.matches('form[data-t2-form="request_docs"] select[name="types"]')){
+     const selected=Array.from(ev.target.selectedOptions).map(o=>o.value);
+     const info=ev.target.closest("label")?.querySelector("[data-t2-selected-documents]");
+     if(info)info.textContent=selected.length?"Выбрано: "+selected.join(", ")+". Для отправки нажмите кнопку ниже.":"Выберите документ и нажмите «Направить запрос ВЭД».";
+   }
    if(ev.target.hasAttribute("data-t2-csv-upload")){
      try{await csv.upload(ev.target.closest("form"),ev.target.files?.[0]);}catch(e){alertText(e.message,true);}
      ev.target.value="";
