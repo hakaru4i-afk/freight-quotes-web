@@ -52,7 +52,7 @@ jobs:
           echo '::error::Staging contrast styles not published byte-for-byte'
           exit 1
   browser:
-    needs: served
+    needs: source
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
