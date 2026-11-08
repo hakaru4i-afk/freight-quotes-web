@@ -27,3 +27,25 @@ test("production root entrypoint not used as staging asset", () => {
   assert.match(page, /<title>Тестовая среда/);
   assert.match(page, /src="\.\/app\.js\?v=/);
 });
+
+test("approved Owner command-03 still has full-width layout, role switch and SL", () => {
+  const css = readFileSync("test/owner-command-center-20261108.css", "utf8");
+  const js = readFileSync("test/owner-command-center-20261108.js", "utf8");
+  const nav = readFileSync("test/owner-workspace-compact-20261108.js", "utf8");
+  const help = readFileSync("test/current-workspace-help-20261108.js", "utf8");
+  assert.ok(page.includes("owner-command-center-20261108.css?v=command-03"));
+  assert.ok(page.includes("owner-command-center-20261108.js?v=command-03"));
+  assert.ok(css.includes("Exact full-bleed approved layout"));
+  assert.ok(css.includes("max-width:none!important;width:100%!important;margin:0!important"));
+  assert.ok(css.includes("grid-template-columns:220px minmax(0,1fr)!important"));
+  assert.ok(css.includes("body.lw-cc-role-open.lw-cc-owner-view .test-cabinets"));
+  assert.ok(js.includes("function syncRolePanel(cab,active)"));
+  assert.ok(js.includes("⚙ Просмотр кабинетов ▾"));
+  assert.ok(js.includes("Service Level (SL)"));
+  assert.ok(js.includes('request("/api/service-level?overview=1")'));
+  assert.ok(js.includes("return Array.isArray(state.registry)?state.registry.filter(r=>r&&!r.hidden)"));
+  assert.ok(nav.includes('id==="transport-applications"'));
+  assert.ok(nav.includes('seen.has(id)'));
+  for (const text of ["Карта разделов кабинета владельца","Owner workspace navigation","所有者工作台导航","lw-field-help"])
+    assert.ok(help.includes(text), "missing owner guide: " + text);
+});
