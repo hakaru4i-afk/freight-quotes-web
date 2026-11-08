@@ -218,12 +218,12 @@
            '<label class="t2-pto-cell"><span>Дата прибытия (Минск)</span><input type="datetime-local" name="pto_date"></label>')+
          (x.customs_at?'<div class="t2-pto-cell"><small>Таможенное оформление завершено</small><strong>'+fmt(x.customs_at)+'</strong></div>':
            '<label class="t2-pto-cell"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
-         '<button type="submit" class="t2-btn" style="width:116px;min-height:38px;align-self:end">Сохранить</button></form>'+
+         '<button type="submit" class="t2-btn" style="width:116px;height:38px;min-height:38px;align-self:start;margin-top:22px">Сохранить</button></form>'+
          '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
-         '<form data-t2-form="container" class="t2-container-compact" style="display:grid!important;grid-template-columns:minmax(0,1fr) 116px;gap:10px;align-items:end;width:100%;margin:0 0 14px">'+
+         '<form data-t2-form="container" class="t2-container-compact" style="display:grid!important;grid-template-columns:minmax(0,1fr) 116px;gap:10px;align-items:start;width:100%;margin:0 0 14px">'+
          '<label class="t2-pto-cell" style="min-width:0"><span>№ контейнера (необязательно)</span><input type="text" name="container_no" maxlength="50" placeholder="Введите номер контейнера" required style="width:100%;height:38px;min-width:0;box-sizing:border-box;background:#fff!important;color:#17243a!important;border:1px solid #cbd5e1!important;border-radius:8px!important;padding:0 12px!important;box-shadow:none!important;appearance:none!important;-webkit-text-fill-color:#17243a!important"></label>'+
-         '<button type="submit" class="t2-btn" style="width:116px;height:38px;margin:0">Сохранить</button></form>';
+         '<button type="submit" class="t2-btn" style="width:116px;height:38px;margin:22px 0 0;align-self:start">Сохранить</button></form>';
      }
      /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
