@@ -1,0 +1,40 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
+const html=readFileSync("test/index.html","utf8");
+const js=readFileSync("test/owner-command-center-20261108.js","utf8");
+const css=readFileSync("test/owner-command-center-20261108.css","utf8");
+const hero=readFileSync("test/owner-command-hero-20261108.svg","utf8");
+test("published Owner module is unique and staging-only",()=>{
+ for(const name of ["owner-command-center-20261108.js","owner-command-center-20261108.css"])assert.equal(html.split(name).length-1,1,name);
+ assert.match(html,/owner-command-center-20261108.js\?v=command-02/);
+ assert.match(html,/owner-command-center-20261108.css\?v=command-02/);
+ assert.ok(!html.includes("https://hakaru4i-afk.github.io/freight-quotes-web/?page="),"must not call production");
+});
+test("valid JS and SVG, roles and source-backed data only",()=>{
+ execFileSync(process.execPath,["--check","test/owner-command-center-20261108.js"]);
+ assert.match(hero,/<svg\b/);
+ assert.match(hero,/<\/svg>/);
+ assert.match(js,/data-cabinet-role="owner"/);
+ for(const path of ["/api/workload","/api/registry","/api/shipments","/api/service-level?overview=1"])assert.ok(js.includes(path),"missing live API "+path);
+ assert.ok(!/\bPOST\b|\bPATCH\b|\bDELETE\b/.test(js),"dashboard must not mutate API");
+ assert.ok(!/\b86%|\b24<\/strong>|\b56 перевозок/.test(js),"mock KPI values cannot ship");
+ for(const x of ["state.workload","state.registry","state.shipments","state.sl","carrierStats()","transportStats()","cleanRegistry()","cleanShipments()"])assert.ok(js.includes(x),x);
+});
+test("functional quick links and all staged sections",()=>{
+ for(const x of ["create-request","request-registry","tender-hub","approved-shipments","carrier-service","management-reports","help","team","incident-journal"])assert.ok(js.includes(x),x);
+ assert.ok(js.includes('safeRoute(id)'),"reject broken/unsafe user-provided navigation");
+ assert.ok(js.includes('aria-selected'),"tabs need interactive selection");
+ assert.ok(js.includes("escapeHTML("),"UI values must be escaped");
+});
+test("desktop mobile styling, owner only and original overview retained",()=>{
+ assert.match(css,/max-width:395px/);
+ assert.match(css,/max-width:760px/);
+ assert.match(css,/lw-cc-triad/);
+ assert.match(css,/lw-cc-sl-donut/);
+ assert.match(css,/lw-cc-table-scroll/);
+ assert.match(css,/data-cabinet-role="owner"/);
+ assert.match(css,/> :not\(#lw-owner-command\)/);
+ assert.ok(!css.includes("body{display:none"),"site must not be hidden");
+});
