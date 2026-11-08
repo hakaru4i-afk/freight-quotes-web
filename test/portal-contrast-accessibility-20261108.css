@@ -349,3 +349,14 @@
 #task2-root .t2-actual-form .t2-plan-feedback{grid-column:1/-1!important}
 #task2-root .t2-actual-saved{font-size:15px!important}
 @media(max-width:760px){#task2-root .t2-actual-row,#task2-root form.t2-actual-form{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-01 */
+#task2-root .t2-weekly-tracking{display:grid;gap:8px;margin:10px 0 18px}
+#task2-root .t2-weekly-row{display:grid!important;grid-template-columns:95px minmax(180px,1fr) minmax(180px,1fr) 180px!important;align-items:center!important;gap:10px!important;padding:8px 12px!important;margin:0!important;border:1px solid #c8d7e7!important;border-radius:9px!important;background:#f8fbff!important;min-width:0!important;color:#18344f!important}
+#task2-root .t2-weekly-row label{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;min-width:0!important}
+#task2-root .t2-weekly-row label span{font-size:12px!important;color:#395572!important}
+#task2-root .t2-weekly-row input{box-sizing:border-box!important;width:100%!important;min-width:0!important;height:40px!important;background:white!important;color:#18344f!important;-webkit-text-fill-color:#18344f!important;border:1px solid #a1b3c7!important;border-radius:7px!important;padding:6px 9px!important}
+#task2-root .t2-weekly-row button{height:40px!important;margin:0!important}
+#task2-root .t2-weekly-row.is-saved{background:#eef8f1!important}
+#task2-root .t2-weekly-row.is-pending{color:#53687d!important}
+@media(max-width:760px){#task2-root .t2-weekly-row{grid-template-columns:1fr!important}}
