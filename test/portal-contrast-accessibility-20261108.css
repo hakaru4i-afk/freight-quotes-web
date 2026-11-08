@@ -106,7 +106,7 @@
   text-shadow:none !important;
 }
 .cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]) {
-  color:var(--pr-nav-text,#c2d5e7) !important;opacity:1 !important;
+  color:#d1e3f4 !important;opacity:1 !important;
 }
 .cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:not([aria-current="page"]):hover {
   color:#f5faff !important;
