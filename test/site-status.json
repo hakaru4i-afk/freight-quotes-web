@@ -1,21 +1,32 @@
 {
-  "version": "owner-command-04-staging-20261108",
+  "version": "owner-command-05-staging-20261108",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "OWNER-COMMAND-04 · тестовая",
+    "version": "OWNER-COMMAND-05 · тестовая",
     "date": "2026-11-08",
-    "title": "Кабинет владельца — единый тёмный дизайн без пустой полосы",
+    "title": "Баннер владельца: детализированный транспорт вместо схематичных рисунков",
     "changes": [
-      "Сохранён утверждённый Owner Command Center из второго скриншота: полноширинный кабинет, тёмная палитра, боковое меню, показатели, распределение видов транспорта, маршруты, блок Service Level, реестр и срочные задачи.",
-      "Устранён скрытый лимит 1750px внутри дашборда; на широких мониторах данные занимают всю доступную рабочую область без дополнительной пустой полосы слева.",
-      "При переходе в «Мои заявки», «Рассмотрение ставок», исполнение и другие разделы тёмное оформление, меню и переключатель ролей в верхней строке сохраняются; старая большая панель ролей не появляется.",
-      "Улучшена контрастность заголовков, форм и подсказок в остальных разделах; FAQ по владельцу обновлён на RU/EN/ZH.",
-      "GitHub Actions browser с проверкой 2048/1440/390px, SL, переключателя ролей, переходов по разделам, темных форм и отсутствия горизонтальной прокрутки — PASS на имитационных данных. Полный E2E под настоящей учетной записью и окончательная визуальная приёмка владельцем отдельно ожидаются.",
-      "Изменения опубликованы только в тестовой среде /test/. Production не менялась."
+      "Заменена упрощённая векторная транспортная сцена в главном баннере кабинета владельца на ранее подготовленные детализированные изображения контейнеровоза, грузовика, поезда и самолёта; реальное изображение используется из /test/lw-approved-freight-20261108.jpg и /test/lw-approved-plane-20261108.jpg.",
+      "Сохранён утверждённый тёмный Owner Command Center, расположение текстов, кнопок и остальных блоков, включая Service Level.",
+      "Баннер адаптирован для широких и мобильных экранов, подложка текста затемнена для читаемости, верхний самолёт не блокирует интерактивные элементы.",
+      "Тест GitHub Actions #42493644228: исходники, точная выдача опубликованных файлов, Chromium на 2048/1440/390 px с проверкой фотоматериалов, SL, ролей и верстки — 3/3 jobs PASS. В браузерном тесте KPI и заявки — демонстрационные; авторизованная бизнес-приёмка Owner отдельно.",
+      "Публикация только в staging; production без изменений."
     ]
   },
   "releases": [
+    {
+      "version": "OWNER-COMMAND-05 · тестовая",
+      "date": "2026-11-08",
+      "title": "Баннер владельца: детализированный транспорт вместо схематичных рисунков",
+      "changes": [
+        "Заменена упрощённая векторная транспортная сцена в главном баннере кабинета владельца на ранее подготовленные детализированные изображения контейнеровоза, грузовика, поезда и самолёта; реальное изображение используется из /test/lw-approved-freight-20261108.jpg и /test/lw-approved-plane-20261108.jpg.",
+        "Сохранён утверждённый тёмный Owner Command Center, расположение текстов, кнопок и остальных блоков, включая Service Level.",
+        "Баннер адаптирован для широких и мобильных экранов, подложка текста затемнена для читаемости, верхний самолёт не блокирует интерактивные элементы.",
+        "Тест GitHub Actions #42493644228: исходники, точная выдача опубликованных файлов, Chromium на 2048/1440/390 px с проверкой фотоматериалов, SL, ролей и верстки — 3/3 jobs PASS. В браузерном тесте KPI и заявки — демонстрационные; авторизованная бизнес-приёмка Owner отдельно.",
+        "Публикация только в staging; production без изменений."
+      ]
+    },
     {
       "version": "OWNER-COMMAND-04 · тестовая",
       "date": "2026-11-08",
@@ -378,7 +389,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T14:58:21.610Z",
+  "updatedAt": "2026-11-08T15:06:00.000Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -547,7 +558,7 @@
     "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
   },
   "ownerCommandPatch": {
-    "id": "OWNER-COMMAND-04",
+    "id": "OWNER-COMMAND-05",
     "environment": "staging",
     "date": "2026-11-08",
     "approvedReference": "second owner screenshot; dark full-width command center",
@@ -557,7 +568,7 @@
       "9d1ad5807a0a1002a323a103e6b85b32bd7b180d"
     ],
     "guideCommit": "7f4a2ee1392ef972ee54adb804aba76464ba669c",
-    "indexCommit": "1415e7da483c91889ef041cb83f6413079a05d82",
+    "indexCommit": "23bb66c332841c74a44e330fbbb4ab8178326dcc",
     "checks": {
       "source": "PASS",
       "served": "PASS",
@@ -568,10 +579,24 @@
       "roleSwitchAllSections": "PASS",
       "fieldHintContrast": "PASS",
       "authenticatedOwnerInRealBrowser": "PENDING",
-      "visualComparisonWithOriginalScreenshot": "PENDING"
+      "visualComparisonWithOriginalScreenshot": "PENDING",
+      "detailedHeroStatic": "PASS",
+      "detailedHeroServed": "PASS",
+      "detailedHeroBrowser1440": "PASS",
+      "detailedHeroBrowser390": "PASS",
+      "detailedHeroBrowser2048": "PASS",
+      "browserMockDataOnly": true
     },
     "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42492023810",
     "productionChanged": false,
-    "releaseGate": "STAGING_DEPLOYED_NOT_ACCEPTED_FOR_PRODUCTION"
+    "releaseGate": "STAGING_DEPLOYED_VISUAL_APPROVAL_PENDING",
+    "heroMode": "approved_photographic_transport",
+    "heroAssets": [
+      "lw-approved-freight-20261108.jpg",
+      "lw-approved-plane-20261108.jpg"
+    ],
+    "cssCommit": "7cec7ff04e04a436d65ccf5b3a85a9dda1c890a5",
+    "heroCache": "command-05",
+    "browserQaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42493644228"
   }
 }
