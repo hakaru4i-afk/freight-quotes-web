@@ -9,7 +9,7 @@ const ru=(word)=>[...word].map(c=>c.charCodeAt(0)>127?"\\u"+c.charCodeAt(0).toSt
 test("staging-only app has valid JavaScript and pinned cache revision",()=>{
  execFileSync(process.execPath,["--check","test/app.js"]);
  execFileSync(process.execPath,["--check","test/current-workspace-help-20261108.js"]);
- assert.match(index,/\.\/app\.js\?v=fd2eb1f108c7/);
+ assert.match(index,/\.\/app\.js\?v=8a89e5acdfe3/);
  assert.match(index,/owner-command-center-20261108\.js/);
 });
 test("request registry never offers trash or restoration",()=>{

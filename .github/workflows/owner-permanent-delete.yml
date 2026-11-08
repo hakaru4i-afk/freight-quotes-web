@@ -37,7 +37,7 @@ jobs:
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?audit=$GITHUB_SHA" -o /tmp/lw-index.html || true
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/app.js?audit=$GITHUB_SHA" -o /tmp/lw-app.js || true
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?audit=$GITHUB_SHA" -o /tmp/lw-help.js || true
-            if grep -Fq 'app.js?v=fd2eb1f108c7' /tmp/lw-index.html 2>/dev/null \
+            if grep -Fq 'app.js?v=8a89e5acdfe3' /tmp/lw-index.html 2>/dev/null \
                && cmp -s test/app.js /tmp/lw-app.js \
                && cmp -s test/current-workspace-help-20261108.js /tmp/lw-help.js; then
               echo 'PASS: published staging app and FAQ exactly match repository'

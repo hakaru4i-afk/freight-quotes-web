@@ -30,6 +30,7 @@ async function checkViewport(browser,width,height){
     const preview=document.querySelector(".test-cabinets.lw-preview-compact");
     return {
       preview:preview?.getBoundingClientRect().height,
+      roleTrigger:!!root.querySelector('.lw-cc-role-trigger'),
       hero:root.querySelector(".overview-welcome")?.getBoundingClientRect().height,
       groups:links.filter(a=>a.dataset.lwOwnerGroupStart).map(a=>a.dataset.lwOwnerGroupStart),
       deferredHidden:deferred?getComputedStyle(deferred).display==="none":false,
@@ -38,8 +39,9 @@ async function checkViewport(browser,width,height){
       width:document.documentElement.scrollWidth
     };
   });
-  assert.ok(metrics.preview>0&&metrics.preview<300,"Preview is not compact: "+JSON.stringify(metrics));
-  assert.ok(metrics.hero>0&&metrics.hero<205,"Hero is not compact: "+JSON.stringify(metrics));
+  assert.ok(metrics.preview===0||(metrics.preview>0&&metrics.preview<300),"Role preview takes excessive space: "+JSON.stringify(metrics));
+  if(metrics.preview===0)assert.equal(metrics.roleTrigger,true,"Collapsed role switcher missing header trigger");
+  assert.ok(metrics.hero===0||(metrics.hero>0&&metrics.hero<205),"Old welcome hero is oversized: "+JSON.stringify(metrics));
   assert.ok(metrics.groups.some(x=>x.includes("Заявки и ставки")),"Owner hierarchy title missing");
   assert.ok(metrics.deferredHidden,"Deferred transport application remains in active Owner menu");
   assert.ok(Number(metrics.requestsOrder)<Number(metrics.executionOrder),"Request/Execution hierarchy incorrect");

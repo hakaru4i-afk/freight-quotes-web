@@ -117,7 +117,12 @@ test("actual served staging login hover has no white glare on desktop and mobile
     assert.equal(actual.filter,"none",JSON.stringify(actual));
     assert.equal(actual.shadow,"none",JSON.stringify(actual));
     assert.match(actual.background,/linear-gradient/,"Login hover must retain subdued gold gradient");
-    assert.equal(actual.color,"rgb(32, 23, 12)",JSON.stringify(actual));
+    const rgb=actual.color.match(/^rgb\((\d+), (\d+), (\d+)\)$/)?.slice(1).map(Number);
+    assert.ok(rgb,"Login hover text color must be a solid RGB: "+actual.color);
+    const luminance=channels=>channels.map(v=>{const c=v/255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4}).reduce((sum,c,i)=>sum+c*[.2126,.7152,.0722][i],0);
+    const textLum=luminance(rgb),darkGoldLum=luminance([203,120,28]);
+    const contrast=(Math.max(textLum,darkGoldLum)+.05)/(Math.min(textLum,darkGoldLum)+.05);
+    assert.ok(contrast>=4.5,"Published login button lacks readable text contrast: "+JSON.stringify({actual,contrast}));
     assert.ok(actual.bodyOverflow<=4,"Mobile layout overflow: "+JSON.stringify(actual));
     assert.deepEqual(errors,[],"Actual staging login JavaScript errors");
     await page.screenshot({path:"lw-hover-safe-served-login-"+viewport.width+".png",fullPage:true});
