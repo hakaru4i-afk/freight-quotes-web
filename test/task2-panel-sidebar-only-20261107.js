@@ -449,7 +449,7 @@
      }return;
    }
    if(kind==="actual"){
-     if(state.detail?.execution?.actual_departure||state.detail?.actual_departure){alertText("Фактическая дата уже зафиксирована. Повторное сохранение запрещено.",true);return;}
+     if(state.detail?.state?.actual_departure){alertText("Фактическая дата уже зафиксирована. Повторное сохранение запрещено.",true);return;}
      if(!data.actual_departure){alertText("Укажите фактическую дату отправления.",true);return;}
      const btn=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
      if(btn){btn.disabled=true;btn.textContent="Сохраняем…";}
@@ -458,7 +458,7 @@
        const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure)}});
        if(!result?.ok){if(feedback)feedback.textContent="Ошибка сохранения. Дата не подтверждена.";return;}
        await loadDetail();
-       const stored=state.detail?.execution?.actual_departure||state.detail?.actual_departure;
+       const stored=state.detail?.state?.actual_departure;
        if(!stored){alertText("Сервер не подтвердил фактическую дату. Повторно проверьте запись.",true);}
        else alertText("Фактическая дата отправления сохранена.");
      }finally{if(btn?.isConnected){btn.disabled=false;btn.textContent="Сохранить";}}
