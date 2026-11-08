@@ -64,13 +64,18 @@ export async function createMap(stage, route, places) {
     L.polyline(path, { color: style.color, weight: 3, dashArray: style.dash.join(' '), interactive: false }).addTo(map);
   }
   const points = [];
-  for (const point of route.markers) {
+  for (const [index, point] of route.markers.entries()) {
     const coordinates = [point.lat, shortestLongitude(point.lng, reference)];
     points.push(coordinates);
     const label = document.createElement('span');
-    label.textContent = point.number + ' · ' + point.label;
+    label.textContent = point.number + ' · ' + point.label.split(' / ')[0];
+    label.title = point.label;
+    const nearPrevious = index > 0 && map.distance(coordinates, points[index - 1]) < 190000;
+    const nearNext = index < route.markers.length - 1 &&
+      map.distance(coordinates, [route.markers[index + 1].lat, shortestLongitude(route.markers[index + 1].lng, reference)]) < 190000;
+    const direction = nearPrevious ? 'bottom' : nearNext ? 'top' : 'auto';
     L.circleMarker(coordinates, { radius: point.endpoint ? 6 : 4, color: '#ffedbd', weight: 2, fillColor: style.color, fillOpacity: 1 })
-      .bindTooltip(label, { permanent: true, direction: 'auto', offset: [0, -8], className: 'gv-map-stop', opacity: 1 })
+      .bindTooltip(label, { permanent: true, direction, offset: [0, nearPrevious ? 7 : -8], className: 'gv-map-stop', opacity: 1 })
       .addTo(map);
   }
   function reset() {
@@ -79,13 +84,13 @@ export async function createMap(stage, route, places) {
     else map.setView(points[0] ?? [28, 40], points.length ? 6 : 2, { animate: false });
     updateCaps();
   }
-  let fitted = false;
+  let fittedWidth = 0;
   function resize() {
     if (!stage.clientWidth || !stage.clientHeight) return;
-    if (fitted) map.invalidateSize({ pan: false });
+    if (fittedWidth === stage.clientWidth) map.invalidateSize({ pan: false });
     else {
+      fittedWidth = stage.clientWidth;
       reset();
-      fitted = true;
     }
   }
   resize();

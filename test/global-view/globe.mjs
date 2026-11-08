@@ -177,15 +177,15 @@ export async function createGlobe(stage, route) {
     const radius = .84 * Math.min(1, aspect) * Math.tan(T.MathUtils.degToRad(camera.fov / 2));
     return Math.hypot(1.023, 1.023 / Math.max(.18, radius));
   }
-  let fitted = false;
+  let fittedWidth = 0;
   function resize() {
     const { clientWidth: width, clientHeight: height } = stage;
     if (!width || !height) return;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    if (!fitted) {
-      fitted = true;
+    if (fittedWidth !== width) {
+      fittedWidth = width;
       reset();
     }
     render();
