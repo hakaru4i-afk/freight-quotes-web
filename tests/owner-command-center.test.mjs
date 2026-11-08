@@ -9,7 +9,7 @@ const hero=readFileSync("test/owner-command-hero-20261108.svg","utf8");
 test("published Owner module is unique and staging-only",()=>{
  for(const name of ["owner-command-center-20261108.js","owner-command-center-20261108.css"])assert.equal(html.split(name).length-1,1,name);
  assert.match(html,/owner-command-center-20261108.js\?v=command-04/);
- assert.match(html,/owner-command-center-20261108.css\?v=command-04/);
+ assert.match(html,/owner-command-center-20261108.css\?v=command-05/);
  assert.ok(!html.includes("https://hakaru4i-afk.github.io/freight-quotes-web/?page="),"must not call production");
 });
 test("valid JS and SVG, roles and source-backed data only",()=>{
@@ -37,6 +37,10 @@ test("desktop mobile styling, owner only and original overview retained",()=>{
  assert.match(css,/data-cabinet-role="owner"/);
  assert.match(css,/> :not\(#lw-owner-command\)/);
  assert.ok(!css.includes("body{display:none"),"site must not be hidden");
+ assert.ok(css.includes('url("./lw-approved-freight-20261108.jpg")'),"the detailed freight artwork must replace the flat illustration");
+ assert.ok(css.includes('url("./lw-approved-plane-20261108.jpg")'),"the detailed aircraft image must be included");
+ for(const asset of ["lw-approved-freight-20261108.jpg","lw-approved-plane-20261108.jpg"])
+   assert.ok(readFileSync("test/"+asset).length>4500,"missing hero photo "+asset);
  assert.ok(css.includes("OWNER-COMMAND-04"),"whole-Owner dark theme must be present");
  assert.ok(css.includes("max-width:none!important;margin:0!important"),"remove centered dashboard width cap");
  assert.ok(js.includes('cab.classList.add("lw-cc-active")'),"Owner shell must survive tab navigation");
