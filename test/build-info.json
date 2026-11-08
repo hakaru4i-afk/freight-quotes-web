@@ -377,8 +377,10 @@
     "cacheKey": "guide-03",
     "documentationIssue": "https://github.com/hakaru4i-afk/freight-quotes-web/issues/30",
     "syntax": "PASS",
-    "liveServed": "PENDING_GITHUB_ACTIONS",
+    "liveServed": "PASS_EXACT_BYTES",
     "roleE2E": "PENDING",
-    "productionChanged": false
+    "productionChanged": false,
+    "liveProof": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42479181350",
+    "roleLocaleFieldSmoke": "PASS"
   }
 }
