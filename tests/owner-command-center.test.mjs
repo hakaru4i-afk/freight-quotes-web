@@ -8,8 +8,8 @@ const css=readFileSync("test/owner-command-center-20261108.css","utf8");
 const hero=readFileSync("test/owner-command-hero-20261108.svg","utf8");
 test("published Owner module is unique and staging-only",()=>{
  for(const name of ["owner-command-center-20261108.js","owner-command-center-20261108.css"])assert.equal(html.split(name).length-1,1,name);
- assert.match(html,/owner-command-center-20261108.js\?v=command-02/);
- assert.match(html,/owner-command-center-20261108.css\?v=command-02/);
+ assert.match(html,/owner-command-center-20261108.js\?v=command-03/);
+ assert.match(html,/owner-command-center-20261108.css\?v=command-03/);
  assert.ok(!html.includes("https://hakaru4i-afk.github.io/freight-quotes-web/?page="),"must not call production");
 });
 test("valid JS and SVG, roles and source-backed data only",()=>{
