@@ -1,70 +1,143 @@
 global-route-view {
-  display: block; min-width: 0; color: #e8efff; background: #0b1425;
-  border: 1px solid #314664; border-radius: 14px; overflow: hidden; isolation: isolate;
-  margin: .75rem 0 1rem; font: 14px/1.5 system-ui, sans-serif; text-align: left;
+  container-type: inline-size;
+  display: block;
+  min-width: 0;
+  margin: .75rem 0 1rem;
+  overflow: hidden;
+  isolation: isolate;
+  color: #eff3ff;
+  background: #0a102c;
+  border: 1px solid #303f69;
+  border-radius: 16px;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-align: left;
 }
 global-route-view [hidden] { display: none !important; }
-.gv-header, .gv-info-header {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+.gv-hero {
+  background:
+    linear-gradient(#7689cb0d 1px, transparent 1px) center / 58px 58px,
+    linear-gradient(90deg, #7689cb0d 1px, transparent 1px) center / 58px 58px,
+    radial-gradient(ellipse at 50% 55%, #26376f, #141e49 57%, #090e2a 94%);
 }
-.gv-header { padding: 13px 16px; border-bottom: 1px solid #283953; }
-.gv-title { color: #f4f7ff; font-size: 17px; font-weight: 700; letter-spacing: .04em; }
-.gv-controls { display: flex; flex-wrap: wrap; gap: 6px; }
-global-route-view .gv-controls button {
-  cursor: pointer; padding: 6px 10px; min-height: 36px; color: #dfeaff; background: #14243b;
-  border: 1px solid #4a6284; border-radius: 7px; font: 600 13px/1.2 system-ui, sans-serif;
+.gv-header { text-align: center; padding: 22px 12px 0; }
+global-route-view .gv-title {
+  margin: 0;
+  color: #f8f9ff;
+  font: 350 clamp(28px, 5cqi, 48px)/1.1 system-ui, sans-serif;
+  letter-spacing: -.055em;
 }
-global-route-view .gv-controls button[aria-pressed="true"] {
-  color: #161505; background: #ffce61; border-color: #ffce61;
-}
-global-route-view .gv-controls button:disabled { opacity: .55; cursor: default; }
-global-route-view button:focus-visible { outline: 2px solid #ffce61; outline-offset: 2px; }
+global-route-view .gv-subtitle { margin: 7px 0 0; color: #b1c1ee; font-size: 12px; }
+.gv-subtitle::before { content: ''; display: inline-block; width: 5px; height: 5px; margin: 0 7px 2px 0; border-radius: 50%; background: #ffd742; }
 .gv-frame { position: relative; overflow: hidden; }
-.gv-stage {
-  position: relative; width: 100%; height: clamp(340px, 44vw, 560px); overflow: hidden;
-  background: radial-gradient(ellipse at 48% 46%, #1a335d, #090f22 70%, #050a16);
-}
+.gv-stage { position: relative; width: 100%; height: clamp(300px, 49cqi, 560px); overflow: hidden; }
 .gv-stage canvas { display: block; }
-.gv-stage > canvas { width: 100%; height: 100%; cursor: grab; }
-.gv-stage.leaflet-container { background: #0f2639; }
+.gv-stage-globe > canvas { width: 100%; height: 100%; cursor: grab; }
+.gv-stage-globe > canvas:active { cursor: grabbing; }
+.gv-stage.leaflet-container { background: #121e43; }
 .gv-stage .leaflet-control-attribution { color: #e3edff; background: #0b1729e8; font-size: 11px; }
-.gv-stage .leaflet-control-zoom a { color: #f0f5ff; background: #14243b; border-color: #4a6284; }
-.gv-stage .leaflet-control-zoom a:hover { background: #243954; }
-.gv-globe-label, .gv-map-stop, .gv-map-country {
-  color: #f8f4df; background: #09162ae8; border: 1px solid #5d6470; border-radius: 5px;
-  padding: 2px 6px; max-width: 155px; overflow: hidden; text-overflow: ellipsis;
-  white-space: nowrap; font: 600 12px/1.35 system-ui, sans-serif;
+.gv-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px 16px;
 }
-.gv-globe-label { position: absolute; transform: translate(7px, -130%); pointer-events: none; }
-.gv-globe-label.gv-label-left { transform: translate(calc(-100% - 7px), -130%); }
+.gv-switch { grid-column: 2; display: inline-flex; background: #465477; border-radius: 24px; padding: 3px; }
+.gv-zoom { justify-self: end; display: flex; gap: 7px; }
+global-route-view .gv-controls button {
+  min-width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 24px;
+  padding: 0 8px;
+  color: #f4f6ff;
+  background: #3b496f;
+  font: 650 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+global-route-view .gv-switch button { min-width: 50px; background: transparent; }
+global-route-view .gv-controls button:hover:not(:disabled) { background: #52628b; }
+global-route-view .gv-controls button[aria-pressed="true"],
+global-route-view .gv-controls .gv-reset { color: #121c42; background: #fbfcff; }
+global-route-view .gv-controls button[aria-pressed="true"]:hover,
+global-route-view .gv-controls .gv-reset:hover:not(:disabled) { background: #e2e9ff; }
+global-route-view .gv-controls button:disabled { opacity: .52; cursor: default; }
+global-route-view button:focus-visible { outline: 2px solid #ffda43; outline-offset: 2px; }
+.gv-globe-label, .gv-map-stop, .gv-map-country {
+  color: #162044;
+  background: #eff3ff;
+  border: 1px solid #d1dcfa;
+  border-radius: 12px;
+  padding: 2px 7px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 650 11px/1.35 system-ui, sans-serif;
+}
+.gv-globe-label { position: absolute; transform: translate(8px, -125%); pointer-events: none; }
+.gv-globe-label.gv-label-left { transform: translate(calc(-100% - 8px), -125%); }
+.gv-label-endpoint { color: #192244; background: #fff8dc; border-color: #ffdf58; }
 .gv-stage .gv-map-capital {
   color: #d2e5e9; font-size: 10px; background: transparent; border: 0; box-shadow: none;
   text-shadow: 0 1px 2px #000, 0 0 4px #000;
 }
 .gv-stage .leaflet-tooltip::before { display: none; }
 .gv-message {
-  position: absolute; z-index: 700; bottom: 23px; left: 12px; right: 12px; width: fit-content;
-  margin: 0 auto; color: #f3e8c9; background: #0a1629ed; border-radius: 6px; padding: 5px 10px;
+  position: absolute; z-index: 700; bottom: 20px; left: 12px; right: 12px; width: fit-content;
+  margin: 0 auto; color: #fff2c4; background: #101a37ee; border-radius: 12px; padding: 5px 10px;
 }
-.gv-info { padding: 14px 16px 16px; border-top: 1px solid #314664; overflow-wrap: anywhere; }
-global-route-view .gv-info h3 { margin: 0; color: #f4f7ff; font-size: 16px; }
-.gv-mode { font-weight: 600; color: #ffda8b; }
-.gv-stops {
-  display: flex; flex-wrap: wrap; gap: 10px 20px; margin: 12px 0; padding: 0; list-style: none;
-  counter-reset: gv-stop;
+.gv-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  align-items: stretch;
+  color: #142147;
+  background: #fafbff;
+  overflow-wrap: anywhere;
 }
+.gv-activities, .gv-summary { min-width: 0; padding: 20px clamp(14px, 3cqi, 28px); }
+.gv-summary { color: #fff; background: #4c62ba; }
+global-route-view .gv-info h3 { margin: 0 0 12px; color: inherit; font-size: 17px; font-weight: 620; }
+.gv-mode, .gv-stop-status {
+  display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 650;
+}
+.gv-mode { color: #22294a; background: #ffda43; }
+global-route-view .gv-coverage { margin: 13px 0 0; font-size: 38px; font-weight: 350; line-height: 1; }
+global-route-view .gv-coverage-label { margin: 5px 0 14px; color: #f2f5ff; font-size: 12px; }
+global-route-view .gv-warning { margin: 6px 0 0; color: #f2f5ff; font-size: 12px; }
+.gv-stops { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
 .gv-stops li {
-  position: relative; padding-left: 29px; min-width: 0; max-width: 100%; counter-increment: gv-stop;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: center;
+  padding: 7px 9px; border-radius: 10px; background: #eef1fb;
 }
-.gv-stops li::before {
-  content: counter(gv-stop); position: absolute; left: 0; top: 2px; width: 21px; height: 21px;
-  border-radius: 50%; color: #191806; background: #ffce61; text-align: center; font-weight: 700;
+.gv-stop-number {
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  color: #fff; background: #455eb3; font-weight: 700;
 }
+.gv-stops li:first-child .gv-stop-number, .gv-stops li:last-child .gv-stop-number { color: #192244; background: #ffda43; }
 .gv-stops strong, .gv-stops small { display: block; }
-.gv-stops small { color: #b3c5e1; }
-global-route-view .gv-warning { margin: 5px 0 0; font-size: 12px; color: #d0ddf4; }
-@media (max-width: 480px) {
-  .gv-header, .gv-info { padding-inline: 10px; }
-  .gv-stage { height: 340px; }
-  .gv-globe-label, .gv-map-stop { max-width: 95px; }
+.gv-stops small, .gv-unordered { color: #465477; font-size: 12px; }
+.gv-stop-status { color: #293f83; background: #dfe6fc; text-align: center; }
+.gv-stop-unlocated .gv-stop-status { color: #5a4000; background: #f9e8b5; }
+global-route-view .gv-unordered-title { margin: 12px 0 4px; color: inherit; font-size: 13px; }
+.gv-unordered { margin: 0; padding-inline-start: 18px; }
+@container (max-width: 560px) {
+  .gv-header { padding-top: 16px; }
+  .gv-stage { height: clamp(250px, 75cqi, 390px); }
+  .gv-info { grid-template-columns: minmax(0, 1fr); }
+  .gv-activities, .gv-summary { padding: 14px; }
+  .gv-controls { grid-template-columns: auto 1fr; padding-inline: 12px; }
+  .gv-switch { grid-column: 1; }
+  global-route-view .gv-controls button { min-height: 42px; min-width: 42px; }
+  .gv-globe-label, .gv-map-stop { max-width: 100px; }
+}
+@container (max-width: 330px) {
+  .gv-stops li { grid-template-columns: auto minmax(0, 1fr); }
+  .gv-stop-status { grid-column: 2; justify-self: start; }
+}
+.gv-globe-transport {
+  position: absolute; display: grid; place-items: center; width: 27px; height: 27px;
+  transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+  color: #182041; background: #ffda43; box-shadow: 0 0 12px #ffcb65a0;
+  font: 750 15px/1 system-ui, sans-serif;
 }

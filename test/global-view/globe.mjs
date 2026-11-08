@@ -24,7 +24,7 @@ export async function createGlobe(stage, route) {
   });
   const [day, night] = await textures;
   const scene = new T.Scene();
-  const camera = new T.PerspectiveCamera(38, 1, .01, 50);
+  const camera = new T.PerspectiveCamera(36, 1, .01, 50);
   const renderer = new T.WebGLRenderer({ alpha: true, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 1.7));
   renderer.domElement.setAttribute('aria-label', 'Интерактивный 3D-глобус');
@@ -37,10 +37,11 @@ export async function createGlobe(stage, route) {
   controls.rotateSpeed = .65;
 
   const sphere = new T.SphereGeometry(1, 96, 64);
-  const focus = route.markers.reduce((sum, point) => sum.add(vector(point)), new T.Vector3());
+  const ordered = route.stops.flatMap(stop => stop.position ? [stop.position] : []);
+  const focus = (ordered.length ? ordered : route.markers).reduce((sum, point) => sum.add(vector(point)), new T.Vector3());
   if (focus.lengthSq() < .0001) focus.copy(vector({ lat: 30, lng: 65 }));
   focus.normalize();
-  const light = focus.clone().add(new T.Vector3(.25, .5, .9)).normalize();
+  const light = focus.clone().applyAxisAngle(new T.Vector3(0, 1, 0), 1.15).add(new T.Vector3(0, .35, 0)).normalize();
   const earth = new T.ShaderMaterial({
     uniforms: { day: { value: day }, night: { value: night }, lightDir: { value: light } },
     vertexShader: surfaceVertex,
@@ -57,9 +58,9 @@ export async function createGlobe(stage, route) {
         vec3 viewDir = normalize(cameraPosition - surface);
         float rim = pow(1. - max(0., dot(viewDir, n)), 3.8);
         float city = max(lights.r, max(lights.g, lights.b));
-        vec3 color = daylight * (.23 + .54 * lit) + vec3(.013,.027,.066);
-        color += pow(city, 1.45) * vec3(1., .69, .32) * (.83 - .35 * lit);
-        color += rim * vec3(.12, .40, .85);
+        vec3 color = daylight * vec3(.48,.62,.95) * (.20 + .51 * lit) + vec3(.010,.019,.050);
+        color += pow(city, 1.15) * vec3(1., .77, .43) * (.98 - .28 * lit);
+        color += rim * vec3(.11, .32, .64);
         gl_FragColor = vec4(color, 1.);
       }
     `
@@ -78,16 +79,18 @@ export async function createGlobe(stage, route) {
     `
   });
   const air = new T.Mesh(sphere, atmosphere);
-  air.scale.setScalar(1.045);
+  air.scale.setScalar(1.023);
   scene.add(air);
 
   const style = modes[route.mode];
-  const line = new T.LineDashedMaterial({
-    color: style.color, dashSize: .007 + style.dash[0] * .002, gapSize: .009
+  const routeCore = new T.MeshBasicMaterial({ color: '#fff0a7' });
+  const routeGlow = new T.MeshBasicMaterial({
+    color: style.color, transparent: true, opacity: .36, depthWrite: false, blending: T.AdditiveBlending
   });
-  const aura = new T.MeshBasicMaterial({
-    color: style.color, transparent: true, opacity: .23, depthWrite: false
-  });
+  const routeHalo = routeGlow.clone();
+  routeHalo.opacity = .10;
+  let modePosition;
+  let longestArc = 0;
   for (const [start, end] of route.segments) {
     const a = vector(start);
     const b = vector(end);
@@ -100,29 +103,57 @@ export async function createGlobe(stage, route) {
       const lift = route.mode === 'air' ? .19 : .105;
       return a.clone().applyAxisAngle(axis, angle * t).multiplyScalar(1.006 + Math.sin(Math.PI * t) * Math.min(angle * .29, lift));
     });
-    const path = new T.Line(new T.BufferGeometry().setFromPoints(points), line);
-    path.computeLineDistances();
-    scene.add(path, new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(points), 64, .0026, 5, false), aura));
+    const curve = new T.CatmullRomCurve3(points);
+    if (angle > longestArc) {
+      longestArc = angle;
+      modePosition = curve.getPoint(.5);
+    }
+    for (const [radius, material] of [[.0033, routeCore], [.0075, routeGlow], [.014, routeHalo]]) {
+      scene.add(new T.Mesh(new T.TubeGeometry(curve, 64, radius, 6, false), material));
+    }
   }
 
-  const markerGeometry = new T.SphereGeometry(.011, 14, 10);
-  const markerMaterial = new T.MeshBasicMaterial({ color: '#ffe5a0' });
-  const labels = route.markers.map(point => {
+  const markerGeometry = new T.SphereGeometry(1, 14, 10);
+  const markerMaterial = new T.MeshBasicMaterial({ color: '#fff5c1' });
+  const markerHalo = routeGlow.clone();
+  markerHalo.opacity = .26;
+  const labels = [...route.markers].sort((a, b) => Number(b.endpoint) - Number(a.endpoint)).map(point => {
     const position = vector(point);
     const mark = new T.Mesh(markerGeometry, markerMaterial);
-    mark.position.copy(position).multiplyScalar(1.012);
-    scene.add(mark);
+    mark.position.copy(position).multiplyScalar(1.014);
+    const radius = point.endpoint ? .015 : .010;
+    mark.scale.setScalar(radius);
+    const halo = new T.Mesh(markerGeometry, markerHalo);
+    halo.position.copy(mark.position);
+    halo.scale.setScalar(radius * 1.8);
+    scene.add(mark, halo);
     const label = document.createElement('span');
-    label.className = 'gv-globe-label';
-    label.textContent = point.label;
+    label.className = 'gv-globe-label' + (point.endpoint ? ' gv-label-endpoint' : '');
+    label.textContent = point.number + ' · ' + point.label;
     stage.append(label);
     return { position, label };
   });
+
+  const transport = document.createElement('span');
+  transport.className = 'gv-globe-transport';
+  transport.textContent = { rail: '▤', road: '▰', sea: '⚓', air: '✈', multi: '⇄', unknown: '◇' }[route.mode];
+  transport.setAttribute('aria-hidden', 'true');
+  transport.hidden = true;
+  stage.append(transport);
 
   function render() {
     if (!stage.clientWidth || !stage.clientHeight) return;
     renderer.render(scene, camera);
     const placed = [];
+    if (modePosition) {
+      const projected = modePosition.clone().project(camera);
+      transport.hidden = modePosition.clone().normalize().dot(camera.position) <= 1.04 ||
+        Math.abs(projected.x) > .94 || Math.abs(projected.y) > .92;
+      if (!transport.hidden) {
+        transport.style.left = (projected.x + 1) * 50 + '%';
+        transport.style.top = (1 - projected.y) * 50 + '%';
+      }
+    }
     for (const { position, label } of labels) {
       const projected = position.clone().multiplyScalar(1.02).project(camera);
       const x = (projected.x + 1) * stage.clientWidth / 2;
@@ -137,32 +168,47 @@ export async function createGlobe(stage, route) {
     }
   }
   function reset() {
-    camera.position.copy(focus).multiplyScalar(stage.clientWidth < 480 ? 3.95 : 3.65);
+    camera.position.copy(focus).multiplyScalar(homeDistance());
     controls.update();
     render();
   }
+  function homeDistance() {
+    const aspect = stage.clientWidth / Math.max(1, stage.clientHeight);
+    const radius = .84 * Math.min(1, aspect) * Math.tan(T.MathUtils.degToRad(camera.fov / 2));
+    return Math.hypot(1.023, 1.023 / Math.max(.18, radius));
+  }
+  let fitted = false;
   function resize() {
     const { clientWidth: width, clientHeight: height } = stage;
     if (!width || !height) return;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
+    if (!fitted) {
+      fitted = true;
+      reset();
+    }
     render();
   }
   controls.addEventListener('change', render);
   const observer = new ResizeObserver(resize);
   observer.observe(stage);
-  reset();
   resize();
   return {
     resize, reset,
+    zoom(direction) {
+      const distance = T.MathUtils.clamp(camera.position.length() * .80 ** direction, controls.minDistance, controls.maxDistance);
+      camera.position.setLength(distance);
+      controls.update();
+      render();
+    },
     destroy() {
       observer.disconnect();
       controls.dispose();
       const geometries = new Set([sphere, markerGeometry]);
       scene.traverse(object => { if (object.geometry) geometries.add(object.geometry); });
       geometries.forEach(geometry => geometry.dispose());
-      [earth, atmosphere, line, aura, markerMaterial].forEach(material => material.dispose());
+      [earth, atmosphere, routeCore, routeGlow, routeHalo, markerMaterial, markerHalo].forEach(material => material.dispose());
       renderer.dispose();
       renderer.forceContextLoss();
     }

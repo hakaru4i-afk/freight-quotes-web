@@ -17,7 +17,7 @@ const topology = () => geography ??= fetch(new URL('./countries.json', import.me
 export async function createMap(stage, route, places) {
   const data = await topology();
   const L = globalThis.L;
-  const map = L.map(stage, { minZoom: 1, maxZoom: 10, scrollWheelZoom: false, preferCanvas: true })
+  const map = L.map(stage, { minZoom: 1, maxZoom: 10, scrollWheelZoom: false, preferCanvas: true, zoomControl: false })
     .setView([28, 40], 2, { animate: false });
   map.attributionControl.setPrefix(false).addAttribution('Natural Earth · World Atlas');
   const countryStyle = { color: '#638492', weight: .65, fillColor: '#263e48', fillOpacity: 1 };
@@ -68,8 +68,8 @@ export async function createMap(stage, route, places) {
     const coordinates = [point.lat, shortestLongitude(point.lng, reference)];
     points.push(coordinates);
     const label = document.createElement('span');
-    label.textContent = point.label;
-    L.circleMarker(coordinates, { radius: 5, color: '#ffedbd', weight: 2, fillColor: style.color, fillOpacity: 1 })
+    label.textContent = point.number + ' · ' + point.label;
+    L.circleMarker(coordinates, { radius: point.endpoint ? 6 : 4, color: '#ffedbd', weight: 2, fillColor: style.color, fillOpacity: 1 })
       .bindTooltip(label, { permanent: true, direction: 'auto', offset: [0, -8], className: 'gv-map-stop', opacity: 1 })
       .addTo(map);
   }
@@ -92,7 +92,7 @@ export async function createMap(stage, route, places) {
   const observer = new ResizeObserver(resize);
   observer.observe(stage);
   return {
-    resize, reset,
+    resize, reset, zoom: direction => map.setZoom(map.getZoom() + direction),
     destroy() { observer.disconnect(); map.remove(); }
   };
 }

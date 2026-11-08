@@ -8,7 +8,7 @@ const aliases = {
   'Нинбо': 'Ningbo', '宁波': 'Ningbo', '宁波市': 'Ningbo',
   'Минск': 'Minsk', 'Мінск': 'Minsk', '明斯克': 'Minsk',
   'Шанхай': 'Shanghai', '上海': 'Shanghai', 'Гуанчжоу': 'Guangzhou', '广州': 'Guangzhou',
-  'Иу': 'Yiwu', '义乌': 'Yiwu', 'Сиань': "Xi'an", '西安': "Xi'an",
+  'Иу': 'Yiwu', '义乌': 'Yiwu', 'Сиань': 'Xian', '西安': 'Xian',
   'Чэнду': 'Chengdu', '成都': 'Chengdu', 'Чунцин': 'Chongqing', '重庆': 'Chongqing',
   'Циндао': 'Qingdao', '青岛': 'Qingdao', 'Пекин': 'Beijing', '北京': 'Beijing',
   'Москва': 'Moscow', '莫斯科': 'Moscow', 'Брест': 'Brest BY', 'Брэст': 'Brest BY',
@@ -92,12 +92,31 @@ export function routeModel(request, offer, resolve) {
   }
   push(arrival, 'Станция / порт назначения · перевозчик');
   push(destination, 'Доставка · владелец');
-  const deferred = carrier.length ? owner.filter(point => !stops.some(stop => normal(stop.label) === normal(point))) : [];
+  const deferred = [];
+  const seen = new Set(stops.map(stop => normal(stop.label)));
+  const collectUnordered = (labels, role) => {
+    for (const label of labels) {
+      const key = normal(label);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deferred.push({ label, role, position: resolve(label) });
+    }
+  };
+  if (carrier.length) collectUnordered(owner, 'Промежуточный пункт · владелец');
+  if (clean(offer?.waypoints)) collectUnordered(split(offer?.route), 'Маршрут ставки · перевозчик');
   const markers = [];
-  for (const stop of stops) {
+  for (const [index, stop] of [...stops, ...deferred].entries()) {
     if (!stop.position) continue;
+    const number = index < stops.length ? String(index + 1) : '◇';
+    const endpoint = index === 0 || index === stops.length - 1;
     const match = markers.find(point => point.lat === stop.position.lat && point.lng === stop.position.lng);
-    if (!match) markers.push({ label: stop.label, ...stop.position });
+    if (match) {
+      match.number += ' / ' + number;
+      match.label += ' / ' + stop.label;
+      match.endpoint ||= endpoint;
+    } else {
+      markers.push({ label: stop.label, number, endpoint, ...stop.position });
+    }
   }
   const segments = [];
   for (let i = 1; i < stops.length; i++) {

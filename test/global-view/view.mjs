@@ -1,4 +1,4 @@
-import { modes, placeIndex, routeModel } from './route-model.mjs';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=gv04';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -37,54 +37,81 @@ class GlobalRouteView extends HTMLElement {
     };
     const previousMode = this.dataset.mode ?? '3d';
     const [request, offer] = JSON.parse(this.dataset.route ?? '[{},null]');
-    const header = node('div', 'gv-header');
-    const title = node('strong', 'gv-title', 'Global View');
-    const buttons = node('div', 'gv-controls');
-    const globe = node('button', '', '3D-глобус');
-    const flat = node('button', '', '2D-карта');
-    const reset = node('button', '', 'К маршруту');
-    for (const button of [globe, flat, reset]) button.type = 'button';
-    buttons.append(globe, flat, reset);
-    header.append(title, buttons);
+    const hero = node('div', 'gv-hero');
+    const header = node('header', 'gv-header');
+    header.append(node('h2', 'gv-title', 'Global View'),
+      node('p', 'gv-subtitle', 'Маршрут заявки'));
     const frame = node('div', 'gv-frame');
-    const stages = { '3d': node('div', 'gv-stage'), '2d': node('div', 'gv-stage') };
+    const stages = { '3d': node('div', 'gv-stage gv-stage-globe'), '2d': node('div', 'gv-stage gv-stage-map') };
     stages['2d'].hidden = true;
     frame.append(stages['3d'], stages['2d']);
     const message = node('p', 'gv-message', 'Загружаем карту…');
     message.setAttribute('role', 'status');
     frame.append(message);
+    const buttons = node('div', 'gv-controls');
+    const modesControl = node('div', 'gv-switch');
+    modesControl.setAttribute('role', 'group');
+    modesControl.setAttribute('aria-label', 'Режим карты');
+    const globe = node('button', '', '3D');
+    const flat = node('button', '', '2D');
+    globe.setAttribute('aria-label', '3D-глобус');
+    flat.setAttribute('aria-label', '2D-карта');
+    modesControl.append(globe, flat);
+    const zoom = node('div', 'gv-zoom');
+    const closer = node('button', '', '+');
+    const farther = node('button', '', '−');
+    const reset = node('button', 'gv-reset', '⌖');
+    for (const [button, label] of [[closer, 'Приблизить'], [farther, 'Отдалить'], [reset, 'К маршруту']]) {
+      button.setAttribute('aria-label', label);
+      button.title = label;
+    }
+    for (const button of [globe, flat, closer, farther, reset]) button.type = 'button';
+    zoom.append(closer, farther, reset);
+    buttons.append(modesControl, zoom);
+    hero.append(header, frame, buttons);
     const info = node('section', 'gv-info');
-    this.replaceChildren(header, frame, info);
+    this.replaceChildren(hero, info);
     let places = [];
     let lookupFailed = false;
     try { places = await loadCities(); } catch { lookupFailed = true; }
     if (signal.aborted) return;
     const route = routeModel(request, offer, placeIndex(places));
     const mode = modes[route.mode];
-    const heading = node('h3', '', 'Маршрут перевозки');
-    const badge = node('span', 'gv-mode', icons[route.mode] + '  ' +
-      (route.mode === 'unknown' && route.transport ? route.transport : mode.label));
-    const infoHeader = node('div', 'gv-info-header');
-    infoHeader.append(heading, badge);
+    const activities = node('div', 'gv-activities');
+    activities.append(node('h3', '', 'Маршрут перевозки'));
     const list = node('ol', 'gv-stops');
-    for (const stop of route.stops) {
-      const item = node('li', '');
-      const precision = !stop.position ? ' · нет координат' : stop.position.approximate ? ' · центр города' : '';
-      item.append(node('strong', '', stop.label), node('small', '', stop.role + precision));
+    for (const [index, stop] of route.stops.entries()) {
+      const item = node('li', stop.position ? '' : 'gv-stop-unlocated');
+      const detail = node('div', 'gv-stop-detail');
+      const status = !stop.position ? 'Нет координат' : stop.position.approximate ? 'Центр города' : 'Координаты';
+      detail.append(node('strong', '', stop.label), node('small', '', stop.role));
+      item.append(node('span', 'gv-stop-number', String(index + 1)), detail, node('span', 'gv-stop-status', status));
       list.append(item);
     }
-    const warning = node('p', 'gv-warning',
-      'Пунктир показывает схему между пунктами. Точная трасса и GPS-позиция не подтверждены.');
-    info.append(infoHeader, list, warning);
-    if (route.missingEndpoints) info.append(node('p', 'gv-warning', 'Заполните адреса погрузки и доставки для полного маршрута.'));
-    if (route.stops.some(stop => !stop.position)) {
-      info.append(node('p', 'gv-warning', 'Часть пунктов не найдена. Для них нужны однозначные названия или координаты. Разрывы маршрута оставлены на карте.'));
-    }
-    if (route.mode === 'multi') info.append(node('p', 'gv-warning', 'Вид транспорта на отдельных участках не указан.'));
+    activities.append(list);
     if (route.deferred.length) {
-      info.append(node('p', 'gv-warning', 'Пункты владельца без подтверждённого места в маршруте перевозчика: ' + route.deferred.join(' · ') + '.'));
+      activities.append(node('h4', 'gv-unordered-title', 'Порядок не указан'));
+      const unordered = node('ul', 'gv-unordered');
+      for (const stop of route.deferred) {
+        const status = stop.position ? 'на карте отдельно' : 'нет координат';
+        unordered.append(node('li', '', stop.label + ' · ' + stop.role + ' · ' + status));
+      }
+      activities.append(unordered);
     }
-    if (lookupFailed) info.append(node('p', 'gv-warning', 'Справочник городов временно недоступен.'));
+    const summary = node('aside', 'gv-summary');
+    const badge = node('span', 'gv-mode', icons[route.mode] + '  ' +
+      (route.mode === 'unknown' && route.transport ? route.transport : mode.label));
+    const located = [...route.stops, ...route.deferred].filter(stop => stop.position).length;
+    const total = route.stops.length + route.deferred.length;
+    summary.append(node('h3', '', 'Контроль перевозки'), badge,
+      node('p', 'gv-coverage', located + ' / ' + total),
+      node('p', 'gv-coverage-label', 'Пунктов с координатами'),
+      node('p', 'gv-warning', 'На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.'));
+    if (route.missingEndpoints) summary.append(node('p', 'gv-warning', 'Укажите адреса погрузки и доставки.'));
+    if (located < total) summary.append(node('p', 'gv-warning', 'Для остальных пунктов нужны однозначные названия или координаты.'));
+    if (route.mode === 'multi') summary.append(node('p', 'gv-warning', 'Вид транспорта на отдельных участках не указан.'));
+    if (lookupFailed) summary.append(node('p', 'gv-warning', 'Справочник городов временно недоступен.'));
+    info.append(activities, summary);
 
     const loading = {};
     let revision = 0;
@@ -95,7 +122,7 @@ class GlobalRouteView extends HTMLElement {
       for (const [key, stage] of Object.entries(stages)) stage.hidden = key !== name;
       globe.setAttribute('aria-pressed', String(name === '3d'));
       flat.setAttribute('aria-pressed', String(name === '2d'));
-      reset.disabled = !instances[name];
+      for (const button of [closer, farther, reset]) button.disabled = !instances[name];
       message.hidden = !!instances[name] && !fallback;
       if (instances[name]) {
         instances[name].resize();
@@ -106,8 +133,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs')).createGlobe
-            : (await import('./map.mjs?v=gv03')).createMap;
+            ? (await import('./globe.mjs?v=gv04')).createGlobe
+            : (await import('./map.mjs?v=gv04')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;
@@ -117,7 +144,7 @@ class GlobalRouteView extends HTMLElement {
         instances[name].resize();
         message.hidden = !fallback;
         if (fallback) message.textContent = '3D недоступен. Маршрут открыт на 2D-карте.';
-        reset.disabled = false;
+        for (const button of [closer, farther, reset]) button.disabled = false;
       } catch (error) {
         console.warn(`Global View ${name} initialization failed`, error);
         delete loading[name];
@@ -132,6 +159,8 @@ class GlobalRouteView extends HTMLElement {
     };
     globe.onclick = () => { fallback = false; show('3d'); };
     flat.onclick = () => { fallback = false; show('2d'); };
+    closer.onclick = () => instances[this.dataset.mode]?.zoom(1);
+    farther.onclick = () => instances[this.dataset.mode]?.zoom(-1);
     reset.onclick = () => instances[this.dataset.mode]?.reset();
     show(previousMode);
   }

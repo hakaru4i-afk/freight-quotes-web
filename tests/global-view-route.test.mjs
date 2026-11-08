@@ -29,3 +29,12 @@ test('all supported transport modes are classified', () => {
   assert.deepEqual(['ЖД', 'Авто', 'Море', 'Авиа', 'Мультимодальный', ''].map(transportMode),
     ['rail', 'road', 'sea', 'air', 'multi', 'unknown']);
 });
+
+test('unsequenced waypoints stay visible without changing the selected route', () => {
+  const route = routeModel({ origin: 'Шэньчжэнь', destination: 'Минск', waypoints: 'Москва' },
+    { waypoints: 'Сиань → Алматы', route: 'Сиань → Алматы → Варшава', mode: 'Ж/Д' }, resolve);
+  assert.deepEqual(route.stops.map(stop => stop.label), ['Шэньчжэнь', 'Сиань', 'Алматы', 'Минск']);
+  assert.deepEqual(route.deferred.map(stop => stop.label), ['Москва', 'Варшава']);
+  assert.equal(route.markers.length, 6);
+  assert.equal(route.segments.length, 3);
+});
