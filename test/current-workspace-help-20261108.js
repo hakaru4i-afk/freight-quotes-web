@@ -114,7 +114,7 @@ const H=[
 ];
 const lang=()=>{let l=(document.documentElement.lang||"ru").toLowerCase();return l.startsWith("en")?"en":l.startsWith("zh")?"zh":"ru"};
 const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const role=()=>document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"";
+const role=()=>{const raw=String(document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"").toLowerCase();if(/purchase|procure|закуп/.test(raw))return "purchasing";if(/content|контент/.test(raw))return "content";if(/designer|дизайн/.test(raw))return "designer";if(/certificate|certification|ved|вэд/.test(raw))return "certification";if(/owner|владел/.test(raw))return "owner";if(/carrier|перевоз/.test(raw))return "carrier";if(/supplier|постав/.test(raw))return "supplier";if(/logistic|логист/.test(raw))return "logistic";return raw;};
 const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
 let queued=false;
 function update(){
