@@ -1,0 +1,80 @@
+/* Role-scoped pending tasks panel, staging only. Uses inherited surface colors. */
+#lw-pending-tasks-all-roles {
+ box-sizing:border-box;
+ display:block;
+ width:100%;
+ padding:17px 19px;
+ margin:0 0 20px;
+ border:1px solid #cbd5e1;
+ border-radius:15px;
+ background:#f8fafc;
+ color:#17243a;
+ box-shadow:0 5px 16px rgba(24,45,78,.07);
+ font-family:inherit;
+ text-align:left;
+}
+#lw-pending-tasks-all-roles *,
+#lw-pending-tasks-all-roles *::before,
+#lw-pending-tasks-all-roles *::after {box-sizing:border-box;}
+#lw-pending-tasks-all-roles .lw-pending-head {
+ display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+#lw-pending-tasks-all-roles .lw-pending-head >div{display:flex;align-items:center;gap:10px;min-width:0;}
+#lw-pending-tasks-all-roles h3 {
+ margin:0; padding:0; color:inherit; font-size:1.05rem; font-weight:750;line-height:1.35;
+}
+#lw-pending-tasks-all-roles .lw-pending-count {
+ border-radius:999px;display:inline-flex;min-width:26px;height:26px;padding:0 8px;align-items:center;justify-content:center;
+ font-weight:750;background:#e2e8f0;color:#1e293b;line-height:1;font-size:.84rem;
+}
+#lw-pending-tasks-all-roles .lw-pending-head button{
+ appearance:none;background:transparent;color:#164e87;border:1px solid #94a3b8;
+ border-radius:8px;font:inherit;font-size:.81rem;font-weight:650;cursor:pointer;
+ padding:7px 12px;line-height:1.25;
+}
+#lw-pending-tasks-all-roles button:hover,#lw-pending-tasks-all-roles a:hover{background:#e7effb;color:#113a69;}
+#lw-pending-tasks-all-roles button:focus-visible,#lw-pending-tasks-all-roles a:focus-visible {outline:2px solid #2563eb;outline-offset:2px;}
+#lw-pending-tasks-all-roles ul {list-style:none;margin:13px 0 0;padding:0;display:grid;gap:6px;}
+#lw-pending-tasks-all-roles li {margin:0;padding:0;}
+#lw-pending-tasks-all-roles li a {
+ display:flex;align-items:center;justify-content:space-between;gap:14px;
+ padding:9px 11px;border:1px solid #d8e0eb;border-radius:10px;
+ text-decoration:none!important;color:#1f2937!important;background:#fff;
+ font:inherit;
+}
+#lw-pending-tasks-all-roles li a span:first-child{min-width:0;display:flex;flex-direction:column;gap:3px;}
+#lw-pending-tasks-all-roles li a strong {font-weight:700;font-size:.91rem;color:#17243a!important;line-height:1.4;}
+#lw-pending-tasks-all-roles li a small {font-weight:400;font-size:.79rem;color:#475569!important;line-height:1.4;overflow-wrap:anywhere;}
+#lw-pending-tasks-all-roles .lw-pending-arrow{font-size:1.5rem;color:#334155;font-weight:500;flex:none;}
+#lw-pending-tasks-all-roles .lw-pending-status,
+#lw-pending-tasks-all-roles .lw-pending-error,
+#lw-pending-tasks-all-roles .lw-pending-warning,
+#lw-pending-tasks-all-roles .lw-pending-more {margin-top:10px;font-size:.82rem;line-height:1.45;color:#475569;}
+#lw-pending-tasks-all-roles .lw-pending-error{color:#991b1b;}
+#lw-pending-tasks-all-roles .lw-pending-warning{color:#854d0e;}
+/* Owner dashboard is dark: adapt the card locally without affecting other cabinets. */
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles,
+#lw-owner-command #lw-pending-tasks-all-roles {
+ background:#15263d!important;color:#f1f5f9!important;border-color:#405472!important;
+ box-shadow:0 9px 23px rgba(0,0,0,.18);
+}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a,
+#lw-owner-command #lw-pending-tasks-all-roles li a {background:#203650!important;color:#f1f5f9!important;border-color:#49627f!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a strong,
+#lw-owner-command #lw-pending-tasks-all-roles li a strong {color:#fff!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a small,
+#lw-owner-command #lw-pending-tasks-all-roles li a small {color:#cad7e8!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-head button,
+#lw-owner-command #lw-pending-tasks-all-roles .lw-pending-head button{color:#d5e7ff!important;border-color:#7594b8!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-status,
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-more,
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-warning{color:#cbd5e1!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a:hover,
+#lw-owner-command #lw-pending-tasks-all-roles li a:hover{background:#294563!important;}
+@media(max-width:680px){
+ #lw-pending-tasks-all-roles{padding:13px 12px;margin-bottom:14px;border-radius:12px;}
+ #lw-pending-tasks-all-roles h3{font-size:.96rem;}
+ #lw-pending-tasks-all-roles .lw-pending-head{flex-wrap:nowrap;}
+ #lw-pending-tasks-all-roles .lw-pending-head button{padding:6px 9px;font-size:.76rem;}
+ #lw-pending-tasks-all-roles li a{padding:10px 9px;}
+}
