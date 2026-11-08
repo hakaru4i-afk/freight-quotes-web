@@ -222,7 +222,8 @@ document.addEventListener("click",event=>{
  }
 });
 document.addEventListener("DOMContentLoaded",()=>{refresh(true);queue();});
-window.addEventListener("hashchange",()=>{refresh();queue();});
+window.addEventListener("hashchange",()=>{refresh(!location.hash||location.hash==="#overview");queue();});
+window.addEventListener("lw-tasks-changed",()=>refresh(true));
 window.addEventListener("focus",()=>{if(Date.now()-state.updated>60000)refresh();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
 document.addEventListener("freight-access-updated",()=>refresh(true));
