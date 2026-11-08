@@ -1,0 +1,11 @@
+#task2-faq,#task2-supplier-verified{display:none!important}
+#lw-current-help{background:#fff;color:#1c364e;border:1px solid #d7e5f0;border-radius:14px;padding:25px;margin:0 0 22px;box-shadow:0 4px 18px #15365714}
+#lw-current-help h2{font-size:24px;color:#193958;margin:0 0 12px}
+#lw-current-help h3{font-size:18px;margin:18px 0 10px}
+#lw-current-help ol{padding-left:24px;line-height:1.7}
+#lw-current-help li{margin:0 0 7px}
+#lw-current-help details{padding:12px 0;border-top:1px solid #dfe7f0}
+#lw-current-help summary{cursor:pointer;color:#1f4262;font-weight:700}
+#lw-current-help details p{color:#526a7e;line-height:1.65}
+.cabinet-app .lw-field-help{display:block!important;font-size:11px!important;line-height:1.45!important;font-weight:400!important;color:#54758a!important;margin:6px 0 2px!important;width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+@media(max-width:640px){#lw-current-help{padding:16px}#lw-current-help h2{font-size:21px}}

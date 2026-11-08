@@ -67,7 +67,7 @@ async function ownerAction(e){
 const b=e.target.closest("[data-lw-status]");if(!b||ownerBusy)return;
 ownerBusy=true;b.disabled=true;try{
 const r=await fetch("/api/partner-inquiries",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:b.dataset.lwId,status:b.dataset.lwStatus})}),j=await r.json();if(!r.ok||!j.ok)throw Error("HTTP "+r.status);
-await loadOwner();
+ownerBusy=false;await loadOwner();
 }catch(x){ownerError=x.message;drawOwner()}
 finally{ownerBusy=false;}
 }
