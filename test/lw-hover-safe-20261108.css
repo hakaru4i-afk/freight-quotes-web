@@ -41,7 +41,7 @@
   background:#183c58!important;color:#eaf6ff!important;border-color:#547a99!important;
 }
 /* Ordinary unclassed buttons in dark cards must not become white rectangles. */
-:is(.carrier-portal,.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+:is(.carrier-portal,.staff-portal[data-cabinet-role="owner"])
   :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"]) {
   background:#1b405c!important;
   color:#f0f8ff!important;
