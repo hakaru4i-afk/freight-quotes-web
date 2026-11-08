@@ -1,0 +1,30 @@
+name: LW permanent-delete staging regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - test/app.js
+      - test/index.html
+      - tests/lw-permanent-delete-staging.test.mjs
+      - .github/workflows/lw-permanent-delete-staging.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  permanent-delete-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check deletion UI, no trash and cache version
+        run: node --test tests/lw-permanent-delete-staging.test.mjs
+      - name: Check staging API denies anonymous permanent deletion
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const url = 'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/api/registry';
+          const r = await fetch(url, {method: 'POST', headers: {'content-type':'application/json','origin':'https://ibclzdkxiozbzmniiygv.supabase.co'}, body: JSON.stringify({action:'delete',kind:'request',id:'unauthorized-test',reason:'security regression test'})});
+          assert.equal(r.status,403,'unauthenticated users must not delete requests');
+          NODE
