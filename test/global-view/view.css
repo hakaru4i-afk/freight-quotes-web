@@ -141,3 +141,10 @@ global-route-view .gv-unordered-title { margin: 12px 0 4px; color: inherit; font
   color: #182041; background: #ffda43; box-shadow: 0 0 12px #ffcb65a0;
   font: 750 15px/1 system-ui, sans-serif;
 }
+@container (max-width: 560px) {
+  .gv-globe-label[data-stop-number], .gv-map-stop span[data-stop-number] { font-size: 0; }
+  .gv-globe-label[data-stop-number]::before, .gv-map-stop span[data-stop-number]::before {
+    content: attr(data-stop-number);
+    font-size: 11px;
+  }
+}

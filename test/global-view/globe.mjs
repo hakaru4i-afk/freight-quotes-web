@@ -129,6 +129,7 @@ export async function createGlobe(stage, route) {
     scene.add(mark, halo);
     const label = document.createElement('span');
     label.className = 'gv-globe-label' + (point.endpoint ? ' gv-label-endpoint' : '');
+    label.dataset.stopNumber = point.number;
     label.textContent = point.number + ' · ' + point.label;
     stage.append(label);
     return { position, label };

@@ -1,4 +1,4 @@
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=gv05';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=gv06';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -133,8 +133,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=gv05')).createGlobe
-            : (await import('./map.mjs?v=gv05')).createMap;
+            ? (await import('./globe.mjs?v=gv06')).createGlobe
+            : (await import('./map.mjs?v=gv06')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;

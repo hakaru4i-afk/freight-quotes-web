@@ -68,6 +68,7 @@ export async function createMap(stage, route, places) {
     const coordinates = [point.lat, shortestLongitude(point.lng, reference)];
     points.push(coordinates);
     const label = document.createElement('span');
+    label.dataset.stopNumber = point.number;
     label.textContent = point.number + ' · ' + point.label.split(' / ')[0];
     label.title = point.label;
     const nearPrevious = index > 0 && map.distance(coordinates, points[index - 1]) < 190000;
