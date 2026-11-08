@@ -119,3 +119,10 @@ body:has(.cycle-landing) .language-control button[aria-pressed="true"]{backgroun
  .cycle-intro h1{font-size:40px!important}
 }
 @media(prefers-reduced-motion:reduce){.lw-approved-plane,.lw-globe{animation:none!important}}
+
+/* LW-HELP-03: one sign-in action, clearly visible partnership contact CTA. */
+body:has(.cycle-landing) .cycle-intro{pointer-events:auto!important}
+body:has(.cycle-landing) .cycle-hero-links{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;margin-top:22px!important;position:relative!important;z-index:6!important;pointer-events:auto!important}
+body:has(.cycle-landing) .cycle-hero-links .cycle-cta{display:none!important}
+body:has(.cycle-landing) .cycle-hero-links .lw-partner-cta{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:44px!important;padding:12px 18px!important;background:linear-gradient(110deg,#ffb747,#ee881b)!important;border:1px solid #ffca73!important;border-radius:10px!important;color:#18120d!important;text-decoration:none!important;font-weight:760!important;font-size:14px!important;cursor:pointer!important;box-shadow:0 0 18px #ec932c30!important;max-width:100%}
+body:has(.cycle-landing) .cycle-hero-links .lw-partner-hint{display:none!important}
