@@ -384,3 +384,45 @@ body.lw-cc-owner-view .test-cabinets a{
  :is(input,textarea)::placeholder{
  color:#a9c5df!important;opacity:1!important;
 }
+
+
+/* OWNER-COMMAND-05 · Restore the detailed transport artwork that already ships
+   with the approved freight visual: photographic cargo vessel, train and truck,
+   plus the existing aircraft image. No generic flat SVG vehicle silhouettes. */
+#lw-owner-command .lw-cc-hero{
+ min-height:196px!important;background:#061629!important;
+ border-color:#315572!important;
+}
+#lw-owner-command .lw-cc-hero-image{
+ background:
+   linear-gradient(90deg,#051528 0%,#051528f4 17%,#06172bdc 29%,#06172b8c 45%,#07182a36 65%,#071a2c19 100%),
+   url("./lw-approved-freight-20261108.jpg") center 54%/cover no-repeat!important;
+ filter:saturate(1.08) contrast(1.03);
+}
+#lw-owner-command .lw-cc-hero-image::after{
+ content:"";position:absolute;pointer-events:none;right:3%;top:4%;
+ width:clamp(175px,20vw,290px);height:69%;
+ background:url("./lw-approved-plane-20261108.jpg") center 38%/cover no-repeat;
+ -webkit-mask-image:radial-gradient(ellipse at 59% 42%,#000 18%,#000e 35%,transparent 78%);
+ mask-image:radial-gradient(ellipse at 59% 42%,#000 18%,#000e 35%,transparent 78%);
+ mix-blend-mode:screen;opacity:.94;
+}
+#lw-owner-command .lw-cc-hero-content{
+ max-width:615px;padding:24px 29px;
+ text-shadow:0 1px 2px #06111bc9;
+}
+@media(max-width:760px){
+ #lw-owner-command .lw-cc-hero{min-height:170px!important}
+ #lw-owner-command .lw-cc-hero-image{
+  background:
+    linear-gradient(90deg,#051528fa 0%,#06172bef 42%,#06172ba8 75%,#06172b76 100%),
+    url("./lw-approved-freight-20261108.jpg") 58% 50%/cover no-repeat!important;
+ }
+ #lw-owner-command .lw-cc-hero-image::after{
+  width:155px;height:85px;right:-6px;top:4px;opacity:.55;
+ }
+ #lw-owner-command .lw-cc-hero-content{padding:17px 18px;max-width:100%}
+}
+@media(prefers-reduced-transparency:reduce){
+ #lw-owner-command .lw-cc-hero-image::after{mix-blend-mode:normal;opacity:.70}
+}
