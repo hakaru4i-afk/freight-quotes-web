@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 80,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "6065cc32d915386ad53a3df2133630bb3b1f322d",
+    "frontendSha": "2e6f6707faf8ec88da0ff6f1a6dae05cc8d29bad",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
@@ -32,7 +32,7 @@
     "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "09.11.2026: staging UI VED PTO-1000 frontend blob 6065cc32d915, staging API v80 ACTIVE. ВЭД: одна автоматическая задача проверки документов при подтвержденном остатке <1000 км. Никаких автоматических задач приёмки склада. Полный авторизованный E2E пока не подтвержден.",
+    "stagingBuildNote": "09.11.2026: carrier request_docs CSV template download/upload removed; direct form remains. VED pre-PTO document task visible in Documents confirmed by owner. All other form CSV functionality unaffected. staging frontend blob 2e6f6707faf8, backend API v80 unchanged. Full authenticated scenario QA pending.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
@@ -134,7 +134,9 @@
       "validation": "published smoke and exact-source CI PENDING",
       "productionChanged": false
     },
-    "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
+    "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest",
+    "vedDocumentsTaskVisibility": "OWNER_CONFIRMED_2026-11-09",
+    "carrierRequestDocsCSV": "REMOVED_2026-11-09"
   },
   "lateBidUiSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
