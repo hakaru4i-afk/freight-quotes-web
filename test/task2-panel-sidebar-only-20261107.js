@@ -27,7 +27,17 @@
  };
  const stagingReg=n=>n?(String(n).startsWith("TEST-")?String(n):"TEST-"+String(n)):"";
  const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
- const fmt=s=>{if(!s)return "—";const d=new Date(s);if(Number.isNaN(d.getTime())){const m=String(s).match(/^(\\d{4})-(\\d{2})-(\\d{2})/);return m?m[3]+"."+m[2]+"."+m[1]:String(s);}return d.toLocaleString("ru-RU",{timeZone:"Europe/Minsk"});};
+ const fmt=s=>{
+   if(s===null||s===undefined||s==="")return "—";
+   const raw=String(s).trim();
+   const ru=raw.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:[,\s]+(\d{2}):(\d{2}))?/);
+   if(ru)return ru[1]+"."+ru[2]+"."+ru[3]+(ru[4]?", "+ru[4]+":"+ru[5]:"");
+   const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+   if(iso&&!/[zZ]|[+-]\d{2}:\d{2}$/.test(raw))return iso[3]+"."+iso[2]+"."+iso[1]+(iso[4]?", "+iso[4]+":"+iso[5]:"");
+   const d=new Date(raw);
+   if(!Number.isNaN(d.getTime()))return d.toLocaleString("ru-RU",{timeZone:"Europe/Minsk"});
+   return "Дата не распознана";
+ };
  const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
  const badge=s=>'<span class="t2-badge">'+esc(s||"—")+"</span>";
  const field=(name,label,type,tip,extra="")=>'<label class="t2-field"><span>'+esc(label)+' <span class="t2-help" title="'+esc(tip||tips[name]||label)+'" aria-label="Подсказка: '+esc(label)+'">?</span></span>'+
