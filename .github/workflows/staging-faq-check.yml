@@ -1,0 +1,50 @@
+name: Staging FAQ and field-help acceptance
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test/current-workspace-help-20261108.js'
+      - 'test/index.html'
+      - 'tests/current-workspace-help.test.mjs'
+      - '.github/workflows/staging-faq-check.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-and-dom:
+    name: FAQ syntax, role/locale and field tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check
+        run: node --check test/current-workspace-help-20261108.js
+      - name: Role, locale, fields smoke
+        run: node --test tests/current-workspace-help.test.mjs
+  served-pages:
+    name: Confirm GitHub Pages serves this exact FAQ
+    needs: static-and-dom
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check real staging response, not only GitHub source
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          for attempt in {1..18}; do
+            curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/index.html?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-index.html || true
+            curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-guide.js || true
+            if [[ -s /tmp/faq-index.html && -s /tmp/faq-guide.js ]] && grep -q "current-workspace-help-20261108.js?v=guide-03" /tmp/faq-index.html && cmp -s test/current-workspace-help-20261108.js /tmp/faq-guide.js; then
+              echo "PASS: Live GitHub Pages /test/ serves the exact source FAQ bytes and guide-03 HTML."
+              sha256sum test/current-workspace-help-20261108.js /tmp/faq-guide.js
+              exit 0
+            fi
+            echo "Pages is still catching up: attempt $attempt / 18"
+            sleep 10
+          done
+          echo "::error::The live staging page is not serving the expected FAQ. Do not claim production readiness."
+          exit 1
