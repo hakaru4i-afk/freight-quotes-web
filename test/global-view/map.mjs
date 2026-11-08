@@ -17,7 +17,8 @@ const topology = () => geography ??= fetch(new URL('./countries.json', import.me
 export async function createMap(stage, route, places) {
   const data = await topology();
   const L = globalThis.L;
-  const map = L.map(stage, { minZoom: 1, maxZoom: 10, scrollWheelZoom: false, preferCanvas: true });
+  const map = L.map(stage, { minZoom: 1, maxZoom: 10, scrollWheelZoom: false, preferCanvas: true })
+    .setView([28, 40], 2, { animate: false });
   map.attributionControl.setPrefix(false).addAttribution('Natural Earth · World Atlas');
   const countryStyle = { color: '#638492', weight: .65, fillColor: '#263e48', fillOpacity: 1 };
   const shift = (coordinates, offset) => typeof coordinates[0] === 'number'
