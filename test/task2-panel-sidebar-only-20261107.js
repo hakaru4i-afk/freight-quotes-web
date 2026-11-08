@@ -168,7 +168,12 @@
            if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
            return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
          }).join("")+'</div>';
-       html+=form("save",         field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
+       html+='<div class="t2-actual-row">'+
+        '<span class="t2-actual-label">Фактическое отправление</span>'+
+        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
+         '<form data-t2-form="actual" class="t2-actual-form"><label><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '</div>';
+       html+=form("save",
          '<div class="t2-block-title">2. Где находится груз</div>'+
          field("location","Текущее местонахождение (город, станция, терминал)","text",tips.location)+
          field("location_date","Когда груз был в этом месте (Минск)","datetime-local",tips.date)+
@@ -442,6 +447,22 @@
        const saved=await update("upload",{},fd);
        if(!saved?.ok)return;
      }return;
+   }
+   if(kind==="actual"){
+     if(state.detail?.execution?.actual_departure||state.detail?.actual_departure){alertText("Фактическая дата уже зафиксирована. Повторное сохранение запрещено.",true);return;}
+     if(!data.actual_departure){alertText("Укажите фактическую дату отправления.",true);return;}
+     const btn=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
+     if(btn){btn.disabled=true;btn.textContent="Сохраняем…";}
+     if(feedback)feedback.textContent="Проверяем сохранение…";
+     try{
+       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure)}});
+       if(!result?.ok){if(feedback)feedback.textContent="Ошибка сохранения. Дата не подтверждена.";return;}
+       await loadDetail();
+       const stored=state.detail?.execution?.actual_departure||state.detail?.actual_departure;
+       if(!stored){alertText("Сервер не подтвердил фактическую дату. Повторно проверьте запись.",true);}
+       else alertText("Фактическая дата отправления сохранена.");
+     }finally{if(btn?.isConnected){btn.disabled=false;btn.textContent="Сохранить";}}
+     return;
    }
    if(kind==="plan"){
      if((state.detail?.plans||[]).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
