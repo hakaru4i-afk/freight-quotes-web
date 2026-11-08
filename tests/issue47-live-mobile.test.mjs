@@ -59,7 +59,10 @@ test("LW-PUBLIC-01 staging landing has exactly one visible sign-in and a globe",
      loginControls:loginControls.map(e=>({text:e.textContent.trim(),inForm:!!e.closest(".cycle-login form")})),
      h1:document.querySelector(".cycle-hero h1")?.textContent?.trim(),
      globe:visible(document.querySelector(".lw-globe")),
-     partner:visible(document.querySelector(".lw-partner-cta")),
+     partner:visible(document.querySelector("[data-lw-cooperation]")),
+     globeSrc:getComputedStyle(document.querySelector(".lw-globe")).backgroundImage,
+     freightSrc:getComputedStyle(document.querySelector(".cycle-hero"),"::after").backgroundImage,
+     darkLogin:getComputedStyle(document.querySelector(".cycle-login")).color,
      overflowing:document.documentElement.scrollWidth>innerWidth+4,
      loadingOldCTA:visible(document.querySelector(".cycle-hero-links .cycle-cta")),
      loadingHeaderLogin:visible(document.querySelector(".cycle-header .cycle-signin-link")),
@@ -69,7 +72,10 @@ test("LW-PUBLIC-01 staging landing has exactly one visible sign-in and a globe",
    assert.equal(result.loginControls.length,1,"Visible duplicate login actions: "+JSON.stringify(result.loginControls));
    assert.equal(result.loginControls[0].inForm,true,"Only remaining login action must be in form");
    assert.equal(result.globe,true,"Glowing 3D globe missing");
-   assert.equal(result.partner,true,"Partnership section entry missing");
+   assert.equal(result.partner,true,"Cooperation entry missing from approved navigation");
+   assert.match(result.globeSrc,/lw-approved-globe-20261108/,"Approved globe photo not installed");
+   assert.match(result.freightSrc,/lw-approved-freight-20261108/,"Approved transport scene not installed");
+   assert.equal(result.darkLogin,"rgb(248, 247, 248)","Approved dark login theme missing");
    assert.equal(result.loadingOldCTA,false,"Old hero login CTA still visible");
    assert.equal(result.loadingHeaderLogin,false,"Old header login CTA still visible");
    assert.equal(result.overflowing,false,"Horizontal overflow at "+viewport.width);
