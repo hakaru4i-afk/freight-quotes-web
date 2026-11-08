@@ -9,6 +9,7 @@ on:
       - "test/current-workspace-help-20261108.css"
       - "test/index.html"
       - "tests/owner-workspace-compact.test.mjs"
+      - "tests/owner-workspace-compact-browser.test.mjs"
       - ".github/workflows/owner-workspace-compact.yml"
   workflow_dispatch:
 permissions:
@@ -48,3 +49,23 @@ jobs:
           done
           echo "::error::Pages is not serving the exact current assets"
           exit 1
+
+  browser-visual:
+    needs: served-staging
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Owner menu, compact layout and no overflow on 1366x768 and 390x844
+        run: node --test tests/owner-workspace-compact-browser.test.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-compact-screens
+          path: owner-compact-*.png
+          if-no-files-found: ignore
