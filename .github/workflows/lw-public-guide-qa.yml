@@ -1,0 +1,22 @@
+name: LW Public Partner & Guide staging QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/lw-public-guide-qa.yml"
+      - "tests/lw-public-guide-live.test.mjs"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node --test tests/lw-public-guide-live.test.mjs
