@@ -217,7 +217,7 @@
          (x.pto_at?'<div class="t2-pto-cell"><small>Дата прибытия</small><strong>'+fmt(x.pto_at)+'</strong></div>':
            '<label class="t2-pto-cell"><span>Дата прибытия (Минск)</span><input type="datetime-local" name="pto_date"></label>')+
          (x.customs_at?'<div class="t2-pto-cell"><small>Таможенное оформление завершено</small><strong>'+fmt(x.customs_at)+'</strong></div>':
-           '<label class="t2-pto-cell"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
+           '<label class="t2-pto-cell" title="Дата завершения импортного таможенного оформления (Минск)"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
          '<button type="submit" class="t2-btn" style="width:116px;height:38px;min-height:38px;align-self:start;margin-top:22px">Сохранить</button></form>'+
          '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
