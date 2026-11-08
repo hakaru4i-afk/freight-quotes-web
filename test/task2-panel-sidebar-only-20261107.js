@@ -149,21 +149,21 @@
        readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      if(carrier&&x.status!=="completed"){
-       html+='<h3>Трекинг и фактические события</h3><p class="t2-muted">Одна кнопка «Сохранить изменения» сохраняет даты, номер контейнера и новые точки, но не завершает перевозку. Старые точки и переносы не изменяются.</p>';
-       html+=form("save",'<div class="t2-block-title">Даты отправления</div>'+
-         field("new_plan_date","+ Новая плановая дата выхода (Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
+       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
+       html+=form("save",'<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         field("new_plan_date","Новая плановая дата выхода (при переносе, Минск)","datetime-local",tips.plan,x.actual_departure?"disabled":"")+
          field("new_plan_reason","Причина переноса","textarea",tips.reason,x.actual_departure?"disabled":"")+
-         field("actual_departure","Фактическая дата выхода (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
-         '<div class="t2-block-title">Местоположение</div>'+
-         field("location","Местонахождение груза","text",tips.location)+
-         field("location_date","Дата и время контрольной точки (Минск)","datetime-local",tips.date)+
-         field("location_comment","Примечание к точке","textarea",tips.comment)+
-         '<div class="t2-block-title">ПТО и таможня</div>'+
+         field("actual_departure","Фактическая дата отправления (Минск)","datetime-local",tips.actual,x.actual_departure?"disabled":"")+
+         '<div class="t2-block-title">2. Где находится груз</div>'+
+         field("location","Текущее местонахождение (город, станция, терминал)","text",tips.location)+
+         field("location_date","Когда груз был в этом месте (Минск)","datetime-local",tips.date)+
+         field("location_comment","Комментарий к местонахождению (необязательно)","textarea",tips.comment)+
+         '<div class="t2-block-title">3. ПТО и таможня</div>'+
          (x.pto_at?readonly("Прибыл на ПТО",fmt(x.pto_at)):
            '<label class="t2-field"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да — создать задачу ВЭД</option></select><small>После «Да» создаётся только одна задача проверки документов.</small></label>'+
            field("pto_date","Дата прибытия на ПТО (Минск)","datetime-local",tips.date))+
          (x.customs_at?readonly("Дата завершения таможенного оформления",fmt(x.customs_at)):field("customs_date","Дата завершения импортного таможенного оформления (Минск)","datetime-local",tips.date))+
-         '<div class="t2-block-title">Контейнеры</div>'+
+         '<div class="t2-block-title">4. Номер контейнера</div>'+
          field("container_no","№ контейнера (необязательно)","text",tips.number),
          "Сохранить изменения");
      }
