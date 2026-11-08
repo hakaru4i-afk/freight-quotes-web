@@ -319,3 +319,20 @@
 #task2-root .t2-plan-saved{color:#25633c;font-weight:700}
 @media(max-width:850px){#task2-root .t2-plan-four-row{grid-template-columns:1fr 1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:1/-1}}
 @media(max-width:550px){#task2-root .t2-plan-four-row{grid-template-columns:1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:auto}}
+
+/* TRACK-PLAN-05: force compact rows even under legacy form styles */
+#task2-root .t2-plan-four{display:grid!important;gap:6px!important;margin:8px 0 16px!important;max-width:100%!important}
+#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{
+ display:grid!important;grid-template-columns:90px minmax(180px,1fr) minmax(180px,1fr) 116px!important;
+ align-items:center!important;gap:10px!important;padding:9px 12px!important;
+ background:#f8fbff!important;border:1px solid #c8d7e7!important;border-radius:9px!important;
+ color:#1b344e!important;min-width:0!important;
+}
+#task2-root .t2-plan-four-row label{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;margin:0!important}
+#task2-root .t2-plan-four-row label>span{font-size:12px!important;color:#38526e!important;-webkit-text-fill-color:#38526e!important}
+#task2-root .t2-plan-four-row input{height:40px!important;min-height:40px!important;background:#fff!important;color:#172f4a!important;-webkit-text-fill-color:#172f4a!important;border:1px solid #9fb1c6!important;border-radius:7px!important;box-sizing:border-box!important;padding:6px 9px!important}
+#task2-root .t2-plan-four-row button{min-height:40px!important;margin:0!important}
+#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:1/-1;color:#8c2930!important;font-size:13px!important}
+#task2-root .t2-plans-current{display:flex!important;gap:14px!important;align-items:center!important;flex-wrap:wrap!important;padding:10px 14px!important}
+#task2-root .t2-plans-current span{color:#3e536b!important}
+@media(max-width:760px){#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{grid-template-columns:1fr!important}#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:auto}}
