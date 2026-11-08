@@ -137,33 +137,33 @@ const ownerNavigationGuide={
 ru:{
 title:"Карта разделов кабинета владельца · 08.11.2026",
 sections:[
-["Рабочий стол","Моя нагрузка: задачи, сроки и быстрые переходы. Кнопка «Новая заявка» на главной — только быстрый переход к той же форме, а не второй процесс."],
+["Рабочий стол","Новый тёмный рабочий стол: показатели заявок, очереди решений, тендеров и перевозок, распределение по транспорту, маршруты, таблица и срочные действия. Цифры поступают из тестовой базы; «—» означает, что данные не загрузились. Кнопка «Новая заявка» открывает существующую форму, а не создаёт второй процесс."],
 ["01 · Заявки и ставки","Новая заявка → Реестр заявок → Рассмотрение ставок → Сроки и ответы → Тендеры. «Рассмотрение» выбирает ставку; «Сроки и ответы» контролирует дедлайны и ответы."],
 ["02 · Исполнение","Исполнение перевозок → Чаты по заявкам → Претензии и акты → Инциденты. Претензия относится к конкретной перевозке, журнал инцидентов — к учёту случаев."],
 ["03 · Контрагенты","Поставщики и документы; Дизайн и контент. Это разные задания и документы, их не объединяем."],
-["04 · Контроль и аналитика","Аналитика и отчёты; Рейтинг и Service Level; SLA и отправки; Работа сайта. SLA контролирует рассылки и метрики, а не заменяет сроки в заявке."],
+["04 · Контроль и аналитика","На главной блок Service Level показывает средний балл перевозчиков и количество в группах 76–100%, 51–75%, 0–50%. «Журнал и оценки SL» открывает подробности, основания штрафов и разблокировку. Аналитика, SLA и работа сайта остаются отдельными функциями; SLA не заменяет сроки в заявке."],
 ["05 · Управление","Пользователи и доступ; Уровни доступа; Центр доработок. Первый раздел — учётные записи, второй — права, третий — замечания/разработки."],
 ["Справка","Помощь / FAQ. Отдельная транспортная заявка скрыта из активного меню: её процесс отложен, исходный код сохранён."]
 ]},
 en:{
 title:"Owner workspace navigation · 08 Nov 2026",
 sections:[
-["Workspace","My Workload: tasks, deadlines and shortcuts. New Request on the dashboard opens the same form, not another workflow."],
+["Workspace","The redesigned dark dashboard shows live requests, pending decisions, tenders, shipments, transport types, routes and action queue. A dash means data is unavailable, not zero. New Request opens the existing workflow."],
 ["01 · Requests & quotes","New Request → Request Register → Offer Review → Deadlines & Replies → Tenders. Review selects rates; deadlines track responses."],
 ["02 · Execution","Shipment Execution → Request Chats → Claims & Acts → Incidents. Claims belong to a shipment; incidents have a separate log."],
 ["03 · Partners","Suppliers & Documents; Design & Content are separate authorized workflows."],
-["04 · Oversight & analytics","Analytics; Carrier SL; SLA & Dispatches; Site Monitor. SLA metrics do not replace request deadlines."],
+["04 · Oversight & analytics","The home Service Level panel shows average carrier score and carrier counts across 76–100%, 51–75% and 0–50%. Open the SL journal for penalties, detailed scores and Owner unlock controls. Analytics, SLA and site monitoring remain separate."],
 ["05 · Administration","Users & Access; Access Levels; Improvement Center. Accounts, permissions and improvement reports are separate."],
 ["Help","Help / FAQ. The separate transport application is deferred and hidden from the active menu; its sources remain preserved."]
 ]},
 zh:{
 title:"所有者工作台导航 · 2026年11月8日",
 sections:[
-["工作台","我的工作量：任务、截止日期及快捷入口。首页的新询价按钮只打开同一表单，不会创建重复流程。"],
+["工作台","新的深色主页展示真实的询价、待办、招标、运输、运输方式、路线和紧急事项；“—”代表数据不可用，不是零。新询价按钮进入现有表单。"],
 ["01 · 询价与报价","新询价 → 询价登记 → 报价评审 → 截止及答复 → 招标。报价评审用于选价，截止及答复用于监控响应。"],
 ["02 · 运输执行","运输执行 → 询价聊天 → 索赔与凭证 → 事件登记。索赔针对具体运输，事件登记是独立日志。"],
 ["03 · 合作伙伴","供应商及文件；设计及内容属于不同的授权流程。"],
-["04 · 分析与监控","分析报表；承运商 SL；SLA 与发送；网站监控。SLA 不替代询价截止时间。"],
+["04 · 分析与监控","首页 Service Level 显示承运商平均得分及 76–100%、51–75%、0–50% 三档人数。进入 SL 日志查看扣分、详情和所有者解锁功能；SLA 与截止日期监控仍为独立模块。"],
 ["05 · 管理","用户及访问；权限级别；改进中心。账户、权限和改进建议各自独立。"],
 ["帮助","帮助与常见问题。独立运输申请已从当前菜单隐藏，功能留待后续开发。"]
 ]}
