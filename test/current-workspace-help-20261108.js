@@ -79,6 +79,12 @@ certification:["查看分配的商品文件。","按权限上传证明。","当�
 }}
 };
 const H=[
+[/service.?level|уровень сервиса|оценка sl|服务水平/,["SL перевозчика: штрафы учитываются по событиям, не меняйте их через текстовое поле.","Carrier SL: penalties are event based, not edited via this field.","承运商服务等级按事件扣分，不在此字段更改。"]],
+[/итогов.*сумм|final.?amount|final.?cost|最终运费/,["Подтверждённая итоговая стоимость и валюта; не подменяйте исходную ставку.","Confirmed final cost and currency, separate from the original offer.","最终确认的运费及币种，不能覆盖原报价。"]],
+[/страхован|insurance|保险/,["Уточните страховку: включена ли в ставку, каковы лимит и условия.","Specify insurance cover and whether it is included in this quote.","说明保险范围及是否包含在报价中。"]],
+[/действительн.*ставк|valid.?until|quote.?validity|报价有效期/,["Дата окончания действия предложения перевозчика.","Expiry date of the carrier quotation.","承运商报价有效期截止日。"]],
+[/пто|таможн|customs|海关/,["Укажите подтверждённые место, дату и таможенный этап. В текущем процессе задачи ВЭД не создаются.","Enter confirmed customs location, date and status; no VED tasks in this flow.","填写已确认的海关地点、日期和状态；当前不生成外贸任务。"]],
+
 [/bitrix|битрикс|任务/,["Номер задачи Bitrix, например 5316; несколько номеров внесите отдельно.","Bitrix task number, e.g. 5316; list others separately.","Bitrix 任务号，例如 5316。"]],
 [/номер заказа поставщика|supplier.?order|供应商订单/,["Номер заказа поставщика из проформы, отдельно от заказа компании.","Supplier's order number from the proforma.","供应商文件中的订单号。"]],
 [/номер заказа|order.?code|订单号/,["Внутренний номер заказа компании, как в исходных документах.","Company order number from documents.","公司内部订单号。"]],
@@ -98,7 +104,7 @@ const H=[
 [/вид транспорт|transport.?mode|运输方式/,["Выберите авто, ЖД, море или авиа.","Choose road, rail, sea or air.","选择公路、铁路、海运或空运。"]],
 [/eta|прибыт|arrival|到达/,["Плановая дата прибытия, не факт.","Estimated arrival, not actual arrival.","预计到达，不是实际到达。"]],
 [/фактическ.*выход|actual.?departure|实际发运/,["Фактическое время отправления по подтверждению.","Actual confirmed departure.","实际确认的发运时间。"]],
-[/контейнер|container|集装箱/,["Фактический номер, если известен; не придумывайте.","Actual container number if available.","实际箱号，如已知。"]],
+[/контейнер|container|集装箱/,["Реальный номер контейнера, если известен. Пустое поле не останавливает исполнение; при закрытии может понадобиться решение владельца.","Actual container number if known. Missing data does not block execution; closure may require Owner decision.","如已知填写真实箱号；缺失不阻碍执行，结案可能需要所有者确认。"]],
 [/местополож|location|位置/,["Текущее место груза и дата сведений.","Cargo location and observation date.","货物位置及更新时间。"]],
 [/причин|reason|原因/,["Конкретная причина отказа или переноса.","Specific decline or reschedule reason.","拒绝或延期的具体原因。"]],
 [/претензи|claim|索赔/,["Событие, доказательства и сумма требования.","Incident, evidence and claimed amount.","事件、证据及金额。"]],
@@ -115,28 +121,40 @@ const H=[
 const lang=()=>{let l=(document.documentElement.lang||"ru").toLowerCase();return l.startsWith("en")?"en":l.startsWith("zh")?"zh":"ru"};
 const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const role=()=>{const raw=String(document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"").toLowerCase();if(/purchase|procure|закуп/.test(raw))return "purchasing";if(/content|контент/.test(raw))return "content";if(/designer|дизайн/.test(raw))return "designer";if(/certificate|certification|ved|вэд/.test(raw))return "certification";if(/owner|владел/.test(raw))return "owner";if(/carrier|перевоз/.test(raw))return "carrier";if(/supplier|постав/.test(raw))return "supplier";if(/logistic|логист/.test(raw))return "logistic";return raw;};
+const roleTitles={
+owner:["Владелец","Owner","所有者"],carrier:["Перевозчик","Carrier","承运商"],logistic:["Логист","Logistician","物流专员"],supplier:["Поставщик","Supplier","供应商"],designer:["Дизайнер","Designer","设计师"],content:["Контент-менеджер","Content manager","内容经理"],purchasing:["Менеджер по закупкам","Purchasing manager","采购经理"],certification:["Сертификация","Certification","认证"]};
+const roleQuestions={
+owner:{ru:[["Как допустить позднюю ставку?","Отдельно решите, учитывать ли предложение с просрочкой. Допуск не означает победу."],["Что происходит после выбора?","Только одна ставка становится победителем, остальные закрывают раунд и уходят в архив."]],en:[["Late offer?","Decide separately whether to consider it; admission does not award a winner."],["After awarding?","Only one offer wins; the others close and archive."]],zh:[["逾期报价怎么办？","单独决定是否审核，准入不代表中标。"],["选择中标方后？","仅一份报价中标，其余报价关闭并归档。"]]},
+carrier:{ru:[["Импорт Excel отправляет ставку?","Нет. Проверьте сумму, валюту, маршрут и даты, затем нажмите «Отправить»."],["После победы что делать?","Нажмите «Взять в работу» в «Мои заявки», далее исполнение в «Мои перевозки». Отдельная транспортная заявка отложена."],["После дедлайна можно ответить?","До выбора победителя можно подать позднюю ставку. Владелец отдельно решает, учитывать ли её."]],en:[["Does Excel import submit?","No. Check price, currency, route and dates, then submit."],["After winning?","Start Work in My Requests, then execution in My Shipments; the transport application is deferred."],["Late quotes?","Allowed before winner selection; the Owner decides whether to consider them."]],zh:[["导入 Excel 就提交了吗？","不会。核对金额、币种、路线和日期，然后点击提交。"],["中标后怎么办？","在我的申请中开始处理，再到我的运输执行；运输申请暂缓。"],["逾期报价？","选定中标方前可提交，由所有者决定是否采纳。"]]},
+supplier:{ru:[["Какую готовность указывать?","Подтверждённую фактическую готовность товара; не заменяйте её плановой без пояснения."]],en:[["What readiness date?","Enter confirmed actual readiness, not an unverified forecast."]],zh:[["备货日期？","填写实际确认的备货日期，不要直接使用未确认的计划日期。"]]},
+purchasing:{ru:[["Какие номера заказа?","Номер поставщика — из проформы; номер компании и Bitrix заполняются отдельно."]],en:[["Which order numbers?","Supplier number is from the proforma; company and Bitrix numbers are separate."]],zh:[["订单号如何填写？","供应商订单号来自形式发票，公司编号及 Bitrix 分别填写。"]]},
+content:{ru:[["Когда отмечать выполнение?","После фактической проверки и передачи материалов по назначенному заданию."]],en:[["When to complete?","After checking and delivering assigned materials."]],zh:[["何时完成？","核实并交付分配的材料后。"]]},
+designer:{ru:[["Куда прикреплять результат?","В назначенное задание, в доступном вам разделе документов."]],en:[["Where to upload?","Use the documents section of your assigned task."]],zh:[["成果上传到哪里？","上传至所分配任务的文件部分。"]]},
+logistic:{ru:[["Можно выбирать победителя?","Нет. Победителя выбирает Владелец; задачи ВЭД в текущем цикле не создаются."]],en:[["Can I award a carrier?","No. Only the Owner selects a winner; no VED tasks in the active process."]],zh:[["可以选中标方吗？","不可以。只有所有者可选定；当前无外贸任务。"]]},
+certification:{ru:[["Какие документы доступны?","Только материалы назначенных вам задач в рамках предоставленных прав."]],en:[["Which files can I see?","Only files associated with assigned and authorized tasks."]],zh:[["可以访问哪些文件？","仅可访问已分配且已授权任务的文件。"]]}
+};
 const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
-let queued=false;
+let queued=false,hintId=0;
 function update(){
 const l=lang(),data=DATA[l],r=role(),host=document.querySelector('.cabinet-panel[data-section="help"]');
 if(host){let box=host.querySelector("#lw-current-help"),key=l+"-"+r;
 if(!box){box=document.createElement("section");box.id="lw-current-help";host.prepend(box)}
 if(box.dataset.version!==key){box.dataset.version=key;
 box.innerHTML="<h2>"+escapeHtml(data.title)+"</h2><p>"+escapeHtml(data.flow)+"</p>"+
-(data.roles[r]?"<h3>"+escapeHtml(r)+"</h3><ol>"+data.roles[r].map(a=>"<li>"+escapeHtml(a)+"</li>").join("")+"</ol>":"")+
+(data.roles[r]?"<h3>"+escapeHtml((roleTitles[r]||[r,r,r])[l==="ru"?0:l==="en"?1:2])+" · "+escapeHtml(l==="ru"?"Инструкция по кабинету":l==="en"?"Role guide":"岗位操作指南")+"</h3><ol>"+data.roles[r].map(a=>"<li>"+escapeHtml(a)+"</li>").join("")+"</ol>":"")+(roleQuestions[r]?.[l]?"<h3>"+escapeHtml(l==="ru"?"FAQ по кабинету":l==="en"?"Role FAQ":"岗位常见问题")+"</h3>"+roleQuestions[r][l].map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join(""):"")+
 "<h3>FAQ</h3>"+data.faq.map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
 const root=document.querySelector(".cabinet-app");if(!root)return;
 let n=0;for(const field of root.querySelectorAll("input,textarea,select")){
 if(n++>800)break;
-if(["hidden","password","submit","button"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries"))continue;
+if(["hidden","password","submit","button","reset"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries,.cabinet-sidebar,.language-control"))continue;
 if(!field.getClientRects().length)continue;
 const label=field.closest("label")||field.labels?.[0]||field.closest(".field,.form-field,.t2-field");
-if(!label)continue;
+const named=field.getAttribute("aria-label")||field.getAttribute("data-label")||field.placeholder||field.name||"";if(!label&&!named)continue;
 let helper=field.nextElementSibling;if(!helper?.classList.contains("lw-field-help")){
 helper=document.createElement("small");helper.className="lw-field-help";field.insertAdjacentElement("afterend",helper);}
-const info=(label.textContent.replace(helper.textContent,"")+" "+(field.name||"")+" "+(field.placeholder||"")).slice(0,260);
+const info=((label?.textContent||named).replace(helper.textContent,"")+" "+(field.name||"")+" "+(field.placeholder||"")).slice(0,260);
 const rule=H.find(row=>row[0].test(info));const hint=field.type==="checkbox"?(l==="ru"?"Отметьте после выполнения указанного условия.":l==="en"?"Check only when the stated condition is met.":"仅满足条件后勾选。"):field.type==="radio"?(l==="ru"?"Выберите соответствующий фактам вариант.":l==="en"?"Choose the correct option.":"选择符合实际情况的选项。"):(rule?rule[1][l==="ru"?0:l==="en"?1:2]:generic[l]);field.title=hint;
-if(helper.textContent!==hint)helper.textContent=hint;
+if(helper.textContent!==hint)helper.textContent=hint; if(!helper.id)helper.id="lw-field-help-"+(++hintId);const described=(field.getAttribute("aria-describedby")||"").split(/\s+/).filter(Boolean);if(!described.includes(helper.id))field.setAttribute("aria-describedby",[...described,helper.id].join(" ");
 }}
 function tick(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;update()})}
 window.lwCurrentHelpEnabled=true;
