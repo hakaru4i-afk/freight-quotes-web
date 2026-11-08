@@ -28,10 +28,12 @@ async function setup(page,role="owner"){
   const preview=document.createElement("aside");
   preview.className="test-cabinets lw-preview-compact";
   preview.innerHTML='<div class="cabinet-preview-info"><b>Просмотр кабинетов</b><p>Ваш кабинет владельца</p></div><div class="test-cabinet-actions"><div class="cabinet-role-grid"><button class="btn">Мой кабинет</button><button class="btn">Перевозчик</button><button class="btn">Поставщик</button></div><label class="field">Пользователь для просмотра<select><option>Владелец</option></select></label></div>';
-  (document.getElementById("root")||document.body).append(preview);
+  const fixtureRoot=document.getElementById("root")||document.body;
+  for(const existing of [...fixtureRoot.children])existing.style.display="none";
+  fixtureRoot.append(preview);
   const app=document.createElement("div");app.className="cabinet-app staff-portal";app.setAttribute("data-cabinet-role",role);
   app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+id+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
-  (document.getElementById("root")||document.body).append(app);
+  fixtureRoot.append(app);
  },{fixture,routes,role});
 }
 test("approved Owner dashboard with real-API mock only and responsive visuals",{timeout:240000},async()=>{
