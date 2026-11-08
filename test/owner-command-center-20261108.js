@@ -191,10 +191,18 @@ document.addEventListener("keydown",event=>{
  document.querySelector(".lw-cc-role-trigger")?.setAttribute("aria-expanded","false");
 });
 function mount(){
- const cab=owner(),panel=overview();if(!cab||!panel){document.body.classList.remove("lw-cc-owner-view","lw-cc-role-open");return;}
+ const cab=owner();
+ if(!cab){
+   document.body.classList.remove("lw-cc-owner-view","lw-cc-role-open");
+   return;
+ }
+ // Command-center shell is the Owner's *whole* cabinet, not only the Overview tab.
+ // Keep the approved dark sidebar, topbar and compact role picker across sections.
+ cab.classList.add("lw-cc-active");
+ syncRolePanel(cab,true);
+ const panel=overview();
+ if(!panel)return; // Other sections still retain the Owner shell and role controls.
  const isShown=!panel.hidden;
- cab.classList.toggle("lw-cc-active",isShown);
- syncRolePanel(cab,isShown);
  if(!document.getElementById(ROOT_ID)){
   const element=document.createElement("div");element.id=ROOT_ID;element.setAttribute("aria-label","Операционная сводка владельца");
   panel.prepend(element);
@@ -217,5 +225,5 @@ for(const name of ["hashchange","focus","requests-updated","workload-updated"]){
 new MutationObserver(schedule).observe(document.getElementById("root")||document.body,{childList:true,subtree:true});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",schedule);else schedule();
 setInterval(()=>{if(!document.hidden&&visible())load()},90000);
-window.lwOwnerCommandVersion="owner-command-03";
+window.lwOwnerCommandVersion="owner-command-04";
 })();
