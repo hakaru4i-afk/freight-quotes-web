@@ -1,0 +1,32 @@
+/* LW-OFFER-EDIT-READABILITY-01 | staging only | 2026-11-08
+   The Owner "Изменить ставку" modal has a white surface but inherited white
+   label/heading/help typography from the dark cabinet. Scope to light modal
+   surfaces with the offer-edit fields; preserve dark inputs and their values. */
+.cabinet-app[data-cabinet-role] :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(h1,h2,h3,h4,label,legend,.field-label,.form-label,.form-heading,.modal-title,.dialog-title,.form-help,.help-text,.hint,small,.small,.quiet,p):not(.btn):not(button) {
+  color:#213b32 !important;
+  -webkit-text-fill-color:#213b32 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(.field small,.field .hint,.field .help-text,.form-help,.help-text,.hint,.quiet) {
+  color:#445d55 !important;
+  -webkit-text-fill-color:#445d55 !important;
+  opacity:1 !important;
+}
+/* Covers portals mounted outside .cabinet-app; only apply when the actual
+   surface is light, detected by the white form's existing input background. */
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(.field > label,.field label,.form-field > label,.form-field label,legend,.field-label,.form-label) {
+  color:#213b32 !important;-webkit-text-fill-color:#213b32 !important;
+  opacity:1 !important;text-shadow:none !important;
+}
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,select,textarea) {
+  opacity:1 !important;
+}
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,select,textarea):focus-visible {
+  outline:2px solid #2377ad !important;outline-offset:2px;
+}
