@@ -56,16 +56,18 @@ test("owner sees genuine active decisions, excludes deferred transport applicati
 
 test("VED sees only open document tasks assigned to shared logistic role",async()=>{
  const api=harness({...noSession,
+  "/api/access":{access:{login:"user@domain.test"}},
   "/api/task2":{items:[{order_code:"TEST-001",process_status:"in_progress"}]},
   "/api/task2?order=TEST-001":{state:{status:"in_progress"},tasks:[
    {id:"ok",assigned_role:"logistic",assigned_login:null,status:"open",task_type:"transport_documents",description:"Упаковочный лист"},
    {id:"done",assigned_role:"logistic",status:"completed",task_type:"pto_review"},
    {id:"warehouse",assigned_role:"logistic",status:"open",task_type:"warehouse_acceptance"},
+   {id:"me",assigned_role:"logistic",assigned_login:"user@domain.test",status:"open",task_type:"pto_review"},
    {id:"other-user",assigned_role:"logistic",assigned_login:"other@domain.test",status:"open",task_type:"pto_review"}
   ]}
  });
  const result=await api.loadRole("logistic");
- assert.equal(result.tasks.length,1);
+ assert.equal(result.tasks.length,2);
  assert.match(result.tasks[0].detail,/Упаковочный лист/);
  assert.equal(result.tasks[0].route,"approved-shipments");
 });
