@@ -1,15 +1,15 @@
 {
   "version": 1,
-  "generatedAt": "2026-11-08T20:57:54.353Z",
+  "generatedAt": "2026-11-08T21:00:59.878Z",
   "environment": "isolated-ui-and-public-readonly-staging",
   "fullAuthorizedE2e": false,
   "warning": "Unit/source/browser-with-mocked-API results are NOT full authenticated staging E2E. No production writes. BLOCKED groups are not successful.",
-  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42522561757",
-  "commit": "5960a75cb71493d5cb1ec514e0c18cf11f3aa810",
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42522752024",
+  "commit": "677af68f4e5e1f1ca0ef54e503ab70432c1b7e3e",
   "checks": {
     "PARTIAL": 27,
-    "BLOCKED": 0,
-    "FAIL": 10,
+    "BLOCKED": 5,
+    "FAIL": 5,
     "PASS_E2E": 0
   },
   "scenarios": [
@@ -324,23 +324,23 @@
       "id": "T2-17",
       "title": "Исполнение: исходная дата, фактический выход и история переносов",
       "scenarioType": "unit_or_isolated_ui",
-      "status": "FAIL",
+      "status": "BLOCKED",
       "e2eStatus": "PENDING_E2E",
       "files": [
         "task2-execution-robots.test.mjs"
       ],
-      "note": "At least one automated check failed. See per-file logs."
+      "note": "Test execution blocked."
     },
     {
       "id": "T2-18",
       "title": "Авто/ЖД/море/авиа/мультимодал: маршрут, трекинг, контрольные точки",
       "scenarioType": "unit_or_isolated_ui",
-      "status": "FAIL",
+      "status": "BLOCKED",
       "e2eStatus": "PENDING_E2E",
       "files": [
         "task2-execution-robots.test.mjs"
       ],
-      "note": "At least one automated check failed. See per-file logs."
+      "note": "Test execution blocked."
     },
     {
       "id": "T2-19",
@@ -357,34 +357,34 @@
       "id": "T2-20",
       "title": "ПТО, таможенное оформление и склад — без автоматической передачи задач ВЭД",
       "scenarioType": "unit_or_isolated_ui",
-      "status": "FAIL",
+      "status": "BLOCKED",
       "e2eStatus": "PENDING_E2E",
       "files": [
         "task2-execution-robots.test.mjs"
       ],
-      "note": "At least one automated check failed. See per-file logs."
+      "note": "Test execution blocked."
     },
     {
       "id": "T2-21",
       "title": "Контейнер(ы), запрос номера, разрешение закрыть без номера",
       "scenarioType": "unit_or_isolated_ui",
-      "status": "FAIL",
+      "status": "BLOCKED",
       "e2eStatus": "PENDING_E2E",
       "files": [
         "task2-execution-robots.test.mjs"
       ],
-      "note": "At least one automated check failed. See per-file logs."
+      "note": "Test execution blocked."
     },
     {
       "id": "T2-22",
       "title": "Закрытие без претензии, права и обязательные условия",
       "scenarioType": "unit_or_isolated_ui",
-      "status": "FAIL",
+      "status": "BLOCKED",
       "e2eStatus": "PENDING_E2E",
       "files": [
         "task2-execution-robots.test.mjs"
       ],
-      "note": "At least one automated check failed. See per-file logs."
+      "note": "Test execution blocked."
     },
     {
       "id": "T2-23",
@@ -439,151 +439,151 @@
       "file": "task1-create-form-browser.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 14815
+      "durationMs": 16008
     },
     {
       "file": "issue47-owner-cabinets.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 71
+      "durationMs": 107
     },
     {
       "file": "task12-role-robots.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 4981
+      "durationMs": 5612
     },
     {
       "file": "qa-anonymous-roles.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 5559
+      "durationMs": 6543
     },
     {
       "file": "issue47-help-locales.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 67
+      "durationMs": 101
     },
     {
       "file": "issue47-agreed-roles-and-owner-registers.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 75
+      "durationMs": 112
     },
     {
       "file": "qa-publication-gate.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 69
+      "durationMs": 107
     },
     {
       "file": "task12-real-api-security-negative.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 10667
+      "durationMs": 11876
     },
     {
       "file": "issue47-live-mobile.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 10941
+      "durationMs": 10725
     },
     {
       "file": "issue47-carrier-workspace-deadlines.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 108
+      "durationMs": 159
     },
     {
       "file": "issue47-carrier-round-status.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 75
+      "durationMs": 119
     },
     {
       "file": "issue47-carrier-xlsx.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 67
+      "durationMs": 104
     },
     {
       "file": "issue47-bid-edit-route.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 71
+      "durationMs": 114
     },
     {
       "file": "issue47-insurance-excel-import.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 68
+      "durationMs": 102
     },
     {
       "file": "issue47-task2-csv.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 66
+      "durationMs": 100
     },
     {
       "file": "issue47-legacy-csv-integrity.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 70
+      "durationMs": 109
     },
     {
       "file": "issue47-late-ui.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 83
+      "durationMs": 124
     },
     {
       "file": "task2-contrast.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 62
+      "durationMs": 101
     },
     {
       "file": "issue47-owner-optional-reason.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 65
+      "durationMs": 105
     },
     {
       "file": "issue28-workflow-separation.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 73
+      "durationMs": 103
     },
     {
       "file": "task2-execution-robots.test.mjs",
-      "status": "FAIL",
-      "exitCode": 1,
-      "durationMs": 62506
+      "status": "BLOCKED",
+      "exitCode": null,
+      "durationMs": 85010
     },
     {
       "file": "issue17-formal-document-ui.test.mjs",
       "status": "FAIL",
       "exitCode": 1,
-      "durationMs": 82
+      "durationMs": 124
     },
     {
       "file": "issue47-menu-clarity.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 74
+      "durationMs": 122
     },
     {
       "file": "issue47-task2-i18n.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 65
+      "durationMs": 100
     },
     {
       "file": "lw2-dashboard-browser.test.mjs",
       "status": "PASS",
       "exitCode": 0,
-      "durationMs": 1826
+      "durationMs": 2282
     }
   ]
 }
