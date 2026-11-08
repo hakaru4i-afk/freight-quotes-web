@@ -5,6 +5,12 @@ on:
     paths:
       - ".github/workflows/lw-public-guide-qa.yml"
       - "tests/lw-public-guide-live.test.mjs"
+      - "test/index.html"
+      - "test/current-workspace-help-20261108.js"
+      - "test/current-workspace-help-20261108.css"
+      - "test/lw-public-cooperation-20261108.js"
+      - "test/lw-public-cooperation-20261108.css"
+      - "test/lw-approved-dark-20261108.css"
   workflow_dispatch:
 permissions:
   contents: read
