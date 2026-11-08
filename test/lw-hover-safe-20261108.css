@@ -105,4 +105,5 @@
  filter:none!important;
  text-shadow:none!important;
  box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
+ transition:none!important; /* Prevent first-frame white-to-dark flash */
 }
