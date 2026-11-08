@@ -18,13 +18,17 @@ const fixture={
 const routes=["overview","create-request","request-registry","offers","answers","tender-hub","approved-shipments","winner-chats","transport-claims","incident-journal","supplier-orders","content-tasks","management-reports","carrier-service","sla","site-monitor","team","access-levels","portal-feedback","help"];
 async function setup(page,role="owner"){
  await page.goto(base+"?page=login",{waitUntil:"domcontentloaded",timeout:40000});
- await page.waitForFunction(()=>window.lwOwnerCommandVersion==="owner-command-02",{timeout:20000});
+ await page.waitForFunction(()=>window.lwOwnerCommandVersion==="owner-command-03",{timeout:20000});
  await page.evaluate(({fixture,routes,role})=>{
   const original=window.fetch;
   window.fetch=(input,opts)=>{const name=String(input);
    const data=name.startsWith("/api/workload")?fixture.workload:name.startsWith("/api/registry")?fixture.registry:name.startsWith("/api/shipments")?fixture.shipments:name.startsWith("/api/service-level?overview=1")?fixture.sl:null;
    return data?Promise.resolve(new Response(JSON.stringify(data),{status:200,headers:{"Content-Type":"application/json"}})):original(input,opts);
   };
+  const preview=document.createElement("aside");
+  preview.className="test-cabinets lw-preview-compact";
+  preview.innerHTML='<div class="cabinet-preview-info"><b>Просмотр кабинетов</b><p>Ваш кабинет владельца</p></div><div class="test-cabinet-actions"><div class="cabinet-role-grid"><button class="btn">Мой кабинет</button><button class="btn">Перевозчик</button><button class="btn">Поставщик</button></div><label class="field">Пользователь для просмотра<select><option>Владелец</option></select></label></div>';
+  (document.getElementById("root")||document.body).append(preview);
   const app=document.createElement("div");app.className="cabinet-app staff-portal";app.setAttribute("data-cabinet-role",role);
   app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+id+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
   (document.getElementById("root")||document.body).append(app);
@@ -33,7 +37,7 @@ async function setup(page,role="owner"){
 test("approved Owner dashboard with real-API mock only and responsive visuals",{timeout:240000},async()=>{
  const browser=await chromium.launch({headless:true});
  try{
-  for(const size of [{width:1440,height:900},{width:390,height:844}]){
+  for(const size of [{width:2048,height:1050},{width:1440,height:900},{width:390,height:844}]){
    const page=await browser.newPage({viewport:size});const errors=[];page.on("pageerror",e=>errors.push(e.message));
    try{
     await setup(page);
@@ -49,6 +53,10 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
       route:dashboard.querySelector(".lw-cc-route-list")?.textContent,
       table:dashboard.querySelector("table")?.textContent,
       sidebar:!!document.querySelector(".lw-owner-nav"),
+      shellLeft:document.querySelector('.cabinet-layout')?.getBoundingClientRect().left,
+      shellWidth:document.querySelector('.cabinet-layout')?.getBoundingClientRect().width,
+      roleHidden:getComputedStyle(document.querySelector(".test-cabinets")).display==="none",
+      roleTrigger:!!document.querySelector(".lw-cc-role-trigger"),
       overflow:document.documentElement.scrollWidth-window.innerWidth,
       oldHidden:getComputedStyle($(".overview-welcome")).display==="none",
       hero:dashboard.querySelector(".lw-cc-hero")?.getBoundingClientRect().height,
@@ -62,6 +70,14 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     assert.match(detail.table,/WS26180/);
     assert.equal(detail.sidebar,true);
     assert.equal(detail.oldHidden,true);
+    assert.ok(Math.abs(detail.shellLeft)<=2,"Unexpected left layout gutter: "+JSON.stringify(detail));
+    assert.ok(Math.abs(detail.shellWidth-size.width)<=8,"Main shell not full-bleed: "+JSON.stringify(detail));
+    assert.equal(detail.roleHidden,true,"Large role preview must be collapsed by default");
+    assert.equal(detail.roleTrigger,true,"Role preview must be reachable from topbar");
+    await page.locator(".lw-cc-role-trigger").click();
+    assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display!=="none"),true,"Role panel should open");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator(".test-cabinets").evaluate(el=>getComputedStyle(el).display==="none"),true,"Escape closes role panel");
     assert.ok(detail.hero>=130);
     assert.ok(detail.overflow<=8,"No horizontal page overflow: "+JSON.stringify(detail));
     assert.ok(detail.links.includes("#carrier-service"));
