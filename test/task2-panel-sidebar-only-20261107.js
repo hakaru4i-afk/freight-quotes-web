@@ -92,6 +92,20 @@
      root.innerHTML=heading+'<div class="t2-empty"><h3>Нет активных перевозок</h3><p>Перевозка появится после подтверждённого принятия победителем.</p></div>';
      return;
    }
+   if(d.role==="carrier"&&d.state&&d.state.status!=="completed"){
+     const sources=[d.shipment,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
+     const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
+     let days=NaN;
+     for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key],n=typeof v==="number"?v:parseInt(String(v??"").trim(),10);if(Number.isFinite(n)&&n>0&&n<=3650){days=n;break;}}if(Number.isFinite(days))break;}
+     const total=Number.isFinite(days)?Math.ceil(days/7):0;
+     const completed=(d.points||[]).filter(p=>p.location_text&&p.observed_at).length;
+     const start=new Date(d.state.actual_departure||d.state.original_departure||d.shipment.pickup||"");
+     const deadline=Number.isFinite(start.getTime())?new Date(start.getTime()+7*(completed+1)*86400000):null;
+     const overdue=deadline&&Date.now()>deadline.getTime();
+     const remaining=Math.max(0,total-completed);
+     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border:1px solid #d5a544;border-left:4px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>'+(overdue?'Просрочен еженедельный трекинг':'Требуется обновить местоположение груза')+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Заполнить трекинг</button></div>';
+     else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
+   }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
      readonly("Выбранный перевозчик",o.carrier_login)+
      readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Ожидает принятия":"В работе")+'</div>';
