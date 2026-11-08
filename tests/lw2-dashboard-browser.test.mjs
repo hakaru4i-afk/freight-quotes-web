@@ -65,6 +65,16 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   assert.ok(banner.includes("lw2-hero-20261107.svg"),banner);
   assert.equal(await page.locator(".overview-orbit strong").textContent(),"92/100");
   await page.screenshot({path:"lw2-desktop-qa.png",fullPage:true});
+  // "Предложения" (improvement requests) must not resolve to the earlier
+  // "Мои предложения" (carrier rate offers) by substring matching.
+  await page.evaluate(()=>{
+    const nav=document.querySelector(".cabinet-sidebar nav");
+    const rate=document.createElement("a");
+    rate.href="#carrier-offers";rate.textContent="Мои предложения";
+    nav.insertBefore(rate,nav.querySelector('a[href="#portal-feedback"]'));
+  });
+  await page.locator('[data-lw2-go="feedback"]').first().click();
+  assert.equal(new URL(page.url()).hash,"#portal-feedback","improvement center must open feedback workflow, not carrier offers");
   await page.locator('[data-lw2-go="ships"]').first().click();
   assert.equal(new URL(page.url()).hash,"#approved-shipments");
   await page.goto(host+"/fixture#transport-applications",{waitUntil:"networkidle"});
