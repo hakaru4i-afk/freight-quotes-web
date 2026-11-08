@@ -3,15 +3,15 @@ import assert from "node:assert/strict";
 import {chromium} from "playwright";
 const base="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const fixture={
- workload:{total:4,requests:3,shipments:2,counts:{incidents:1,deliveries:0},items:[{label:"Рассмотреть ставку",order_code:"WS26180",section:"offers",created:"2026-11-08T09:00:00Z"}]},
+ workload:{total:4,requests:3,shipments:2,counts:{incidents:1,deliveries:0},items:[{label:"Рассмотреть ставку",order_code:"DEMO-ORDER-A",section:"offers",created:"2026-11-08T09:00:00Z"}]},
  registry:{items:[
-  {kind:"request",id:"mock-a",order_code:"WS26180",bitrix_task:"5348",protocol:"TR-26-000001",summary:"Оборудование",state:"new",published:"2026-11-08T08:00:00Z"},
-  {kind:"request",id:"mock-b",order_code:"WS26179",bitrix_task:"5371",protocol:"TR-26-000002",summary:"Комплектующие",state:"accepted",published:"2026-11-07T08:00:00Z"},
-  {kind:"tender",id:"mock-c",order_code:"WS26140",bitrix_task:"5373",protocol:"TN-26-001",summary:"Тендер",state:"open",published:"2026-11-06T08:00:00Z"}
+  {kind:"request",id:"mock-a",order_code:"DEMO-ORDER-A",bitrix_task:"QA-001",protocol:"DEMO-TR-001",summary:"Оборудование",state:"new",published:"2026-11-08T08:00:00Z"},
+  {kind:"request",id:"mock-b",order_code:"DEMO-ORDER-B",bitrix_task:"QA-002",protocol:"DEMO-TR-002",summary:"Комплектующие",state:"accepted",published:"2026-11-07T08:00:00Z"},
+  {kind:"tender",id:"mock-c",order_code:"DEMO-ORDER-C",bitrix_task:"QA-003",protocol:"DEMO-TN-001",summary:"Тендер",state:"open",published:"2026-11-06T08:00:00Z"}
  ]},
  shipments:{items:[
-  {order_code:"WS26180",origin:"Нинбо",destination:"Минск",carrier_name:"Тестовый перевозчик A",transport:"sea",cargo_status:"in_transit"},
-  {order_code:"WS26179",origin:"Шэньчжэнь",destination:"Минск",carrier_name:"Тестовый перевозчик B",transport:"rail",cargo_status:"in_transit"}
+  {order_code:"DEMO-ORDER-A",origin:"Нинбо",destination:"Минск",carrier_name:"Тестовый перевозчик A",transport:"sea",cargo_status:"in_transit"},
+  {order_code:"DEMO-ORDER-B",origin:"Шэньчжэнь",destination:"Минск",carrier_name:"Тестовый перевозчик B",transport:"rail",cargo_status:"in_transit"}
  ]},
  sl:{policies:[{score:91},{score:64},{score:45}]}
 };
@@ -36,7 +36,7 @@ async function setup(page,role="owner"){
   fixtureRoot.append(preview);
   const app=document.createElement("div");app.className="cabinet-app staff-portal";app.setAttribute("data-cabinet-role",role);
   app.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><a class="cabinet-brand" href="#overview"><span>↗</span><div>Маршрут</div></a><div class="cabinet-role">Кабинет владельца</div><nav>'+routes.map(id=>'<a href="#'+id+'"><span>◇</span>'+(titles[id]||id)+'</a>').join("")+'</nav></aside><div class="cabinet-body"><header class="cabinet-topbar"><div class="bar"><div><small>Кабинет владельца</small><h1>Моя нагрузка</h1></div></div><div class="bar"><span class="cabinet-online"><i></i>Кабинет работает</span><button class="btn secondary" type="button">Выйти</button></div></header><main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><section class="overview-welcome"><h2>Старый экран</h2></section></div></main></div></div>';
-  app.querySelector(".cabinet-content").insertAdjacentHTML("beforeend", '<section class="cabinet-panel" data-section="request-registry" hidden><div class="card"><h2>Реестр заявок</h2><label>Номер заказа <input placeholder="Номер заказа" value="WS26180"></label><small class="field-help">Подсказка: используйте номер заказа из документов поставщика.</small></div></section>');
+  app.querySelector(".cabinet-content").insertAdjacentHTML("beforeend", '<section class="cabinet-panel" data-section="request-registry" hidden><div class="card"><h2>Реестр заявок</h2><label>Номер заказа <input placeholder="Номер заказа" value="DEMO-ORDER-A"></label><small class="field-help">Подсказка: используйте номер заказа из документов поставщика.</small></div></section>');
   fixtureRoot.append(app);
  },{fixture,routes,role});
 }
@@ -75,7 +75,7 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     assert.equal(detail.sl,"67%","SL average from real scores");
     assert.match(detail.high,/76–100%/);
     assert.match(detail.route,/Нинбо/);
-    assert.match(detail.table,/WS26180/);
+    assert.match(detail.table,/DEMO-ORDER-A/);
     assert.equal(detail.sidebar,true);
     assert.equal(detail.oldHidden,true);
     assert.ok(Math.abs(detail.shellLeft)<=2,"Unexpected left layout gutter: "+JSON.stringify(detail));
@@ -93,7 +93,7 @@ test("approved Owner dashboard with real-API mock only and responsive visuals",{
     await page.locator('[data-lw-cc-tab="shipments"]').click();
     assert.match(await page.locator("#lw-owner-command table").innerText(),/Тестовый перевозчик A/);
     await page.locator('[data-lw-cc-tab="tenders"]').click();
-    assert.match(await page.locator("#lw-owner-command table").innerText(),/TN-26-001/);
+    assert.match(await page.locator("#lw-owner-command table").innerText(),/DEMO-TN-001/);
     assert.deepEqual(errors,[]);
     await page.evaluate(()=>window.scrollTo(0,0));
     await page.screenshot({path:"owner-command-center-"+size.width+".png",fullPage:true});
