@@ -7,7 +7,7 @@ const index=readFileSync("test/index.html","utf8");
 
 test("staging loads hover shield after every cabinet and page stylesheet",()=>{
  const paths=[...index.matchAll(/<link\s+rel="stylesheet"\s+href="([^"]+)"/g)].map(m=>m[1]);
- assert.equal(paths.at(-1),"./lw-hover-safe-20261108.css?v=lw-hover-01");
+ assert.equal(paths.at(-1),"./lw-hover-safe-20261108.css?v=lw-hover-02");
  assert.ok(paths.some(p=>p.startsWith("./owner-command-center-20261108.css")));
  assert.equal(index.includes("href=\"./lw-hover-safe-20261108.css"),true);
 });
