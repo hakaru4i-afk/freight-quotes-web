@@ -1,20 +1,46 @@
 {
-  "version": "lw-delete-01-staging-20261108",
+  "version": "owner-command-04-staging-20261108",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "LW-DELETE-01 · тестовая",
+    "version": "OWNER-COMMAND-04 · тестовая",
     "date": "2026-11-08",
-    "title": "Безвозвратное удаление заявок: без корзины и восстановления",
+    "title": "Кабинет владельца — единый тёмный дизайн без пустой полосы",
     "changes": [
-      "Убраны переключатель «Корзина», восстановление и соответствующий столбец Excel. Владелец видит действие «Удалить навсегда».",
-      "Новый staging API v77 физически удаляет связанные записи в транзакции и ставит ключи файлов в защищённую очередь очистки Storage; действие доступно только Владельцу.",
-      "Реестры REMARKS / DEVELOPMENT / UPDATES и FAQ RU/EN/ZH обновлены.",
-      "GitHub Actions #42487781435: source, побайтная проверка опубликованного frontend/FAQ, health и отрицательный тест API — PASS. SQL dry-run с rollback — PASS.",
-      "Исторические 8 скрытых ранее записей физически ещё не удалены. Полный авторизованный E2E и фактическая очистка Storage ожидают проверки; production неизменна."
+      "Сохранён утверждённый Owner Command Center из второго скриншота: полноширинный кабинет, тёмная палитра, боковое меню, показатели, распределение видов транспорта, маршруты, блок Service Level, реестр и срочные задачи.",
+      "Устранён скрытый лимит 1750px внутри дашборда; на широких мониторах данные занимают всю доступную рабочую область без дополнительной пустой полосы слева.",
+      "При переходе в «Мои заявки», «Рассмотрение ставок», исполнение и другие разделы тёмное оформление, меню и переключатель ролей в верхней строке сохраняются; старая большая панель ролей не появляется.",
+      "Улучшена контрастность заголовков, форм и подсказок в остальных разделах; FAQ по владельцу обновлён на RU/EN/ZH.",
+      "GitHub Actions browser с проверкой 2048/1440/390px, SL, переключателя ролей, переходов по разделам, темных форм и отсутствия горизонтальной прокрутки — PASS на имитационных данных. Полный E2E под настоящей учетной записью и окончательная визуальная приёмка владельцем отдельно ожидаются.",
+      "Изменения опубликованы только в тестовой среде /test/. Production не менялась."
     ]
   },
   "releases": [
+    {
+      "version": "OWNER-COMMAND-04 · тестовая",
+      "date": "2026-11-08",
+      "title": "Кабинет владельца — единый тёмный дизайн без пустой полосы",
+      "changes": [
+        "Сохранён утверждённый Owner Command Center из второго скриншота: полноширинный кабинет, тёмная палитра, боковое меню, показатели, распределение видов транспорта, маршруты, блок Service Level, реестр и срочные задачи.",
+        "Устранён скрытый лимит 1750px внутри дашборда; на широких мониторах данные занимают всю доступную рабочую область без дополнительной пустой полосы слева.",
+        "При переходе в «Мои заявки», «Рассмотрение ставок», исполнение и другие разделы тёмное оформление, меню и переключатель ролей в верхней строке сохраняются; старая большая панель ролей не появляется.",
+        "Улучшена контрастность заголовков, форм и подсказок в остальных разделах; FAQ по владельцу обновлён на RU/EN/ZH.",
+        "GitHub Actions browser с проверкой 2048/1440/390px, SL, переключателя ролей, переходов по разделам, темных форм и отсутствия горизонтальной прокрутки — PASS на имитационных данных. Полный E2E под настоящей учетной записью и окончательная визуальная приёмка владельцем отдельно ожидаются.",
+        "Изменения опубликованы только в тестовой среде /test/. Production не менялась."
+      ]
+    },
+    {
+      "version": "LW-DELETE-05 · тестовая",
+      "date": "2026-11-08",
+      "title": "Завершена очистка 8 ранее удалённых заказов и Storage",
+      "changes": [
+        "Все 8 старых записей, помеченных удалёнными, физически удалены из тестовой базы с зависимостями. Осталась одна действующая заявка №45.",
+        "Удалены 8 связанных Storage-объектов; очередь удаления пуста, 2 документа заявки №45 сохранены.",
+        "API v78 устраняет конфликт с защитными триггерами и автоматически повторяет очистку Storage; нет корзины и восстановления.",
+        "Проверки SQL, точной публикации JS и отказа анонимного удаления 403 — PASS. Полный авторизованный Owner→Delete E2E остаётся PENDING.",
+        "Production не менялась."
+      ]
+    },
     {
       "version": "LW-DELETE-01 · тестовая",
       "date": "2026-11-08",
@@ -352,7 +378,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T14:09:35.439Z",
+  "updatedAt": "2026-11-08T14:58:21.610Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -498,14 +524,14 @@
     "status": "STAGING API v63 ACTIVE; PAGE DEPLOY CI PENDING; AUTH E2E PENDING"
   },
   "permanentDeletionPatch": {
-    "id": "LW-DELETE-01",
+    "id": "LW-DELETE-05",
     "environment": "staging",
     "date": "2026-11-08",
-    "backendVersion": 77,
-    "backendSha256": "5967fcea31abbaacad86a21077f9c3ab2d7abacb13d8ae6673916c88d740f548",
-    "frontendCommit": "4f4b72f038e1f4c99bc88cb408cb7e20f797f736",
-    "frontendBlob": "fd2eb1f108c7e66ec8baad3de492b654b4ed6982",
-    "frontendCache": "fd2eb1f108c7",
+    "backendVersion": 78,
+    "backendSha256": "65e1d3b0db2caf2ee0d9a3d2c0945a9ac08e13b439602d0c82615e877b28f8ce",
+    "frontendCommit": "3add37bca848b527a23857b426483ff3126f0e06",
+    "frontendBlob": "8a89e5acdfe30f82a2465bdb4aaf819e90317d1a",
+    "frontendCache": "8a89e5acdfe3",
     "faqCommit": "68b57503ceea21d0908331b3051a98e63ee3c77d",
     "checks": {
       "source": "PASS",
@@ -513,11 +539,39 @@
       "anonymousApiDenial": "PASS",
       "sqlRollbackDryRun": "PASS",
       "authenticatedOwnerDeletion": "PENDING",
-      "storagePurge": "PENDING",
-      "historicalHiddenCleanup": "NOT_RUN"
+      "storagePurge": "PASS",
+      "historicalHiddenCleanup": "PASS"
     },
-    "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42487781435",
+    "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42489232864",
     "productionChanged": false,
     "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
+  },
+  "ownerCommandPatch": {
+    "id": "OWNER-COMMAND-04",
+    "environment": "staging",
+    "date": "2026-11-08",
+    "approvedReference": "second owner screenshot; dark full-width command center",
+    "jsCommit": "06ff4b0b852a73324c8a953ed367aa512d228da5",
+    "cssCommits": [
+      "a29eaec3779de7d94f7393345c8d591e59521a33",
+      "9d1ad5807a0a1002a323a103e6b85b32bd7b180d"
+    ],
+    "guideCommit": "7f4a2ee1392ef972ee54adb804aba76464ba669c",
+    "indexCommit": "1415e7da483c91889ef041cb83f6413079a05d82",
+    "checks": {
+      "source": "PASS",
+      "served": "PASS",
+      "browserFixture2048": "PASS",
+      "browserFixture1440": "PASS",
+      "browserFixture390": "PASS",
+      "sl": "PASS",
+      "roleSwitchAllSections": "PASS",
+      "fieldHintContrast": "PASS",
+      "authenticatedOwnerInRealBrowser": "PENDING",
+      "visualComparisonWithOriginalScreenshot": "PENDING"
+    },
+    "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42492023810",
+    "productionChanged": false,
+    "releaseGate": "STAGING_DEPLOYED_NOT_ACCEPTED_FOR_PRODUCTION"
   }
 }
