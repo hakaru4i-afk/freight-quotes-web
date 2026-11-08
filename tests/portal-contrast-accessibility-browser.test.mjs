@@ -11,7 +11,7 @@ const roles=["owner","carrier","logistic","ved","supplier","designer","content",
 const html=(role)=>`<!doctype html><html lang="ru"><meta charset="utf-8"><body>
 <div class="cabinet-app ${role==="owner"?"staff-portal lw-cc-active":role==="carrier"?"carrier-portal":"staff-portal"}" data-cabinet-role="${role}">
 <div class="cabinet-layout">
-  <aside class="cabinet-sidebar"><nav><a id="nav-item" href="#answers">Контроль ответов</a><a id="nav-current" href="#offers" aria-current="page">Рассмотрение ставок</a></nav></aside>
+  <aside class="cabinet-sidebar mobile-open"><nav class="${role==="owner"?"lw-owner-nav":""}"><a id="nav-item" href="#answers">Контроль ответов</a><a id="nav-current" href="#offers" aria-current="page">Рассмотрение ставок</a></nav></aside>
   <main class="cabinet-content">
     <div class="cabinet-panel" data-section="answers">
       <section class="card">
@@ -59,7 +59,7 @@ async function readSamples(page, selectors) {
     const style=getComputedStyle(el,placeholder?"::placeholder":null);
     const canvas=document.createElement("canvas");
     const context=canvas.getContext("2d",{willReadFrequently:true});
-    context.fillStyle=style.webkitTextFillColor||style.color;
+    context.fillStyle=style.getPropertyValue("-webkit-text-fill-color")||style.color;
     context.fillRect(0,0,1,1);
     const rgba=[...context.getImageData(0,0,1,1).data];
     let opacity=placeholder?Number(style.opacity):1;
@@ -75,7 +75,7 @@ async function readSamples(page, selectors) {
     return {selector,rgba,opacity,y,x:[.15,.5,.85].map(t=>left+(right-left)*t+scrollX),
       threshold:parseFloat(style.fontSize)>=(Number(style.fontWeight)>=700?18.667:24)?3:4.5};
   }),selectors);
-  const hide=await page.addStyleTag({content:"*,*::placeholder{-webkit-text-fill-color:transparent!important;text-shadow:none!important}"});
+  const hide=await page.addStyleTag({content:"@layer lw-audit { *,*::placeholder{-webkit-text-fill-color:transparent!important;text-shadow:none!important} }"});
   let png;
   try { png=await page.screenshot({fullPage:true,scale:"css"}); }
   finally { await hide.evaluate(node=>node.remove()); }
@@ -103,7 +103,7 @@ async function readable(page,selectors) {
  return samples.map(({selector,ratio,threshold,rgba,backgrounds,opacity})=>({selector,ratio,threshold,rgba,backgrounds,opacity}));
 }
 
-test("semantic text contrast in eight role cabinets / light alerts and dark tables / desktop + mobile",{timeout:180000},async()=>{
+test("shared component palettes / text and background at desktop and mobile",{timeout:180000},async()=>{
  const browser=await chromium.launch({headless:true});
  const protocol=[];
  const layoutFailures=[];
@@ -130,7 +130,9 @@ test("semantic text contrast in eight role cabinets / light alerts and dark tabl
      await record("button-hover",["#green-button"]);
      await page.mouse.down();
      try { await record("button-active",["#green-button"]); } finally { await page.mouse.up(); }
+     await page.keyboard.press("Tab");
      await page.locator("#field").focus();
+     assert.notEqual(await page.locator("#field").evaluate(el=>getComputedStyle(el).outlineStyle),"none");
      await record("field-focus",["#field::placeholder"]);
      const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
      if(overflow>4) layoutFailures.push({role,viewport,overflow});
@@ -143,4 +145,69 @@ test("semantic text contrast in eight role cabinets / light alerts and dark tabl
   console.log(JSON.stringify({samples:protocol.reduce((n,row)=>n+row.samples.length,0),violations:failures.length,layoutFailures:layoutFailures.length}));
   assert.deepEqual({violations:failures.slice(0,15),layoutFailures},{violations:[],layoutFailures:[]});
  }finally{writeFileSync("portal-contrast-protocol.json",JSON.stringify(protocol,null,2));await browser.close();}
+});
+
+// Run the actual staging bundle in an isolated browser session. All network
+// calls are fulfilled locally, including auth, so no staging data is read or changed.
+test("staging app role shells with synthetic sessions at both viewports",{timeout:240000},async()=>{
+ const browser=await chromium.launch({headless:true});
+ const protocol=[];
+ const errors=[];
+ const roles=["owner","carrier","logistic","supplier","designer","content","purchasing","certification"];
+ const origin="https://contrast-qa.invalid";
+ const types={html:"text/html",js:"text/javascript",mjs:"text/javascript",css:"text/css",json:"application/json",svg:"image/svg+xml"};
+ try {
+  for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
+   for(const role of roles){
+    const page=await browser.newPage({viewport,reducedMotion:"reduce"});
+    try {
+     await page.route("**/*",async route=>{
+      const url=new URL(route.request().url());
+      if(url.origin===origin&&url.pathname.startsWith("/test/")){
+       const file=url.pathname==="/test/"?"index.html":url.pathname.slice(6);
+       try {
+        return await route.fulfill({body:readFileSync("test/"+file),contentType:types[file.split(".").at(-1)]||"application/octet-stream"});
+       } catch { return route.fulfill({status:404,body:"Fixture asset unavailable"}); }
+      }
+      if(!url.pathname.includes("/freight-api/api/"))return route.abort();
+      const headers={"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":route.request().headers()["access-control-request-headers"]||"content-type"};
+      if(route.request().method()==="OPTIONS")return route.fulfill({status:204,headers});
+      const body={role,user:{role},access:{owner:role==="owner",permissions:["workspace.read","requests.read","documents.read"]},
+       carrierPolicy:{blocked:false,level:90},presets:[],users:[],profiles:[],roleProfiles:[],requests:[],bids:[],answers:[],
+       selections:[],reports:[],approvals:[],notifications:[],items:[],tasks:[],orders:[],rows:[],categories:[],messages:[],
+       chats:[],awards:[],roles:[],counts:{deliveries:0,incidents:0},total:0};
+      return route.fulfill({status:200,headers,json:body});
+     });
+     await page.goto(origin+"/test/");
+     const shell=page.locator("[data-cabinet-role]");
+     await shell.first().waitFor({state:"visible",timeout:8000});
+     const toggle=page.locator(".cabinet-menu-toggle").first();
+     if(await toggle.isVisible())await toggle.click();
+     const menu=".cabinet-sidebar nav a,.sw-sidebar nav button";
+     await page.locator(menu).first().waitFor({state:"visible",timeout:8000});
+     const selectors=await page.evaluate(menu=>{
+      const nodes=[...document.querySelectorAll(menu)]
+       .filter(el=>el.checkVisibility({visibilityProperty:true})&&el.innerText.trim());
+      for(const [index,el] of nodes.entries())el.setAttribute("data-contrast-qa",String(index));
+      return nodes.map((_,i)=>'[data-contrast-qa="'+i+'"]');
+     },menu);
+     assert.ok(selectors.length,"role navigation has no visible text");
+     const samples=await readable(page,selectors);
+     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth);
+     protocol.push({role,viewport,actualRole:await shell.first().getAttribute("data-cabinet-role"),samples,overflow});
+     if(["owner","carrier","logistic","supplier","content"].includes(role))
+      await page.screenshot({path:"portal-contrast-"+viewport.width+"-app-"+role+".png",fullPage:true});
+    } catch(error){
+     errors.push({role,viewport,error:String(error.message).split("\n")[0]});
+    } finally { await page.close(); }
+   }
+  }
+ } finally {
+  await browser.close();
+  writeFileSync("portal-contrast-app-protocol.json",JSON.stringify({scope:"isolated app navigation",protocol,errors},null,2));
+ }
+ const violations=protocol.flatMap(({role,viewport,samples})=>samples.filter(s=>s.ratio<s.threshold).map(s=>({role,viewport,...s})));
+ console.log(JSON.stringify({appRoleViewports:protocol.length,errors:errors.length,violations:violations.length}));
+ const overflow=protocol.filter(row=>row.overflow>4).map(({role,viewport,overflow})=>({role,viewport,overflow}));
+ assert.deepEqual({violations:violations.slice(0,12),errors,overflow},{violations:[],errors:[],overflow:[]});
 });

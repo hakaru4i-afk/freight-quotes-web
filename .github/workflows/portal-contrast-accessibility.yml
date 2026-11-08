@@ -71,5 +71,6 @@ jobs:
           name: lw-contrast-all-desktop-mobile
           path: |
             portal-contrast-*-*.png
+            portal-contrast-*-protocol.json
             portal-contrast-protocol.json
           if-no-files-found: ignore

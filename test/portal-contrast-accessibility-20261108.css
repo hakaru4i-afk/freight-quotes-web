@@ -137,6 +137,14 @@
   color:var(--lw-contrast-dark-ink) !important;
 }
 
+/* Keep the selected Owner item blue while staying readable across the
+   full gradient, including the brightest end on a wide sidebar. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(120deg,#075487,#12669d) !important;
+  color:var(--lw-contrast-dark-ink) !important;
+  -webkit-text-fill-color:currentColor;
+}
 /* State is not removed from disabled controls. */
 .cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
 .cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:focus-visible {
