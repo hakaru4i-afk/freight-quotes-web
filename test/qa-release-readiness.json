@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-08T21:52:22.773Z",
+  "generatedAt": "2026-11-08T21:55:40.140Z",
   "environment": "staging",
   "status": "RELEASE_BLOCKED",
   "canDeployProduction": false,
   "note": "Данный gate никогда не разворачивает production автоматически. Даже после READY нужно отдельное явное разрешение Владельца.",
-  "frontendCandidateSha": "a61e8831a6a16293f7bc65adb093161aca4b2415",
+  "frontendCandidateSha": "e9b937d8a64372aadfef257a33749b7cc8b5f0cf",
   "backendCandidateSha": null,
   "robotPartialChecks": 26,
   "robotFailures": 6,
@@ -115,5 +115,5 @@
       "evidenceId": null
     }
   ],
-  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42527034536"
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42527307042"
 }
