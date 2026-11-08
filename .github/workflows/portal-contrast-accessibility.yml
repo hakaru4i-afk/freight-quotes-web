@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           node --check tests/portal-contrast-accessibility-browser.test.mjs
-          grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04' test/index.html
+          grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04-final' test/index.html
           grep -Fq 'offer-row-unavailable' test/portal-contrast-accessibility-20261108.css
           grep -Fq 'tbody tr:not([class*="offer-row-"]):hover' test/portal-contrast-accessibility-20261108.css
           ! grep -Fq 'portal-contrast-accessibility-20261108.css' index.html
@@ -41,7 +41,7 @@ jobs:
           for attempt in {1..35}; do
             curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/contrast-index.html || true
             curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/portal-contrast-accessibility-20261108.css?qa=$GITHUB_SHA" -o /tmp/contrast-staging.css || true
-            if grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04' /tmp/contrast-index.html 2>/dev/null \
+            if grep -Fq 'portal-contrast-accessibility-20261108.css?v=contrast-04-final' /tmp/contrast-index.html 2>/dev/null \
               && cmp -s test/portal-contrast-accessibility-20261108.css /tmp/contrast-staging.css; then
               echo "PASS: served stylesheet and version match staging source"
               sha256sum /tmp/contrast-staging.css
