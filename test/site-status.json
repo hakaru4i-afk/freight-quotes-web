@@ -1,22 +1,32 @@
 {
-  "version": "faq-role-guidance-staging-20261108",
+  "version": "lw-delete-01-staging-20261108",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "1.19.22 · тестовая",
+    "version": "LW-DELETE-01 · тестовая",
     "date": "2026-11-08",
-    "title": "Общий FAQ, инструкции по кабинетам и подсказки у полей",
+    "title": "Безвозвратное удаление заявок: без корзины и восстановления",
     "changes": [
-      "В разделе «Помощь / FAQ» актуализированы общий процесс и пошаговые инструкции по кабинетам: Владелец, Перевозчик, Логист, Поставщик, Контент-менеджер/Дизайнер, Закупки и Сертификация.",
-      "Создание и согласование транспортной заявки перевозчиком и автоматические задачи ВЭД исключены из обязательного текущего цикла; историческая функциональность сохранена.",
-      "Подсказки к видимым формам показывают формат и назначение поля, включая флажки, тип обращения, описание, статусы и сроки «Предложений». Языки: RU/EN/ZH.",
-      "Excel-шаблон описан корректно: импорт переносит значения, но не отправляет ставку; отправка выполняется отдельно.",
-      "Frontend asset test/current-workspace-help-20261108.js blob 63186144ab06574c4a0c04309e9463c1e10db265; cache key guide-02, HTML commit 9242e107b175003a9b1a15c521592aa30a0d1ecb.",
-      "Проверка синтаксиса JS PASS. Проверка фактически отданной версии GitHub Pages, вход под всеми ролями, 390×844 и полный E2E до подтверждения остаются открытыми. Production и Supabase не менялись.",
-      "Независимая проверка GitHub Actions #42479181350: синтаксис, локализации/роли/подсказки и байтовое совпадение реально отданного staging JavaScript — PASS."
+      "Убраны переключатель «Корзина», восстановление и соответствующий столбец Excel. Владелец видит действие «Удалить навсегда».",
+      "Новый staging API v77 физически удаляет связанные записи в транзакции и ставит ключи файлов в защищённую очередь очистки Storage; действие доступно только Владельцу.",
+      "Реестры REMARKS / DEVELOPMENT / UPDATES и FAQ RU/EN/ZH обновлены.",
+      "GitHub Actions #42487781435: source, побайтная проверка опубликованного frontend/FAQ, health и отрицательный тест API — PASS. SQL dry-run с rollback — PASS.",
+      "Исторические 8 скрытых ранее записей физически ещё не удалены. Полный авторизованный E2E и фактическая очистка Storage ожидают проверки; production неизменна."
     ]
   },
   "releases": [
+    {
+      "version": "LW-DELETE-01 · тестовая",
+      "date": "2026-11-08",
+      "title": "Безвозвратное удаление заявок: без корзины и восстановления",
+      "changes": [
+        "Убраны переключатель «Корзина», восстановление и соответствующий столбец Excel. Владелец видит действие «Удалить навсегда».",
+        "Новый staging API v77 физически удаляет связанные записи в транзакции и ставит ключи файлов в защищённую очередь очистки Storage; действие доступно только Владельцу.",
+        "Реестры REMARKS / DEVELOPMENT / UPDATES и FAQ RU/EN/ZH обновлены.",
+        "GitHub Actions #42487781435: source, побайтная проверка опубликованного frontend/FAQ, health и отрицательный тест API — PASS. SQL dry-run с rollback — PASS.",
+        "Исторические 8 скрытых ранее записей физически ещё не удалены. Полный авторизованный E2E и фактическая очистка Storage ожидают проверки; production неизменна."
+      ]
+    },
     {
       "version": "1.19.22 · тестовая",
       "date": "2026-11-08",
@@ -342,7 +352,7 @@
       ]
     }
   ],
-  "updatedAt": "2026-11-08T12:14:14.274Z",
+  "updatedAt": "2026-11-08T13:58:00Z",
   "stagingVerification": {
     "scope": "Issue #47 Owner 'Рассмотрение ставок' active staging test: 12,32,[код заказа скрыт] each one winner and four archived losers by SQL; stale winner buttons guarded in staging frontend; post-selection review/approval API v62 guard active. Authorized browser Owner end-to-end and 26/26 not yet confirmed.",
     "ownerAcceptance": "PENDING",
@@ -486,5 +496,28 @@
       "staging-only, no production change"
     ],
     "status": "STAGING API v63 ACTIVE; PAGE DEPLOY CI PENDING; AUTH E2E PENDING"
+  },
+  "permanentDeletionPatch": {
+    "id": "LW-DELETE-01",
+    "environment": "staging",
+    "date": "2026-11-08",
+    "backendVersion": 77,
+    "backendSha256": "5967fcea31abbaacad86a21077f9c3ab2d7abacb13d8ae6673916c88d740f548",
+    "frontendCommit": "4f4b72f038e1f4c99bc88cb408cb7e20f797f736",
+    "frontendBlob": "fd2eb1f108c7e66ec8baad3de492b654b4ed6982",
+    "frontendCache": "fd2eb1f108c7",
+    "faqCommit": "68b57503ceea21d0908331b3051a98e63ee3c77d",
+    "checks": {
+      "source": "PASS",
+      "publishedBytes": "PASS",
+      "anonymousApiDenial": "PASS",
+      "sqlRollbackDryRun": "PASS",
+      "authenticatedOwnerDeletion": "PENDING",
+      "storagePurge": "PENDING",
+      "historicalHiddenCleanup": "NOT_RUN"
+    },
+    "qaRun": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42487781435",
+    "productionChanged": false,
+    "releaseGate": "PARTIAL_NOT_READY_FOR_PRODUCTION"
   }
 }
