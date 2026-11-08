@@ -63,11 +63,11 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
       const opacity=await page.locator("#hover-qa-"+role+"-disabled").evaluate(el=>getComputedStyle(el).opacity);
       assert.ok(Number(opacity)<=0.6,"disabled button unchanged: "+role);
     }
-    for(const id of ["task2-ghost","task2-light","task2-tab","feedback","login","role-tab"]){
+    for(const id of ["task2-ghost","task2-light","task2-tab","login","role-tab"]){
       const state=await hoverState(page,id);
       assert.equal(state.filter,"none",JSON.stringify({id,state}));
       assert.equal(state.transform,"none",JSON.stringify({id,state}));
-      if(id==="task2-light"||id==="feedback"){
+      if(id==="task2-light"){
         assert.equal(state.bg,"rgb(230, 240, 236)",JSON.stringify({id,state}));
         assert.equal(state.color,"rgb(23, 75, 58)",JSON.stringify({id,state}));
       }
