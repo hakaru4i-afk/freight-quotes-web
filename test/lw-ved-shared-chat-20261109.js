@@ -99,7 +99,84 @@ async function init(root){
  }catch(e){if(root.isConnected){root.querySelector(".lw-ved-chat-thread").innerHTML='<p class="lw-ved-chat-placeholder">'+escape(e.message)+'</p>';root.querySelector("[data-vc-send]").hidden=true;notify(root,e.message,true);}}
 }
 let scanScheduled=false;
+const PAGE_ID="lw-ved-chat-page";
+function vedCabinet(){
+ return [...document.querySelectorAll(".cabinet-app")].find(c=>
+  c.dataset.cabinetRole==="ved"||
+  (c.dataset.cabinetRole==="logistic"&&/ВЭД/.test(c.querySelector(".cabinet-role")?.textContent||""))||
+  /Кабинет ВЭД/.test(c.querySelector(".cabinet-role")?.textContent||"")
+ )||null;
+}
+let pageListLoaded=0,pageBusy=false;
+function setupPage(){
+ const cabinet=vedCabinet();if(!cabinet)return;
+ const nav=cabinet.querySelector(".cabinet-sidebar nav");
+ if(nav&&!nav.querySelector('a[href="#chats"]')){
+  const link=document.createElement("a");link.href="#chats";link.textContent="Чаты";link.className="lw-ved-chat-menu-link";
+  const after=nav.querySelector('a[href="#approved-shipments"]');
+  if(after)after.insertAdjacentElement("afterend",link);else nav.append(link);
+ }
+ const home=cabinet.querySelector('.cabinet-panel[data-section="overview"]');
+ if(!home)return;
+ let page=cabinet.querySelector("#"+PAGE_ID);
+ if(!page){
+  page=document.createElement("section");
+  page.id=PAGE_ID;page.className="cabinet-panel lw-ved-chat-page";
+  page.innerHTML='<div class="lw-ved-chat-page-heading"><h2>Чаты по перевозкам</h2><p>Реальная переписка по принятым перевозкам: Владелец · Перевозчик · ВЭД. Без шаблонных сообщений.</p></div>'+
+   '<div class="lw-ved-chat-orders"><div data-vc-orders>Открываем список чатов…</div><button type="button" data-vc-list-refresh>Обновить список</button></div>'+
+   '<div class="lw-ved-chat-mount" data-lw-ved-chat-order=""></div>';
+  home.parentElement.append(page);
+ }
+ const current=location.hash==="#chats";
+ cabinet.classList.toggle("lw-ved-chat-active",current);
+ if(current&&(!pageListLoaded||Date.now()-pageListLoaded>60000)&&!pageBusy)loadPageChats(page);
+}
+async function loadPageChats(page,prefer=""){
+ if(pageBusy)return;pageBusy=true;
+ const list=page.querySelector("[data-vc-orders]");if(list)list.textContent="Проверяем доступные перевозки…";
+ try{
+  const result=await api("/api/chats");
+  if(!page.isConnected)return;
+  const dedupe=new Map();
+  for(const x of [...(result.chats||[]),...(result.awards||[])]){
+   if(x.source_kind!=="request"||!x.order_code)continue;
+   if(!dedupe.has(x.order_code))dedupe.set(x.order_code,x);
+  }
+  const options=[...dedupe.values()];
+  const chosen=prefer||page.querySelector(SELECTOR)?.dataset.lwVedChatOrder||options[0]?.order_code||"";
+  if(list)list.innerHTML=options.length?options.map(x=>
+   '<button type="button" data-vc-order="'+escape(x.order_code)+'"'+
+   (x.order_code===chosen?' class="is-current"':"")+'>'+
+   '<span>'+escape(x.order_code)+'</span>'+(Number(x.unread)>0?'<b>'+Number(x.unread)+'</b>':"")+
+   '</button>').join(""):'<p>Пока нет перевозок с доступной перепиской.</p>';
+  const mount=page.querySelector(SELECTOR);
+  if(mount&&chosen&&dedupe.has(chosen)&&mount.dataset.lwVedChatOrder!==chosen){
+   mount.dataset.lwVedChatOrder=chosen;
+   mount.dataset.vedInit="";
+   init(mount);
+  }
+  pageListLoaded=Date.now();
+ }catch(e){if(list)list.textContent="Не удалось получить список чатов: "+e.message;}
+ finally{pageBusy=false;}
+}
+document.addEventListener("click",event=>{
+ const order=event.target.closest("#"+PAGE_ID+" [data-vc-order]");
+ if(order){
+  const page=order.closest("#"+PAGE_ID);
+  const mount=page?.querySelector(SELECTOR);
+  if(mount){
+   for(const option of page.querySelectorAll("[data-vc-order]"))option.classList.toggle("is-current",option===order);
+   mount.dataset.lwVedChatOrder=order.dataset.vcOrder;
+   mount.dataset.vedInit="";
+   init(mount);
+  }
+ }
+ const reload=event.target.closest("#"+PAGE_ID+" [data-vc-list-refresh]");
+ if(reload)loadPageChats(reload.closest("#"+PAGE_ID));
+});
+
 function scan(){
+ setupPage();
  for(const el of document.querySelectorAll(SELECTOR)){
   const order=trim(el.dataset.lwVedChatOrder);
   if(order&&el.dataset.vedInit!==order)init(el);
@@ -143,7 +220,7 @@ document.addEventListener("keydown",e=>{
 });
 new MutationObserver(schedule).observe(document.getElementById("root")||document.documentElement,{childList:true,subtree:true});
 document.addEventListener("DOMContentLoaded",schedule);
-window.addEventListener("hashchange",schedule);
+window.addEventListener("hashchange",()=>{pageListLoaded=0;schedule();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&active?.isConnected)refresh(active);});
 setInterval(()=>{if(!document.hidden&&active?.isConnected)refresh(active);},20000);
 schedule();
