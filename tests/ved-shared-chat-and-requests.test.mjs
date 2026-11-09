@@ -52,3 +52,14 @@ test("page deploys separate chat CSS/JS and fresh Task2 asset, not production",(
  assert.match(html,/task2-panel-sidebar-only-20261107\.js\?v=/);
  assert.match(html,/lw-pending-tasks-all-roles-20261109\.js\?v=/);
 });
+
+test("VED chat is the same real conversation service, not a CSV form; switching requests cannot mix responses",()=>{
+ assert.match(chat,/Чаты по заявкам/);
+ assert.match(chat,/requestChatId=root\.dataset\.vedChatId/);
+ assert.match(chat,/root\.dataset\.vedChatId===requestChatId/);
+ assert.match(chat,/root\.dataset\.vedChatId=""/);
+ assert.match(chat,/fd\.append\("files",file,file\.name\)/);
+ assert.doesNotMatch(chat,/Скачать CSV шаблон|Загрузить CSV|data-t2-csv/);
+ assert.match(panel,/class="lw-ved-chat-mount"/);
+ assert.doesNotMatch(panel,/html\+=form\("message"/);
+});
