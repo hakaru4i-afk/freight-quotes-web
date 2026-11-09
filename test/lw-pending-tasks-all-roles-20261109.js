@@ -6,7 +6,7 @@ const ROOT_ID="lw-pending-tasks-all-roles";
 const roles=new Set(["owner","carrier","logistic","supplier","designer","content","purchasing","certification"]);
 const availableRoutes=new Set(["approved-shipments","carrier-orders","offers","tender-hub","supplier-orders","content-tasks","team","winner-chats","incident-journal","portal-feedback","request-registry"]);
 const closedTask=new Set(["completed","cancelled","deleted","denied","rejected","archived","closed"]);
-const docTasks=new Set(["pto_review","missing_documents","transport_documents"]);
+const docTasks=new Set(["pto_review","missing_documents","transport_documents","ved_request_logistic"]);
 const toRole=s=>String(s||"").toLowerCase()==="ved"?"logistic":String(s||"").toLowerCase();
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const short=(v,n=125)=>String(v??"").trim().slice(0,n);
@@ -92,7 +92,7 @@ async function fetchTask2(role){
     if(role==="logistic"){
      if(t.assigned_role!=="logistic"||!docTasks.has(t.task_type))continue;
      if(t.assigned_login&&String(t.assigned_login).toLowerCase()!==assignedLogin)continue;
-     tasks.push(makeTask("ved:"+t.id,word("ved"),(x.registration_no||x.order_code)+" · "+(t.description||t.task_type),"approved-shipments",x.order_code,t.created_at));
+     tasks.push(makeTask("ved:"+t.id,t.task_type==="ved_request_logistic"?"Предоставить документы ВЭД":word("ved"),(x.registration_no||x.order_code)+" · "+(t.description||t.task_type),"approved-shipments",x.order_code,t.created_at));
     }else if(role==="carrier"){
      if(t.assigned_role!=="carrier"||t.task_type!=="container_number")continue;
      tasks.push(makeTask("carrier:"+t.id,word("carrier"),(x.registration_no||x.order_code)+" · "+(t.description||""),"approved-shipments",x.order_code,t.created_at));
