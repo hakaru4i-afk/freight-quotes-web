@@ -29,3 +29,18 @@
 .lw-ved-chat-send-row button:hover:not(:disabled) {background:#126941!important;filter:none!important;color:#fff!important;}
 .lw-ved-chat-send-row button:disabled {opacity:.65;cursor:wait;}
 @media(max-width:560px){.lw-ved-chat-header{padding:12px;}.lw-ved-chat-thread{height:320px;padding:11px;}.lw-ved-chat-message{max-width:96%;}.lw-ved-chat-composer{padding:12px;}.lw-ved-chat-meta{gap:6px;}}
+
+/* Dedicated VED menu screen; the same conversation is available inside each shipment. */
+.cabinet-app.lw-ved-chat-active .cabinet-panel {display:none!important;}
+.cabinet-app.lw-ved-chat-active #lw-ved-chat-page{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;}
+#lw-ved-chat-page{padding:16px;min-width:0;}
+#lw-ved-chat-page .lw-ved-chat-page-heading h2{font-size:24px;font-weight:780;color:#152c43;margin:0 0 7px;}
+#lw-ved-chat-page .lw-ved-chat-page-heading p{color:#5b7185;margin:0 0 16px;font-size:13px;line-height:1.5;}
+#lw-ved-chat-page .lw-ved-chat-orders{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:12px 14px;margin-bottom:12px;border:1px solid #d5e1eb;border-radius:12px;background:#f7fafd;}
+#lw-ved-chat-page [data-vc-orders]{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#4b5f73;font-size:13px;}
+#lw-ved-chat-page [data-vc-orders] button{border:1px solid #a8bacb;border-radius:9px;color:#1e425f;background:white;font-weight:650;cursor:pointer;padding:9px 12px;display:inline-flex;align-items:center;gap:8px;}
+#lw-ved-chat-page [data-vc-orders] button.is-current{background:#dceefb;color:#084d7f;border-color:#689ac0;}
+#lw-ved-chat-page [data-vc-orders] button b{border-radius:999px;color:#fff;background:#cc4040;padding:1px 6px;font-size:10px;}
+#lw-ved-chat-page [data-vc-list-refresh]{cursor:pointer;border:1px solid #b6c4d3;border-radius:8px;background:white;color:#23506f;font-weight:600;padding:8px 11px;font-size:12px;}
+#lw-ved-chat-page .lw-ved-chat-mount{margin:0;}
+@media(max-width:560px){#lw-ved-chat-page{padding:8px!important;}#lw-ved-chat-page .lw-ved-chat-orders{padding:9px;}}
