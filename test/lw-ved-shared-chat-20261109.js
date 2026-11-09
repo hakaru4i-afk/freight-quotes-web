@@ -74,8 +74,9 @@ async function refresh(root,{first=false}={}){
  if(!root?.isConnected||!root.dataset.vedChatId||root.dataset.vedLoading==="true")return;
  root.dataset.vedLoading="true";
  try{
-  const result=await api("/api/chats?id="+encodeURIComponent(root.dataset.vedChatId));
-  if(root.isConnected){
+  const requestChatId=root.dataset.vedChatId;
+  const result=await api("/api/chats?id="+encodeURIComponent(requestChatId));
+  if(root.isConnected&&root.dataset.vedChatId===requestChatId){
    renderMessages(root,result);
    if(result.lastSeq>0&&result.writable!==undefined){
     api("/api/chats",{action:"read",id:root.dataset.vedChatId,seq:result.lastSeq}).catch(()=>{});
@@ -89,6 +90,7 @@ async function init(root){
  const order=trim(root.dataset.lwVedChatOrder);
  if(!order)return;
  root.dataset.vedInit=order;
+ root.dataset.vedChatId="";
  renderShell(root,order);
  active=root;
  try{
@@ -112,7 +114,7 @@ function setupPage(){
  const cabinet=vedCabinet();if(!cabinet)return;
  const nav=cabinet.querySelector(".cabinet-sidebar nav");
  if(nav&&!nav.querySelector('a[href="#chats"]')){
-  const link=document.createElement("a");link.href="#chats";link.textContent="Чаты";link.className="lw-ved-chat-menu-link";
+  const link=document.createElement("a");link.href="#chats";link.textContent="Чаты по заявкам";link.className="lw-ved-chat-menu-link";
   const after=nav.querySelector('a[href="#approved-shipments"]');
   if(after)after.insertAdjacentElement("afterend",link);else nav.append(link);
  }
@@ -122,7 +124,7 @@ function setupPage(){
  if(!page){
   page=document.createElement("section");
   page.id=PAGE_ID;page.className="cabinet-panel lw-ved-chat-page";
-  page.innerHTML='<div class="lw-ved-chat-page-heading"><h2>Чаты по перевозкам</h2><p>Реальная переписка по принятым перевозкам: Владелец · Перевозчик · ВЭД. Без шаблонных сообщений.</p></div>'+
+  page.innerHTML='<div class="lw-ved-chat-page-heading"><h2>Чаты по заявкам</h2><p>Реальная переписка по принятым перевозкам: Владелец · Перевозчик · ВЭД. Без шаблонных сообщений.</p></div>'+
    '<div class="lw-ved-chat-orders"><div data-vc-orders>Открываем список чатов…</div><button type="button" data-vc-list-refresh>Обновить список</button></div>'+
    '<div class="lw-ved-chat-mount" data-lw-ved-chat-order=""></div>';
   home.parentElement.append(page);
@@ -191,7 +193,7 @@ document.addEventListener("submit",async ev=>{
  const form=ev.target.closest(SELECTOR+" [data-vc-send]");
  if(!form)return;ev.preventDefault();
  const root=form.closest(SELECTOR);
- if(!root?.dataset.vedChatId)return;
+ if(!root?.dataset.vedChatId){notify(root,"Переписка ещё не открыта. Повторите через кнопку «Обновить».",true);return;}
  const body=trim(form.querySelector('[name="body"]').value),files=Array.from(form.querySelector('[name="files"]').files||[]);
  if(!body&&!files.length){notify(root,"Напишите сообщение или прикрепите файл.",true);return;}
  if(files.length>5||files.some(f=>f.size>10*1024*1024)||files.reduce((n,f)=>n+f.size,0)>20*1024*1024){
