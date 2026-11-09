@@ -12,7 +12,7 @@ faq:[
 ["Что происходит после дедлайна?","До выбора победителя можно подать позднюю ставку; Владелец решает учитывать её. Просрочка и Service Level учитываются отдельно."],
 ["Как работать с документами?","Загружайте файлы в конкретный заказ/заявку, проверяйте их сохранение и скачивание. Чужие файлы недоступны."],
 ["Чем отличаются номера?","TR — неизменный регистрационный номер. Номер заказа компании, номер заказа поставщика и номера Bitrix — разные поля."],
-["Где транспортная заявка и ВЭД?","Создание транспортной заявки отложено. Автоматические задачи ВЭД исключены из текущего активного сценария."],
+["Где транспортная заявка и ВЭД?","Создание транспортной заявки отложено. После принятия перевозки победителем ВЭД видит её документы, общий чат и свои задания. При подтверждённом остатке менее 1000 км до ПТО создаётся одна задача проверки документов."],
 ["Как сообщить об ошибке?","Откройте «Предложения», выберите «Исправление», «Доработка» или «Разработка», опишите экран и ожидаемый результат. Владелец изменит статус в «Центре доработок»."],
 ["Как заполнить Excel-шаблон?","Скачайте шаблон в форме, заполните колонки в Excel или WPS, загрузите файл и проверьте перенос. Импорт не отправляет ставку: после него нажмите штатную кнопку отправки."],
 ["Что означают статусы предложений?","Отправлено → Прочитано → Оценено → В работе → Выпуск (с датой) → Завершено. Возможен «Отказано в разработке». Завершение отмечают после проверки."],
@@ -21,12 +21,13 @@ faq:[
 roles:{
 owner:["Удаление заявки доступно только Владельцу: «Реестр заявок» → карточка → «Удалить навсегда». Подтвердите необратимое удаление. Архив и аннулирование — другие операции.","Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","Просматривайте обращения потенциальных партнёров в «Помощь / FAQ»."],
 carrier:["Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу» в «Мои заявки», затем «Мои перевозки» для исполнения, трекинга и файлов. Транспортная заявка сейчас отложена.","Проигравшие не исполняют перевозку.","Для обращения по сайту откройте «Предложения», выберите тип и напишите описание."],
-logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не утверждайте ставку вместо Владельца; задачи ВЭД пока не создаются."],
+ved:["Откройте раздел «Документы»: здесь одна автоматическая задача проверки документов до ПТО при подтверждённом остатке менее 1000 км.","Для запроса недостающих документов выберите конкретного логиста; завершение задания возможно только после загрузки файла.","Для общения с владельцем и перевозчиком используйте «Чаты по заявкам» без шаблонов и CSV."],
+logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не выбирайте победителя вместо Владельца. Выполняйте только назначенные вам документальные задания; запрос ВЭД логисту адресуется конкретному сотруднику."],
 supplier:["Откройте назначенный заказ поставщика.","Загрузите запрошенные документы, укажите фактическую готовность, если поле доступно.","При запросе добавьте фото погрузки и проверьте сохранение.","Не используйте чужие заявки; о недоступных полях сообщите Владельцу."],
 designer:["Откройте назначенные задания, если раздел доступен.","Проверьте материалы товара и требования.","Прикрепите результат и отметьте выполнение через доступные элементы."],
 content:["Откройте доступные задания по контенту.","Проверьте карточку товара, изображения и документы.","Укажите результат и запросите недостающие материалы там, где разрешено."],
 purchasing:["Откройте доступные заказы.","Проверьте готовность и документы поставщика.","Сообщайте о недостающей функции Владельцу."],
-certification:["Проверьте назначенные документы по товару.","Загрузите результат только в доступной форме.","ВЭД не участвует в текущем процессе."]
+certification:["Проверьте назначенные документы по товару.","Загрузите результат только в доступной форме.","ВЭД обрабатывает документы принятых перевозок отдельно от задач сертификации."]
 }},
 en:{
 title:"Instructions & FAQ · Logistics Workspace",flow:"Current workflow: Owner request → carrier quotes → one winning offer → execution → closure.",
@@ -38,7 +39,7 @@ faq:[
 ["Late quotes?","A late quote may be sent before the winner is chosen; the Owner decides if it is considered. Service Level still applies."],
 ["How do files work?","Upload files to their request/order and verify saving and downloads. Other users' private files are restricted."],
 ["Which numbers matter?","TR registration, company order, supplier order and Bitrix tasks are separate references."],
-["Transport application and foreign trade?","The transport application is deferred and foreign-trade tasks are excluded from the active workflow."],
+["Transport application and foreign trade?","Transport-application drafting is deferred. Once the winning carrier accepts a shipment, foreign-trade staff can review its documents and shared chat; one document-check task is created when confirmed remaining distance falls below 1,000 km before PTO."],
 ["Found a bug?","Open Suggestions, select Fix, Improvement or Development, and describe the screen and expected result. The Owner processes it in Improvement Center."],
 ["How do I use the Excel template?","Download the form template, fill separate columns in Excel or WPS, upload and review the transfer. Import does not submit an offer; press Submit afterwards."],
 ["What are suggestion statuses?","Submitted → Read → Evaluated → In progress → Release (with a date) → Completed, or Rejected. Completion requires verification."],
@@ -47,12 +48,13 @@ faq:[
 roles:{
 owner:["Only the Owner can permanently delete a request in Registry → request card → Delete permanently. Confirm irreversible deletion. Archiving and annulment are different actions.","Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner inquiries in Help / FAQ."],
 carrier:["Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If awarded, accept in My Requests, then use My Shipments for execution, tracking and files. Transport-application drafting is deferred.","Unselected carriers cannot execute.","Report portal issues using the Suggestions form."],
-logistic:["Review permitted requests and offers.","Check route, timing and files.","Do not select the winner; no active foreign-trade handoff."],
+ved:["Open Documents for your assigned pre-PTO document check; only one task is generated below 1,000 km confirmed remaining distance.","Request missing documents from a named logistician and track the file attached to that task.","Use Chats by request for the shared conversation with the Owner and awarded carrier, without message templates or CSV."],
+logistic:["Review permitted requests and offers.","Check route, timing and files.","Only the Owner selects the winner. Complete document requests assigned to you by foreign-trade staff; do not access other employees’ tasks."],
 supplier:["Open assigned orders.","Enter readiness and attach documents where enabled.","Attach loading photos if requested.","Report unavailable fields to the Owner."],
 designer:["Open assigned tasks.","Check materials and instructions.","Upload output and mark completed where enabled."],
 content:["Review assigned product content.","Check files and photos.","Request missing materials through authorized controls."],
 purchasing:["Review permitted supplier orders.","Check readiness and documents.","Escalate missing features."],
-certification:["Review assigned documents.","Upload evidence in permitted fields.","No active foreign-trade task routing."]
+certification:["Review assigned documents.","Upload evidence in permitted fields.","Foreign-trade shipment tasks and certification tasks are separate and access-controlled."]
 }},
 zh:{
 title:"操作说明与常见问题 · Logistics Workspace",flow:"当前流程：负责人询价 → 承运商报价 → 选择唯一报价 → 执行运输 → 完成。",
@@ -64,7 +66,7 @@ faq:[
 ["可以逾期报价吗？","选定中标报价前可以逾期提交，由负责人决定是否考虑，服务水平规则仍有效。"],
 ["如何上传文件？","上传到对应订单并确认保存，不得查看他人的受限文件。"],
 ["编号有什么区别？","TR 登记号、公司订单号、供应商订单号和 Bitrix 任务编号各不相同。"],
-["运输申请和外贸任务呢？","运输申请暂缓，外贸任务已从当前流程移除。"],
+["运输申请和外贸任务呢？","运输申请文件流程暂缓。中标承运商接单后，外贸人员可查看运输文件与共享聊天；到达海关前，经确认剩余里程小于 1000 公里时只生成一项文件审核任务。"],
 ["发现问题怎么办？","在“建议”中选择修复、改进或开发，描述页面和期望结果。所有者在改进中心处理。"],
 ["如何使用 Excel 模板？","下载表格模板，在 Excel 或 WPS 中逐列填写，上传后检查。导入不会自动提交报价，还需要点击提交。"],
 ["建议状态如何变化？","已提交 → 已阅读 → 已评估 → 处理中 → 发布（附日期）→ 已完成；也可能被拒绝。验证后才能标记完成。"],
@@ -73,12 +75,13 @@ faq:[
 roles:{
 owner:["只有负责人可在登记表的询价详情中执行永久删除，且不可恢复。归档及作废是独立操作。","创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在帮助栏目查看合作申请。"],
 carrier:["打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中标后在“我的申请”接单，在“我的运输”处理追踪和文件；运输申请目前暂缓。","未中选不能执行运输。","通过“建议”提交网站修复或改进要求。"],
+ved:["在文件栏目查看海关前审核任务：经确认剩余路程少于 1000 公里时仅生成一项。","可指定物流人员提交缺失文件，并在任务中查看附件。","在按询价分类的聊天中与负责人及中标承运商交流，无消息模板或 CSV。"],
 logistic:["查看权限内的报价和申请。","核对路线、时效和文件。","不可代替负责人选择报价。"],
 supplier:["打开分配的订单。","在可用字段填写备货时间和文件。","按要求上传装货照片。","向负责人反馈缺失功能。"],
 designer:["查看指定设计任务。","核对产品资料。","提交材料和结果。"],
 content:["检查分配的内容任务。","核对图片和资料。","通过已授权的功能申请补齐材料。"],
 purchasing:["查看允许的供应商订单。","核对备货和文件。","向负责人反馈缺失功能。"],
-certification:["查看分配的商品文件。","按权限上传证明。","当前不自动生成外贸任务。"]
+certification:["查看分配的商品文件。","按权限上传证明。","外贸运输文件任务与认证任务分开，并按权限显示。"]
 }}
 };
 const H=[
@@ -86,7 +89,7 @@ const H=[
 [/итогов.*сумм|final.?amount|final.?cost|最终运费/,["Подтверждённая итоговая стоимость и валюта; не подменяйте исходную ставку.","Confirmed final cost and currency, separate from the original offer.","最终确认的运费及币种，不能覆盖原报价。"]],
 [/страхован|insurance|保险/,["Уточните страховку: включена ли в ставку, каковы лимит и условия.","Specify insurance cover and whether it is included in this quote.","说明保险范围及是否包含在报价中。"]],
 [/действительн.*ставк|valid.?until|quote.?validity|报价有效期/,["Дата окончания действия предложения перевозчика.","Expiry date of the carrier quotation.","承运商报价有效期截止日。"]],
-[/пто|таможн|customs|海关/,["Укажите подтверждённые место, дату и таможенный этап. В текущем процессе задачи ВЭД не создаются.","Enter confirmed customs location, date and status; no VED tasks in this flow.","填写已确认的海关地点、日期和状态；当前不生成外贸任务。"]],
+[/пто|таможн|customs|海关/,["Укажите подтверждённые место, дату и этап ПТО/таможни. Если до прибытия на ПТО подтверждённый остаток маршрута менее 1000 км, ВЭД получает одну задачу проверки документов.","Enter confirmed PTO/customs location, date and status. One foreign-trade document check is triggered before arrival only when verified remaining distance is below 1,000 km.","填写已确认的海关地点、日期和状态；到达前经确认剩余路程少于 1000 公里时，仅生成一项外贸文件审核任务。"]],
 
 [/bitrix|битрикс|任务/,["Номер задачи Bitrix, например 5316; несколько номеров внесите отдельно.","Bitrix task number, e.g. 5316; list others separately.","Bitrix 任务号，例如 5316。"]],
 [/номер заказа поставщика|supplier.?order|供应商订单/,["Номер заказа поставщика из проформы, отдельно от заказа компании.","Supplier's order number from the proforma.","供应商文件中的订单号。"]],
@@ -123,9 +126,9 @@ const H=[
 ];
 const lang=()=>{let l=(document.documentElement.lang||"ru").toLowerCase();return l.startsWith("en")?"en":l.startsWith("zh")?"zh":"ru"};
 const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const role=()=>{const raw=String(document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"").toLowerCase();if(/purchase|procure|закуп/.test(raw))return "purchasing";if(/content|контент/.test(raw))return "content";if(/designer|дизайн/.test(raw))return "designer";if(/certificate|certification|ved|вэд/.test(raw))return "certification";if(/owner|владел/.test(raw))return "owner";if(/carrier|перевоз/.test(raw))return "carrier";if(/supplier|постав/.test(raw))return "supplier";if(/logistic|логист/.test(raw))return "logistic";return raw;};
+const role=()=>{const raw=String(document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"").toLowerCase();if(/purchase|procure|закуп/.test(raw))return "purchasing";if(/content|контент/.test(raw))return "content";if(/designer|дизайн/.test(raw))return "designer";if(/^(ved|вэд)$/.test(raw)||/ВЭД/i.test(document.querySelector(".cabinet-app .cabinet-role")?.textContent||""))return "ved";if(/certificate|certification/.test(raw))return "certification";if(/owner|владел/.test(raw))return "owner";if(/carrier|перевоз/.test(raw))return "carrier";if(/supplier|постав/.test(raw))return "supplier";if(/logistic|логист/.test(raw))return "logistic";return raw;};
 const roleTitles={
-owner:["Владелец","Owner","所有者"],carrier:["Перевозчик","Carrier","承运商"],logistic:["Логист","Logistician","物流专员"],supplier:["Поставщик","Supplier","供应商"],designer:["Дизайнер","Designer","设计师"],content:["Контент-менеджер","Content manager","内容经理"],purchasing:["Менеджер по закупкам","Purchasing manager","采购经理"],certification:["Сертификация","Certification","认证"]};
+owner:["Владелец","Owner","所有者"],carrier:["Перевозчик","Carrier","承运商"],logistic:["Логист","Logistician","物流专员"],ved:["ВЭД","Foreign trade","外贸"],supplier:["Поставщик","Supplier","供应商"],designer:["Дизайнер","Designer","设计师"],content:["Контент-менеджер","Content manager","内容经理"],purchasing:["Менеджер по закупкам","Purchasing manager","采购经理"],certification:["Сертификация","Certification","认证"]};
 const roleQuestions={
 owner:{ru:[["Как допустить позднюю ставку?","Отдельно решите, учитывать ли предложение с просрочкой. Допуск не означает победу."],["Что происходит после выбора?","Только одна ставка становится победителем, остальные закрывают раунд и уходят в архив."]],en:[["Late offer?","Decide separately whether to consider it; admission does not award a winner."],["After awarding?","Only one offer wins; the others close and archive."]],zh:[["逾期报价怎么办？","单独决定是否审核，准入不代表中标。"],["选择中标方后？","仅一份报价中标，其余报价关闭并归档。"]]},
 carrier:{ru:[["Импорт Excel отправляет ставку?","Нет. Проверьте сумму, валюту, маршрут и даты, затем нажмите «Отправить»."],["После победы что делать?","Нажмите «Взять в работу» в «Мои заявки», далее исполнение в «Мои перевозки». Отдельная транспортная заявка отложена."],["После дедлайна можно ответить?","До выбора победителя можно подать позднюю ставку. Владелец отдельно решает, учитывать ли её."]],en:[["Does Excel import submit?","No. Check price, currency, route and dates, then submit."],["After winning?","Start Work in My Requests, then execution in My Shipments; the transport application is deferred."],["Late quotes?","Allowed before winner selection; the Owner decides whether to consider them."]],zh:[["导入 Excel 就提交了吗？","不会。核对金额、币种、路线和日期，然后点击提交。"],["中标后怎么办？","在我的申请中开始处理，再到我的运输执行；运输申请暂缓。"],["逾期报价？","选定中标方前可提交，由所有者决定是否采纳。"]]},
@@ -133,7 +136,8 @@ supplier:{ru:[["Какую готовность указывать?","Подтв
 purchasing:{ru:[["Какие номера заказа?","Номер поставщика — из проформы; номер компании и Bitrix заполняются отдельно."]],en:[["Which order numbers?","Supplier number is from the proforma; company and Bitrix numbers are separate."]],zh:[["订单号如何填写？","供应商订单号来自形式发票，公司编号及 Bitrix 分别填写。"]]},
 content:{ru:[["Когда отмечать выполнение?","После фактической проверки и передачи материалов по назначенному заданию."]],en:[["When to complete?","After checking and delivering assigned materials."]],zh:[["何时完成？","核实并交付分配的材料后。"]]},
 designer:{ru:[["Куда прикреплять результат?","В назначенное задание, в доступном вам разделе документов."]],en:[["Where to upload?","Use the documents section of your assigned task."]],zh:[["成果上传到哪里？","上传至所分配任务的文件部分。"]]},
-logistic:{ru:[["Можно выбирать победителя?","Нет. Победителя выбирает Владелец; задачи ВЭД в текущем цикле не создаются."]],en:[["Can I award a carrier?","No. Only the Owner selects a winner; no VED tasks in the active process."]],zh:[["可以选中标方吗？","不可以。只有所有者可选定；当前无外贸任务。"]]},
+ved:{ru:[["Когда проверять документы?","До ПТО: одна задача появляется только при подтверждённом остатке менее 1000 км."],["Где общий чат?","В разделе «Чаты по заявкам» вместе с Владельцем и перевозчиком; запрос документов не создаёт шаблонное сообщение."]],en:[["When is the check due?","Before PTO, one task appears only when verified remaining distance is below 1,000 km."],["Where is the shared chat?","Chats by request contains the Owner, awarded carrier and foreign-trade staff; no canned templates."]],zh:[["何时检查文件？","到达海关前，且经确认剩余里程少于1000公里时生成唯一任务。"],["共享聊天在哪里？","在按询价分类的聊天中与负责人和中标承运商交流，不使用预制消息模板。"]]},
+logistic:{ru:[["Можно выбирать победителя?","Нет. Победителя выбирает только Владелец; адресные запросы документов ВЭД поступают логисту как отдельные задания."]],en:[["Can I award a carrier?","No. Only the Owner selects a winner; foreign-trade document requests appear as assigned tasks."]],zh:[["可以选中标方吗？","不可以，只有负责人可选定中标方；外贸人员发来的文件请求会以指定任务显示。"]]},
 certification:{ru:[["Какие документы доступны?","Только материалы назначенных вам задач в рамках предоставленных прав."]],en:[["Which files can I see?","Only files associated with assigned and authorized tasks."]],zh:[["可以访问哪些文件？","仅可访问已分配且已授权任务的文件。"]]}
 };
 const ownerNavigationGuide={
