@@ -10,6 +10,9 @@ on:
       - 'tests/issue47-carrier-workspace-deadlines.test.mjs'
       - 'tests/task2-document-request-flow.test.mjs'
       - 'tests/lw-pending-tasks-all-roles.test.mjs'
+      - 'tests/ved-shared-chat-and-requests.test.mjs'
+      - 'test/lw-ved-shared-chat-20261109.js'
+      - 'test/lw-ved-shared-chat-20261109.css'
       - 'test/lw-pending-tasks-all-roles-20261109.js'
       - 'test/lw-pending-tasks-all-roles-20261109.css'
       - 'test/task2-panel.js'
@@ -40,6 +43,8 @@ jobs:
           node --test tests/task2-document-request-flow.test.mjs
           node --check test/lw-pending-tasks-all-roles-20261109.js
           node --test tests/lw-pending-tasks-all-roles.test.mjs
+          node --check test/lw-ved-shared-chat-20261109.js
+          node --test tests/ved-shared-chat-and-requests.test.mjs
           node --check test/task2-guidance.js
           node --test tests/issue47-menu-clarity.test.mjs tests/issue49-staging-check.test.mjs tests/issue47-agreed-roles-and-owner-registers.test.mjs tests/issue47-bid-edit-route.test.mjs tests/issue47-carrier-round-status.test.mjs tests/issue47-carrier-workspace-deadlines.test.mjs
       - name: Verify staging API, anonymous access restriction, and served files
