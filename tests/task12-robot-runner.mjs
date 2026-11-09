@@ -108,4 +108,4 @@ const html='<!DOCTYPE html><html lang="ru"><meta charset="utf-8"><meta name="vie
 await writeFile("reports/task12-robot-matrix.html",html);
 console.log("RESULT",JSON.stringify(report.checks));
 console.log("REPORT reports/task12-robot-matrix.json");
-if(report.checks.FAIL>0)process.exitCode=1;
+if(report.checks.FAIL>0||report.checks.BLOCKED>0)process.exitCode=1;
