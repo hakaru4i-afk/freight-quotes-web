@@ -17,13 +17,13 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 80,
+    "backendVersion": 83,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "64f6bb8966789a8707e4f9e08930c4b31108b23c",
+    "frontendSha": "2ceb19986d064c9f8b53a2bf92c3156dd57f526c",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
-    "qaStatus": "STAGING_API_V80_ACTIVE; FRONTEND_PAGES_UPDATE; UI_REGRESSION_PENDING; AUTHORIZED_E2E_PENDING",
+    "qaStatus": "STAGING_API_V83_ACTIVE; VED_SHARED_CHAT_AND_REVERSE_LOGISTIC_REQUEST_IMPLEMENTED; CI_AND_AUTH_E2E_PENDING",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -32,7 +32,7 @@
     "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "09.11.2026: carrier documents request types selection now auto generates description if empty; request requires submit, shows per-form sending / error / server-confirmed task status and ID, button prevents duplicates. Frontend blob 64f6bb896678, staging API v80 unchanged. Authenticated full E2E pending.",
+    "stagingBuildNote": "09.11.2026: VED full shared Owner/Carrier chat via /api/chats (history, attachments, send, read, chat menu, no message templates); VED can request documents from named logistic account; linked file required to complete. API v83 and Task2 frontend blob 2ceb19986d06. Production unaffected.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
@@ -45,7 +45,7 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 80,
+    "lastObservedBackendVersion": 83,
     "backendDeploymentStatus": "SHARED_STAGING_API_V80_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -414,7 +414,7 @@
     "version": "2026-11-09.2",
     "scope": "staging-only",
     "script": "lw-pending-tasks-all-roles-20261109.js",
-    "frontendSha": "9f7fd685b3b55803baa510de7bdf815cc2b557f4",
+    "frontendSha": "70f620965f97cfd07f96a031a6fb631f1cbc140d",
     "css": "lw-pending-tasks-all-roles-20261109.css",
     "roles": [
       "owner",
@@ -444,5 +444,26 @@
     "productionChanged": false,
     "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
     "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
+  },
+  "vedChat": {
+    "id": "VED-CHAT-AND-LOGISTIC-REQUEST-20261109",
+    "version": "2026-11-09.1",
+    "script": "lw-ved-shared-chat-20261109.js",
+    "scriptSha": "935bd3b671af042f99c617b6d27eff582720b12e",
+    "css": "lw-ved-shared-chat-20261109.css",
+    "cssSha": "0001d32d0bc0df5b536519ca3c3aa3aa5ba569e8",
+    "apiVersion": 83,
+    "apiSha256": "15d41965225f60a702f3d0cfa6f97d422a1e306e7bc7ff830cdc9329e18bf950",
+    "features": [
+      "same-chat-Owner-Carrier-VED",
+      "no-templates",
+      "files-up-to-5",
+      "message-receipts",
+      "unread",
+      "VED-to-assigned-logistic-doc-request",
+      "linked-upload-required-for-task-completion"
+    ],
+    "qaStatus": "STAGING_DEPLOY_PENDING_FINAL; SOURCE_CONTRACT_TESTS_PENDING; FULL_AUTH_ROLE_E2E_PENDING",
+    "productionChanged": false
   }
 }
