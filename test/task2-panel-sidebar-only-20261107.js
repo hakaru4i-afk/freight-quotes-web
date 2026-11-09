@@ -154,12 +154,13 @@
      }
      if(["ved","logistic"].includes(state.role)&&x.status!=="completed"){
        html+='<h3>Запросить документы у логиста</h3><p class="t2-muted">Адресное поручение выбранному сотруднику. Логист увидит его на главной странице и приложит документы именно к этой задаче.</p>'+
+        (!(state.logistics||[]).length?'<p class="t2-muted" role="status">Сейчас нет другого активного логиста для назначения. Форма станет доступной после подключения сотрудника.</p>':
         form("ved_logistic_docs",
           '<label class="t2-field"><span>Кому направить запрос</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
           (state.logistics||[]).map(u=>'<option value="'+esc(u.login)+'">'+esc(u.name||u.login)+'</option>').join("")+'</select></label>'+
           field("description","Что требуется?","textarea")+
           '<label class="t2-field"><span>Типы документов</span><select name="types" multiple size="6">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Выберите один или несколько документов; описание необязательно, если выбран документ.</small></label>',
-          "Направить задачу логисту");
+          "Направить задачу логисту"));
      }
      if(x.status!=="completed"){
        html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
