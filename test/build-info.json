@@ -470,5 +470,14 @@
     "schemaMigration": "allow_ved_request_logistic_task_type_20261109",
     "chatMenu": "Чаты по заявкам",
     "note": "Shared /api/chats Owner/Carrier/VED without CSV; navigation and race-safe message refresh"
+  },
+  "vedFaqCorrection": {
+    "id": "VED-FAQ-CURRENT-20261109",
+    "script": "current-workspace-help-20261108.js",
+    "assetBlobSha": "0c86164a95aa1d24501931241e605e04743d5cc4",
+    "htmlCacheKey": "ved-faq-20261109-01",
+    "scope": "Staging help only: active pre-PTO VED document task, VED->logistic request, shared no-template chat; fix VED role misclassification; RU/EN/ZH.",
+    "verification": "SOURCE_PARSE_PASS; AUTOMATED_CI_AND_AUTHENTICATED_UI_PENDING",
+    "productionChanged": false
   }
 }
