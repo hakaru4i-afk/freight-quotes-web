@@ -17,13 +17,13 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 83,
+    "backendVersion": 84,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
-    "qaStatus": "STAGING_API_V83_ACTIVE; CI_CONTRACT_TESTS_PASS; ENABLED_LOGISTIC_RECIPIENT_REQUIRED_FOR_AUTHOR_AUTH_E2E",
+    "qaStatus": "STAGING_API_V84_ACTIVE; SHARED_CHAT_NO_AUTOMATED_TEMPLATES; TASK2_SMOKE_PASS; VED_TO_LOGISTIC_RECIPIENT_E2E_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
@@ -32,7 +32,7 @@
     "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "09.11.2026 VED shared chat and role-secured VED->named logistic documents request. Inline chat uses same /api/chats as Owner and Carrier; no templates. Task2 frontend blob 8289e37d3922. Reverse task upload/complete is implemented; test DB currently has only one enabled logistic-class account (VED), so recipient E2E remains OPEN. API v83. Production untouched.",
+    "stagingBuildNote": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
@@ -45,7 +45,7 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 83,
+    "lastObservedBackendVersion": 84,
     "backendDeploymentStatus": "SHARED_STAGING_API_V80_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
@@ -452,8 +452,8 @@
     "scriptSha": "935bd3b671af042f99c617b6d27eff582720b12e",
     "css": "lw-ved-shared-chat-20261109.css",
     "cssSha": "0001d32d0bc0df5b536519ca3c3aa3aa5ba569e8",
-    "apiVersion": 83,
-    "apiSha256": "15d41965225f60a702f3d0cfa6f97d422a1e306e7bc7ff830cdc9329e18bf950",
+    "apiVersion": 84,
+    "apiSha256": "97bad588fe2ccab33ae2bf5216f4962b5e0dd36e8acfd03a9f0b9ad0b2eae99a",
     "features": [
       "same-chat-Owner-Carrier-VED",
       "no-templates",
@@ -463,9 +463,10 @@
       "VED-to-assigned-logistic-doc-request",
       "linked-upload-required-for-task-completion"
     ],
-    "qaStatus": "JS_SYNTAX_AND_SOURCE_CI_PASS; GITHUB_PAGES_STAGING; AUTHORIZED_CHAT_AND_ASSIGNMENT_E2E_PENDING",
+    "qaStatus": "API_V84_ACTIVE_AND_SCHEMA_CHECK_PASS; TASK2_CI_PASS; AUTHORIZED_ROLE_CHAT_E2E_AND_RECIPIENT_ASSIGNMENT_PENDING",
     "productionChanged": false,
     "task2FrontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
-    "knownBlocker": "Only VED account enabled in logistic technical role; other QA logistic disabled; reverse request shows honest unavailable-recipient message."
+    "knownBlocker": "Only enabled technical logistic staff is VED in staging; disabled QA logistic not re-enabled without approval. Recipient dropdown reports none.",
+    "schemaMigration": "allow_ved_request_logistic_task_type_20261109"
   }
 }
