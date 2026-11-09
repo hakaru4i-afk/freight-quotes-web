@@ -152,8 +152,12 @@
        (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)).map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
        '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
      }
-     html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><div class="t2-chat">'+(d.messages||[]).map(m=>'<p><small>'+esc(m.sender_login)+' · '+fmt(m.created)+'</small><span>'+esc(m.body)+'</span></p>').join("")+'</div>';
-     if(x.status!=="completed")html+=form("message",field("message","Сообщение","textarea"),"Отправить сообщение");
+     if(state.role==="ved"||state.role==="logistic"){
+        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><div class="lw-ved-chat-mount" data-lw-ved-chat-order="'+esc(state.selected)+'"><p class="t2-muted">Открываем общую переписку перевозки…</p></div>';
+      }else{
+        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><p class="t2-muted">Открывайте полный чат перевозки в разделе переписки кабинета.</p>';
+      }
+     // Свободный чат — через единый /api/chats, без шаблонов и дублирующих форм.
      return html;
    }
    if(state.tab==="stages"){
