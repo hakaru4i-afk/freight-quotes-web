@@ -220,7 +220,7 @@
          '<div class="t2-weekly-tracking">'+
          (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
            const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
-           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\\d{1,4})(?:\\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
+           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\d{1,4})(?:\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
            let raw;
            for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key];if(Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}
            if(raw===undefined){for(const source of sources){if(!source||typeof source!=="object")continue;for(const [key,v] of Object.entries(source)){if(/(?:delivery|transit|eta|duration|срок).*(?:day|дн|time|term)|(?:day|дн).*(?:delivery|transit)/i.test(key)&&Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}}

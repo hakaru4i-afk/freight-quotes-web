@@ -6,9 +6,9 @@ import {readFile} from "node:fs/promises";
 
 const appJs=await readFile("test/task2-panel-sidebar-only-20261107.js");
 const HTML='<!doctype html><html lang="ru"><meta charset="utf-8"><div class="cabinet-panel" data-section="approved-shipments"></div><script src="/task2.js"></script></html>';
-async function fixture(t,{role="carrier",mode="Авто",container=""}={}){
+async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDays}={}){
  const order="QA-ROBOT-ROUTE-001",posts=[];
- const shipment={order_code:order,registration_no:"TR-26-000101",bitrix_task:"5316,5324",carrier_login:"carrier-qa",mode,route:"Yiwu → Minsk",origin:"Yiwu",destination:"Minsk",weight:1250,volume:12.5,cargo:"Mock cargo",amount:700,currency:"USD",pickup:"2026-11-07T10:00:00Z"};
+ const shipment={order_code:order,registration_no:"TR-26-000101",bitrix_task:"5316,5324",carrier_login:"carrier-qa",delivery_days:deliveryDays,mode,route:"Yiwu → Minsk",origin:"Yiwu",destination:"Minsk",weight:1250,volume:12.5,cargo:"Mock cargo",amount:700,currency:"USD",pickup:"2026-11-07T10:00:00Z"};
  const state={status:"in_progress",original_departure:"2026-11-07T10:00:00Z",actual_departure:null,pto_at:null,pto_checked_at:null,customs_at:null,warehouse_at:null};
  const detail={role,shipment,state,plans:[],points:[],tasks:[],containers:container?[{container_no:container}]:[],docs:[],events:[],acts:[],route:null,hasClaim:false};
  const send=(res,obj,code=200)=>{res.writeHead(code,{"content-type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify(obj))};
@@ -56,20 +56,20 @@ async function fixture(t,{role="carrier",mode="Авто",container=""}={}){
  await page.locator("#task2-root .t2-context").waitFor({timeout:12000});
  return {page,posts,detail,state,errors};
 }
-async function save(page){
- const form=page.locator('form[data-t2-form="save"]');
+async function save(page,kind="save"){
+ const form=page.locator(`form[data-t2-form="${kind}"]`).first();
  await form.locator('button[type="submit"]').click();
  await page.waitForTimeout(150);
 }
 test("T2-17 ROBOT: planning date change needs a reason and keeps original date",async t=>{
  const {page,posts,detail,errors}=await fixture(t);
- const form=page.locator('form[data-t2-form="save"]');
+ const form=page.locator('form[data-t2-form="plan"]');
  await form.locator('input[name="new_plan_date"]').fill("2027-06-06T09:00");
- await save(page);
+ await save(page,"plan");
  assert.equal(posts.length,0,"Missing reason should not post");
- assert.match(await page.locator("#t2-alert").innerText(),/причину переноса/i);
- await form.locator('textarea[name="new_plan_reason"]').fill("Ship ready later");
- await save(page);
+ assert.equal(await form.locator('[name="new_plan_reason"]').evaluate(e=>e.validity.valueMissing),true);
+ await form.locator('input[name="new_plan_reason"]').fill("Ship ready later");
+ await save(page,"plan");
  assert.equal(posts.filter(x=>x.action==="save").length,1);
  assert.equal(detail.plans.length,1);
  assert.equal(detail.plans[0].reason,"Ship ready later");
@@ -99,9 +99,9 @@ test("T2-20 ROBOT: PТО tracks arrival without dispatching tasks to VED",async 
 test("T2-21 ROBOT: container is optional during tracking, can be added later",async t=>{
  const {page,posts,detail}=await fixture(t);
  assert.match(await page.locator('#task2-root [data-t2-section="track"]').innerText(),/продолжение работы разрешено/);
- const form=page.locator('form[data-t2-form="save"]');
+ const form=page.locator('form[data-t2-form="container"]');
  await form.locator('input[name="container_no"]').fill("MSCU1234567");
- await save(page);
+ await save(page,"container");
  assert.equal(posts.find(x=>x.action==="save").fields.container_no,"MSCU1234567");
  assert.equal(detail.containers.length,1);
 });
@@ -115,16 +115,22 @@ test("T2-22 ROBOT: carrier cannot close; Owner can finish without container afte
  assert.equal(owner.posts.at(-1).answer,"no");
  assert.equal(owner.state.status,"completed");
 });
-test("T2-23 ROBOT: Owner claim form submits a mode-specific act",async t=>{
- const {page,posts,detail}=await fixture(t,{role:"owner",mode:"Море"});
- const f=page.locator('form[data-t2-form="act"]');
- assert.match(await f.innerText(),/№ коносамента B\/L/);
- await f.locator('textarea[name="description"]').fill("Damaged mock cargo");
- await f.locator('input[name="bill"]').fill("BOL-ROBOT-42");
- await f.locator('button[type="submit"]').click();
- await page.waitForTimeout(200);
- const act=posts.find(x=>x.action==="act_send");
- assert.ok(act,"Act was not sent through the correct endpoint");
- assert.equal(act.data.bill,"BOL-ROBOT-42");
- assert.equal(detail.acts.length,1);
+test("T2-23 ROBOT: unapproved claims and acts remain unavailable for every role",async t=>{
+ for(const role of ["owner","carrier","ved","logistic"]){
+  const {page,posts,errors}=await fixture(t,{role,mode:"Море"});
+  assert.equal(await page.locator('form[data-t2-form="act"]').count(),0);
+  assert.equal(await page.locator('[data-t2-section="claims"]').count(),0);
+  assert.equal(posts.length,0);
+  assert.deepEqual(errors,[]);
+ }
+});
+
+test("weekly tracking accepts numeric and localized string delivery days",async t=>{
+ for(const deliveryDays of [21,"21","21 days","21 дней"]){
+  const {page}=await fixture(t,{deliveryDays});
+  const tracking=await page.locator('[data-t2-section="track"]').innerText();
+  assert.match(tracking,/Плановый срок: 21 дн/);
+  assert.match(tracking,/Контрольных недель: 3/);
+  assert.doesNotMatch(tracking,/Срок доставки в днях не указан/);
+ }
 });

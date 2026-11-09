@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 84,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
+    "frontendSha": "b5300cbf3d4a7208adf26fd729ae9a1857a59b88",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
@@ -46,7 +46,7 @@
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
     "lastObservedBackendVersion": 84,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V80_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
+    "backendDeploymentStatus": "SHARED_STAGING_API_V84_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -143,8 +143,8 @@
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
-    "observedVersion": 11,
-    "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
+    "observedVersion": 13,
+    "bundleSha256": "cd32296c0ad5ac38878302dd5f9d5f6864fbbdd4ed2c76a4eb704eb74bed6adb",
     "build": "issue47qa-draft-lock-v11"
   },
   "releaseNotes": "2026-11-04 #47: late bid send enabled through authenticated draft start; live updates journal; price/time color comparison; 26/26 NOT PASS",
@@ -465,7 +465,7 @@
     ],
     "qaStatus": "CHAT_SOURCE_AND_CI_CHECK; AUTHORIZED_CHAT_E2E_PENDING",
     "productionChanged": false,
-    "task2FrontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
+    "task2FrontendSha": "b5300cbf3d4a7208adf26fd729ae9a1857a59b88",
     "knownBlocker": "Only enabled technical logistic staff is VED in staging; disabled QA logistic not re-enabled without approval. Recipient dropdown reports none.",
     "schemaMigration": "allow_ved_request_logistic_task_type_20261109",
     "chatMenu": "Чаты по заявкам",

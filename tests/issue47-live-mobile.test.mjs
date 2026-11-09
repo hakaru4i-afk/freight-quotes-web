@@ -6,7 +6,7 @@ const url="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 test("served staging login loads without JavaScript crashes on mobile and desktop",async()=>{
  const browser=await chromium.launch({headless:true});
  try{
-  for(const viewport of [{width:390,height:844},{width:1366,height:768}]){
+  for(const viewport of [{width:390,height:844},{width:1440,height:900}]){
    const page=await browser.newPage({viewport,deviceScaleFactor:1});
    const errors=[];
    page.on("pageerror",err=>errors.push(err.message));
@@ -46,7 +46,7 @@ test("RU/EN/ZH locales retain document language on live staging portal",async()=
 test("LW-PUBLIC-01 staging landing has exactly one visible sign-in and a globe",async()=>{
  const browser=await chromium.launch({headless:true});
  try{
-  for(const viewport of [{width:390,height:844},{width:1366,height:768}]){
+  for(const viewport of [{width:390,height:844},{width:1440,height:900}]){
    const page=await browser.newPage({viewport});
    const errors=[];page.on("pageerror",e=>errors.push(e.message));
    const response=await page.goto(url+"?page=login",{waitUntil:"domcontentloaded",timeout:40000});
