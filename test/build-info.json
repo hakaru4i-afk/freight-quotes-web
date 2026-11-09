@@ -447,9 +447,9 @@
   },
   "vedChat": {
     "id": "VED-CHAT-AND-LOGISTIC-REQUEST-20261109",
-    "version": "2026-11-09.1",
+    "version": "2026-11-09.2",
     "script": "lw-ved-shared-chat-20261109.js",
-    "scriptSha": "935bd3b671af042f99c617b6d27eff582720b12e",
+    "scriptSha": "6c87ac3081af7adaa0b9f0aecbc0375672076115",
     "css": "lw-ved-shared-chat-20261109.css",
     "cssSha": "0001d32d0bc0df5b536519ca3c3aa3aa5ba569e8",
     "apiVersion": 84,
@@ -463,10 +463,12 @@
       "VED-to-assigned-logistic-doc-request",
       "linked-upload-required-for-task-completion"
     ],
-    "qaStatus": "API_V84_ACTIVE_AND_SCHEMA_CHECK_PASS; TASK2_CI_PASS; AUTHORIZED_ROLE_CHAT_E2E_AND_RECIPIENT_ASSIGNMENT_PENDING",
+    "qaStatus": "CHAT_SOURCE_AND_CI_CHECK; AUTHORIZED_CHAT_E2E_PENDING",
     "productionChanged": false,
     "task2FrontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
     "knownBlocker": "Only enabled technical logistic staff is VED in staging; disabled QA logistic not re-enabled without approval. Recipient dropdown reports none.",
-    "schemaMigration": "allow_ved_request_logistic_task_type_20261109"
+    "schemaMigration": "allow_ved_request_logistic_task_type_20261109",
+    "chatMenu": "Чаты по заявкам",
+    "note": "Shared /api/chats Owner/Carrier/VED without CSV; navigation and race-safe message refresh"
   }
 }
