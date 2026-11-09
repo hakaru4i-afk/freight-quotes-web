@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {createHash} from "node:crypto";
 import {execFileSync} from "node:child_process";
 const app=readFileSync("test/app.js","utf8");
 const index=readFileSync("test/index.html","utf8");
@@ -9,7 +10,9 @@ const ru=(word)=>[...word].map(c=>c.charCodeAt(0)>127?"\\u"+c.charCodeAt(0).toSt
 test("staging-only app has valid JavaScript and pinned cache revision",()=>{
  execFileSync(process.execPath,["--check","test/app.js"]);
  execFileSync(process.execPath,["--check","test/current-workspace-help-20261108.js"]);
- assert.match(index,/\.\/app\.js\?v=8a89e5acdfe3/);
+ const bytes=Buffer.from(app);
+ const sha=createHash("sha1").update("blob "+bytes.length+"\0").update(bytes).digest("hex");
+ assert.ok(index.includes("./app.js?v="+sha.slice(0,12)));
  assert.match(index,/owner-command-center-20261108\.js/);
 });
 test("request registry never offers trash or restoration",()=>{
