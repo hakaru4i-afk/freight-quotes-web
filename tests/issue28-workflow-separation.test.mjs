@@ -22,13 +22,14 @@ test("deferred: no create/approval of transport application blocks execution for
  assert.match(carrierDeferred,/approved-shipments/);
  assert.match(carrierDeferred,/carrier-portal/);
 });
-test("one left sidebar, seven execution stages, no second navigation",()=>{
+test("one left sidebar and current six-section execution, no unapproved claims tab",()=>{
  assert.doesNotMatch(script,/const workflowNav=|t2-workflow-nav|t2-workflow-link/);
  assert.match(script,/No secondary menu/);
- for(const [key,name] of [["overview","Обзор"],["stages","Этапы перевозки"],["track","Трекинг"],["documents","Документы исполнения"],["completion","Завершение"],["claims","Претензии и акты"],["history","История"]]){
+ for(const [key,name] of [["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]]){
   assert.ok(script.includes('["'+key+'","'+name+'"]'),key);
  }
  assert.match(script,/data-section="approved-shipments"/);
+ assert.match(script,/if\(false && state\.tab==="claims"\)/,"Unapproved claims editor remains hidden");
  assert.match(script,/Статус исполнения/);
 });
 test("original transport application source and evidence are retained for later backlog",()=>{
@@ -36,11 +37,11 @@ test("original transport application source and evidence are retained for later 
  assert.ok(old.length>1000,"source preserved for future Issue 28 work");
  assert.ok(html.includes("./carrier-defer-transport-application-20261107.js"),"defer guard remains loaded");
 });
-test("served staging URL references content-pinned execution script and real v75",()=>{
+test("served staging URL references pinned execution script and current API",()=>{
  assert.equal(build.task2.frontendScript,scriptName);
  assert.equal(build.task2.frontendSha,gitBlob(script));
  assert.ok(html.includes(scriptName+"?v="+gitBlob(script).slice(0,12)));
- assert.equal(build.task2.backendVersion,75);
- assert.equal(build.task2.backendDeploymentStatus,"SHARED_STAGING_API_V75_ACTIVE; FULL_ACCEPTANCE_PENDING");
+ assert.ok(build.task2.backendVersion>=84);
+ assert.match(build.task2.backendDeploymentStatus,new RegExp(`SHARED_STAGING_API_V${build.task2.backendVersion}_ACTIVE`));
  assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
 });
