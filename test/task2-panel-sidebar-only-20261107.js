@@ -7,7 +7,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:""};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
@@ -48,9 +48,9 @@
    '<small>'+esc(tip||tips[name]||"")+'</small></label>';
  const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
  const form=(kind,body,button="Сохранить изменения",hidden=false)=>
-  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(kind==="request_docs"?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
+  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","ved_logistic_docs"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
   (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+
-  (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':"")+'</form>';
+  (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':kind==="ved_logistic_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.vedRequestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.vedRequestStatus?.order===state.selected?state.vedRequestStatus.message:"")+'</div>':"")+'</form>';
  const call=async(params,files)=>{
    const options={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)};
    if(files){delete options.headers;options.body=files;}
@@ -72,6 +72,11 @@
  function requestFeedback(message,error=false){
    state.requestStatus={order:state.selected,message,error};
    const node=document.querySelector('#task2-root form[data-t2-form="request_docs"] .t2-request-feedback');
+   if(node){node.textContent=message;node.style.color=error?"#a12626":"#176c44";}
+ }
+ function vedRequestFeedback(message,error=false){
+   state.vedRequestStatus={order:state.selected,message,error};
+   const node=document.querySelector('#task2-root form[data-t2-form="ved_logistic_docs"] .t2-request-feedback');
    if(node){node.textContent=message;node.style.color=error?"#a12626":"#176c44";}
  }
  function getTarget(){return document.querySelector('.cabinet-panel[data-section="approved-shipments"]')}
@@ -142,14 +147,25 @@
    }
    if(state.tab==="documents"){
      let html='<h3>Документы исполнения перевозки</h3><p class="t2-muted">Здесь находятся сопроводительные файлы, запросы ВЭД и переписка во время перевозки.</p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
-     html+='<h3>Документы и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number"].includes(t.task_type)).map(taskCard).join("")+'</div>';
+     html+='<h3>Документы и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number","ved_request_logistic"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
         field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small><small data-t2-selected-documents aria-live="polite">Выберите документ и нажмите «Направить запрос ВЭД».</small></label>',"Направить запрос ВЭД");
      }
+     if(["ved","logistic"].includes(state.role)&&x.status!=="completed"){
+       html+='<h3>Запросить документы у логиста</h3><p class="t2-muted">Адресное поручение выбранному сотруднику. Логист увидит его на главной странице и приложит документы именно к этой задаче.</p>'+
+        form("ved_logistic_docs",
+          '<label class="t2-field"><span>Кому направить запрос</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
+          (state.logistics||[]).map(u=>'<option value="'+esc(u.login)+'">'+esc(u.name||u.login)+'</option>').join("")+'</select></label>'+
+          field("description","Что требуется?","textarea")+
+          '<label class="t2-field"><span>Типы документов</span><select name="types" multiple size="6">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Выберите один или несколько документов; описание необязательно, если выбран документ.</small></label>',
+          "Направить задачу логисту");
+     }
      if(x.status!=="completed"){
        html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
-       (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)).map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
+       (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)&&
+        (t.task_type!=="ved_request_logistic"||state.role==="owner"||String(t.assigned_login||"").toLowerCase()===state.login)).map(t=>
+        '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
        '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
      }
      if(state.role==="ved"||state.role==="logistic"){
@@ -291,12 +307,25 @@
  }
  function taskCard(t){
    const active=t.status!=="completed"&&t.status!=="cancelled",staff=["owner","logistic","ved"].includes(state.role);
-   return '<article class="t2-item"><div><strong>'+esc(t.task_type)+'</strong> '+badge(t.status)+'<p>'+esc(t.description)+'</p><small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
-      (staff&&active?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">Завершить задачу ВЭД</button>':"")+'</article>';
+   const labels={pto_review:"Проверка документов перед ПТО",missing_documents:"Недостающие документы",transport_documents:"Документы на перевозку",container_number:"Заполнить номер контейнера",ved_request_logistic:"Запрос ВЭД логисту"};
+   const canComplete=staff&&active&&(!t.assigned_login||String(t.assigned_login).toLowerCase()===state.login||state.role==="owner");
+   const isReverse=t.task_type==="ved_request_logistic";
+   return '<article class="t2-item"><div><strong>'+esc(labels[t.task_type]||t.task_type)+'</strong> '+badge(t.status)+
+    '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
+    '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
+    (canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
+     (isReverse?"Подтвердить передачу документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
  async function loadList(){
    const list=await get("");
    state.role=(document.querySelector('.cabinet-role')?.textContent||'').includes('ВЭД')?'ved':list.role;
+   if(["ved","logistic"].includes(state.role)){
+     try{
+       const recipientInfo=await get("?logistic_recipients=1");
+       state.logistics=Array.isArray(recipientInfo.recipients)?recipientInfo.recipients:[];
+       state.login=String(recipientInfo.viewer||"").toLowerCase();
+     }catch(e){state.logistics=[];state.login="";alertText("Не удалось получить список сотрудников логистики: "+e.message,true);}
+   }
    const incoming=list.items||[];
    if(state.role==="ved"){
      // Defense in depth: VED must not display shipments pending carrier acceptance.
@@ -575,6 +604,25 @@
      if(fields.location&&!fields.location_date){alertText("Укажите дату контрольной точки",true);return;}
      if(fields.pto_yes&&!fields.pto_date){alertText("Укажите дату прибытия на ПТО",true);return;}
      return update("save",{fields,...(csvMeta?{csv:csvMeta}:{})});
+   }
+   if(kind==="ved_logistic_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
+     const assignedLogin=String(data.assignedLogin||"").trim().toLowerCase(),description=String(data.description||"").trim();
+     if(!assignedLogin){vedRequestFeedback("Выберите сотрудника логистики.",true);return;}
+     if(!types.length&&!description){vedRequestFeedback("Выберите документ или укажите, что требуется.",true);return;}
+     if(state.busy){vedRequestFeedback("Запрос уже отправляется.");return;}
+     const btn=f.querySelector('button[type="submit"]');
+     if(btn){btn.disabled=true;btn.textContent="Отправляем…";}
+     vedRequestFeedback("Создаём адресную задачу логисту…");
+     try{
+       const result=await update("request_logistic_docs",{
+         assignedLogin,description:description||"Предоставить документы: "+types.join(", "),types,requestId:crypto.randomUUID()
+       });
+       if(result?.ok)vedRequestFeedback("✓ Задача направлена логисту"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+".");
+       else vedRequestFeedback("Запрос не отправлен. "+(result?.error||"Проверьте поля."),true);
+     }catch(e){vedRequestFeedback("Запрос не отправлен: "+(e.message||"Ошибка"),true);}
+     finally{const b=document.querySelector('#task2-root form[data-t2-form="ved_logistic_docs"] button[type=submit]');if(b){b.disabled=false;b.textContent="Направить задачу логисту";}}
+     return;
    }
    if(kind==="request_docs"){
      const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
