@@ -17,18 +17,18 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 84,
+    "backendVersion": 85,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
-    "qaStatus": "STAGING_API_V84_ACTIVE; SHARED_CHAT_NO_AUTOMATED_TEMPLATES; TASK2_SMOKE_PASS; VED_TO_LOGISTIC_RECIPIENT_E2E_OPEN",
+    "qaStatus": "STAGING_API_V85_ACTIVE; REAL_VED_CHAT_AND_ADDRESSED_DOCUMENT_REQUEST_PASS; FULL_ACCEPTANCE_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "f3dff563364687a40427b83c11ca5f92af331116",
+    "backendSourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
     "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
@@ -45,8 +45,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 84,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V84_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
+    "lastObservedBackendVersion": 85,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V85_ACTIVE; ISOLATED_REAL_ROLE_REGRESSION_PASS; FULL_37_E2E_OPEN",
     "backendCandidate": {
       "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
       "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -98,7 +98,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "30cd0daa92ed3db00058b60866fd093b4efb0c62b7a45e2f9ef6177743e75006",
+    "backendActiveBundleSha256": "959ea0dd12ece5bf4994b2d6eb24be99fa2c4f981d3ad239cb508e7a71d820e1",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -180,7 +180,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 84,
+    "apiVersion": 85,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -439,7 +439,7 @@
     "unconnectedTaskFeeds": [],
     "refreshPolicy": "login, return to main screen, focus if stale after 60s, manual refresh; no background polling",
     "dataSource": "existing session-filtered authorized APIs",
-    "qaStatus": "ISOLATED_CANDIDATE; SOURCE_REGRESSION_PASS; REAL_ROLE_FEED_E2E_PENDING",
+    "qaStatus": "REAL_QA_ROLE_FEEDS_AND_DESKTOP_MOBILE_PASS; STAGING_FRONTEND_PUBLISH_PENDING",
     "productionChanged": false,
     "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
     "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
@@ -477,6 +477,17 @@
     "htmlCacheKey": "ved-faq-20261109-01",
     "scope": "Staging help only: active pre-PTO VED document task, VED->logistic request, shared no-template chat; fix VED role misclassification; RU/EN/ZH.",
     "verification": "SOURCE_PARSE_PASS; AUTOMATED_CI_AND_AUTHENTICATED_UI_PENDING",
+    "productionChanged": false
+  },
+  "stabilization20261110": {
+    "status": "RELEASE_BLOCKED",
+    "backendVersion": 85,
+    "backendSourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
+    "backendBundleSha256": "959ea0dd12ece5bf4994b2d6eb24be99fa2c4f981d3ad239cb508e7a71d820e1",
+    "isolatedQaFunction": "freight-api-qa-rc20261110",
+    "isolatedQaVersion": 3,
+    "isolatedQaBundleSha256": "4e4cbd361426a677090e19c1219320d55d294d974a6355264cd7d1f536d223c8",
+    "verified": "Real logins for 10 actors; live browser homes; real request/file/bid/winner/execution/PTO/warehouse/closure; full 37 acceptance and restore remain open",
     "productionChanged": false
   }
 }
