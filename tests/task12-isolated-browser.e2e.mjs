@@ -118,6 +118,19 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const r=await sent;assert.equal(r.status(),200);rec.quote={http:200};
    const check=await fetch(base+'/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});const saved=await check.json();assert.ok(saved.bids.some(b=>b.order_code===order&&Number(b.amount)===1550));rec.quote.readbackVerified=true;
   }
+  if(process.env.QA_BROWSER_TENDER==='true'&&actor==='owner'){
+   await page.locator('.cabinet-sidebar nav a[href="#tender-hub"]').first().evaluate(el=>el.click());
+   const tender=page.locator('.cabinet-panel[data-section="tender-hub"]');await tender.waitFor({state:'visible'});
+   const button=tender.getByRole('button',{name:/Скачать итоговый протокол PDF/}).first();await button.waitFor({timeout:60000});
+   const downloaded=page.waitForEvent('download',{timeout:60000});
+   const protocolResponse=page.waitForResponse(r=>r.url().includes('/api/tenders?protocol='),{timeout:60000});
+   await button.click();const download=await downloaded;const response=await protocolResponse;
+   assert.equal(response.status(),200);const protocol=await response.json();assert.equal(protocol.final,true);
+   const path=await download.path();const bytes=await readFile(path);assert.equal(bytes.subarray(0,5).toString(),'%PDF-');
+   const text=execFileSync('pdftotext',['-layout',path,'-'],{encoding:'utf8'});
+   for(const value of [protocol.protocol.tender.protocol,protocol.protocol.tender.order_code,'1480','Synthetic QA price tender'])assert.ok(text.includes(value),'PDF missing '+value);
+   rec.tenderPdf={status:'PASS',http:200,final:true,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),protocolNumber:protocol.protocol.tender.protocol,order:protocol.protocol.tender.order_code,serverValuesVerifiedInPdf:true};
+  }
   if(process.env.QA_EXPECT_TASK_FEED==='true'){
    await page.locator('#lw-pending-tasks-all-roles').waitFor({timeout:60000});
    if(['content','purchasing','certification'].includes(actor)){
