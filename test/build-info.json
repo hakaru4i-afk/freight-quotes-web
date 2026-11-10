@@ -21,7 +21,7 @@
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
-    "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
+    "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
     "qaStatus": "STAGING_API_V84_ACTIVE; SHARED_CHAT_NO_AUTOMATED_TEMPLATES; TASK2_SMOKE_PASS; VED_TO_LOGISTIC_RECIPIENT_E2E_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
@@ -139,7 +139,7 @@
     "carrierRequestDocsCSV": "REMOVED_2026-11-09",
     "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09"
   },
-  "lateBidUiSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
+  "lateBidUiSha": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",

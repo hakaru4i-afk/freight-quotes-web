@@ -39,6 +39,41 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile('reports/isolated-rc/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));
+  if(process.env.QA_BROWSER_CREATE==='true'&&actor==='owner'){
+   const order='QA-UI-'+Date.now();rec.createdOrder=order;
+   const nav=page.locator('.cabinet-sidebar nav a[href="#create-request"]').first();await nav.evaluate(el=>el.click());
+   const panel=page.locator('.cabinet-panel[data-section="create-request"]');await panel.waitFor({state:'visible'});
+   await panel.locator('input[aria-label="Номер заказа *"]').fill(order);
+   const fields=panel.locator('fieldset.request-owner-fields');
+   for(const [selector,value] of [['input[placeholder^="Что перевозим"]','Synthetic browser shipment'],['input[placeholder^="Имя, телефон"]','Synthetic QA sender'],['input[placeholder^="Страна, город, адрес склада"]','Brest, Belarus'],['input[placeholder^="Например, 1250"]','1250'],['input[placeholder^="Страна, город, адрес доставки"]','Minsk, Belarus'],['input[placeholder^="Например, 8,4"]','12.5'],['input[placeholder^="Наименование, упаковка"]','Synthetic QA cargo']])await fields.locator(selector).fill(value);
+   await fields.locator('select').first().selectOption('EXW');await fields.locator('select').nth(1).selectOption('no');
+   await fields.locator('input[type="date"]').fill('2026-12-05');await fields.locator('input[type="datetime-local"]').fill('2026-12-15T12:00');
+   const files=panel.locator('input[type="file"]');rec.fileInputs=await files.count();
+   const uploaded=page.waitForResponse(r=>r.url().includes('/api/documents')&&r.request().method()==='POST',{timeout:60000});
+   await files.last().setInputFiles({name:'qa-browser.txt',mimeType:'text/plain',buffer:Buffer.from('Synthetic browser upload\n')});
+   const upload=panel.getByRole('button',{name:/Загрузить/}).first();if(await upload.count())await upload.click();
+   assert.equal((await uploaded).status(),200,'Real browser file upload failed');
+   const publish=panel.getByRole('button',{name:/Опубликовать и уведомить/});
+   const saved=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST',{timeout:60000});await publish.click({timeout:60000});
+   const r=await saved;assert.equal(r.status(),200);const result=await r.json();assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
+  }
+  if(process.env.QA_BROWSER_BID==='true'&&actor==='carrierB'){
+   const previous=JSON.parse(await readFile('reports/isolated-rc/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;
+   await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').first().evaluate(el=>el.click());
+   const card=page.locator('article.carrier-request').filter({hasText:order}).first();await card.waitFor({state:'visible',timeout:60000});
+   await card.locator('a[href*="quote"]').first().click();
+   const form=page.locator('form').filter({has:page.locator('input[name="carrier"]')});
+   await form.locator('input[name="carrier"]').fill('Synthetic browser carrier');await form.locator('input[name="contact"]').fill('Synthetic QA contact');
+   const v=form.locator('fieldset.quote-variant').first();
+   await v.locator('input[aria-label="Общая ставка за партию"]').fill('1550');await v.locator('select[aria-label="Валюта"]').selectOption('USD');
+   await v.locator('select[name$=".mode"]').selectOption({label:'Авто'});await v.locator('input[name$=".pickup"]').fill('2026-12-05');await v.locator('input[name$=".days"]').fill('21');
+   await v.locator('input[name$=".incotermPlace"]').fill('Brest warehouse');await v.locator('select[name$=".insurance"]').selectOption({label:'Включено'});
+   await v.locator('input[name$=".validUntil"]').fill('2026-12-20');await v.locator('textarea[name$=".includes"]').fill('Transport and documents');await v.locator('textarea[name$=".extras"]').fill('No extras');
+   await form.locator('input[type="checkbox"][required]').check();
+   const sent=page.waitForResponse(r=>r.url().includes('/api/quote')&&r.request().method()==='POST',{timeout:60000});await form.getByRole('button',{name:/Отправить все варианты/}).click();
+   const r=await sent;assert.equal(r.status(),200);rec.quote={http:200};
+   const check=await fetch(base+'/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});const saved=await check.json();assert.ok(saved.bids.some(b=>b.order_code===order&&Number(b.amount)===1550));rec.quote.readbackVerified=true;
+  }
   if(process.env.QA_EXPECT_TASK_FEED==='true'){
    await page.locator('#lw-pending-tasks-all-roles').waitFor({timeout:60000});
    if(['content','purchasing','certification'].includes(actor)){

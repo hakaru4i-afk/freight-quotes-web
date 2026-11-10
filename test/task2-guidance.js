@@ -51,7 +51,7 @@ const helpQuestions=[
 ];
 const helpLanguage=()=>/^zh/i.test(document.documentElement.lang)?"zh":/^en/i.test(document.documentElement.lang)?"en":"ru";
 let observerPending=false;
-function guidance(){
+function guidance(){if(window.lwCurrentHelpEnabled)return;
  for(const label of document.querySelectorAll("label")){
    if(label.closest("#task2-root"))continue;
    const input=label.querySelector("input,textarea,select");
@@ -70,7 +70,7 @@ function guidance(){
    label.dataset.task2Explained="1";
  }
 }
-function faq(){
+function faq(){if(window.lwCurrentHelpEnabled)return;
  const host=document.querySelector('.cabinet-panel[data-section="help"]');
  if(!host)return;
  const language=helpLanguage(),existing=host.querySelector("#task2-faq");
@@ -83,7 +83,7 @@ function faq(){
  (locale?.faq||helpQuestions).map(([q,a])=>'<details style="border-top:1px solid #d9e4da;padding:10px 0"><summary style="font-weight:600;cursor:pointer">'+esc(q)+'</summary><p style="line-height:1.5">'+esc(a)+'</p></details>').join("");
  host.append(section);
 }
-function supplier(){
+function supplier(){if(window.lwCurrentHelpEnabled)return;
  if(window.freightAccess?.role!=="supplier")return;
  const host=document.querySelector('.cabinet-panel[data-section="supplier-orders"]');
  if(!host||host.querySelector("#task2-supplier-verified"))return;

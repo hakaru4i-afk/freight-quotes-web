@@ -27,11 +27,41 @@ jobs:
           tests/issue17-formal-document-ui.test.mjs
           tests/task2-execution-robots.test.mjs
           tests/task12-release-gate.test.mjs
+          tests/lw-pending-tasks-all-roles.test.mjs
+          tests/staging-asset-contract.test.mjs
       - name: Execute all 37 mapped robot groups
         run: node tests/task12-robot-runner.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: release-stabilization-robot-evidence
+          path: reports/
+          retention-days: 14
+
+  complete-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: deployed-baseline
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Run every frontend test file, including live browser and security regressions
+        env:
+          QA_SERVED_EXPECTED_DIR: ${{ github.event_name == 'pull_request' && 'deployed-baseline' || '.' }}
+        run: |
+          mkdir -p reports
+          node --test --test-concurrency=3 --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/full-regression.xml tests/*.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: complete-frontend-regression
           path: reports/
           retention-days: 14

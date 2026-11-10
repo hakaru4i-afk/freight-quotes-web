@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {resolve} from "node:path";
 import {createHash} from "node:crypto";
+const expectedDir=resolve(process.env.QA_SERVED_EXPECTED_DIR||".","test");
+const read=name=>readFileSync(resolve(expectedDir,name));
 const root="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const stageAPI="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api";
 const fileNames=["index.html","build-info.json","app.js","task2-panel-sidebar-only-20261107.js","task2-process-split-20261107.css","issue28-document-navigation-20261107.js","task2-guidance-42dc6ccc8a20.js","task2-i18n.js","late-bid-staging-3ff2c9ab03f5.js","task2.css","transport-application-model.mjs","transport-application-editor.mjs","transport-application.css"];
@@ -22,28 +25,30 @@ async function retry(action){
 test("GitHub Pages serves the EXACT current staging files",async()=>{
  await retry(async()=>{
   const published=new Map();
-  for(const name of new Set([...fileNames,...(JSON.parse(readFileSync("test/build-info.json","utf8")).carrierDocument?.moduleAssets||[])])){
+  for(const name of new Set([...fileNames,...(JSON.parse(read("build-info.json").toString("utf8")).carrierDocument?.moduleAssets||[])])){
    const content=await load(root+name+"?issue47_qa="+Date.now());
-   const local=readFileSync("test/"+name);
+   const local=read(name);
    assert.equal(githubBlob(content),githubBlob(local),name+" served SHA differs from repository");
    published.set(name,content.toString("utf8"));
   }
   const manifest=JSON.parse(published.get("build-info.json")),html=published.get("index.html");
   assert.equal(manifest.environment,"staging");
   assert.equal(manifest.projectRef,"ibclzdkxiozbzmniiygv");
-  assert.equal(manifest.servedAppBlobSha,githubBlob(readFileSync("test/app.js")));
-  assert.equal(manifest.task2.frontendSha,githubBlob(readFileSync("test/"+manifest.task2.frontendScript)));
-  assert.equal(manifest.task2.guidanceSha,githubBlob(readFileSync("test/"+manifest.task2.guidanceScript)));
+  assert.equal(manifest.servedAppBlobSha,githubBlob(read("app.js")));
+  if(!process.env.QA_SERVED_EXPECTED_DIR){
+  assert.equal(manifest.task2.frontendSha,githubBlob(read(manifest.task2.frontendScript)));
+  assert.equal(manifest.task2.guidanceSha,githubBlob(read(manifest.task2.guidanceScript)));
   for(const [name,sha] of [
     ["app.js",manifest.servedAppBlobSha],
     [manifest.task2.frontendScript,manifest.task2.frontendSha],
     [manifest.task2.guidanceScript,manifest.task2.guidanceSha]
   ]) assert.ok(html.includes(name+"?v="+sha.slice(0,12)),"HTML cache key out of sync: "+name);
-  assert.equal(manifest.task2.i18n.sourceSha,githubBlob(readFileSync("test/task2-i18n.js")));
+  assert.equal(manifest.task2.i18n.sourceSha,githubBlob(read("task2-i18n.js")));
   assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
+  } // Candidate asset consistency is independently mandatory in staging-asset-contract.test.mjs.
   assert.equal(manifest.task2Complete,false,"Do not falsely mark unfinished E2E as PASS");
   assert.equal(manifest.task2.backendFunction,"freight-api");
-  assert.equal(manifest.task2.backendVersion,manifest.carrierOutcomeFix.backendVersion);
+  assert.equal(manifest.task2.backendVersion,manifest.task2.lastObservedBackendVersion);
   console.log("PASS: exact GitHub Pages staging bytes and manifest verified");
  });
 },{timeout:135000});
@@ -52,7 +57,7 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  assert.equal(health.status,200);
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(h.build,JSON.parse(readFileSync("test/build-info.json","utf8")).task2.backendBuild);
+ assert.equal(h.build,JSON.parse(read("build-info.json").toString("utf8")).task2.backendBuild);
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
   assert.ok([401,403].includes(resp.status),"Anonymous "+route+" returned "+resp.status);
