@@ -125,6 +125,7 @@
      html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен сначала нажать «Взять в работу» в разделе «Мои заявки».</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else{
      html+='<div class="t2-process-banner"><div><strong>Перевозка принята в работу.</strong><span>Доступны этапы, трекинг, документы, сообщения и закрытие перевозки.</span></div></div>';
+     if(state.role==="owner"&&!d.tasks?.some(t=>t.task_type==="pto_review"))html+='<details><summary>Проверка ВЭД при недоступном километраже</summary><p>Только при документированной невозможности расчёта. Дата и пользователь записываются сервером. Проверка ВЭД остаётся обязательной.</p><form data-t2-form="manual_pto_review"><label>Причина<textarea name="reason" required minlength="20" maxlength="1500"></textarea></label><label>Основание: документ или ссылка на подтверждение<textarea name="evidence" required minlength="10" maxlength="1500"></textarea></label><button class="t2-btn" type="submit">Запустить единственную проверку ВЭД</button></form></details>';
      const savedTab=state.tab;
      html+=tabs.filter(([key])=>key!=="completion"||!["ved","logistic"].includes(state.role)).map(([key,title])=>{
        state.tab=key;
@@ -134,8 +135,9 @@
    }
    root.innerHTML=html;
  }
+ function departurePlans(detail){return (detail?.plans||[]).filter(p=>!p.is_baseline);}
  function renderTab(d,carrier,staff){
-   const o=d.shipment,x=d.state||{},plans=d.plans||[],pts=d.points||[],tasks=d.tasks||[],cs=d.containers||[];
+   const o=d.shipment,x=d.state||{},plans=departurePlans(d),pts=d.points||[],tasks=d.tasks||[],cs=d.containers||[];
    const readHeader='<p class="t2-muted">Ставка и валюта выбраны Владельцем и недоступны для повторного согласования. Все номера Bitrix наследуются исходным заказом.</p>';
    if(state.tab==="overview"){
      const price=o.amount==null?"—":o.amount+" "+(o.currency||"");
@@ -220,7 +222,7 @@
          '<div class="t2-weekly-tracking">'+
          (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
            const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
-           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\\d{1,4})(?:\\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
+           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\d{1,4})(?:\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
            let raw;
            for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key];if(Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}
            if(raw===undefined){for(const source of sources){if(!source||typeof source!=="object")continue;for(const [key,v] of Object.entries(source)){if(/(?:delivery|transit|eta|duration|срок).*(?:day|дн|time|term)|(?:day|дн).*(?:delivery|transit)/i.test(key)&&Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}}
@@ -530,6 +532,11 @@
    const f=ev.target.closest("form[data-t2-form]");if(!f)return;ev.preventDefault();
    const data=Object.fromEntries(new FormData(f).entries());const kind=f.dataset.t2Form;
    const csvMeta=f.dataset.t2CsvFields?{form:kind,changedFields:JSON.parse(f.dataset.t2CsvFields)}:undefined;
+   if(kind==="manual_pto_review"){
+     const button=f.querySelector('button[type="submit"]');button.disabled=true;
+     try{await update("manual_pto_review",{reason:data.reason,evidence:data.evidence});}finally{if(button.isConnected)button.disabled=false;}
+     return;
+   }
    if(kind==="upload"){
      const files=f.querySelector('input[type=file]')?.files||[];
      if(!files.length){alertText("Выберите файлы",true);return;}
@@ -564,17 +571,17 @@
      return;
    }
    if(kind==="plan"){
-     if((state.detail?.plans||[]).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
+     if(departurePlans(state.detail).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
      if(!data.new_plan_date||!String(data.new_plan_reason||"").trim()){alertText("Укажите новую дату и причину",true);return;}
      const button=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
      if(button){button.disabled=true;button.textContent="Сохраняем…";}
      if(feedback)feedback.textContent="Проверяем сохранение…";
-     const before=(state.detail?.plans||[]).length;
+     const before=departurePlans(state.detail).length;
      try{
        const result=await update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
        if(!result?.ok){if(feedback)feedback.textContent="Не удалось сохранить. Проверьте сообщение об ошибке.";return;}
        await loadDetail();
-       const after=(state.detail?.plans||[]).length;
+       const after=departurePlans(state.detail).length;
        if(after<=before){alertText("Сервер не подтвердил добавление переноса. Данные не считаются сохранёнными.",true);}
        else alertText("Перенос № "+after+" сохранён. Следующая строка доступна.");
      }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}

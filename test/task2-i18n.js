@@ -2,6 +2,12 @@
 (function(){
 "use strict";
 const dict={
+"Проверка ВЭД при недоступном километраже":["Foreign-trade review when distance is unavailable", "无法计算里程时的外贸审核"],
+"Причина":["Reason", "原因"],
+"Основание: документ или ссылка на подтверждение":["Evidence: document or reference", "证明：文件或参考链接"],
+"Запустить единственную проверку ВЭД":["Start the single foreign-trade review", "发起唯一外贸审核"],
+"Только при документированной невозможности расчёта. Дата и пользователь записываются сервером. Проверка ВЭД остаётся обязательной.":["Only for documented calculation unavailability. The server records user and date. The foreign-trade review remains required.", "仅适用于有证明的无法计算情况。服务器记录操作人和日期。外贸审核仍为必需。"],
+
   "Исполнение и трекинг":["Execution & tracking","运输执行与跟踪"],
   "Данные заявки":["Request details","申请详情"],
   "Документы и ВЭД":["Documents & foreign trade","文件与外贸"],

@@ -9,7 +9,7 @@ const roster=JSON.parse(await readFile("test/qa-observer.json","utf8"));
 const ids=[...roster.task1.cases,...roster.task2.cases].map(x=>x.id);
 if(new Set(ids).size!==37||ids.length!==37)throw Error("Invalid acceptance roster: expected exactly 37 unique groups");
 async function readJson(path){try{return JSON.parse(await readFile(path,"utf8"))}catch{return null}}
-const robot=await readJson(process.env.ROBOT_REPORT_PATH||"reports/task12-robot-matrix.json")||await readJson("test/qa-robot-latest.json");
+const robot=await readJson(process.env.ROBOT_REPORT_PATH||"reports/task12-robot-matrix.json");
 const e2e=await readJson("reports/private-authenticated-e2e.json");
 const restore=await readJson("reports/private-restore-evidence.json");
 const visual=await readJson("reports/private-visual-evidence.json");
@@ -23,7 +23,7 @@ function gate(key,condition,note,proof){
 }
 const stamp=new Date().toISOString();
 const sha=process.env.GITHUB_SHA||null;
-const e2eSteps=e2e?.scenarios||[];
+const e2eSteps=Array.isArray(e2e?.scenarios)?e2e.scenarios:[];
 const evidences=new Map(e2eSteps.filter(x=>typeof x?.id==="string").map(x=>[x.id,x]));
 const hasRoleEvidence=x=>x&&x.status==="PASS"&&x.mode==="AUTHENTICATED_QA_API"&&typeof x.actorRole==="string"&&x.actorRole.length>0&&x.evidence&&x.evidence.method==="HTTP_AND_BROWSER"&&x.evidence.responseVerified===true&&x.evidence.traceId;
 const missing=ids.filter(id=>!hasRoleEvidence(evidences.get(id)));
@@ -51,6 +51,11 @@ gate("ISOLATED_RESTORE",restore?.result==="PASS"&&restore?.databaseRestored===tr
 gate("PRODUCTION_BACKUP_AND_RESTORE",backup?.result==="PASS"&&backup?.encrypted===true&&backup?.readbackSha256===true&&backup?.separateRestore===true,
   "Реальный зашифрованный бэкап production с SHA-256, обратным чтением и отдельным восстановлением; без него выпуск запрещён.",
   backup);
+const robotScenarios=Array.isArray(robot?.scenarios)?robot.scenarios:[];
+gate("CURRENT_ROBOT_REPORT",!!robot&&!!sha&&robot.commit===sha&&robotScenarios.length===ids.length&&
+  new Set(robotScenarios.map(x=>x.id)).size===ids.length&&ids.every(id=>robotScenarios.some(x=>x.id===id))&&
+  robotScenarios.every(x=>["PARTIAL","PASS"].includes(x.status))&&robot.checks?.FAIL===0&&robot.checks?.BLOCKED===0,
+  "Требуется полный отчёт робота для текущего SHA, без FAIL/BLOCKED; публичный исторический отчёт не заменяет артефакт запуска.",robot);
 const ownerCase=evidences.get("T1-01");
 gate("T1_01_REQUIRED_FIELDS",hasRoleEvidence(ownerCase)&&ownerCase?.evidence?.negativeValidation===true&&ownerCase?.evidence?.serverRejectsMissingFields===true,
   "Открытый дефект T1-01: кнопка и сервер должны запрещать публикацию с пустыми обязательными полями.",

@@ -27,6 +27,7 @@
  border-radius:999px;display:inline-flex;min-width:26px;height:26px;padding:0 8px;align-items:center;justify-content:center;
  font-weight:750;background:#e2e8f0;color:#1e293b;line-height:1;font-size:.84rem;
 }
+#lw-pending-tasks-all-roles [data-lw-tasks-more],
 #lw-pending-tasks-all-roles .lw-pending-head button{
  appearance:none;background:transparent;color:#164e87;border:1px solid #94a3b8;
  border-radius:8px;font:inherit;font-size:.81rem;font-weight:650;cursor:pointer;

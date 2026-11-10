@@ -76,6 +76,14 @@ function lockWinnerButtons(active){
  });
 }
 async function refresh(){
+ // Late-bid checks belong only to Owner and Carrier. Never call the API
+ // or show diagnostic status in VED, Supplier, Designer or other cabinets.
+ const cabinet=document.querySelector('.cabinet-app[data-cabinet-role]');
+ const role=cabinet?.getAttribute('data-cabinet-role');
+ if(!quotePage && role!=='owner' && role!=='carrier'){
+   document.querySelector('#late-bid-controls-owner')?.remove();
+   return;
+ }
  if(refreshPending)return;refreshPending=true;
  try{
   const data=await api(quotePage?"?order="+encodeURIComponent(orderCode()):"");

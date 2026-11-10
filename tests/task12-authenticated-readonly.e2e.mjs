@@ -6,7 +6,9 @@
  * Does not create business orders or modify production/staging shared data.
  */
 import {writeFile,mkdir} from "node:fs/promises";
-const base="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-issue47qa";
+const qaRun=process.env.QA_RUN_ID||"rc20261110";
+if(!/^[a-z0-9]{8,24}$/.test(qaRun))throw Error("INVALID_QA_RUN_ID");
+const base="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-"+qaRun;
 const host=new URL(base).origin;
 const roles=[
  {id:"owner",login:process.env.QA_OWNER_LOGIN,password:process.env.QA_OWNER_PASSWORD},
@@ -21,7 +23,7 @@ let blocker=null;
 const log=(id,status,reason)=>{results.push({id,status,reason});console.log("QA_AUTH",id,status,reason)};
 async function call(path,opts={},cookie=""){
  const res=await fetch(base+path,{
-  ...opts,headers:{"Origin":host,"Cache-Control":"no-store",...(cookie?{Cookie:cookie}:{}),...opts.headers},
+  ...opts,headers:{"Origin":"https://hakaru4i-afk.github.io","Cache-Control":"no-store",...(cookie?{Authorization:"Bearer "+cookie}:{}),...opts.headers},
   signal:AbortSignal.timeout(20000),redirect:"manual"
  });
  const raw=await res.text();
@@ -32,14 +34,14 @@ try{
  const missing=roles.filter(x=>!x.login||!x.password).map(x=>x.id);
  if(missing.length)throw Error("PROTECTED_QA_CREDENTIALS_NOT_CONFIGURED:"+missing.join(","));
  const health=await call("/health");
- if(health.status!==200||health.data.projectRef!=="ibclzdkxiozbzmniiygv"||health.data.qaRun!=="issue47qa")
+ if(health.status!==200||health.data.projectRef!=="ibclzdkxiozbzmniiygv"||health.data.qaRun!==qaRun)
   throw Error("QA_ENDPOINT_ISOLATION_NOT_VERIFIED");
  if(process.env.QA_SCHEMA_PARITY_VERIFIED!=="true")throw Error("QA_SCHEMA_PARITY_NOT_VERIFIED");
  for(const actor of roles){
   const r=await call("/api/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"login",login:actor.login,password:actor.password})});
   if(r.status!==200)throw Error("ROLE_LOGIN_FAILED:"+actor.id+":"+r.status);
-  const cookie=r.cookieHeader.split(";")[0];
-  if(!/^freight_session=[0-9a-f]{64}$/.test(cookie))throw Error("AUTH_COOKIE_INVALID:"+actor.id);
+  const cookie=r.data.sessionToken;
+  if(typeof cookie!=="string"||! /^[0-9a-f]{64}$/.test(cookie))throw Error("AUTH_SESSION_TOKEN_INVALID:"+actor.id);
   sessions.push({id:actor.id,cookie});
   const profile=await call("/api/session",{},cookie);
   if(profile.status!==200||!profile.data||!profile.data.role)throw Error("ROLE_SESSION_INVALID:"+actor.id);
@@ -60,7 +62,7 @@ try{
  log("ROLE_DENY_PUBLISH","PASS","Carrier cannot create shipment via API");
  log("AUTH_READONLY_COMPLETE","PASS","Real independent authorized credentials validated; business E2E still required.");
 }catch(error){
- blocker=String(error?.message||"QA_AUTH_FAILED").replace(/[^A-Z0-9_:,-]/g,"").slice(0,180);
+ blocker=String(error?.message||"QA_AUTH_FAILED").replace(/[^A-Za-z0-9_:,-]/g,"").slice(0,180);
  log("AUTH_READONLY_COMPLETE","BLOCKED",blocker);
 }finally{
  for(const s of sessions){try{await call("/api/auth",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"logout"})},s.cookie)}catch{}}

@@ -17,25 +17,25 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 84,
+    "backendVersion": 88,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
+    "frontendSha": "d3b5d7ebb3b066f7ccf65566854f6c515de53a47",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
-    "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
+    "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
-    "qaStatus": "STAGING_API_V84_ACTIVE; SHARED_CHAT_NO_AUTOMATED_TEMPLATES; TASK2_SMOKE_PASS; VED_TO_LOGISTIC_RECIPIENT_E2E_OPEN",
+    "qaStatus": "STAGING_API_V86_ACTIVE; REAL_VED_CHAT_AND_DOCUMENT_REQUEST_PASS; REAL_PHOTON_OSRM_COLD_CACHE_PASS; FULL_ACCEPTANCE_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "f3dff563364687a40427b83c11ca5f92af331116",
-    "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
+    "backendSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
+    "backendSourceSha": "94ca51db927eb8e8909cd951233af825e65025a7",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
-      "sourceSha": "076a8aecf2d0290c51dad6a3afea998844090048",
+      "sourceSha": "2a9c4b0ab12f40a54396af826d52e5f0505a0cfa",
       "coverage": "105 static UI labels in execution, tracking, documents, PTO, claims and acts",
       "languages": [
         "ru",
@@ -45,38 +45,33 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 84,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V80_ACTIVE; PRE-PTO_CHECK_SOURCE_VERIFIED; AUTHORIZED_E2E_PENDING",
+    "lastObservedBackendVersion": 88,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V88_ACTIVE; OWNER_MANUAL_REVIEW_REAL_QA_PASS; FULL_ACCEPTANCE_OPEN",
     "backendCandidate": {
-      "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
-      "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
-      "sha256": "0a0961686675c53d9947a388048253ba1d61755a5a8d41608807b8f0ac5ed542"
+      "sourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
+      "gitBlob": "94ca51db927eb8e8909cd951233af825e65025a7",
+      "sha256": "c93791c3a87b975b21e70d2b3582bdb029da0e2492fce253d5755aa1d4acf6f8"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68"
+        "gitBlob": "a5fce157d913d434eae7e54877928f6d2bfb3ba9",
+        "sha256": "263786c13b4a4226184a24a5a7f73e09f9aa41267ee0e89ce7840bbe1c3677e0"
       },
       "task2-panel.js": {
-        "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
-        "sha256": "f1fb91dc193b841b41657b190c64a2d280915ccfdc8889c155d390064fff296a"
-      },
-      "task2-i18n.js": {
-        "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
-        "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
-      },
-      "task2-help-i18n.js": {
-        "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
-        "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+        "gitBlob": "d3b5d7ebb3b066f7ccf65566854f6c515de53a47",
+        "sha256": "2feac3ab6a240d1e77e6ed1cb1ef1b8706678aba5740737510ccd694c3d92492"
       },
       "task2-guidance.js": {
-        "gitBlob": "d0199d5f4d58f6138008bc65213f1cc378ba41a2"
+        "gitBlob": "21463b573a233892b1dda4f93306b8fab0f2f770",
+        "sha256": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039"
       },
       "late-bid-staging.js": {
-        "gitBlob": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3"
+        "gitBlob": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
+        "sha256": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f"
       },
-      "task2.css": {
-        "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
-        "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+      "lw-pending-tasks-all-roles-20261109.js": {
+        "gitBlob": "3229bc53e44c72167c73238a054918f3a474a767",
+        "sha256": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47"
       }
     },
     "helpLocales": {
@@ -98,7 +93,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "30cd0daa92ed3db00058b60866fd093b4efb0c62b7a45e2f9ef6177743e75006",
+    "backendActiveBundleSha256": "fab91cd7c93f72ae08d3f67faedae87d31c0a0340b1ad4162ff55b11b8768f1d",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -137,14 +132,46 @@
     "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest",
     "vedDocumentsTaskVisibility": "OWNER_CONFIRMED_2026-11-09",
     "carrierRequestDocsCSV": "REMOVED_2026-11-09",
-    "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09"
+    "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09",
+    "historicalBackendCandidate": {
+      "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
+      "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
+      "sha256": "0a0961686675c53d9947a388048253ba1d61755a5a8d41608807b8f0ac5ed542"
+    },
+    "historicalFrontendCandidateComponents": {
+      "app.js": {
+        "gitBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68"
+      },
+      "task2-panel.js": {
+        "gitBlob": "d3b5d7ebb3b066f7ccf65566854f6c515de53a47",
+        "sha256": "2feac3ab6a240d1e77e6ed1cb1ef1b8706678aba5740737510ccd694c3d92492"
+      },
+      "task2-i18n.js": {
+        "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
+        "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
+      },
+      "task2-help-i18n.js": {
+        "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
+        "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+      },
+      "task2-guidance.js": {
+        "gitBlob": "d0199d5f4d58f6138008bc65213f1cc378ba41a2"
+      },
+      "late-bid-staging.js": {
+        "gitBlob": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3"
+      },
+      "task2.css": {
+        "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
+        "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+      }
+    }
   },
-  "lateBidUiSha": "3ff2c9ab03f5b58068cf60d9b8fd9607b3b915e5",
+  "lateBidUiSha": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
-    "observedVersion": 11,
-    "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
+    "observedVersion": 13,
+    "bundleSha256": "cd32296c0ad5ac38878302dd5f9d5f6864fbbdd4ed2c76a4eb704eb74bed6adb",
     "build": "issue47qa-draft-lock-v11"
   },
   "releaseNotes": "2026-11-04 #47: late bid send enabled through authenticated draft start; live updates journal; price/time color comparison; 26/26 NOT PASS",
@@ -180,7 +207,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 80,
+    "apiVersion": 88,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -411,10 +438,10 @@
   },
   "pendingTasksCenter": {
     "id": "LW-TASKS-ALL-ROLES-20261109",
-    "version": "2026-11-09.2",
+    "version": "2026-11-10.1",
     "scope": "staging-only",
     "script": "lw-pending-tasks-all-roles-20261109.js",
-    "frontendSha": "70f620965f97cfd07f96a031a6fb631f1cbc140d",
+    "frontendSha": "3229bc53e44c72167c73238a054918f3a474a767",
     "css": "lw-pending-tasks-all-roles-20261109.css",
     "roles": [
       "owner",
@@ -431,19 +458,19 @@
       "carrier",
       "logistic",
       "supplier",
-      "designer"
-    ],
-    "unconnectedTaskFeeds": [
+      "designer",
       "content",
       "purchasing",
       "certification"
     ],
+    "unconnectedTaskFeeds": [],
     "refreshPolicy": "login, return to main screen, focus if stale after 60s, manual refresh; no background polling",
     "dataSource": "existing session-filtered authorized APIs",
-    "qaStatus": "UNIT_CI_PASS_ALL_ROLE_DATA_AND_DOM; GITHUB_PAGES_PUBLISH_PENDING_FINAL; REAL_AUTHORIZED_E2E_PENDING",
+    "qaStatus": "REAL_QA_ROLE_FEEDS_AND_DESKTOP_MOBILE_PASS; STAGING_FRONTEND_PUBLISH_PENDING",
     "productionChanged": false,
     "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
-    "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
+    "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh.",
+    "expansion": "Five at a time; no new requests or permissions"
   },
   "vedChat": {
     "id": "VED-CHAT-AND-LOGISTIC-REQUEST-20261109",
@@ -465,7 +492,7 @@
     ],
     "qaStatus": "CHAT_SOURCE_AND_CI_CHECK; AUTHORIZED_CHAT_E2E_PENDING",
     "productionChanged": false,
-    "task2FrontendSha": "8289e37d3922ef39a088609e105a1cb7db29e864",
+    "task2FrontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "knownBlocker": "Only enabled technical logistic staff is VED in staging; disabled QA logistic not re-enabled without approval. Recipient dropdown reports none.",
     "schemaMigration": "allow_ved_request_logistic_task_type_20261109",
     "chatMenu": "Чаты по заявкам",
@@ -479,5 +506,32 @@
     "scope": "Staging help only: active pre-PTO VED document task, VED->logistic request, shared no-template chat; fix VED role misclassification; RU/EN/ZH.",
     "verification": "SOURCE_PARSE_PASS; AUTOMATED_CI_AND_AUTHENTICATED_UI_PENDING",
     "productionChanged": false
+  },
+  "stabilization20261110": {
+    "status": "RELEASE_BLOCKED",
+    "backendVersion": 85,
+    "backendSourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
+    "backendBundleSha256": "959ea0dd12ece5bf4994b2d6eb24be99fa2c4f981d3ad239cb508e7a71d820e1",
+    "isolatedQaFunction": "freight-api-qa-rc20261110",
+    "isolatedQaVersion": 3,
+    "isolatedQaBundleSha256": "4e4cbd361426a677090e19c1219320d55d294d974a6355264cd7d1f536d223c8",
+    "verified": "Real logins for 10 actors; live browser homes; real request/file/bid/winner/execution/PTO/warehouse/closure; full 37 acceptance and restore remain open",
+    "productionChanged": false
+  },
+  "stabilizationQa20261110": {
+    "backendSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
+    "isolatedQaFunction": "freight-api-qa-rc20261110",
+    "isolatedQaVersion": 7,
+    "isolatedQaBundleSha256": "f70d0ad1ceefb5383020a5dae5f00fbf83fc20b593889fe7c656539faa19f93a",
+    "releaseStatus": "RELEASE_BLOCKED",
+    "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
+    "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
+    "isolatedQaSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd"
+  },
+  "businessProcessReview": {
+    "modelVersion": "20261110-logic-4",
+    "scope": "staging-only",
+    "status": "RELEASE_BLOCKED",
+    "technicalAndLogicSeparate": true
   }
 }

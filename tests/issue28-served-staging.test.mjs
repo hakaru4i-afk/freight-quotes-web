@@ -1,9 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
+import {resolve} from "node:path";
+import {pathToFileURL} from "node:url";
 import {createHash} from "node:crypto";
 
-const localRoot=new URL("../test/",import.meta.url);
+const localRoot=pathToFileURL(resolve(process.env.QA_SERVED_EXPECTED_DIR||".","test")+"/");
 const base="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const read=path=>readFileSync(new URL(path,localRoot));
 const blob=data=>createHash("sha1").update(Buffer.from("blob "+data.length+"\0")).update(data).digest("hex");
@@ -20,14 +22,14 @@ async function retry(fn){
   }
   throw last;
 }
-test("GitHub Pages serves document-only staging 1.19.21 byte-for-byte",async()=>{
+test("GitHub Pages serves document-only staging baseline or candidate byte-for-byte",async()=>{
   assert.equal(expected.environment,"staging");
   assert.equal(expected.projectRef,"ibclzdkxiozbzmniiygv");
-  assert.equal(expected.releaseVersion,"1.19.21");
+  assert.match(expected.releaseVersion,/^\d+\.\d+\.\d+$/);
   await retry(async()=>{
     const [build,html,app]=await Promise.all([serve("build-info.json"),serve("index.html"),serve("app.js")]);
     const active=JSON.parse(build.toString("utf8"));
-    assert.equal(active.releaseVersion,expected.releaseVersion,"Pages has not published release 1.19.21");
+    assert.equal(active.releaseVersion,expected.releaseVersion,"Pages release differs from expected deployment");
     assert.equal(active.projectRef,expected.projectRef);
     assert.equal(blob(app),blob(read("app.js")),"Published application bytes are outdated");
     assert.equal(blob(app),expected.servedAppBlobSha,"Manifest and bundle differ");

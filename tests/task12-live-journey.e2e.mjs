@@ -13,7 +13,10 @@ import { randomUUID } from "node:crypto";
 
 const PUBLIC_SITE = "https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 const QA_ORIGIN = "https://ibclzdkxiozbzmniiygv.supabase.co";
-const QA_BASE = QA_ORIGIN + "/functions/v1/freight-api-qa-issue47qa";
+const qaRun = process.env.QA_RUN_ID || "rc20261110";
+if(!/^[a-z0-9]{8,24}$/.test(qaRun))throw Error("INVALID_QA_RUN_ID");
+const qaFunction = "freight-api-qa-" + qaRun;
+const QA_BASE = QA_ORIGIN + "/functions/v1/" + qaFunction;
 const ROUTED_BASE = QA_ORIGIN + "/functions/v1/freight-api/";
 const reportFile = "reports/task12-private-real-business-journey.json";
 const runId = process.env.GITHUB_RUN_ID || randomUUID().slice(0,8);
@@ -24,7 +27,7 @@ const users = {
   carrierB: {login:process.env.QA_CARRIER_B_LOGIN, password:process.env.QA_CARRIER_B_PASSWORD}
 };
 const report = {version:1, mode:"REAL_BROWSER_ISOLATED_QA", authorized:false,
-  sourceSite:PUBLIC_SITE, qaFunction:"freight-api-qa-issue47qa",
+  sourceSite:PUBLIC_SITE, qaFunction,
   runId:process.env.GITHUB_RUN_ID||null, frontendCommit:process.env.GITHUB_SHA||null,
   createdAt:new Date().toISOString(), order, result:"BLOCKED", steps:[], apiCalls:0, writesToSharedStaging:0};
 const step = async(name,fn) => {
@@ -37,7 +40,7 @@ const step = async(name,fn) => {
 const clean = s => String(s||"").replace(/(password|token|cookie|authorization)[=:][^\s]+/ig,"$1=[REDACTED]").slice(0,500);
 const qaUrl = url => {
   const u = new URL(url);
-  if(u.origin!==QA_ORIGIN || !u.pathname.startsWith("/functions/v1/freight-api-qa-issue47qa/"))
+  if(u.origin!==QA_ORIGIN || !u.pathname.startsWith("/functions/v1/"+qaFunction+"/"))
     throw Error("QA_ENDPOINT_ISOLATION_FAILED");
   return u;
 };
@@ -46,7 +49,7 @@ async function checkHealth(){
   assert.equal(r.status,200,"QA_HEALTH_NOT_200");
   const x=await r.json();
   assert.equal(x.projectRef,"ibclzdkxiozbzmniiygv","QA_PROJECT_MISMATCH");
-  assert.equal(x.qaRun,"issue47qa","QA_FUNCTION_ISOLATION_MISMATCH");
+  assert.equal(x.qaRun,qaRun,"QA_FUNCTION_ISOLATION_MISMATCH");
   return {health:200,qaRun:x.qaRun,apiVersion:x.apiVersion||x.version||null};
 }
 async function openRole(browser,actor){
@@ -62,7 +65,7 @@ async function openRole(browser,actor){
       // This is a same-origin rewrite (Supabase -> Supabase) to an isolated function.
       return route.continue({url:destination});
     }
-    if(u.origin===QA_ORIGIN&&u.pathname.startsWith("/functions/v1/freight-api-qa-issue47qa/"))return route.continue();
+    if(u.origin===QA_ORIGIN&&u.pathname.startsWith("/functions/v1/"+qaFunction+"/"))return route.continue();
     if(u.origin==="https://hakaru4i-afk.github.io"&&u.pathname.startsWith("/freight-quotes-web/test/"))return route.continue();
     if(u.origin==="https://fonts.googleapis.com"||u.origin==="https://fonts.gstatic.com")return route.continue();
     throw Error("UNSAFE_EXTERNAL_REQUEST_BLOCKED:"+u.hostname);

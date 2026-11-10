@@ -109,12 +109,12 @@ test("supplier and designer only receive own pending orders and content tasks fr
  assert.equal(designer.tasks[0].route,"content-tasks");
 });
 
-test("content, purchasing, and certification have visible unsupported source rather than falsely claiming zero tasks",async()=>{
- const inbox=harness(noSession);
+test("content, purchasing and certification read genuine open workflow assignments",async()=>{
+ const inbox=harness({...noSession,"/api/pending-tasks":{total:1,items:[{id:"real-qa-assignment",description:"Assigned review",order_code:"QA-1",status:"open"},{id:"finished",status:"completed"}]}});
  for(const role of ["content","purchasing","certification"]){
   const v=await inbox.loadRole(role);
-  assert.equal(v.supported,false);
-  assert.equal(v.tasks.length,0);
+  assert.equal(v.supported,true);assert.equal(v.tasks.length,1);assert.equal(v.tasks[0].inline,true);
+  assert.match(v.tasks[0].id,/real-qa-assignment/);
  }
 });
 
@@ -138,7 +138,7 @@ test("pending-work banner mounts on every role home, including VED child and dar
   const cabinet={querySelector(s){return s.includes("overview")?panel:null;},dataset:{cabinetRole:domRole}};
   const doc={
    documentElement:{lang:"ru"},addEventListener(){},
-   querySelector(s){return s==='.cabinet-app[data-cabinet-role="'+domRole+'"]'?cabinet:null;},
+   querySelector(s){if(s==="#root main.card"&&["content","purchasing","certification"].includes(role))return home;return s==='.cabinet-app[data-cabinet-role="'+domRole+'"]'?cabinet:null;},
    querySelectorAll(s){return s===".cabinet-app"?[cabinet]:[];},
    getElementById(){return mounted;},
    createElement(){return {dataset:{},setAttribute(){},innerHTML:""};},
