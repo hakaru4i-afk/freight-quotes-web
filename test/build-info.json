@@ -29,7 +29,7 @@
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
     "backendSourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
-    "backendSourceSha": "a61bdbe86f81a89d7937104c27786b73c778865f",
+    "backendSourceSha": "ea0d0dad7ffec47c1f1e1d92d32cb6dd1ad1f68d",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged.",
@@ -48,35 +48,30 @@
     "lastObservedBackendVersion": 85,
     "backendDeploymentStatus": "SHARED_STAGING_API_V85_ACTIVE; ISOLATED_REAL_ROLE_REGRESSION_PASS; FULL_37_E2E_OPEN",
     "backendCandidate": {
-      "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
-      "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
-      "sha256": "0a0961686675c53d9947a388048253ba1d61755a5a8d41608807b8f0ac5ed542"
+      "sourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
+      "gitBlob": "ea0d0dad7ffec47c1f1e1d92d32cb6dd1ad1f68d",
+      "sha256": "c11aee5cade4b28866afe1ca13e4a35e667b7022358169f62fec6bb9da8a7b5b"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68"
+        "gitBlob": "a5fce157d913d434eae7e54877928f6d2bfb3ba9",
+        "sha256": "263786c13b4a4226184a24a5a7f73e09f9aa41267ee0e89ce7840bbe1c3677e0"
       },
       "task2-panel.js": {
-        "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
-        "sha256": "f1fb91dc193b841b41657b190c64a2d280915ccfdc8889c155d390064fff296a"
-      },
-      "task2-i18n.js": {
-        "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
-        "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
-      },
-      "task2-help-i18n.js": {
-        "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
-        "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+        "gitBlob": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
+        "sha256": "b9464c3385ebf93df551e27fce12bcb21eb5636918b4071a20ea17beeefe0770"
       },
       "task2-guidance.js": {
-        "gitBlob": "d0199d5f4d58f6138008bc65213f1cc378ba41a2"
+        "gitBlob": "21463b573a233892b1dda4f93306b8fab0f2f770",
+        "sha256": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039"
       },
       "late-bid-staging.js": {
-        "gitBlob": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3"
+        "gitBlob": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
+        "sha256": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f"
       },
-      "task2.css": {
-        "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
-        "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+      "lw-pending-tasks-all-roles-20261109.js": {
+        "gitBlob": "915ba68344c6a475832c6b00ac1b443b3af2cafa",
+        "sha256": "3793842893abe988d192f3070221b6684f17a9ac0cab5750230203bbe8eb0e70"
       }
     },
     "helpLocales": {
@@ -137,7 +132,39 @@
     "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest",
     "vedDocumentsTaskVisibility": "OWNER_CONFIRMED_2026-11-09",
     "carrierRequestDocsCSV": "REMOVED_2026-11-09",
-    "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09"
+    "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09",
+    "historicalBackendCandidate": {
+      "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
+      "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
+      "sha256": "0a0961686675c53d9947a388048253ba1d61755a5a8d41608807b8f0ac5ed542"
+    },
+    "historicalFrontendCandidateComponents": {
+      "app.js": {
+        "gitBlob": "bc96e826feaf6fef9e6034f5bd2493767a096f68"
+      },
+      "task2-panel.js": {
+        "gitBlob": "cdeebaeb83a823ede66422ee2ec346d73d3af65f",
+        "sha256": "f1fb91dc193b841b41657b190c64a2d280915ccfdc8889c155d390064fff296a"
+      },
+      "task2-i18n.js": {
+        "gitBlob": "1fb004ec1c55a4fd16b8b01d548b76571adc4c2b",
+        "sha256": "49dd7af569d9d3fdd3b4a9bc2f26fb5558af496f5032db36007cec3107e837c6"
+      },
+      "task2-help-i18n.js": {
+        "gitBlob": "9beee8e0b7abd9b1e3525dd311da8456348f19b1",
+        "sha256": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5"
+      },
+      "task2-guidance.js": {
+        "gitBlob": "d0199d5f4d58f6138008bc65213f1cc378ba41a2"
+      },
+      "late-bid-staging.js": {
+        "gitBlob": "182a97ca3aeebd4e8cc8feb66e3b1e43e0078ed3"
+      },
+      "task2.css": {
+        "gitBlob": "cb7b2865da14ad904404a47693268ebbcd606b93",
+        "sha256": "ec7d228a72aae3ee4120b77e58acdbc7dd9408753225bb89e6ec9ab89dc2b40d"
+      }
+    }
   },
   "lateBidUiSha": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
