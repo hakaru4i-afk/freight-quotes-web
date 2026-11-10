@@ -21,4 +21,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - uses: actions/checkout@v4
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: deployed-baseline
       - run: node --test tests/issue47-live-served.test.mjs
+        env:
+          QA_SERVED_EXPECTED_DIR: ${{ github.event_name == 'pull_request' && 'deployed-baseline' || '.' }}
