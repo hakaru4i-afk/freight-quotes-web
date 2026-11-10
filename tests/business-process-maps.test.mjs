@@ -30,9 +30,9 @@ test('process page parses SVG/drawio, filters cabinets, and stays usable at 390p
   await page.goto('http://127.0.0.1:'+server.address().port+'/process-map.html');
   const xml=[...outputs(model)].filter(([name])=>/\.(svg|drawio)$/.test(name)).map(([name,content])=>({name,content}));
   assert.deepEqual(await page.evaluate(items=>items.filter(x=>new DOMParser().parseFromString(x.content,'application/xml').querySelector('parsererror')).map(x=>x.name),xml),[]);
-  await page.getByLabel('Кабинет').selectOption('logistic');assert.equal(await page.locator('section:visible').count(),1);
-  assert.match(await page.locator('section:visible').innerText(),/P06/);assert.equal(await page.locator('nav li:visible').count(),1);
-  await page.locator('section:visible summary').click();
+  await page.getByLabel('Кабинет').selectOption('logistic');assert.equal(await page.locator('section:visible').count(),2);
+  assert.match(await page.locator('#P06').innerText(),/P06/);assert.equal(await page.locator('nav li:visible').count(),2);
+  await page.locator('#P06 summary').click();
   await mkdir('reports/business-logic',{recursive:true});
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){await page.setViewportSize(viewport);assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));await page.screenshot({path:'reports/business-logic/process-map-'+viewport.width+'.png',fullPage:true});}
   assert.deepEqual(errors,[]);

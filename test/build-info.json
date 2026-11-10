@@ -17,7 +17,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 86,
+    "backendVersion": 87,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -28,7 +28,7 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+    "backendSourceCommit": "971d192b59ec9cd20c77678e119248d286c2728b",
     "backendSourceSha": "94ca51db927eb8e8909cd951233af825e65025a7",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
@@ -45,10 +45,10 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 86,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V86_ACTIVE; SOURCE_EXACT; REAL_COLD_CACHE_ROUTING_PASS; FULL_ACCEPTANCE_OPEN",
+    "lastObservedBackendVersion": 87,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V87_ACTIVE; EXACT_SOURCE; PTO_STAGE_GUARD_REAL_QA_PASS; FULL_ACCEPTANCE_OPEN",
     "backendCandidate": {
-      "sourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+      "sourceCommit": "971d192b59ec9cd20c77678e119248d286c2728b",
       "gitBlob": "94ca51db927eb8e8909cd951233af825e65025a7",
       "sha256": "c93791c3a87b975b21e70d2b3582bdb029da0e2492fce253d5755aa1d4acf6f8"
     },
@@ -93,7 +93,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "d34b9129434bbb5e5d51a93f265dbc3456877c6dadce03778440cef779593dc9",
+    "backendActiveBundleSha256": "58ffc31b389c26b7bbc1394e882a416777ad91a7e9f853f1c4ad6365511dce4e",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -207,7 +207,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 86,
+    "apiVersion": 87,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -519,15 +519,16 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+    "backendSourceCommit": "971d192b59ec9cd20c77678e119248d286c2728b",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 4,
-    "isolatedQaBundleSha256": "cc7adcf7eb4b3be9ccc1582737088adcf58bef50e2d4947a65d05b4c2c1c5edc",
+    "isolatedQaVersion": 5,
+    "isolatedQaBundleSha256": "db50191d7927fed196a05dd3513462e4f1694096bfda3fe7f61258077d9af32b",
     "releaseStatus": "RELEASE_BLOCKED",
-    "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates"
+    "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
+    "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200"
   },
   "businessProcessReview": {
-    "modelVersion": "20261110-logic-2",
+    "modelVersion": "20261110-logic-3",
     "scope": "staging-only",
     "status": "RELEASE_BLOCKED",
     "technicalAndLogicSeparate": true
