@@ -149,6 +149,7 @@ jobs:
         id: auth
         continue-on-error: true
         env:
+          QA_RUN_ID: ${{ vars.QA_RUN_ID || 'rc20261110' }}
           QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
           QA_OWNER_PASSWORD: ${{ secrets.QA_OWNER_PASSWORD }}
           QA_CARRIER_A_LOGIN: ${{ secrets.QA_CARRIER_A_LOGIN }}
@@ -197,6 +198,7 @@ jobs:
         id: journey
         continue-on-error: true
         env:
+          QA_RUN_ID: ${{ vars.QA_RUN_ID || 'rc20261110' }}
           QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
           QA_OWNER_PASSWORD: ${{ secrets.QA_OWNER_PASSWORD }}
           QA_CARRIER_A_LOGIN: ${{ secrets.QA_CARRIER_A_LOGIN }}

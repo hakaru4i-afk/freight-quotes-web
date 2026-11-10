@@ -6,7 +6,7 @@
  * Does not create business orders or modify production/staging shared data.
  */
 import {writeFile,mkdir} from "node:fs/promises";
-const qaRun=process.env.QA_RUN_ID||"issue47qa";
+const qaRun=process.env.QA_RUN_ID||"rc20261110";
 if(!/^[a-z0-9]{8,24}$/.test(qaRun))throw Error("INVALID_QA_RUN_ID");
 const base="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-"+qaRun;
 const host=new URL(base).origin;
