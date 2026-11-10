@@ -17,19 +17,19 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 85,
+    "backendVersion": 86,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
-    "qaStatus": "STAGING_API_V85_ACTIVE; REAL_VED_CHAT_AND_ADDRESSED_DOCUMENT_REQUEST_PASS; FULL_ACCEPTANCE_OPEN",
+    "qaStatus": "STAGING_API_V86_ACTIVE; REAL_VED_CHAT_AND_DOCUMENT_REQUEST_PASS; REAL_PHOTON_OSRM_COLD_CACHE_PASS; FULL_ACCEPTANCE_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
-    "backendSourceSha": "ea0d0dad7ffec47c1f1e1d92d32cb6dd1ad1f68d",
+    "backendSourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+    "backendSourceSha": "94ca51db927eb8e8909cd951233af825e65025a7",
     "backendIsolation": "Shared staging retains existing Owner login; isolated QA v11 remains separate",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged.",
@@ -45,12 +45,12 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 85,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V85_ACTIVE; ISOLATED_REAL_ROLE_REGRESSION_PASS; FULL_37_E2E_OPEN",
+    "lastObservedBackendVersion": 86,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V86_ACTIVE; SOURCE_EXACT; REAL_COLD_CACHE_ROUTING_PASS; FULL_ACCEPTANCE_OPEN",
     "backendCandidate": {
-      "sourceCommit": "63aeaf9e28b465becce5651af7049e23e0d37a3a",
-      "gitBlob": "ea0d0dad7ffec47c1f1e1d92d32cb6dd1ad1f68d",
-      "sha256": "c11aee5cade4b28866afe1ca13e4a35e667b7022358169f62fec6bb9da8a7b5b"
+      "sourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+      "gitBlob": "94ca51db927eb8e8909cd951233af825e65025a7",
+      "sha256": "c93791c3a87b975b21e70d2b3582bdb029da0e2492fce253d5755aa1d4acf6f8"
     },
     "frontendCandidateComponents": {
       "app.js": {
@@ -93,7 +93,7 @@
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "issue17-compact-document-20261106",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "959ea0dd12ece5bf4994b2d6eb24be99fa2c4f981d3ad239cb508e7a71d820e1",
+    "backendActiveBundleSha256": "d34b9129434bbb5e5d51a93f265dbc3456877c6dadce03778440cef779593dc9",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -207,7 +207,7 @@
     ],
     "frontendBlob": "ca2a4f8a661f5712a506ef4b87b8549caff3da28",
     "cssBlob": "57001b594fd95bf61a265123d550a6edab45199e",
-    "apiVersion": 85,
+    "apiVersion": 86,
     "changes": "Overview deadlines; grouped own requests by round; eight tabs; dark cards; own proposal count; result/route/deadline labels; Primary menu named My Applications, secondary proposals; own bid values per request",
     "status": "COMMITTED_STAGING_QA_PENDING",
     "productionChanged": false
@@ -516,5 +516,13 @@
     "isolatedQaBundleSha256": "4e4cbd361426a677090e19c1219320d55d294d974a6355264cd7d1f536d223c8",
     "verified": "Real logins for 10 actors; live browser homes; real request/file/bid/winner/execution/PTO/warehouse/closure; full 37 acceptance and restore remain open",
     "productionChanged": false
+  },
+  "stabilizationQa20261110": {
+    "backendSourceCommit": "a43a50f9883fcb0f686c8b130ec3c0a5e18efdb9",
+    "isolatedQaFunction": "freight-api-qa-rc20261110",
+    "isolatedQaVersion": 4,
+    "isolatedQaBundleSha256": "cc7adcf7eb4b3be9ccc1582737088adcf58bef50e2d4947a65d05b4c2c1c5edc",
+    "releaseStatus": "RELEASE_BLOCKED",
+    "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates"
   }
 }
