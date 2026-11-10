@@ -527,7 +527,7 @@
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates"
   },
   "businessProcessReview": {
-    "modelVersion": "20261110-logic-1",
+    "modelVersion": "20261110-logic-2",
     "scope": "staging-only",
     "status": "RELEASE_BLOCKED",
     "technicalAndLogicSeparate": true

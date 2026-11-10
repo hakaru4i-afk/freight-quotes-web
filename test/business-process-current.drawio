@@ -11,7 +11,7 @@ LOGIC_PROBLEM
 Только подтверждённый остаток менее 1000 км создаёт одну проверку ВЭД до ПТО. Неизвестные километры не выдумываются." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-carrier"><mxGeometry x="10" y="895" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P06" value="P06 · ВЭД: документы, логисты и общий чат
 LOGIC_OK
 Одна автоматическая проверка до ПТО; общий чат Owner/Carrier/ВЭД; адресный запрос документов без шаблонных сообщений." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-logistic"><mxGeometry x="10" y="1085" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P07" value="P07 · Поставщик: готовность и комплект документов
-BLOCKED
+LOGIC_OK
 Назначенный поставщик фиксирует фактическую готовность, комплект или объяснения отсутствия; владелец предоставляет подписанную проформу." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-supplier"><mxGeometry x="10" y="1275" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P08" value="P08 · Назначенные задачи остальных сотрудников
 LOGIC_IMPROVED
 Показывать реальные невыполненные назначения; новых процессов контента, закупок и сертификации без решения владельца не создавать." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-content"><mxGeometry x="10" y="1465" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P09" value="P09 · Завершение перевозки
