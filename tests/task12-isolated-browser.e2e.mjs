@@ -9,12 +9,16 @@ import {resolve,extname} from 'node:path';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
+const metadata=JSON.parse(await readFile('test/build-info.json','utf8')).stabilizationQa20261110;
+assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
+assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
+assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
 const root=resolve('.'),base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile('/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:3,backendBundle:'4e4cbd361426a677090e19c1219320d55d294d974a6355264cd7d1f536d223c8',sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
 await mkdir('reports/isolated-rc',{recursive:true});
 const html=await readFile('test/index.html','utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile('test/'+name)).digest('hex');}
@@ -62,18 +66,53 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const saved=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST',{timeout:60000});await publish.click({timeout:60000});
    const r=await saved;assert.equal(r.status(),200);const result=await r.json();assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
   }
-  if(process.env.QA_BROWSER_BID==='true'&&actor==='carrierB'){
+  if(process.env.QA_BROWSER_BID==='true'&&['carrierA','carrierB'].includes(actor)){
    const previous=JSON.parse(await readFile('reports/isolated-rc/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;
    await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').first().evaluate(el=>el.click());
    const card=page.locator('article.carrier-request').filter({hasText:order}).first();await card.waitFor({state:'visible',timeout:60000});
    await card.locator('a[href*="quote"]').first().click();
    const form=page.locator('form').filter({has:page.locator('input[name="carrier"]')});
+   await form.waitFor({state:'visible',timeout:120000});
    await form.locator('input[name="carrier"]').fill('Synthetic browser carrier');await form.locator('input[name="contact"]').fill('Synthetic QA contact');
    const v=form.locator('fieldset.quote-variant').first();
    await v.locator('input[aria-label="Общая ставка за партию"]').fill('1550');await v.locator('select[aria-label="Валюта"]').selectOption('USD');
    await v.locator('select[name$=".mode"]').selectOption({label:'Авто'});await v.locator('input[name$=".pickup"]').fill('2026-12-05');await v.locator('input[name$=".days"]').fill('21');
    await v.locator('input[name$=".incotermPlace"]').fill('Brest warehouse');await v.locator('select[name$=".insurance"]').selectOption({label:'Включено'});
    await v.locator('input[name$=".validUntil"]').fill('2026-12-20');await v.locator('textarea[name$=".includes"]').fill('Transport and documents');await v.locator('textarea[name$=".extras"]').fill('No extras');
+   if(process.env.QA_BROWSER_IMPORT==='xlsx'){
+    const downloaded=page.waitForEvent('download');
+    await form.getByRole('button',{name:'Скачать Excel-шаблон',exact:true}).click();
+    const download=await downloaded;const bytes=await readFile(await download.path());
+    assert.equal(bytes.subarray(0,2).toString(),'PK','A real XLSX archive must be exported');
+    await v.locator('input[aria-label="Общая ставка за партию"]').fill('1');
+    const before=report.calls.filter(c=>c.path==='/api/quote'&&c.method==='POST').length;
+    const dialogs=[];page.on('dialog',async dialog=>{dialogs.push({type:dialog.type(),message:dialog.message()});await dialog.accept();});
+    await form.locator('input[type="file"][accept^=".xlsx,.csv"]').setInputFiles({name:'qa-roundtrip.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:bytes});
+    await page.waitForFunction(()=>[...document.querySelectorAll('input[aria-label="Общая ставка за партию"]')].some(e=>e.value==='1550'));
+    assert.equal(report.calls.filter(c=>c.path==='/api/quote'&&c.method==='POST').length,before,'Import must not submit a quote');
+    assert.ok(dialogs.some(d=>d.type==='confirm'),'Actual import preview must be confirmed');
+    rec.workbookImport={status:'PASS',format:'xlsx',bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),previewConfirmed:true,importDidNotSubmit:true,amountRestored:'1550'};
+   }
+   if(process.env.QA_BROWSER_IMPORT==='csv'){
+    const dialogs=[];page.on('dialog',async dialog=>{dialogs.push({type:dialog.type(),message:dialog.message()});await dialog.accept();});
+    const amount=v.locator('input[aria-label="Общая ставка за партию"]');await amount.fill('1');
+    const upload=form.locator('input[type="file"][accept^=".xlsx,.csv"]');
+    rec.csvFieldNames=await form.locator('input[name],select[name],textarea[name]').evaluateAll(xs=>xs.map(x=>x.name));rec.csvDialogs=dialogs;
+    const names=await Promise.all(['amount','validUntil','insurance'].map(key=>v.locator('[name$=".'+key+'"]').getAttribute('name')));
+    const invalid=Buffer.from(names.slice(0,2).join(';')+'\n1550;31.02.2026\n');
+    await upload.setInputFiles({name:'qa-invalid.csv',mimeType:'text/csv',buffer:invalid});
+    await page.waitForFunction(()=>document.querySelector('input[type="file"][accept^=".xlsx,.csv"]').value==='');
+    assert.equal(await amount.inputValue(),'1','Invalid date must reject the entire import');
+    assert.ok(dialogs.some(d=>d.type==='alert'&&/дата/i.test(d.message)),'Invalid date needs an actionable message: '+JSON.stringify(dialogs));
+    const before=report.calls.filter(c=>c.path==='/api/quote'&&c.method==='POST').length;
+    const bytes=Buffer.from('\uFEFF'+names.join(';')+'\r\n1550;20.12.2026;ВКЛЮЧЕНО\r\n');
+    await upload.setInputFiles({name:'qa-valid.csv',mimeType:'text/csv',buffer:bytes});
+    await page.waitForFunction(()=>document.querySelector('input[aria-label="Общая ставка за партию"]').value==='1550');
+    assert.equal(await v.locator('input[name$=".validUntil"]').inputValue(),'2026-12-20');
+    assert.equal(report.calls.filter(c=>c.path==='/api/quote'&&c.method==='POST').length,before);
+    assert.ok(dialogs.some(d=>d.type==='confirm'));
+    rec.csvImport={status:'PASS',utf8Bom:true,invalidDateRejectedAtomically:true,previewConfirmed:true,importDidNotSubmit:true,sha256:createHash('sha256').update(bytes).digest('hex')};
+   }
    await form.locator('input[type="checkbox"][required]').check();
    const sent=page.waitForResponse(r=>r.url().includes('/api/quote')&&r.request().method()==='POST',{timeout:60000});await form.getByRole('button',{name:/Отправить все варианты/}).click();
    const r=await sent;assert.equal(r.status(),200);rec.quote={http:200};
@@ -97,4 +136,4 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await writeFile('reports/isolated-rc/'+actor+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
    rec.status='FAIL';rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
  await context.close();
-}}finally{await browser.close();await new Promise(done=>server.close(done));await writeFile('reports/isolated-rc/browser-results-'+(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-')+'.json',JSON.stringify(report,null,2));}
+}}finally{await browser.close();await new Promise(done=>server.close(done));report.completedAt=new Date().toISOString();await writeFile('reports/isolated-rc/browser-results-'+(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-')+'.json',JSON.stringify(report,null,2));}
