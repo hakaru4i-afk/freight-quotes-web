@@ -18,7 +18,7 @@ const sessions=JSON.parse(await readFile('/tmp/freight-rc20261110-private/sessio
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
 await mkdir('reports/isolated-rc',{recursive:true});
 const html=await readFile('test/index.html','utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile('test/'+name)).digest('hex');}
@@ -26,7 +26,7 @@ for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]
 try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,designer,content,purchasing,certification').split(',')){
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
  const context=await browser.newContext({viewport:{width:1440,height:900}});const errors=[];
- await context.addInitScript(({token})=>localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token),{token:sessions[actor]});
+ await context.addInitScript(({token})=>{if(window.top===window&&location.protocol==='http:')localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
  await context.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
@@ -117,6 +117,16 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const sent=page.waitForResponse(r=>r.url().includes('/api/quote')&&r.request().method()==='POST',{timeout:60000});await form.getByRole('button',{name:/Отправить все варианты/}).click();
    const r=await sent;assert.equal(r.status(),200);rec.quote={http:200};
    const check=await fetch(base+'/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});const saved=await check.json();assert.ok(saved.bids.some(b=>b.order_code===order&&Number(b.amount)===1550));rec.quote.readbackVerified=true;
+  }
+  if(process.env.QA_BROWSER_MANUAL_REVIEW==='true'&&actor==='owner'){
+   const order=JSON.parse(await readFile('/tmp/freight-rc20261110-private/manual-ui-state.json','utf8')).order;
+   await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());
+   await page.locator('#t2-select').selectOption(order,{timeout:60000});
+   const form=page.locator('form[data-t2-form="manual_pto_review"]');await form.waitFor({state:'attached',timeout:60000});await form.locator('xpath=..').locator('summary').click();
+   await form.locator('[name="reason"]').fill('Synthetic browser: sea route has no supported kilometre provider');
+   await form.locator('[name="evidence"]').fill('QA sea checkpoint recorded in shipment history');
+   const response=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST',{timeout:60000});await form.getByRole('button',{name:'Запустить единственную проверку ВЭД'}).click();const r=await response;assert.equal(r.status(),200);const result=await r.json();assert.ok(result.taskId);
+   rec.manualReview={status:'PASS',order,taskId:result.taskId,realBrowserSubmission:true};
   }
   if(process.env.QA_BROWSER_TENDER==='true'&&actor==='owner'){
    await page.locator('.cabinet-sidebar nav a[href="#tender-hub"]').first().evaluate(el=>el.click());

@@ -125,6 +125,7 @@
      html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен сначала нажать «Взять в работу» в разделе «Мои заявки».</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
    }else{
      html+='<div class="t2-process-banner"><div><strong>Перевозка принята в работу.</strong><span>Доступны этапы, трекинг, документы, сообщения и закрытие перевозки.</span></div></div>';
+     if(state.role==="owner"&&!d.tasks?.some(t=>t.task_type==="pto_review"))html+='<details><summary>Проверка ВЭД при недоступном километраже</summary><p>Только при документированной невозможности расчёта. Дата и пользователь записываются сервером. Проверка ВЭД остаётся обязательной.</p><form data-t2-form="manual_pto_review"><label>Причина<textarea name="reason" required minlength="20" maxlength="1500"></textarea></label><label>Основание: документ или ссылка на подтверждение<textarea name="evidence" required minlength="10" maxlength="1500"></textarea></label><button class="t2-btn" type="submit">Запустить единственную проверку ВЭД</button></form></details>';
      const savedTab=state.tab;
      html+=tabs.filter(([key])=>key!=="completion"||!["ved","logistic"].includes(state.role)).map(([key,title])=>{
        state.tab=key;
@@ -531,6 +532,11 @@
    const f=ev.target.closest("form[data-t2-form]");if(!f)return;ev.preventDefault();
    const data=Object.fromEntries(new FormData(f).entries());const kind=f.dataset.t2Form;
    const csvMeta=f.dataset.t2CsvFields?{form:kind,changedFields:JSON.parse(f.dataset.t2CsvFields)}:undefined;
+   if(kind==="manual_pto_review"){
+     const button=f.querySelector('button[type="submit"]');button.disabled=true;
+     try{await update("manual_pto_review",{reason:data.reason,evidence:data.evidence});}finally{if(button.isConnected)button.disabled=false;}
+     return;
+   }
    if(kind==="upload"){
      const files=f.querySelector('input[type=file]')?.files||[];
      if(!files.length){alertText("Выберите файлы",true);return;}

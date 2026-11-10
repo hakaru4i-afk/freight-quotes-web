@@ -1,3 +1,4 @@
+import {createHash} from "node:crypto";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -6,7 +7,8 @@ const html=readFileSync(new URL("../test/index.html",import.meta.url),"utf8");
 
 test("VED FAQ loads as valid JavaScript and uses a fresh staging asset",()=>{
  assert.doesNotThrow(()=>new Function(js));
- assert.match(html,/current-workspace-help-20261108\.js\?v=ved-faq-20261109-01/);
+ const blob=createHash("sha1").update(Buffer.from("blob "+Buffer.byteLength(js)+"\0")).update(js).digest("hex");
+ assert.ok(html.includes("current-workspace-help-20261108.js?v="+blob.slice(0,12)));
 });
 test("VED identity is not misclassified as Certification",()=>{
  assert.match(js,/return "ved"/);

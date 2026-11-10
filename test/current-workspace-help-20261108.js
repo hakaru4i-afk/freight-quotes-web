@@ -5,6 +5,7 @@ ru:{
 title:"Инструкции и FAQ · Logistics Workspace",
 flow:"Действующий цикл: заявка владельца → ставки перевозчиков → выбор одной ставки → исполнение победителем → завершение.",
 faq:[
+["Что делать, если остаток километров определить невозможно?", "Только Владелец может вручную запустить ту же единственную проверку ВЭД после подтверждения недоступности расчёта. Укажите причину и документированное основание. Пользователь и дата фиксируются сервером; повтор или последующий автоматический расчёт не создаёт новую проверку. До выполнения ВЭД таможня остаётся заблокированной."],
 ["Что означает «Удалить навсегда»?","Только Владелец может удалить заявку целиком из тестового портала. Удаляются связанные раунды, ставки, тендеры, документы, чаты и файлы; корзины и восстановления нет. Архив завершённых перевозок — отдельный раздел, это не корзина."],
 ["Как начать работу?","Войдите с данными администратора. Слева доступны только разделы вашей роли. Начните с «Главная» и назначенных задач."],
 ["Чем заявка отличается от перевозки?","Заявка собирает ставки. Исполнение начинается отдельно после выбора победителя. Это разные меню и статусы."],
@@ -32,6 +33,7 @@ certification:["Проверьте назначенные документы п�
 en:{
 title:"Instructions & FAQ · Logistics Workspace",flow:"Current workflow: Owner request → carrier quotes → one winning offer → execution → closure.",
 faq:[
+["What if remaining distance cannot be calculated?", "Only the Owner may start the same single foreign-trade review after server-confirmed calculation unavailability. A reason and documented evidence are required. The server records user and date. Retries and later automatic calculations reuse the review. Customs stays blocked until the review is completed."],
 ["What does Delete permanently mean?","Only the Owner may permanently delete a request and its linked quotes, tenders, messages, documents and stored files in staging. There is no trash or restore. Completed-shipment archives are separate."],
 ["How do I start?","Sign in with administrator-issued credentials. Use the left menu for your assigned role."],
 ["Request versus shipment?","The request collects rates. Shipment execution starts separately once the Owner selects a winner."],
@@ -59,6 +61,7 @@ certification:["Review assigned documents.","Upload evidence in permitted fields
 zh:{
 title:"操作说明与常见问题 · Logistics Workspace",flow:"当前流程：负责人询价 → 承运商报价 → 选择唯一报价 → 执行运输 → 完成。",
 faq:[
+["无法计算剩余里程时怎么办？", "仅所有者可在服务器确认无法计算后手动发起同一项外贸文件审核。必须填写原因和证明依据。服务器记录操作人及日期；重复操作或后续自动计算不会创建第二项审核。审核完成前仍禁止清关。"],
 ["永久删除是什么意思？","只有负责人可在测试环境中永久删除询价及关联报价、招标、聊天、文件和存储对象。没有回收站或恢复功能。已完成运输的归档是独立业务。"],
 ["如何开始？","使用管理员提供的账号登录，从左侧菜单查看允许的任务。"],
 ["询价和运输的区别？","询价收集报价，选出唯一中标报价后进入独立的运输执行流程。"],

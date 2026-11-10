@@ -10,7 +10,7 @@ const model=JSON.parse(readFileSync('test/business-process-model.json','utf8'));
 test('all ten processes have independent technical and logic assessments and current artifacts',()=>{
  validate(model);assertSourcesCurrent(model);assert.throws(()=>assertSourcesCurrent({...model,reviewedSourceSignatures:{}}),/without reviewed map/);assert.equal(model.processes.length,10);
  for(const [path,content] of outputs(model))assert.equal(readFileSync(path,'utf8'),content,path+' is stale; regenerate from reviewed model');
- assert.equal(model.processes.find(p=>p.id==='P05').logicStatus,'LOGIC_PROBLEM');
+ assert.equal(model.processes.find(p=>p.id==='P05').logicStatus,'LOGIC_IMPROVED');
  assert.equal(model.processes.find(p=>p.id==='P07').logicStatus,'LOGIC_OK');
  assert.match(model.processes.find(p=>p.id==='P07').verification,/Hosted browser.*не проверены/);
  assert.ok(model.processes.every(p=>p.technicalStatus==='PARTIAL'),'Do not turn source review into full acceptance');
