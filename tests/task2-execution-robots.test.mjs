@@ -6,11 +6,11 @@ import {readFile} from "node:fs/promises";
 
 const appJs=await readFile("test/task2-panel-sidebar-only-20261107.js");
 const HTML='<!doctype html><html lang="ru"><meta charset="utf-8"><div class="cabinet-panel" data-section="approved-shipments"></div><script src="/task2.js"></script></html>';
-async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDays}={}){
+async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDays,baseline=false}={}){
  const order="QA-ROBOT-ROUTE-001",posts=[];
  const shipment={order_code:order,registration_no:"TR-26-000101",bitrix_task:"5316,5324",carrier_login:"carrier-qa",delivery_days:deliveryDays,mode,route:"Yiwu → Minsk",origin:"Yiwu",destination:"Minsk",weight:1250,volume:12.5,cargo:"Mock cargo",amount:700,currency:"USD",pickup:"2026-11-07T10:00:00Z"};
  const state={status:"in_progress",original_departure:"2026-11-07T10:00:00Z",actual_departure:null,pto_at:null,pto_checked_at:null,customs_at:null,warehouse_at:null};
- const detail={role,shipment,state,plans:[],points:[],tasks:[],containers:container?[{container_no:container}]:[],docs:[],events:[],acts:[],route:null,hasClaim:false};
+ const detail={role,shipment,state,plans:baseline?[{is_baseline:true,planned_departure:state.original_departure,reason:"approved_offer"}]:[],points:[],tasks:[],containers:container?[{container_no:container}]:[],docs:[],events:[],acts:[],route:null,hasClaim:false};
  const send=(res,obj,code=200)=>{res.writeHead(code,{"content-type":"application/json; charset=utf-8","Cache-Control":"no-store"});res.end(JSON.stringify(obj))};
  const server=createServer(async(req,res)=>{
   const url=new URL(req.url,"http://localhost");
@@ -133,4 +133,18 @@ test("weekly tracking accepts numeric and localized string delivery days",async 
   assert.match(tracking,/Контрольных недель: 3/);
   assert.doesNotMatch(tracking,/Срок доставки в днях не указан/);
  }
+});
+
+test("original plan baseline is preserved and does not consume a reschedule row",async t=>{
+ const {page,detail}=await fixture(t,{baseline:true});
+ assert.equal(await page.locator('.t2-plan-four-row.is-saved').count(),0);
+ assert.equal(await page.locator('form[data-t2-form="plan"]').count(),1);
+ const form=page.locator('form[data-t2-form="plan"]');
+ await form.locator('[name="new_plan_date"]').fill('2027-06-06T09:00');
+ await form.locator('[name="new_plan_reason"]').fill('QA delayed pickup');
+ await save(page,'plan');
+ assert.equal(detail.plans.length,2);
+ assert.equal(detail.plans[0].is_baseline,true);
+ assert.equal(await page.locator('.t2-plan-four-row.is-saved').count(),1);
+ assert.match(await page.locator('form[data-t2-form="plan"]').innerText(),/Перенос 2/);
 });

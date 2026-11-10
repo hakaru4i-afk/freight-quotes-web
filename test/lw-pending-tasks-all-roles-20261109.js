@@ -135,12 +135,18 @@ async function fetchSupplier(role){
  }
  return {tasks,total:tasks.length,errors:[],supported:true};
 }
+async function fetchAssigned(){
+ const d=await get("/api/pending-tasks");
+ if(!Array.isArray(d.items))throw Error("Missing assigned tasks");
+ const tasks=d.items.filter(t=>isOpen(t.status)).map(t=>({...makeTask("assigned:"+t.id,t.description,t.order_code+" · "+(t.registration_no||"")+" · Bitrix "+(t.bitrix_task||""),"approved-shipments",t.order_code,t.created_at),inline:true}));
+ return {tasks,total:Number(d.total)||tasks.length,errors:d.limited?["Показаны первые 200 назначений"]:[],supported:true};
+}
 async function loadRole(role){
  if(role==="owner")return fetchOwner();
  if(role==="carrier")return fetchCarrier();
  if(role==="logistic")return fetchTask2("logistic");
  if(role==="supplier"||role==="designer")return fetchSupplier(role);
- return {tasks:[],total:0,errors:[],supported:false};
+ return fetchAssigned();
 }
 const state={role:"",items:[],total:0,errors:[],supported:false,loading:false,loaded:false,updated:0,request:0};
 let scheduled=false,refreshing=false;
@@ -148,6 +154,9 @@ function homeTarget(){
  const role=state.role;
  if(!roles.has(role))return null;
  const variants=role==="logistic"?["logistic","ved"]:role==="designer"?["designer","content-manager"]: [role];
+ const standalone=document.querySelector('.sw-cabinet[data-cabinet-role="'+role+'"] .sw-page');
+ if(standalone)return standalone;
+ if(["content","purchasing","certification"].includes(role))return document.querySelector("#root main.card");
  let cabinet=null;
  for(const r of variants){
   cabinet=document.querySelector('.cabinet-app[data-cabinet-role="'+r+'"]');
@@ -179,7 +188,7 @@ function paint(){
   !count?'<div class="lw-pending-status">'+esc(word("empty"))+'</div>':"";
  if(state.errors.length&&items.length)status+='<div class="lw-pending-warning">'+esc(word("partial"))+'</div>';
  const displayed=items.slice(0,5);
- const rows=displayed.map(task=>'<li><a href="#'+esc(task.route)+'" data-lw-task-open="'+esc(task.route)+'" data-lw-order="'+esc(task.order)+'"><span><strong>'+esc(task.label)+'</strong><small>'+esc(task.detail)+'</small></span><span class="lw-pending-arrow" aria-hidden="true">›</span></a></li>').join("");
+ const rows=displayed.map(task=>task.inline?'<li><details><summary><strong>'+esc(task.label)+'</strong></summary><p>'+esc(task.detail)+'</p></details></li>':'<li><a href="#'+esc(task.route)+'" data-lw-task-open="'+esc(task.route)+'" data-lw-order="'+esc(task.order)+'"><span><strong>'+esc(task.label)+'</strong><small>'+esc(task.detail)+'</small></span><span class="lw-pending-arrow" aria-hidden="true">›</span></a></li>').join("");
  const more=count>5?'<div class="lw-pending-more">'+esc(word("more"))+count+'</div>':"";
  root.innerHTML='<div class="lw-pending-head"><div><h3>'+esc(word("heading"))+'</h3><span class="lw-pending-count" aria-label="'+esc(word("heading"))+'">'+(state.loading?"…":state.supported?count:"—")+'</span></div><button type="button" data-lw-tasks-refresh>'+esc(word("refresh"))+'</button></div>'+
   (rows?'<ul>'+rows+'</ul>':"")+status+more;

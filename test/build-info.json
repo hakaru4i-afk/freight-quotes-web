@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 84,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "b5300cbf3d4a7208adf26fd729ae9a1857a59b88",
+    "frontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "96cc0b8384638468f1c193612f6b2596dbb33efc",
     "tablesApplied": true,
@@ -414,7 +414,7 @@
     "version": "2026-11-09.2",
     "scope": "staging-only",
     "script": "lw-pending-tasks-all-roles-20261109.js",
-    "frontendSha": "70f620965f97cfd07f96a031a6fb631f1cbc140d",
+    "frontendSha": "915ba68344c6a475832c6b00ac1b443b3af2cafa",
     "css": "lw-pending-tasks-all-roles-20261109.css",
     "roles": [
       "owner",
@@ -431,16 +431,15 @@
       "carrier",
       "logistic",
       "supplier",
-      "designer"
-    ],
-    "unconnectedTaskFeeds": [
+      "designer",
       "content",
       "purchasing",
       "certification"
     ],
+    "unconnectedTaskFeeds": [],
     "refreshPolicy": "login, return to main screen, focus if stale after 60s, manual refresh; no background polling",
     "dataSource": "existing session-filtered authorized APIs",
-    "qaStatus": "UNIT_CI_PASS_ALL_ROLE_DATA_AND_DOM; GITHUB_PAGES_PUBLISH_PENDING_FINAL; REAL_AUTHORIZED_E2E_PENDING",
+    "qaStatus": "ISOLATED_CANDIDATE; SOURCE_REGRESSION_PASS; REAL_ROLE_FEED_E2E_PENDING",
     "productionChanged": false,
     "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
     "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
@@ -465,7 +464,7 @@
     ],
     "qaStatus": "CHAT_SOURCE_AND_CI_CHECK; AUTHORIZED_CHAT_E2E_PENDING",
     "productionChanged": false,
-    "task2FrontendSha": "b5300cbf3d4a7208adf26fd729ae9a1857a59b88",
+    "task2FrontendSha": "470ce388e74e623b6ed45458fc6516a4dc8bcdba",
     "knownBlocker": "Only enabled technical logistic staff is VED in staging; disabled QA logistic not re-enabled without approval. Recipient dropdown reports none.",
     "schemaMigration": "allow_ved_request_logistic_task_type_20261109",
     "chatMenu": "Чаты по заявкам",

@@ -134,8 +134,9 @@
    }
    root.innerHTML=html;
  }
+ function departurePlans(detail){return (detail?.plans||[]).filter(p=>!p.is_baseline);}
  function renderTab(d,carrier,staff){
-   const o=d.shipment,x=d.state||{},plans=d.plans||[],pts=d.points||[],tasks=d.tasks||[],cs=d.containers||[];
+   const o=d.shipment,x=d.state||{},plans=departurePlans(d),pts=d.points||[],tasks=d.tasks||[],cs=d.containers||[];
    const readHeader='<p class="t2-muted">Ставка и валюта выбраны Владельцем и недоступны для повторного согласования. Все номера Bitrix наследуются исходным заказом.</p>';
    if(state.tab==="overview"){
      const price=o.amount==null?"—":o.amount+" "+(o.currency||"");
@@ -564,17 +565,17 @@
      return;
    }
    if(kind==="plan"){
-     if((state.detail?.plans||[]).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
+     if(departurePlans(state.detail).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
      if(!data.new_plan_date||!String(data.new_plan_reason||"").trim()){alertText("Укажите новую дату и причину",true);return;}
      const button=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
      if(button){button.disabled=true;button.textContent="Сохраняем…";}
      if(feedback)feedback.textContent="Проверяем сохранение…";
-     const before=(state.detail?.plans||[]).length;
+     const before=departurePlans(state.detail).length;
      try{
        const result=await update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
        if(!result?.ok){if(feedback)feedback.textContent="Не удалось сохранить. Проверьте сообщение об ошибке.";return;}
        await loadDetail();
-       const after=(state.detail?.plans||[]).length;
+       const after=departurePlans(state.detail).length;
        if(after<=before){alertText("Сервер не подтвердил добавление переноса. Данные не считаются сохранёнными.",true);}
        else alertText("Перенос № "+after+" сохранён. Следующая строка доступна.");
      }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
