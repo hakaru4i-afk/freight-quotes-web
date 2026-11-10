@@ -131,6 +131,15 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    for(const value of [protocol.protocol.tender.protocol,protocol.protocol.tender.order_code,'1480','Synthetic QA price tender'])assert.ok(text.includes(value),'PDF missing '+value);
    rec.tenderPdf={status:'PASS',http:200,final:true,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),protocolNumber:protocol.protocol.tender.protocol,order:protocol.protocol.tender.order_code,serverValuesVerifiedInPdf:true};
   }
+  if(process.env.QA_BROWSER_EXPAND_TASKS==='true'&&actor==='content'){
+   const inbox=page.locator('#lw-pending-tasks-all-roles');await inbox.getByText('Business QA assignment 6',{exact:true}).waitFor({timeout:60000});
+   assert.equal(await inbox.locator('li').count(),5);assert.equal(await inbox.getByText('Business QA assignment 1',{exact:true}).count(),0);
+   const before=report.calls.length;await inbox.getByRole('button',{name:'Показать ещё',exact:true}).click();
+   await inbox.getByText('Business QA assignment 1',{exact:true}).waitFor();assert.equal(await inbox.locator('li').count(),7);
+   assert.equal(await inbox.getByText('Foreign QA task must stay hidden',{exact:true}).count(),0);
+   assert.equal(report.calls.length,before,'Expanding already loaded work must not issue new requests');
+   rec.taskExpansion={status:'PASS',initialVisible:5,afterExpand:7,foreignTaskVisible:false,extraRequests:0};
+  }
   if(process.env.QA_EXPECT_TASK_FEED==='true'){
    await page.locator('#lw-pending-tasks-all-roles').waitFor({timeout:60000});
    if(['content','purchasing','certification'].includes(actor)){

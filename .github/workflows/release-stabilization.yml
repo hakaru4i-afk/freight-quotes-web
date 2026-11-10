@@ -4,6 +4,7 @@ on:
     paths:
       - 'test/**'
       - 'tests/**'
+      - 'scripts/build-process-maps.mjs'
       - '.github/workflows/release-stabilization.yml'
   workflow_dispatch:
 permissions:
@@ -29,6 +30,8 @@ jobs:
           tests/task12-release-gate.test.mjs
           tests/lw-pending-tasks-all-roles.test.mjs
           tests/staging-asset-contract.test.mjs
+      - name: Reject stale process diagrams
+        run: node scripts/build-process-maps.mjs --check
       - name: Execute all 37 mapped robot groups
         run: node tests/task12-robot-runner.mjs
       - uses: actions/upload-artifact@v4

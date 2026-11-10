@@ -70,8 +70,8 @@
         "sha256": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f"
       },
       "lw-pending-tasks-all-roles-20261109.js": {
-        "gitBlob": "915ba68344c6a475832c6b00ac1b443b3af2cafa",
-        "sha256": "3793842893abe988d192f3070221b6684f17a9ac0cab5750230203bbe8eb0e70"
+        "gitBlob": "3229bc53e44c72167c73238a054918f3a474a767",
+        "sha256": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47"
       }
     },
     "helpLocales": {
@@ -438,10 +438,10 @@
   },
   "pendingTasksCenter": {
     "id": "LW-TASKS-ALL-ROLES-20261109",
-    "version": "2026-11-09.2",
+    "version": "2026-11-10.1",
     "scope": "staging-only",
     "script": "lw-pending-tasks-all-roles-20261109.js",
-    "frontendSha": "915ba68344c6a475832c6b00ac1b443b3af2cafa",
+    "frontendSha": "3229bc53e44c72167c73238a054918f3a474a767",
     "css": "lw-pending-tasks-all-roles-20261109.css",
     "roles": [
       "owner",
@@ -469,7 +469,8 @@
     "qaStatus": "REAL_QA_ROLE_FEEDS_AND_DESKTOP_MOBILE_PASS; STAGING_FRONTEND_PUBLISH_PENDING",
     "productionChanged": false,
     "regression": "Six role/data tests + mounted DOM for all 8 roles, verified in Task2 smoke workflow",
-    "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh."
+    "privacy": "Current session role from /api/session; VED assigned_login checked via /api/access; clears tasks on logout/session refresh.",
+    "expansion": "Five at a time; no new requests or permissions"
   },
   "vedChat": {
     "id": "VED-CHAT-AND-LOGISTIC-REQUEST-20261109",
@@ -524,5 +525,11 @@
     "isolatedQaBundleSha256": "cc7adcf7eb4b3be9ccc1582737088adcf58bef50e2d4947a65d05b4c2c1c5edc",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates"
+  },
+  "businessProcessReview": {
+    "modelVersion": "20261110-logic-1",
+    "scope": "staging-only",
+    "status": "RELEASE_BLOCKED",
+    "technicalAndLogicSeparate": true
   }
 }
