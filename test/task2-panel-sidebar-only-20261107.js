@@ -133,7 +133,15 @@
      }).join("");
      state.tab=savedTab;
    }
-   root.innerHTML=html;
+   root.innerHTML=html;syncBusyControls();
+ }
+ function syncBusyControls(){
+   const root=document.getElementById("task2-root");if(!root)return;
+   root.setAttribute("aria-busy",String(state.busy));
+   for(const button of root.querySelectorAll('form button[type="submit"],[data-t2-task-complete],[data-t2-act-response],[data-t2-action]')){
+     if(state.busy&&!button.disabled){button.dataset.t2BusyDisabled="true";button.disabled=true;}
+     else if(!state.busy&&button.dataset.t2BusyDisabled){button.disabled=false;delete button.dataset.t2BusyDisabled;}
+   }
  }
  function departurePlans(detail){return (detail?.plans||[]).filter(p=>!p.is_baseline);}
  function renderTab(d,carrier,staff){
@@ -240,25 +248,25 @@
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
        html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
-         '<form data-t2-form="save" class="t2-pto-compact" style="display:grid!important;grid-template-columns:minmax(140px,.7fr) minmax(190px,1fr) minmax(190px,1fr) 116px;gap:10px;align-items:start;width:100%;margin:0 0 14px">'+
+         '<form data-t2-form="save" class="t2-pto-compact">'+
          (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
            '<label class="t2-pto-cell"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да</option></select></label>')+
          (x.pto_at?'<div class="t2-pto-cell"><small>Дата прибытия</small><strong>'+fmt(x.pto_at)+'</strong></div>':
            '<label class="t2-pto-cell"><span>Дата прибытия (Минск)</span><input type="datetime-local" name="pto_date"></label>')+
          (x.customs_at?'<div class="t2-pto-cell"><small>Таможенное оформление завершено</small><strong>'+fmt(x.customs_at)+'</strong></div>':
            '<label class="t2-pto-cell" title="Дата завершения импортного таможенного оформления (Минск)"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
-         '<button type="submit" class="t2-btn" style="width:116px;height:38px;min-height:38px;align-self:start;margin-top:22px">Сохранить</button></form>'+
+         '<button type="submit" class="t2-btn">Сохранить</button></form>'+
          '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
          '<div class="t2-block-title">4. Номер контейнера</div>'+
-         '<form data-t2-form="container" class="t2-container-compact" style="display:grid!important;grid-template-columns:minmax(0,1fr) 116px;gap:10px;align-items:start;width:100%;margin:0 0 14px">'+
+         '<form data-t2-form="container" class="t2-container-compact">'+
          '<label class="t2-pto-cell" style="min-width:0"><span>№ контейнера (необязательно)</span><input type="text" name="container_no" maxlength="50" placeholder="Введите номер контейнера" required style="width:100%;height:38px;min-width:0;box-sizing:border-box;background:#fff!important;color:#17243a!important;border:1px solid #cbd5e1!important;border-radius:8px!important;padding:0 12px!important;box-shadow:none!important;appearance:none!important;-webkit-text-fill-color:#17243a!important"></label>'+
-         '<button type="submit" class="t2-btn" style="width:116px;height:38px;margin:22px 0 0;align-self:start">Сохранить</button></form>';
+         '<button type="submit" class="t2-btn">Сохранить</button></form>';
         // Склад — фактическое событие перевозчика после таможни, а НЕ новая задача ВЭД.
         if(x.customs_at&&!x.warehouse_at){
           html+='<div class="t2-block-title">5. Прибытие груза на склад</div>'+
-            '<form data-t2-form="save" class="t2-container-compact" style="display:grid!important;grid-template-columns:minmax(0,1fr) 116px;gap:10px;align-items:start;width:100%;margin:0 0 14px">'+
+            '<form data-t2-form="save" class="t2-container-compact">'+
             '<label class="t2-pto-cell"><span>Фактическая дата прибытия (Минск)</span><input type="datetime-local" name="warehouse_date" required></label>'+
-            '<button type="submit" class="t2-btn" style="width:116px;height:38px;margin:22px 0 0;align-self:start">Сохранить</button></form>';
+            '<button type="submit" class="t2-btn">Сохранить</button></form>';
         }else if(x.warehouse_at)html+='<div class="t2-block-title">5. Прибытие груза на склад</div>'+readonly("Прибытие подтверждено",fmt(x.warehouse_at));
      }
      /* History of dates is shown directly above the new transfer fields. */
@@ -353,7 +361,7 @@
  }
  async function update(action,fields,files){
    if(state.busy)return;
-   state.busy=true;alertText("Сохраняем…");
+   state.busy=true;syncBusyControls();alertText("Сохраняем…");
    try{
      const payload={action,order:state.selected,...fields};
      const requestKey=JSON.stringify(payload);
@@ -393,7 +401,7 @@
        :(result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote;
      alertText(message);
      return {...result,refreshError};
-   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false,error:e.message||"Ошибка"};}finally{state.busy=false;}
+   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false,error:e.message||"Ошибка"};}finally{state.busy=false;syncBusyControls();}
  }
  async function downloadDoc(id){
    try{

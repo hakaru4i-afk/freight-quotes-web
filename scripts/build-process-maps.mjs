@@ -5,7 +5,7 @@ import {resolve,dirname} from 'node:path';
 export const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const wrap=(s,n=28)=>{const out=[];let line='';for(const w of String(s).split(/\s+/)){if((line+' '+w).trim().length>n&&line){out.push(line);line=w;}else line=(line+' '+w).trim();}if(line)out.push(line);return out;};
-const watchedSources=['test/app.js','test/task2-panel-sidebar-only-20261107.js','test/late-bid-staging-3ff2c9ab03f5.js','test/task2-guidance-42dc6ccc8a20.js','test/carrier-acceptance-workflow-20261107.js','test/current-workspace-help-20261108.js','test/lw-pending-tasks-all-roles-20261109.js'];
+const watchedSources=['test/app.js','test/task2-panel-sidebar-only-20261107.js','test/late-bid-staging-3ff2c9ab03f5.js','test/task2-guidance-42dc6ccc8a20.js','test/carrier-acceptance-workflow-20261107.js','test/current-workspace-help-20261108.js','test/lw-pending-tasks-all-roles-20261109.js','test/ved-single-workspace-20261108.js','test/lw-ved-shared-chat-20261109.js'];
 function sourceSignatures(){return Object.fromEntries(watchedSources.map(path=>[path,createHash('sha256').update(readFileSync(resolve(root,path))).digest('hex')]));}
 function backendSource(){return JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')).stabilizationQa20261110.backendSourceCommit;}
 export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}

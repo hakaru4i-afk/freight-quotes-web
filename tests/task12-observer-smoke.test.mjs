@@ -2,6 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {readFile} from "node:fs/promises";
 import {createHash} from "node:crypto";
+import {resolve} from "node:path";
+// PR checks use the deployed base; after publication the candidate is mandatory.
+const expectedRoot=resolve(process.env.QA_SERVED_EXPECTED_DIR||".","test");
 
 const base="https://hakaru4i-afk.github.io/freight-quotes-web/test/";
 async function get(path){
@@ -57,10 +60,10 @@ test("Task1+Task2: deferred transport document is not silently removed or counte
  for(const x of evidence)assert.ok(x.evidence.length>0,x.id+" PASS must have evidence");
 });
 
-test("Task1+Task2: GitHub Pages serves the latest observer HTML and matrix byte-for-byte",async()=>{
+test("Task1+Task2: GitHub Pages serves exact baseline or published candidate observer bytes",async()=>{
   const names=["qa-observer.html","qa-observer.json"];
   for(const name of names){
-    const local=await readFile("test/"+name,"utf8");
+    const local=await readFile(resolve(expectedRoot,name),"utf8");
     const expected=createHash("sha256").update(local).digest("hex");
     let actual="";
     for(let tries=0;tries<15;tries++){
@@ -69,6 +72,6 @@ test("Task1+Task2: GitHub Pages serves the latest observer HTML and matrix byte-
       if(actual===expected)break;
       if(tries<14)await new Promise(r=>setTimeout(r,12000));
     }
-    assert.equal(actual,expected,"Published "+name+" does not match repository HEAD. Pages is still serving an older version.");
+    assert.equal(actual,expected,"Published "+name+" does not match the expected deployed source.");
   }
 });
