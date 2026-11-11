@@ -587,7 +587,7 @@
     ]
   ],
   "reviewedSourceSignatures": {
-    "test/app.js": "3436c8db71a0cd9423c975a388128afd80922b10693bc3f78e6fc1937e7da82f",
+    "test/app.js": "4d1f899ae4d24ddf07fd3e343b9ab26dec23470d1bc97e6ee49b1bd087a89cbb",
     "test/task2-panel-sidebar-only-20261107.js": "a1c24156a0244ebdbe9e8b94cbdbdd6497a1e23153bc7f675fa2b5ecdc26d30b",
     "test/late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
     "test/task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",

@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "99590a2240061c4eabf996b302840c9925085f13",
+  "servedAppBlobSha": "91e6586e7f8f0d67fe338b0e4ddadf7708370394",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "99590a2240061c4eabf996b302840c9925085f13",
-        "sha256": "3436c8db71a0cd9423c975a388128afd80922b10693bc3f78e6fc1937e7da82f"
+        "gitBlob": "91e6586e7f8f0d67fe338b0e4ddadf7708370394",
+        "sha256": "4d1f899ae4d24ddf07fd3e343b9ab26dec23470d1bc97e6ee49b1bd087a89cbb"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -551,10 +551,10 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "61ae381fb73930060c7e",
+  "stagingAssetBuildId": "029d6027ea5086bd795e",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
-    "app.js": "3436c8db71a0cd9423c975a388128afd80922b10693bc3f78e6fc1937e7da82f",
+    "app.js": "4d1f899ae4d24ddf07fd3e343b9ab26dec23470d1bc97e6ee49b1bd087a89cbb",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -571,7 +571,7 @@
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
-    "lw-approved-dark-20261108.css": "79f42323ca6055b06b7658a64bce647881b4cb94d7fbe23651e9f9f83ca0af94",
+    "lw-approved-dark-20261108.css": "1fb30c728691ea7459ef0622d3fe510f080f8cdc79cea9add5431863681e9748",
     "lw-approved-dark-20261108.js": "fcae5ead0dbbbcbaa600c2db03689890e0b7a244eec540ee5ef878df71bb0029",
     "lw-hover-safe-20261108.css": "cf5e3c4dfc733fa5ec49b7f7a29c04c4bf90b2bf266d2aaf0b7856365bce2af3",
     "lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
