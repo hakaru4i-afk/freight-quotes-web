@@ -82,6 +82,11 @@ jobs:
           QA_BROWSER_ACTORS: ${{ steps.selection.outputs.winner_actor }}
           QA_BROWSER_ACCEPT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Winning carrier tracks dates, four changes and containers without duplicate history
+        env:
+          QA_BROWSER_ACTORS: ${{ steps.selection.outputs.winner_actor }}
+          QA_BROWSER_TRACK: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: VED assigns documents and sends a real shared message with attachment
         env:
           QA_BROWSER_ACTORS: ved
