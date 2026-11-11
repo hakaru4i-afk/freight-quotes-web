@@ -5,6 +5,13 @@ on:
       - 'test/**'
       - 'tests/issue47-served-pages.test.mjs'
       - '.github/workflows/issue47-served-pages.yml'
+      - 'scripts/wait-staging-publication.mjs'
+  push:
+    branches: [main]
+    paths:
+      - 'test/**'
+      - 'scripts/wait-staging-publication.mjs'
+      - '.github/workflows/issue47-served-pages.yml'
   workflow_run:
     workflows: ["pages build and deployment"]
     types: [completed]
@@ -16,7 +23,7 @@ jobs:
   verify-served-pages:
     if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,6 +36,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: deployed-baseline
+      - name: Wait for exact candidate publication
+        if: github.event_name == 'push'
+        run: node scripts/wait-staging-publication.mjs
       - name: Verify exact served staging build and API
         env:
           QA_SERVED_EXPECTED_DIR: ${{ github.event_name == 'pull_request' && 'deployed-baseline' || '.' }}
