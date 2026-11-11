@@ -6,6 +6,7 @@ export function checkAlignment(root){
  const read=p=>readFileSync(resolve(root,p));const m=JSON.parse(read('test/staging-manifest.json'));
  if(m.environment!=='staging'||m.releaseStatus!=='RELEASE_BLOCKED')throw Error('UNAUTHORIZED_RELEASE_STATE');
  if(!/^[a-f0-9]{40}$/.test(m.frontendCommit)||!m.businessVersions.length)throw Error('MISSING_PROVENANCE');
+ if(!/^[a-f0-9]{64}$/.test(m.apiBundleSha256||'')||!/^[a-f0-9]{40}$/.test(m.apiSourceCommit||''))throw Error('MISSING_VERIFIED_RUNTIME_PAIR');
  const versions=new Map();for(const {version,issue}of m.businessVersions){if(versions.has(version)&&versions.get(version)!==issue)throw Error('BUSINESS_VERSION_COLLISION');versions.set(version,issue);}
  const hash=b=>createHash('sha256').update(b).digest('hex');
  const excluded=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
