@@ -15,12 +15,12 @@ faq:[
 ["Чем отличаются номера?","TR — неизменный регистрационный номер. Номер заказа компании, номер заказа поставщика и номера Bitrix — разные поля."],
 ["Где транспортная заявка и ВЭД?","Создание транспортной заявки отложено. После принятия перевозки победителем ВЭД видит её документы, общий чат и свои задания. При подтверждённом остатке менее 1000 км до ПТО создаётся одна задача проверки документов."],
 ["Как сообщить об ошибке?","Откройте «Предложения», выберите «Исправление», «Доработка» или «Разработка», опишите экран и ожидаемый результат. Владелец изменит статус в «Центре доработок»."],
-["Как заполнить Excel-шаблон?","Скачайте шаблон в форме, заполните колонки в Excel или WPS, загрузите файл и проверьте перенос. Импорт не отправляет ставку: после него нажмите штатную кнопку отправки."],
+["Как заполнить Excel-шаблон ставки?","Только в расчёте транспортных ставок перевозчиком: скачайте шаблон, заполните отдельные колонки в Excel или WPS, импортируйте данные и затем отдельно отправьте ставку. В публичном разделе сотрудничества шаблонов НЕТ — прикладываются готовые документы."],
 ["Что означают статусы предложений?","Отправлено → Прочитано → Оценено → В работе → Выпуск (с датой) → Завершено. Возможен «Отказано в разработке». Завершение отмечают после проверки."],
-["Как новому партнёру связаться с компанией?","На публичной странице есть форма «Сотрудничество». Владелец получает обращение и отдельно решает вопрос о доступе."]
+["Как новому партнёру связаться с компанией?","На публичной странице «Предложить сотрудничество» партнёр прикладывает до 3 готовых коммерческих предложений по 5 МБ (общий предел 12 МБ) без Excel-шаблонов. Владелец видит их в своём реестре и отдельно решает вопрос о доступе."],["Где посмотреть изменения и структуру процессов?","В кабинете владельца откройте реестры обновлений, замечаний и разработок: оперативные записи поступают из Центра доработок, полный архив открывается в GitHub. «Структура бизнес-процессов» показывает модель от 11.11.2026; это просмотр, не конструктор изменения правил."]
 ],
 roles:{
-owner:["Удаление заявки доступно только Владельцу: «Реестр заявок» → карточка → «Удалить навсегда». Подтвердите необратимое удаление. Архив и аннулирование — другие операции.","Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","Просматривайте обращения потенциальных партнёров в «Помощь / FAQ»."],
+owner:["Удаление заявки доступно только Владельцу: «Реестр заявок» → карточка → «Удалить навсегда». Подтвердите необратимое удаление. Архив и аннулирование — другие операции.","Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","В «Реестре предложений по сотрудничеству» просматривайте сообщения, файлы коммерческих предложений и управляйте статусами; скачивание доступно только владельцу."],
 carrier:["Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу» в «Мои заявки», затем «Мои перевозки» для исполнения, трекинга и файлов. Транспортная заявка сейчас отложена.","Проигравшие не исполняют перевозку.","Для обращения по сайту откройте «Предложения», выберите тип и напишите описание."],
 ved:["Откройте раздел «Документы»: здесь одна автоматическая задача проверки документов до ПТО при подтверждённом остатке менее 1000 км.","Для запроса недостающих документов выберите конкретного логиста; завершение задания возможно только после загрузки файла.","Для общения с владельцем и перевозчиком используйте «Чаты по заявкам» без шаблонов и CSV."],
 logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не выбирайте победителя вместо Владельца. Выполняйте только назначенные вам документальные задания; запрос ВЭД логисту адресуется конкретному сотруднику."],
@@ -43,12 +43,12 @@ faq:[
 ["Which numbers matter?","TR registration, company order, supplier order and Bitrix tasks are separate references."],
 ["Transport application and foreign trade?","Transport-application drafting is deferred. Once the winning carrier accepts a shipment, foreign-trade staff can review its documents and shared chat; one document-check task is created when confirmed remaining distance falls below 1,000 km before PTO."],
 ["Found a bug?","Open Suggestions, select Fix, Improvement or Development, and describe the screen and expected result. The Owner processes it in Improvement Center."],
-["How do I use the Excel template?","Download the form template, fill separate columns in Excel or WPS, upload and review the transfer. Import does not submit an offer; press Submit afterwards."],
+["How do I use a quote Excel template?","Only for carrier freight quotes: fill the columns, import from Excel/WPS, then explicitly submit the offer. The public cooperation form requires ready proposal documents and no template."],
 ["What are suggestion statuses?","Submitted → Read → Evaluated → In progress → Release (with a date) → Completed, or Rejected. Completion requires verification."],
-["How do new partners join?","Use the public Partnership form. The Owner receives requests and grants accounts separately."]
+["How do new partners join?","The public Partnership form accepts up to three ready proposal files (max 5 MB each; 12 MB total), with no row templates. The Owner reviews them in the Cooperation Proposals Register and separately grants access."],["Where can I find change registers and process maps?","The Owner menu contains Updates, Remarks and Development registers with live Improvement Center entries and links to complete GitHub archives. The Business Process Structure shows the current 11 Nov 2026 model; editing workflow rules requires a separate approved change."]
 ],
 roles:{
-owner:["Only the Owner can permanently delete a request in Registry → request card → Delete permanently. Confirm irreversible deletion. Archiving and annulment are different actions.","Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner inquiries in Help / FAQ."],
+owner:["Only the Owner can permanently delete a request in Registry → request card → Delete permanently. Confirm irreversible deletion. Archiving and annulment are different actions.","Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner messages and attached commercial proposal files in the Cooperation Proposals Register; only the Owner may download them."],
 carrier:["Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If awarded, accept in My Requests, then use My Shipments for execution, tracking and files. Transport-application drafting is deferred.","Unselected carriers cannot execute.","Report portal issues using the Suggestions form."],
 ved:["Open Documents for your assigned pre-PTO document check; only one task is generated below 1,000 km confirmed remaining distance.","Request missing documents from a named logistician and track the file attached to that task.","Use Chats by request for the shared conversation with the Owner and awarded carrier, without message templates or CSV."],
 logistic:["Review permitted requests and offers.","Check route, timing and files.","Only the Owner selects the winner. Complete document requests assigned to you by foreign-trade staff; do not access other employees’ tasks."],
@@ -71,12 +71,12 @@ faq:[
 ["编号有什么区别？","TR 登记号、公司订单号、供应商订单号和 Bitrix 任务编号各不相同。"],
 ["运输申请和外贸任务呢？","运输申请文件流程暂缓。中标承运商接单后，外贸人员可查看运输文件与共享聊天；到达海关前，经确认剩余里程小于 1000 公里时只生成一项文件审核任务。"],
 ["发现问题怎么办？","在“建议”中选择修复、改进或开发，描述页面和期望结果。所有者在改进中心处理。"],
-["如何使用 Excel 模板？","下载表格模板，在 Excel 或 WPS 中逐列填写，上传后检查。导入不会自动提交报价，还需要点击提交。"],
+["如何使用 Excel 模板？","仅用于承运商运价：填写 Excel/WPS 列、导入并单独提交报价。公开合作申请无模板，只需上传现成商业方案文件。"],
 ["建议状态如何变化？","已提交 → 已阅读 → 已评估 → 处理中 → 发布（附日期）→ 已完成；也可能被拒绝。验证后才能标记完成。"],
-["如何成为合作伙伴？","使用公开合作表单；负责人审核后单独开通账号。"]
+["如何成为合作伙伴？","通过公开合作表单上传最多3份现成方案文件（每份5MB，合计12MB），无需填写表格模板。所有者在合作登记册审核并单独决定是否开通账号。"],["在哪里查看版本登记册及流程图？","所有者菜单提供更新、问题及开发事项的实时记录和 GitHub 完整档案；流程图显示2026年11月11日现行模型，规则修改须另行审批。"]
 ],
 roles:{
-owner:["只有负责人可在登记表的询价详情中执行永久删除，且不可恢复。归档及作废是独立操作。","创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在帮助栏目查看合作申请。"],
+owner:["只有负责人可在登记表的询价详情中执行永久删除，且不可恢复。归档及作废是独立操作。","创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在合作申请登记册查看申请与附件，文件仅供所有者下载。"],
 carrier:["打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中标后在“我的申请”接单，在“我的运输”处理追踪和文件；运输申请目前暂缓。","未中选不能执行运输。","通过“建议”提交网站修复或改进要求。"],
 ved:["在文件栏目查看海关前审核任务：经确认剩余路程少于 1000 公里时仅生成一项。","可指定物流人员提交缺失文件，并在任务中查看附件。","在按询价分类的聊天中与负责人及中标承运商交流，无消息模板或 CSV。"],
 logistic:["查看权限内的报价和申请。","核对路线、时效和文件。","不可代替负责人选择报价。"],
@@ -145,7 +145,7 @@ certification:{ru:[["Какие документы доступны?","Толь�
 };
 const ownerNavigationGuide={
 ru:{
-title:"Карта разделов кабинета владельца · 08.11.2026",
+title:"Карта разделов кабинета владельца · 11.11.2026",
 sections:[
 ["Рабочий стол","Новый тёмный рабочий стол: показатели заявок, решений, тендеров, перевозок, распределение транспорта, маршруты, таблица и срочные действия. Цифры поступают из тестовой базы; «—» означает отсутствие доступных данных, а не ноль. Кнопка «Просмотр кабинетов» доступна в верхней строке любого раздела владельца; постоянной большой панели или пустой полосы слева нет. Кнопка «Новая заявка» открывает существующую форму, а не второй процесс."],
 ["01 · Заявки и ставки","Новая заявка → Реестр заявок → Рассмотрение ставок → Сроки и ответы → Тендеры. «Рассмотрение» выбирает ставку; «Сроки и ответы» контролирует дедлайны и ответы."],
@@ -153,10 +153,10 @@ sections:[
 ["03 · Контрагенты","Поставщики и документы; Дизайн и контент. Это разные задания и документы, их не объединяем."],
 ["04 · Контроль и аналитика","На главной блок Service Level показывает средний балл перевозчиков и количество в группах 76–100%, 51–75%, 0–50%. «Журнал и оценки SL» открывает подробности, основания штрафов и разблокировку. Аналитика, SLA и работа сайта остаются отдельными функциями; SLA не заменяет сроки в заявке."],
 ["05 · Управление","Пользователи и доступ; Уровни доступа; Центр доработок. Первый раздел — учётные записи, второй — права, третий — замечания/разработки."],
-["Справка","Помощь / FAQ. Отдельная транспортная заявка скрыта из активного меню: её процесс отложен, исходный код сохранён."]
+["06 · Реестры и процессы","Реестры обновлений, замечаний и разработок: оперативные записи Центра доработок с фильтрами и полный архив GitHub. Реестр сотрудничества: готовые коммерческие предложения с файлами. Структура бизнес-процессов: актуальная модель 11.11.2026, 10 процессов."],["Справка","FAQ и инструкции по кабинетам на RU/EN/ZH. Транспортная заявка отложена, её нельзя считать действующим обязательным этапом."]
 ]},
 en:{
-title:"Owner workspace navigation · 08 Nov 2026",
+title:"Owner workspace navigation · 11 Nov 2026",
 sections:[
 ["Workspace","The dark Owner dashboard shows live requests, decisions, tenders, shipments, transport types, routes and actions. A dash means unavailable data, not zero. The View Cabinets button remains in the header on every Owner page; no permanently displayed role panel. New Request opens the existing workflow."],
 ["01 · Requests & quotes","New Request → Request Register → Offer Review → Deadlines & Replies → Tenders. Review selects rates; deadlines track responses."],
@@ -164,10 +164,10 @@ sections:[
 ["03 · Partners","Suppliers & Documents; Design & Content are separate authorized workflows."],
 ["04 · Oversight & analytics","The home Service Level panel shows average carrier score and carrier counts across 76–100%, 51–75% and 0–50%. Open the SL journal for penalties, detailed scores and Owner unlock controls. Analytics, SLA and site monitoring remain separate."],
 ["05 · Administration","Users & Access; Access Levels; Improvement Center. Accounts, permissions and improvement reports are separate."],
-["Help","Help / FAQ. The separate transport application is deferred and hidden from the active menu; its sources remain preserved."]
+["06 · Registers & processes","Live filtered Improvement Center entries plus full GitHub archives, private partner proposals, and the current 11 Nov 2026 business process map."],["Help","FAQ and role instructions in RU/EN/ZH. The independent transport application remains deferred."]
 ]},
 zh:{
-title:"所有者工作台导航 · 2026年11月8日",
+title:"所有者工作台导航 · 2026年11月11日",
 sections:[
 ["工作台","深色所有者主页展示真实的询价、待办、招标、运输、路线及紧急事项；“—”表示无法读取数据，不代表零。“查看工作台”按钮在所有者的每个页面顶部均可使用，不再显示固定的大型角色面板；新询价按钮仍打开原有流程。"],
 ["01 · 询价与报价","新询价 → 询价登记 → 报价评审 → 截止及答复 → 招标。报价评审用于选价，截止及答复用于监控响应。"],
@@ -175,7 +175,7 @@ sections:[
 ["03 · 合作伙伴","供应商及文件；设计及内容属于不同的授权流程。"],
 ["04 · 分析与监控","首页 Service Level 显示承运商平均得分及 76–100%、51–75%、0–50% 三档人数。进入 SL 日志查看扣分、详情和所有者解锁功能；SLA 与截止日期监控仍为独立模块。"],
 ["05 · 管理","用户及访问；权限级别；改进中心。账户、权限和改进建议各自独立。"],
-["帮助","帮助与常见问题。独立运输申请已从当前菜单隐藏，功能留待后续开发。"]
+["06 · 登记册与流程","查看更新、问题和开发事项及其 GitHub 档案，合作申请附件和 2026年11月11日的流程图。"],["帮助","岗位常见问题与操作说明支持三种语言。独立运输申请暂缓。"]
 ]}
 };
 const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
