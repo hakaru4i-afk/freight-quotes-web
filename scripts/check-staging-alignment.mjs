@@ -15,7 +15,7 @@ export function checkAlignment(root){
  for(const [path,expected]of Object.entries(m.assetHashes)){
   const absolute=resolve(root,path);if(!absolute.startsWith(resolve(root,'test')+'/')&&!absolute.startsWith(resolve(root,'docs')+'/')&&!absolute.startsWith(resolve(root,'scripts')+'/')&&!absolute.startsWith(resolve(root,'tests')+'/'))throw Error('INVALID_DEPENDENCY_PATH');
   if(hash(readFileSync(absolute))!==expected)throw Error('STALE_DEPENDENCY:'+path);
-  if(hash(execFileSync('git',['show',m.frontendCommit+':'+path],{cwd:root}))!==expected)throw Error('SOURCE_COMMIT_MISMATCH:'+path);
+  if(hash(execFileSync('git',['show',m.frontendCommit+':'+path],{cwd:root,maxBuffer:16*1024*1024}))!==expected)throw Error('SOURCE_COMMIT_MISMATCH:'+path);
  }
  const info=JSON.parse(read('test/build-info.json')),model=JSON.parse(read('test/business-process-model.json'));
  if(m.apiVersion!==info.task2.backendVersion||m.apiSourceCommit!==info.stabilizationQa20261110.backendSourceCommit||m.processModelVersion!==model.version)throw Error('VERSION_PAIR_MISMATCH');
