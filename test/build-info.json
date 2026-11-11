@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "91e6586e7f8f0d67fe338b0e4ddadf7708370394",
+  "servedAppBlobSha": "76989b4cc4c7521c529fc30742f5c8912bb5b4c4",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "91e6586e7f8f0d67fe338b0e4ddadf7708370394",
-        "sha256": "4d1f899ae4d24ddf07fd3e343b9ab26dec23470d1bc97e6ee49b1bd087a89cbb"
+        "gitBlob": "76989b4cc4c7521c529fc30742f5c8912bb5b4c4",
+        "sha256": "d37f83fc017e4e21950a1fa0a6119d723134d9140c0f19ae0089240207e6a657"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -551,10 +551,10 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "029d6027ea5086bd795e",
+  "stagingAssetBuildId": "6f2a28f4c7f57d01b5e0",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
-    "app.js": "4d1f899ae4d24ddf07fd3e343b9ab26dec23470d1bc97e6ee49b1bd087a89cbb",
+    "app.js": "d37f83fc017e4e21950a1fa0a6119d723134d9140c0f19ae0089240207e6a657",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -578,8 +578,8 @@
     "lw-pending-tasks-all-roles-20261109.js": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47",
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
-    "lw-public-cooperation-20261108.css": "c54a0dc0fced6db7c24806f828888b94e410a853ba350e0ec98c07eab54d984a",
-    "lw-public-cooperation-20261108.js": "039cdfb97a4a4a8a6681ae86e301e150a90af16e3ec3d9b153ce0d876acf408d",
+    "lw-public-cooperation-20261108.css": "fbaada085f5e3347b17d25428062b629e73ef906c42db18d2a3396fe05551b5f",
+    "lw-public-cooperation-20261108.js": "9e9df9926cd44c079673738db466efee8a3e03541ad9bd6259fb7fcb4a2f2a6a",
     "lw-ved-shared-chat-20261109.css": "3247de4deeae08ccd4bca8bc062d2e9fed5f15a2b1658f9eaf23a9896c67c1f8",
     "lw-ved-shared-chat-20261109.js": "e1455d347128028ae8dbc3208c71529a5a9650048ab7b8c2150c920d6bb65a24",
     "lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
