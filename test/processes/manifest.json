@@ -1,8 +1,8 @@
 {
-  "version": "20261111-logic-6",
-  "modelSha256": "39737837a968e4836d96fe14c914931ad3173dc213cad4c078b6713438034724",
+  "version": "20261111-logic-7",
+  "modelSha256": "2448fb39443ba25dcfd4fe6dc9792d5792d3daa1352462858004c0d1fc883553",
   "modelSnapshot": {
-    "version": "20261111-logic-6",
+    "version": "20261111-logic-7",
     "date": "2026-11-11",
     "releaseStatus": "RELEASE_BLOCKED",
     "roles": {
@@ -590,8 +590,8 @@
       ]
     ],
     "reviewedSourceSignatures": {
-      "test/app.js": "f5d1da596128657f74018b272833131f7870c3633d42b5cb9878b6d8477555c3",
-      "test/task2-panel-sidebar-only-20261107.js": "520207429e4509955827fe92ec70a0f7a9b225b7228856907645e55c71efe49a",
+      "test/app.js": "db9d1753c02594b1e993540d0e56c794733b5563f23c0a2b5c1cefc293751c6c",
+      "test/task2-panel-sidebar-only-20261107.js": "a1c24156a0244ebdbe9e8b94cbdbdd6497a1e23153bc7f675fa2b5ecdc26d30b",
       "test/late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
       "test/task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
       "test/carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
@@ -602,7 +602,7 @@
     },
     "reviewedBackendSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
     "previousVersion": "20261110-logic-3",
-    "technicalContext": "Исправлены SPA принятие перевозки, сохранность React-узлов меню ВЭД и мобильная сетка ПТО/таможни. Права/этапы/SL сохранены. API v89 и QA v8 используют один проверенный source; маршрутизация staging в регион базы eu-central-1."
+    "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c."
   },
   "files": [
     "business-process-current.svg",

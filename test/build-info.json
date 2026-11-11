@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "3619298f6da8f02c6716e4bacaf1ab5d3faf2206",
+  "servedAppBlobSha": "0ed8fee1154fb025d57fbf8b2fc8a54da4b4f345",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 89,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "aeff31dccfb8fd57cf31c4a87eb112f365c374ca",
+    "frontendSha": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
@@ -533,7 +533,7 @@
     "sharedBackendBundleSha256": "dee6a283a97043b404707b779be11c3874552946bc64a44c2e0d4601f39bfdb3"
   },
   "businessProcessReview": {
-    "modelVersion": "20261111-logic-6",
+    "modelVersion": "20261111-logic-7",
     "scope": "staging-only",
     "status": "RELEASE_BLOCKED",
     "technicalAndLogicSeparate": true
@@ -551,10 +551,10 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "bb9fe237e3890ebe53fb",
+  "stagingAssetBuildId": "5fea2e93b87df81ae5c5",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
-    "app.js": "f5d1da596128657f74018b272833131f7870c3633d42b5cb9878b6d8477555c3",
+    "app.js": "db9d1753c02594b1e993540d0e56c794733b5563f23c0a2b5c1cefc293751c6c",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -598,7 +598,7 @@
     "task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
     "task2-help-i18n.js": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5",
     "task2-i18n.js": "eae06de8165e486c72648fe27db4d426136d6661fe225f656e96c576ff8c5a67",
-    "task2-panel-sidebar-only-20261107.js": "520207429e4509955827fe92ec70a0f7a9b225b7228856907645e55c71efe49a",
+    "task2-panel-sidebar-only-20261107.js": "a1c24156a0244ebdbe9e8b94cbdbdd6497a1e23153bc7f675fa2b5ecdc26d30b",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "a1eff274a5382c7606c330a84946b8d272f173c69f70ce0ff336da036696c632",
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
