@@ -5,6 +5,10 @@ on:
     paths:
       - 'test/owner-registers-20261111.js'
       - 'test/owner-registers-20261111.css'
+      - 'test/role-help-20261111.js'
+      - 'test/role-help-20261111.css'
+      - 'tests/role-help-20261111.test.mjs'
+      - 'tests/role-help-browser.test.mjs'
       - 'test/current-workspace-help-20261108.js'
       - 'test/lw-public-cooperation-20261108.js'
       - 'test/index.html'
@@ -23,7 +27,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/owner-registers-20261111.test.mjs tests/current-workspace-help.test.mjs tests/owner-workspace-compact.test.mjs tests/lw-permanent-delete-staging.test.mjs
+      - run: node --test tests/owner-registers-20261111.test.mjs tests/current-workspace-help.test.mjs tests/owner-workspace-compact.test.mjs tests/lw-permanent-delete-staging.test.mjs tests/role-help-20261111.test.mjs
   served:
     needs: static
     runs-on: ubuntu-24.04
@@ -40,7 +44,8 @@ jobs:
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.js?sha=$GITHUB_SHA-$i" -o /tmp/ow.js || true
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.css?sha=$GITHUB_SHA-$i" -o /tmp/ow.css || true
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?sha=$GITHUB_SHA-$i" -o /tmp/ow-help.js || true
-            if cmp -s test/index.html /tmp/ow-index.html && cmp -s test/owner-registers-20261111.js /tmp/ow.js && cmp -s test/owner-registers-20261111.css /tmp/ow.css && cmp -s test/current-workspace-help-20261108.js /tmp/ow-help.js; then
+            curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/role-help-20261111.js?sha=$GITHUB_SHA-$i" -o /tmp/sh-help.js || true
+            if cmp -s test/index.html /tmp/ow-index.html && cmp -s test/owner-registers-20261111.js /tmp/ow.js && cmp -s test/owner-registers-20261111.css /tmp/ow.css && cmp -s test/current-workspace-help-20261108.js /tmp/ow-help.js && cmp -s test/role-help-20261111.js /tmp/sh-help.js; then
               echo 'PASS exact staging HTML, Owner registers, CSS and latest FAQ'
               exit 0
             fi
@@ -59,7 +64,7 @@ jobs:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
-      - run: node --test tests/owner-registers-browser.test.mjs
+      - run: node --test tests/owner-registers-browser.test.mjs tests/role-help-browser.test.mjs
       - if: always()
         uses: actions/upload-artifact@v4
         with:

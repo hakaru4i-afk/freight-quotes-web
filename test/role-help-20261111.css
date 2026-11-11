@@ -1,0 +1,7 @@
+/* SH-01.30.46 v: staff role-specific guidance in existing Help view */
+.sw-cabinet #sh-role-instructions{background:#f4f8fc;color:#173147;border:1px solid #b2c8da;border-radius:13px;margin:0 0 18px;padding:18px}
+.sw-cabinet #sh-role-instructions h2{font-size:19px;color:#142f47!important;margin:0 0 6px}
+.sw-cabinet #sh-role-instructions small{font-size:12px;color:#38536c}
+.sw-cabinet #sh-role-instructions ol{padding-left:23px;display:grid;gap:8px;margin:13px 0 0}
+.sw-cabinet #sh-role-instructions li{font-size:13px;line-height:1.5}
+@media(max-width:520px){.sw-cabinet #sh-role-instructions{padding:13px}}
