@@ -10,6 +10,12 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 const metadata=JSON.parse(await readFile('test/build-info.json','utf8')).stabilizationQa20261110;
+// An isolated backend candidate can be verified before changing published metadata.
+if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
+ const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE,'utf8'));
+ assert.equal(proof.function,'freight-api-qa-rc20261110');assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
+ Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
+}
 assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
@@ -35,7 +41,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   if(path){
    if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
-   const r=await fetch(base+path+url.search,{method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});
+   let r;try{r=await fetch(base+path+url.search,{method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
    const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,durationMs:Date.now()-start});
    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
    await route.fulfill({status:r.status,headers:out,body});return;
@@ -170,7 +176,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    assert.ok(layout.text>100,'Blank cabinet');assert.ok(layout.scroll<=viewport.width+4,'Horizontal overflow: '+JSON.stringify(layout));
    const file='reports/isolated-rc/'+actor+'-'+viewport.width+'.png';await page.screenshot({path:file,fullPage:true});rec.viewports.push({...viewport,...layout,screenshot:file});
   }
-  assert.deepEqual(errors,[]);rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
+  assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
  }catch(e){await page.screenshot({path:'reports/isolated-rc/'+actor+'-failure.png',fullPage:true});
    await writeFile('reports/isolated-rc/'+actor+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
    rec.status='FAIL';rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
