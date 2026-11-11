@@ -1,0 +1,25 @@
+/* LW-CONTRAST-ALL / 2026-11-11. Canonical contrast rule for execution panels.
+   Light surface headings must never inherit light-on-dark owner theme colors. */
+#task2-root .t2-stage {
+  --t2-surface-ink: #18344f;
+  --t2-surface-muted: #435a70;
+}
+#task2-root .t2-stage:is([data-t2-section="overview"],[data-t2-section="track"],[data-t2-section="documents"],[data-t2-section="stages"],[data-t2-section="completion"],[data-t2-section="claims"],[data-t2-section="history"]) > :is(h1,h2,h3,h4),
+#task2-root .t2-stage > .t2-heading :is(h1,h2,h3,h4),
+#task2-root .t2-stage > :is(h1,h2,h3,h4) {
+  color: var(--t2-surface-ink) !important;
+  -webkit-text-fill-color: var(--t2-surface-ink) !important;
+  opacity: 1 !important;
+}
+#task2-root .t2-stage :is(.t2-muted,.t2-empty) {
+  color: var(--t2-surface-muted) !important;
+  -webkit-text-fill-color: var(--t2-surface-muted) !important;
+  opacity: 1 !important;
+}
+/* Explicitly cover the light background of the execution history's journal. */
+#task2-root .t2-stage[data-t2-section="history"] :is(h1,h2,h3,h4,strong),
+#task2-root .t2-stage[data-t2-section="history"] .t2-stack > :is(h1,h2,h3,h4) {
+  color: #18344f !important;
+  -webkit-text-fill-color: #18344f !important;
+  opacity: 1 !important;
+}
