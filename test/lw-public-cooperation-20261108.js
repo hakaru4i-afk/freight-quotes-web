@@ -32,10 +32,16 @@ if(!form.reportValidity())return;
 formBusy=true;const button=form.querySelector("button[type=submit]"),result=form.querySelector(".lw-contact-result");
 button.disabled=true;button.textContent=c.busy;result.textContent="";
 try{
+const hash=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))).map(b=>b.toString(16).padStart(2,"0")).join("");
+const signature=await hash(new TextEncoder().encode(JSON.stringify({fields:[...fd.entries()].filter(([,v])=>typeof v==="string"),files:await Promise.all(picked.map(async f=>({name:f.name,hash:await hash(await f.arrayBuffer())})))})));
+let previous;try{previous=JSON.parse(sessionStorage.getItem("freight-staging-cooperation-operation")||"null");}catch{}
+const requestId=previous?.signature===signature?previous.requestId:(form.dataset.signature===signature&&form.dataset.requestId?form.dataset.requestId:crypto.randomUUID());form.dataset.requestId=requestId;form.dataset.signature=signature;
+try{sessionStorage.setItem("freight-staging-cooperation-operation",JSON.stringify({signature,requestId}));}catch{}
+fd.set("requestId",requestId);
 const response=await fetch("/api/partner-inquiries",{method:"POST",cache:"no-store",body:fd});
 const json=await response.json().catch(()=>({}));
 if(!response.ok||!json.ok)throw Error(json.error||"HTTP "+response.status);
-result.className="lw-contact-result lw-ok";result.textContent=c.sent+(json.reference||"—");form.reset();
+result.className="lw-contact-result lw-ok";result.textContent=c.sent+(json.reference||"—");form.reset();delete form.dataset.requestId;
 }catch(err){result.className="lw-contact-result lw-error";result.textContent=c.err+" "+String(err.message||"").slice(0,140)}
 finally{formBusy=false;button.disabled=false;button.textContent=c.send;}
 }

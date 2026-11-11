@@ -37,7 +37,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
  const context=await browser.newContext({viewport:{width:1440,height:900}});const errors=[];
  await context.addInitScript(({token})=>{if(window.top===window&&/^https?:$/.test(location.protocol))localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
- await context.route('**/*',async route=>{
+ const realTransport=async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
   const path=url.hostname==='ibclzdkxiozbzmniiygv.supabase.co'?url.pathname.split('/freight-api')[1]:url.pathname.startsWith('/api/')?url.pathname:null;
@@ -57,7 +57,8 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   }
   if(url.origin===origin||['data:','blob:'].includes(url.protocol)){await route.continue();return;}
   await route.abort();
- });
+ };await context.route('**/*',realTransport);
+ const createPublicPage=async()=>{const ctx=await browser.newContext({viewport:{width:1366,height:768}});await ctx.route('**/*',realTransport);const anonymous=await ctx.newPage();anonymous.on('pageerror',e=>errors.push(e.message));await anonymous.goto(origin+(published?'/freight-quotes-web/test/':'/test/')+'#lw-partners',{waitUntil:'domcontentloaded'});return{page:anonymous,close:()=>ctx.close()};};
  const page=await context.newPage();const consoleErrors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){let value=m.text();for(const token of Object.values(sessions))value=value.replaceAll(token,'[REDACTED_SESSION]');consoleErrors.push(value.slice(0,1500));}});
  try{
   await page.goto(origin+(published?'/freight-quotes-web/test/':'/test/'),{waitUntil:'domcontentloaded'});
@@ -273,7 +274,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
     assert.equal(await page.getByText('Foreign QA task must stay hidden',{exact:true}).count(),0);
    }
   }
-  if(process.env.QA_BROWSER_ALIGNMENT==='true')await alignmentScenarios({page,actor,base,sessions,rec,report});
+  if(process.env.QA_BROWSER_ALIGNMENT==='true')await alignmentScenarios({page,actor,base,sessions,rec,report,createPublicPage});
   if(process.env.QA_BROWSER_MATRIX==='true')await cabinetMatrix({page,actor,rec});
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    await page.setViewportSize(viewport);await page.waitForTimeout(1200);
@@ -284,6 +285,6 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   rec.runtimeErrors=consoleErrors.filter(value=>/^(?:[A-Za-z]+Error:|Error:)|Minified React error|The above error occurred/.test(value)).slice(0,5);assert.deepEqual(rec.runtimeErrors,[],'Caught application render error');assert.equal(await page.getByText('Не удалось открыть раздел',{exact:true}).count(),0,'Application error boundary');assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
  }catch(e){rec.failureScreenshot='reports/isolated-rc/'+actor+'-'+phase+'-failure.png';await page.screenshot({path:rec.failureScreenshot,fullPage:true});
    await writeFile('reports/isolated-rc/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
-   rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
+   rec.errorStack=String(e.stack||'').slice(0,5000);for(const token of Object.values(sessions))rec.errorStack=rec.errorStack.replaceAll(token,'[REDACTED_SESSION]');rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
  await context.close();
 }}finally{await browser.close();await new Promise(done=>server.close(done));report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile('reports/isolated-rc/browser-results-'+actorName+'.json',bytes);await writeFile('reports/isolated-rc/browser-results-'+actorName+'-'+phase+'.json',bytes);}

@@ -15,6 +15,8 @@ jobs:
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
       QA_BROWSER_PUBLISHED: 'true'
+      QA_SCENARIO_STATE_DIR: /tmp/freight-ci-qa
+      AXE_CORE_PATH: node_modules/axe-core/axe.min.js
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -43,7 +45,7 @@ jobs:
           QA_CERTIFICATION_LOGIN: ${{ secrets.QA_CERTIFICATION_LOGIN }}
           QA_CERTIFICATION_PASSWORD: ${{ secrets.QA_CERTIFICATION_PASSWORD }}
         run: node tests/task12-ci-auth.mjs
-      - run: npm install --no-save --ignore-scripts playwright@1.56.1
+      - run: npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
       - run: npx playwright install --with-deps chromium
       - name: Read all role cabinets from actual published assets
         run: node tests/task12-isolated-browser.e2e.mjs
@@ -101,6 +103,20 @@ jobs:
         env:
           QA_BROWSER_ACTORS: ved
           QA_BROWSER_VED_VERIFY: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify private registers, proposals and draft editor as Owner
+        env:
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_ALIGNMENT: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify all other roles cannot read private engineering archives
+        env:
+          QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,designer,content,purchasing,certification
+          QA_BROWSER_ALIGNMENT: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify ten cabinets in RU EN ZH on desktop and mobile
+        env:
+          QA_BROWSER_MATRIX: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()

@@ -10,11 +10,12 @@ const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes(
 if(process.argv.includes('--write')){
  app=app.replace(pattern,'currentVersion:"'+buildId+'"');write('app.js',app);
  for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[a-z0-9-]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
- meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;
+ meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;meta.version=buildId;meta.releaseVersion='SH-01.30.50 v';meta.primaryBusinessVersion='SH-01.30.50 v';
  meta.currentAssetSha256=Object.fromEntries(files.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));status.version=buildId;
  for(const name of Object.keys(meta.task2.frontendCandidateComponents||{}))meta.task2.frontendCandidateComponents[name]={gitBlob:blob(name),sha256:hash(readFileSync(resolve(root,'test',name)))};
  write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
 }else{
+ if(meta.version!==buildId||meta.releaseVersion!=='SH-01.30.50 v')throw Error('STALE_PRIMARY_VERSION');
  if(!app.includes('currentVersion:"'+buildId+'"')||meta.stagingAssetBuildId!==buildId||status.version!==buildId)throw Error('STALE_STAGING_BUILD_ID');
  for(const name of critical)if(!html.includes(name+'?v='+blob(name).slice(0,12)))throw Error('STALE_CACHE_KEY:'+name);
  for(const name of files)if(meta.currentAssetSha256?.[name]!==hash(readFileSync(resolve(root,'test',name))))throw Error('STALE_ASSET_DIGEST:'+name);

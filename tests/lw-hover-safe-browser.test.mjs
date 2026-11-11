@@ -109,7 +109,7 @@ test("actual served staging login hover has no white glare on desktop and mobile
     const actual=await button.evaluate(el=>{
       const st=getComputedStyle(el);
       return {hover:el.matches(":hover"),filter:st.filter,shadow:st.textShadow,background:st.backgroundImage,color:st.color,
-        shield:[...document.styleSheets].some(s=>s.href?.includes("lw-hover-safe-20261108.css?v=lw-hover-03")),
+        shield:[...document.styleSheets].some(s=>s.href?.includes("lw-hover-safe-20261108.css?v=")),
         bodyOverflow:document.documentElement.scrollWidth-innerWidth};
     });
     assert.equal(actual.hover,true,JSON.stringify(actual));

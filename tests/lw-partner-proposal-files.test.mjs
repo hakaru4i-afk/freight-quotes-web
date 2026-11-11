@@ -1,3 +1,4 @@
+import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -17,8 +18,8 @@ test("public partnership form attaches files rather than spreadsheet row templat
  assert.match(script,/ownerFile\(e\)/);
  assert.ok(script.includes('cabinet-panel[data-section="overview"]'));
  assert.match(css,/#lw-contact-form \.t2-legacy-csv\{display:none!important\}/);
- assert.match(html,/lw-public-cooperation-20261108\.js\?v=692702b4670c/);
- assert.match(html,/lw-public-cooperation-20261108\.css\?v=e0b399fec9cf/);
+ assert.ok(html.includes(runtimeAssetUrl('lw-public-cooperation-20261108.js')));
+ assert.ok(html.includes(runtimeAssetUrl('lw-public-cooperation-20261108.css')));
 });
 
 test("private Owner attachments cannot be read anonymously",async()=>{
@@ -60,5 +61,5 @@ test("one synthetic staging proposal persists a genuine PDF file",{skip:process.
 test("Owner cooperation inbox is not concealed by the new command-center CSS",()=>{
  assert.match(ownerCss,/> :not\(#lw-owner-command\):not\(#lw-owner-inquiries\)/);
  assert.match(ownerCss,/#lw-owner-inquiries\{display:block!important/);
- assert.match(html,/owner-command-center-20261108\.css\?v=command-07/);
+ assert.ok(html.includes(runtimeAssetUrl('owner-command-center-20261108.css')));
 });

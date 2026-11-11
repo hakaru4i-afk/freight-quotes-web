@@ -11,9 +11,9 @@ export function checkAlignment(root){
  const hash=b=>createHash('sha256').update(b).digest('hex');
  const excluded=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
  function visit(dir){for(const e of readdirSync(resolve(root,dir),{withFileTypes:true})){if(['process-history','processes'].includes(e.name))continue;const p=dir+'/'+e.name;if(e.isDirectory())visit(p);else if(/\.(js|mjs|css|html|json|md|yml)$/.test(p)&&!excluded.has(p)&&!m.assetHashes[p])throw Error('UNINDEXED_DEPENDENCY:'+p);}}
- for(const d of ['test','docs','scripts','tests'])visit(d);
+ for(const d of ['test','docs','scripts','tests','.github/workflows'])visit(d);
  for(const [path,expected]of Object.entries(m.assetHashes)){
-  const absolute=resolve(root,path);if(!absolute.startsWith(resolve(root,'test')+'/')&&!absolute.startsWith(resolve(root,'docs')+'/')&&!absolute.startsWith(resolve(root,'scripts')+'/')&&!absolute.startsWith(resolve(root,'tests')+'/'))throw Error('INVALID_DEPENDENCY_PATH');
+  const absolute=resolve(root,path);if(!absolute.startsWith(resolve(root,'test')+'/')&&!absolute.startsWith(resolve(root,'docs')+'/')&&!absolute.startsWith(resolve(root,'scripts')+'/')&&!absolute.startsWith(resolve(root,'tests')+'/')&&!absolute.startsWith(resolve(root,'.github/workflows')+'/'))throw Error('INVALID_DEPENDENCY_PATH');
   if(hash(readFileSync(absolute))!==expected)throw Error('STALE_DEPENDENCY:'+path);
   if(hash(execFileSync('git',['show',m.frontendCommit+':'+path],{cwd:root,maxBuffer:16*1024*1024}))!==expected)throw Error('SOURCE_COMMIT_MISMATCH:'+path);
  }

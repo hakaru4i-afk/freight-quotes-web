@@ -116,14 +116,15 @@ test("public FAQ route DOM inspection",async()=>{
  } finally {await browser.close();}
 });
 
-test("staging Owner overview displays the inbox alongside the command center",async()=>{
+test("staging Owner cooperation inbox has its own screen and dark-theme controls",async()=>{
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:390,height:844}});
+  await page.route('**/lw-public-cooperation-20261108.js*',r=>r.fulfill({path:'test/lw-public-cooperation-20261108.js',contentType:'text/javascript'}));
   await waitUntilDeployed(page);
   await page.evaluate(()=>{
    const fixture=document.createElement("div");fixture.className="cabinet-app staff-portal";fixture.dataset.cabinetRole="owner";
-   fixture.innerHTML='<section class="cabinet-panel" data-section="overview" data-lw-cc-ready="true"><div class="overview-welcome">Legacy overview</div></section>';
+   fixture.innerHTML='<section class="cabinet-panel" data-section="overview" data-lw-cc-ready="true"><div class="overview-welcome">Legacy overview</div></section><section id="ow-workspace"><div id="ow-cooperation-screen"></div></section>';
    document.getElementById("root").append(fixture);
   });
   const inbox=page.locator("#lw-owner-inquiries");await inbox.waitFor({timeout:15000});

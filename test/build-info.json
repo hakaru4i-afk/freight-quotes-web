@@ -1,7 +1,7 @@
 {
   "environment": "staging",
-  "version": "issue28-post-award-document-staging-20261107",
-  "releaseVersion": "1.19.22",
+  "version": "56ce75a24e6c3141b92c",
+  "releaseVersion": "SH-01.30.50 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "issue17-compact-document-20261106",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "636d1bcf4be0ffc478ff9faa3d8fc2989633a584",
+  "servedAppBlobSha": "6f1596a80f253631a15bcb69f5201a9b5f4ab9bb",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "636d1bcf4be0ffc478ff9faa3d8fc2989633a584",
-        "sha256": "060b25a3889c788ef996fd13204f697454d061822a2c449747807ef38f962976"
+        "gitBlob": "6f1596a80f253631a15bcb69f5201a9b5f4ab9bb",
+        "sha256": "47321f06cb5b8e587a44d42c423169c0d7410a67b001b992e35cef563bdf3af2"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -551,12 +551,12 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "7b05d1e9ce797adbe597",
+  "stagingAssetBuildId": "56ce75a24e6c3141b92c",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "d9d326d142cba1fb5c5773852d7d065c63938eae92e83dbc620cfa658bc8a45b",
-    "app.js": "060b25a3889c788ef996fd13204f697454d061822a2c449747807ef38f962976",
+    "app.js": "47321f06cb5b8e587a44d42c423169c0d7410a67b001b992e35cef563bdf3af2",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -565,7 +565,7 @@
     "carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
     "carrier-defer-transport-application-20261107.css": "1f66be0e0b22cd27d86dc51e63a9e9d1ec4aa8f7af4d521b60973ad9d2d286ab",
     "carrier-defer-transport-application-20261107.js": "0f7a7173b6cf83514e3969c487803a7c89ad8406f0afc005c707d2e44d75ca3b",
-    "current-workspace-help-20261108.css": "7f79bc5a31ddc084d6a69a3e4a9c6fdce48b75703d16955f0b8a120bff5bd679",
+    "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
     "current-workspace-help-20261108.js": "969f5c93555a6a961dd3501bdf297a0562a1468a3d470a147accee62f9f21bc1",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
     "global-view/view.css": "6b030a99a8b7075c043225f0151786d967778b89ac58d21e41ce1142c03d7ca7",
@@ -575,29 +575,29 @@
     "late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
     "lw-approved-dark-20261108.css": "1fb30c728691ea7459ef0622d3fe510f080f8cdc79cea9add5431863681e9748",
     "lw-approved-dark-20261108.js": "fcae5ead0dbbbcbaa600c2db03689890e0b7a244eec540ee5ef878df71bb0029",
-    "lw-contrast-canonical-20261111.css": "d6234f9e908fa2a352f7dd0ac3cfbe3e571fb3c1e3dcaae7d67bc9f65d8e48fc",
-    "lw-hover-safe-20261108.css": "cf5e3c4dfc733fa5ec49b7f7a29c04c4bf90b2bf266d2aaf0b7856365bce2af3",
+    "lw-contrast-canonical-20261111.css": "77abc66ba992acd1c86d953a5f3e52e96f89612dc463121fa08c82cbd849b38b",
+    "lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
     "lw-pending-tasks-all-roles-20261109.js": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47",
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
     "lw-public-cooperation-20261108.css": "fbaada085f5e3347b17d25428062b629e73ef906c42db18d2a3396fe05551b5f",
-    "lw-public-cooperation-20261108.js": "278de072d7ddf8291beddf5ea579a02c8c15d78a5450ef00f6a878648f1de792",
+    "lw-public-cooperation-20261108.js": "90f3fd14d4b2c01f8bb8043abfc795e24e90269da7447b0c73a0a944c73660ad",
     "lw-ved-shared-chat-20261109.css": "3247de4deeae08ccd4bca8bc062d2e9fed5f15a2b1658f9eaf23a9896c67c1f8",
     "lw-ved-shared-chat-20261109.js": "e1455d347128028ae8dbc3208c71529a5a9650048ab7b8c2150c920d6bb65a24",
     "lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
     "lw2-staging-20261107.js": "7ec47db347e66185ed4a93f683579f27c52cef36c3583b56759dca90cd40a9dc",
     "offer-edit-modal-readability-20261108.css": "ac402655682dfe32bca0b35b39a55a5dc3b391b16b44b9a226644c0c7369fd65",
-    "owner-command-center-20261108.css": "89d28c4ac3c91a4682a7667a49efa8e8d92360709e6a00c92a9b3c8ab9141114",
+    "owner-command-center-20261108.css": "b500ad4df0193556f7635d2ace5af43a3e0290ddd5d4140a19bf835202e7e6aa",
     "owner-command-center-20261108.js": "65d112964bc13b4b78d8a431a2d094767a0ec10821c6092083e1a77708a01fa9",
-    "owner-registers-20261111.css": "4d6294a8a3c059de25eac404cb017c37a4a05daa9ed388923292d11adec97b9f",
-    "owner-registers-20261111.js": "88dac337e7ecfa33e2792c90aa33ba2b24246e9b29a9110fed415e2822b98ab9",
+    "owner-registers-20261111.css": "66c242e2ead5895b38f1c2ed8ff7098a8684e514be010dc1dfddbd33affc015d",
+    "owner-registers-20261111.js": "bace6e9ec9cbec5d74fd2db6b5a7d2f973cc9c5d93288034a3e7318415b29ac1",
     "owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
     "owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
     "portal-contrast-accessibility-20261108.css": "9321dc652343953313789025277a69c7272732d1447536d865b58732b71dcc74",
     "portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
-    "process-editor-20261111.mjs": "45393c666d6614c258b7c24486d96b280b09733884207e6795b2d5ddb011dd28",
+    "process-editor-20261111.mjs": "6065224d04d875dba82583ab54f072cb96bdd246080b6293706e9812e07a6ae7",
     "process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
@@ -628,5 +628,6 @@
     "OW-01.30.48 v",
     "SH-01.30.49 v",
     "SH-01.30.50 v"
-  ]
+  ],
+  "primaryBusinessVersion": "SH-01.30.50 v"
 }

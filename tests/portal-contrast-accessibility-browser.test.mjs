@@ -117,7 +117,7 @@ test("shared component palettes / text and background at desktop and mobile",{ti
      for(const styles of css)await page.addStyleTag({content:styles});
      // Fixture injects CSS after DOM; real Pages parses linked styles before the DOM.
      // Wait for the legacy nav color transition so sampling checks final contrast.
-     await page.waitForTimeout(280);
+     await page.evaluate(async()=>{await document.fonts.ready;await Promise.all(document.getAnimations().filter(a=>a.effect?.getTiming().iterations!==Infinity).map(a=>a.finished.catch(()=>{})));});
      const record=async(state,selectors)=>protocol.push({role,viewport,state,samples:await readable(page,selectors)});
      await record("default-selected-disabled",["#light-notice-copy","#nav-item","#nav-current","#error-copy","#warning-copy",
        "#field::placeholder","#disabled-button","#red-small","#red-copy","#red-label","#green-small","#green-copy",

@@ -1,6 +1,9 @@
 /* SH-01.30.50 v: explicit surface tokens, shared by every execution stage.
    Dark Owner rules exclude nested Task2/light workspace surfaces at source. */
 :root{--portal-light-ink:#18344f;--portal-light-muted:#435a70;--portal-light-surface:#ffffff;--portal-dark-ink:#edf6ff;--portal-dark-surface:#0c2b47;--portal-focus:#176b53}
+:where(.staff-portal[data-cabinet-role="owner"] .notice,[data-surface="light"],.notice.warning,#lw-current-help,#task2-root .t2-stage,.ow-record,.ow-editor-inspector){--pr-text:#18344f;--pr-muted:#435a70;--pr-surface:#ffffff;--pr-line:#aebfcd;--surface-hint:#435a70;--ink:var(--pr-text);--muted:var(--pr-muted);--cab-ink:var(--pr-text);--cab-muted:var(--pr-muted)}
+#ow-workspace{--surface-hint:#bdd7ec}
+#ow-workspace :is(.ow-record,.ow-editor-inspector){--surface-hint:#435a70}
 #task2-root .t2-stage{color:var(--portal-light-ink);--t2-surface-ink:var(--portal-light-ink);--t2-surface-muted:var(--portal-light-muted);color-scheme:light}
 #task2-root .t2-stage :is(h1,h2,h3,h4,label,legend,strong){-webkit-text-fill-color:currentColor}
 #task2-root .t2-stage :is(h1,h2,h3,h4){color:var(--portal-light-ink)}

@@ -1,4 +1,4 @@
-/* OW-01.30.46 v owner registers and current process model */
+/* OW-01.30.47 v owner registers and current process model */
 .staff-portal[data-cabinet-role="owner"][data-ow-register-view]:not([data-ow-register-view=""]) .cabinet-content>:not(#ow-workspace){display:none!important}
 #ow-workspace{background:var(--portal-dark-surface,#0c2b47);color:var(--portal-dark-ink,#edf6ff);border:1px solid #315b81;border-radius:14px;padding:18px;min-width:0;overflow-wrap:anywhere}
 #ow-workspace>h2{color:var(--portal-dark-ink,#edf6ff);margin:0 0 16px}
@@ -21,12 +21,3 @@
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:hover{background:#214d72!important;color:#fff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register][aria-current="page"]{background:#1a527a!important;box-shadow:inset 3px 0 #7bd0ff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:focus-visible{outline:2px solid #8ad7ff!important;outline-offset:-2px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head,.staff-portal[data-cabinet-role="owner"] #ow-business-process{border:1px solid #315b81;border-radius:14px;padding:17px;background:#0c2b47;color:#edf8ff;margin-bottom:15px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head h2,.staff-portal[data-cabinet-role="owner"] #ow-business-process h2{font-size:21px!important;color:#fff!important;margin:0 0 8px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head small,.staff-portal[data-cabinet-role="owner"] #ow-business-process small{display:inline-block;padding:4px 10px;border-radius:9px;border:1px solid #3c6e94;background:#19466b;color:#d5efff;font-weight:700}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head p,.staff-portal[data-cabinet-role="owner"] #ow-business-process p{font-size:12px!important;color:#d6ebfa!important;line-height:1.5;margin:11px 0}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head a,.staff-portal[data-cabinet-role="owner"] #ow-business-process a{font-size:13px;color:#8ad8ff!important;font-weight:700;text-decoration:underline}
-.staff-portal[data-cabinet-role="owner"] #ow-business-process{display:grid;gap:10px;min-width:0}
-.staff-portal[data-cabinet-role="owner"] #ow-process-frame{width:100%;height:min(78vh,900px);border:1px solid #5e809a;border-radius:10px;background:#f5f8fc}
-.staff-portal[data-cabinet-role="owner"][data-ow-register-view="process"] #portal-feedback-root{display:none!important}
-@media(max-width:760px){.staff-portal[data-cabinet-role="owner"] #ow-process-frame{height:72vh}.staff-portal[data-cabinet-role="owner"] #ow-business-process{padding:10px}}
