@@ -5,6 +5,7 @@ import {readFileSync} from "node:fs";
 const script=readFileSync("test/lw-public-cooperation-20261108.js","utf8");
 const css=readFileSync("test/lw-public-cooperation-20261108.css","utf8");
 const html=readFileSync("test/index.html","utf8");
+const ownerCss=readFileSync("test/owner-command-center-20261108.css","utf8");
 const api="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/api/partner-inquiries";
 
 test("public partnership form attaches files rather than spreadsheet row templates",()=>{
@@ -54,4 +55,10 @@ test("one synthetic staging proposal persists a genuine PDF file",{skip:process.
  assert.equal(body.ok,true);assert.equal(body.attachmentCount,1);assert.match(body.reference,/^[0-9a-f]{8}$/);
  console.log("QA_PARTNER_UPLOAD_REFERENCE",body.reference);
  }finally{clearTimeout(timeout)}
+});
+
+test("Owner cooperation inbox is not concealed by the new command-center CSS",()=>{
+ assert.match(ownerCss,/> :not\(#lw-owner-command\):not\(#lw-owner-inquiries\)/);
+ assert.match(ownerCss,/#lw-owner-inquiries\{display:block!important/);
+ assert.match(html,/owner-command-center-20261108\.css\?v=command-07/);
 });

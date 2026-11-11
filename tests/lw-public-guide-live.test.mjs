@@ -115,3 +115,22 @@ test("public FAQ route DOM inspection",async()=>{
   assert.ok(info.text.length>15);
  } finally {await browser.close();}
 });
+
+test("staging Owner overview displays the inbox alongside the command center",async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:390,height:844}});
+  await waitUntilDeployed(page);
+  await page.evaluate(()=>{
+   const fixture=document.createElement("div");fixture.className="cabinet-app staff-portal";fixture.dataset.cabinetRole="owner";
+   fixture.innerHTML='<section class="cabinet-panel" data-section="overview" data-lw-cc-ready="true"><div class="overview-welcome">Legacy overview</div></section>';
+   document.getElementById("root").append(fixture);
+  });
+  const inbox=page.locator("#lw-owner-inquiries");await inbox.waitFor({timeout:15000});
+  await page.waitForFunction(()=>!!document.querySelector("#lw-owner-inquiries .lw-owner-head"),{timeout:15000});
+  const state=await inbox.evaluate(el=>({visible:getComputedStyle(el).display!=="none"&&el.getClientRects().length>0,style:getComputedStyle(el).backgroundColor}));
+  assert.equal(state.visible,true,"Owner partnership inbox is still hidden by overview CSS");
+  assert.notEqual(state.style,"rgb(255, 255, 255)","Partner inbox must follow the Owner dark theme");
+  await page.close();
+ }finally{await browser.close()}
+});

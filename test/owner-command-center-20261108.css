@@ -16,7 +16,7 @@
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar small,.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-online{color:#bad0e4!important}
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-topbar .btn{color:#e0f2ff!important;border-color:#3e5b76!important;background:#102842!important}
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content{padding:0 16px 25px!important;background:#071527!important}
-.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"][data-lw-cc-ready] > :not(#lw-owner-command){display:none!important}
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="overview"][data-lw-cc-ready] > :not(#lw-owner-command):not(#lw-owner-inquiries){display:none!important}
 #lw-owner-command{font-family:Arial,Helvetica,sans-serif;color:#e9f3ff;font-size:13px;line-height:1.4;min-width:0;max-width:1750px;margin:0 auto;display:grid;gap:12px;padding:14px 0 18px}
 #lw-owner-command *{box-sizing:border-box}
 #lw-owner-command :is(h1,h2,h3,p){margin:0}
@@ -445,3 +445,16 @@ body.lw-cc-owner-view .test-cabinets a{
  line-height:1.3!important;white-space:nowrap!important;
  pointer-events:none!important;
 }
+
+/* OWNER-PARTNER-INBOX-07: visible on Owner overview, matching approved dark dashboard. */
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries{display:block!important;background:#0e2944!important;color:#eaf5ff!important;border:1px solid #356183!important;border-radius:14px!important;margin:2px 0 18px!important;padding:18px!important;max-width:none!important;min-width:0}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-owner-head h2{color:#f3faff!important;font-size:18px!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-owner-head small,.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry-top small{color:#a8cce5!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry{background:#112f4d!important;border:1px solid #366083!important;color:#eaf5ff!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry-text{border-color:#315673!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry-files{background:#0b2239!important;border:1px solid #355875!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry-files b{color:#e8f6ff!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries :is(.lw-file-download,.lw-owner-head button,.lw-inquiry-actions button){background:#173f62!important;color:#e9f7ff!important;border:1px solid #5382a2!important;border-radius:8px!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries :is(.lw-file-download,.lw-owner-head button,.lw-inquiry-actions button):hover{background:#25587f!important}
+.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries :is(.lw-file-download,.lw-owner-head button,.lw-inquiry-actions button):focus-visible{outline:2px solid #8ad7ff!important;outline-offset:2px}
+@media(max-width:760px){.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries{padding:12px!important}.staff-portal[data-cabinet-role="owner"] #lw-owner-inquiries .lw-inquiry-top{gap:6px!important}}
