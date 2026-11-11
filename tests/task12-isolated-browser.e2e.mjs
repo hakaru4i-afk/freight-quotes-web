@@ -240,7 +240,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    assert.ok(layout.text>100,'Blank cabinet');assert.ok(layout.scroll<=viewport.width+4,'Horizontal overflow: '+JSON.stringify(layout));
    const file='reports/isolated-rc/'+actor+'-'+phase+'-'+viewport.width+'.png';await page.screenshot({path:file,fullPage:true});rec.viewports.push({...viewport,...layout,screenshot:file,screenshotSha256:createHash('sha256').update(await readFile(file)).digest('hex')});
   }
-  assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
+  rec.runtimeErrors=consoleErrors.filter(value=>/^(?:[A-Za-z]+Error:|Error:)|Minified React error|The above error occurred/.test(value)).slice(0,5);assert.deepEqual(rec.runtimeErrors,[],'Caught application render error');assert.equal(await page.getByText('Не удалось открыть раздел',{exact:true}).count(),0,'Application error boundary');assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
  }catch(e){rec.failureScreenshot='reports/isolated-rc/'+actor+'-'+phase+'-failure.png';await page.screenshot({path:rec.failureScreenshot,fullPage:true});
    await writeFile('reports/isolated-rc/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
    rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
