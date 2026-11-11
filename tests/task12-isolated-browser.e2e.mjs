@@ -42,7 +42,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
    let r;try{r=await fetch(base+path+url.search,{method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
-   const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,durationMs:Date.now()-start});
+   const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,durationMs:Date.now()-start,requestedRegion:url.searchParams.get('forceFunctionRegion'),actualRegion:r.headers.get('x-sb-edge-region')});
    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
    await route.fulfill({status:r.status,headers:out,body});return;
   }

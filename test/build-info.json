@@ -10,7 +10,7 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "a5fce157d913d434eae7e54877928f6d2bfb3ba9",
+  "servedAppBlobSha": "a0655598b6d1b52c87eaec49711d129f3a346425",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -521,17 +521,25 @@
   "stabilizationQa20261110": {
     "backendSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 7,
-    "isolatedQaBundleSha256": "f70d0ad1ceefb5383020a5dae5f00fbf83fc20b593889fe7c656539faa19f93a",
+    "isolatedQaVersion": 8,
+    "isolatedQaBundleSha256": "798ec83ee2b3c317139a0f415edc96ef97244e11f4d0b21c943c643119e36a3d",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd"
+    "isolatedQaSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4"
   },
   "businessProcessReview": {
-    "modelVersion": "20261110-logic-4",
+    "modelVersion": "20261111-logic-5",
     "scope": "staging-only",
     "status": "RELEASE_BLOCKED",
     "technicalAndLogicSeparate": true
+  },
+  "stagingApiRegion": {
+    "region": "eu-central-1",
+    "databaseRegion": "eu-central-1",
+    "module": "staging-api-region.mjs",
+    "moduleSha256": "b16d116ff434addf7019a9632e1d4f2db5f1d089d1ea016c751fd5ff63c8e7b9",
+    "automaticWriteRetry": false,
+    "reason": "Execute database-intensive requests beside the database; regional outage needs operator rollback."
   }
 }
