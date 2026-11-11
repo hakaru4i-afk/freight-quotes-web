@@ -45,13 +45,14 @@ function showRegistry(host,root){
  let head=host.querySelector("#ow-register-head");
  if(!head){head=document.createElement("header");head.id="ow-register-head";root.before(head);}
  const l=lang(),info=docs[selected];if(!info)return;
- head.replaceChildren();
+ const key=selected+"|"+l;
+ if(head.dataset.renderKey!==key){head.dataset.renderKey=key;head.replaceChildren();
  const h=document.createElement("h2");h.textContent=info[l];
  const v=document.createElement("small");v.textContent="OW-01.30.46 v";
  const p=document.createElement("p");p.textContent=locales[l].info;
  const a=document.createElement("a");a.href="https://github.com/hakaru4i-afk/freight-quotes/blob/main/docs/registries/"+info.file;
  a.target="_blank";a.rel="noopener noreferrer";a.textContent=locales[l].archive;
- head.append(h,v,p,a);
+ head.append(h,v,p,a);}
  const filter=root.querySelector("#pf-register");
  if(filter&&filter.value!==selected){filter.value=selected;filter.dispatchEvent(new Event("change",{bubbles:true}));}
 }
@@ -67,9 +68,10 @@ function showProcess(host,root){
   section.append(heading,v,p,a,frame);root.before(section);
  }
  const l=lang();
- section.querySelector(".ow-process-title").textContent=locales[l].flow;
- section.querySelector(".ow-process-info").textContent=locales[l].flowInfo;
- section.querySelector(".ow-process-full").textContent=locales[l].open;
+ const setText=(selector,value)=>{const el=section.querySelector(selector);if(el&&el.textContent!==value)el.textContent=value;};
+ setText(".ow-process-title",locales[l].flow);
+ setText(".ow-process-info",locales[l].flowInfo);
+ setText(".ow-process-full",locales[l].open);
  section.querySelector("iframe").title=locales[l].process;
 }
 function render(){

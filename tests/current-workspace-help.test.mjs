@@ -60,7 +60,7 @@ test("role FAQs update with language and role changes without duplicating panels
   v.setRole("owner");v.refresh();
   assert.match(v.host.element.innerHTML,/Выберите ровно одну ставку/);
   v.document.documentElement.lang="en";v.refresh();
-  assert.match(v.host.element.innerHTML,/How do I use the Excel template/);
+  assert.match(v.host.element.innerHTML,/How do I use a quote Excel template/);
   v.document.documentElement.lang="zh-CN";v.refresh();
   assert.match(v.host.element.innerHTML,/如何使用 Excel 模板/);
   assert.equal(v.host.element.dataset.version,"zh-owner");

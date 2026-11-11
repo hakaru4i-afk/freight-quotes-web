@@ -33,7 +33,7 @@ test("approved Owner command-04 still has full-width layout, role switch and SL"
   const js = readFileSync("test/owner-command-center-20261108.js", "utf8");
   const nav = readFileSync("test/owner-workspace-compact-20261108.js", "utf8");
   const help = readFileSync("test/current-workspace-help-20261108.js", "utf8");
-  assert.ok(page.includes("owner-command-center-20261108.css?v=command-06"));
+  assert.ok(page.includes("owner-command-center-20261108.css?v=command-07"));
   assert.ok(page.includes("owner-command-center-20261108.js?v=command-04"));
   assert.ok(css.includes("Exact full-bleed approved layout"));
   assert.ok(css.includes("max-width:none!important;width:100%!important;margin:0!important"));

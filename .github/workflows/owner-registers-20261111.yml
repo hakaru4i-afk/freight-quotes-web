@@ -1,0 +1,68 @@
+name: OW-01.30.46 v Owner registers / current process / FAQ staging
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test/owner-registers-20261111.js'
+      - 'test/owner-registers-20261111.css'
+      - 'test/current-workspace-help-20261108.js'
+      - 'test/lw-public-cooperation-20261108.js'
+      - 'test/index.html'
+      - 'test/process-map.html'
+      - 'tests/owner-registers-20261111.test.mjs'
+      - 'tests/owner-registers-browser.test.mjs'
+      - '.github/workflows/owner-registers-20261111.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/owner-registers-20261111.test.mjs tests/current-workspace-help.test.mjs tests/owner-workspace-compact.test.mjs tests/lw-permanent-delete-staging.test.mjs
+  served:
+    needs: static
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify served HTML and exact JS/CSS/FAQ bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://hakaru4i-afk.github.io/freight-quotes-web/test'
+          for i in {1..35}; do
+            curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/index.html?sha=$GITHUB_SHA-$i" -o /tmp/ow-index.html || true
+            curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.js?sha=$GITHUB_SHA-$i" -o /tmp/ow.js || true
+            curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.css?sha=$GITHUB_SHA-$i" -o /tmp/ow.css || true
+            curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?sha=$GITHUB_SHA-$i" -o /tmp/ow-help.js || true
+            if cmp -s test/index.html /tmp/ow-index.html && cmp -s test/owner-registers-20261111.js /tmp/ow.js && cmp -s test/owner-registers-20261111.css /tmp/ow.css && cmp -s test/current-workspace-help-20261108.js /tmp/ow-help.js; then
+              echo 'PASS exact staging HTML, Owner registers, CSS and latest FAQ'
+              exit 0
+            fi
+            sleep 8
+          done
+          echo '::error::Staging is not serving exact committed files'
+          exit 1
+  browser:
+    needs: served
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - run: node --test tests/owner-registers-browser.test.mjs
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ow-registers-01-30-46-screens
+          path: ow-registers-*.png
+          if-no-files-found: ignore
