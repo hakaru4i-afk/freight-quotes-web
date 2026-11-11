@@ -1,3 +1,4 @@
+import {processEdges as edges} from "../test/process-model-graph.mjs";
 import {readFileSync,writeFileSync,mkdirSync,existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
@@ -5,7 +6,7 @@ import {resolve,dirname} from 'node:path';
 export const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const wrap=(s,n=28)=>{const out=[];let line='';for(const w of String(s).split(/\s+/)){if((line+' '+w).trim().length>n&&line){out.push(line);line=w;}else line=(line+' '+w).trim();}if(line)out.push(line);return out;};
-const watchedSources=['test/app.js','test/task2-panel-sidebar-only-20261107.js','test/late-bid-staging-3ff2c9ab03f5.js','test/task2-guidance-42dc6ccc8a20.js','test/carrier-acceptance-workflow-20261107.js','test/current-workspace-help-20261108.js','test/lw-pending-tasks-all-roles-20261109.js','test/ved-single-workspace-20261108.js','test/lw-ved-shared-chat-20261109.js'];
+const watchedSources=[...new Set([...readFileSync(resolve(root,'test/index.html'),'utf8').matchAll(/(?:src|href)="\.\/([^"?]+\.(?:js|mjs|css))(?:\?[^"\s]*)?"/g)].map(x=>'test/'+x[1]).concat('test/process-model-graph.mjs','test/task2-panel.js'))];
 function sourceSignatures(){return Object.fromEntries(watchedSources.map(path=>[path,createHash('sha256').update(readFileSync(resolve(root,path))).digest('hex')]));}
 function backendSource(){return JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')).stabilizationQa20261110.backendSourceCommit;}
 export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}
@@ -18,15 +19,7 @@ export function validate(model){
  }
  if(ids.size!==10)throw Error('Expected ten reviewed processes');
 }
-function edges(p){
- if(p.id==='OVERVIEW')return p.edges;
- const back={P01:[3,0,'Неполный комплект → исправление'],P02:[3,2,'Неверные поля → исправление'],P04:[1,1,'Повтор: уже принято'],P05:[1,0,'Недоступен расчёт: повтор, без вымысла'],P07:[5,2,'Возврат владельцем: changes_requested'],P09:[1,0,'Условия не выполнены: исправить'],P10:[3,0,'Повтор cron: без второго штрафа']}[p.id];
- if(p.id==='P08')return [1,2,3].map(i=>({from:0,to:i,label:'Только своя роль / логин'}));
- if(p.id==='P05')return [{from:0,to:1,label:'Контрольная точка'},{from:1,to:3,label:'Подтверждено <1000 км'},{from:1,to:2,label:'Невозможно рассчитать'},{from:2,to:3,label:'Owner: причина, основание, аудит'},{from:3,to:4,label:'Одна задача; ВЭД выполняет проверку'},{from:4,to:5,label:'ПТО и ВЭД подтверждены'}];
- if(p.id==='P03')return [{from:0,to:1,label:'Перед выбором'},{from:1,to:3,label:'Активных черновиков нет'},{from:1,to:2,label:'Выбор заблокирован'},{from:2,to:1,label:'После завершения / снятия'},{from:3,to:4,label:'Один победитель'},{from:4,to:5,label:'Если тендер завершён'}];
- if(p.id==='P06')return [{from:0,to:1,label:'После принятия'}, {from:1,to:4,label:'Комплект достаточен'}, {from:1,to:2,label:'Не хватает документов'}, {from:2,to:3,label:'Адресный получатель'}, {from:3,to:4,label:'Файл связан с задачей'}, {from:4,to:5,label:'Проверка завершена'}];
- return [...p.nodes.slice(1).map((_,i)=>({from:i,to:i+1,label:'Условия шага выполнены'})),...(back?[{from:back[0],to:back[1],label:back[2]}]:[])];
-}
+
 function graph(model,processes,perspective=null){
  processes=processes.map(p=>({...p,nodes:p.nodes.map(n=>({...n,role:n.alsoRoles?.includes(perspective)?perspective:n.role}))}));
  const used=Object.keys(model.roles).filter(r=>processes.some(p=>p.nodes.some(n=>n.role===r)));

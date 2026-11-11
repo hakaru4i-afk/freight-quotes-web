@@ -248,9 +248,7 @@
 @media(max-width:600px){#task2-root [data-t2-form="save"] .t2-fields{gap:12px!important;}#task2-root [data-t2-form="save"] .t2-block-title{font-size:15px!important;}}
 
 /* SHIPMENT-LAYOUT-03: clear hierarchy of the three primary shipment blocks. */
-#task2-root .t2-stage[data-t2-section="overview"],
-#task2-root .t2-stage[data-t2-section="track"],
-#task2-root .t2-stage[data-t2-section="documents"] {
+#task2-root .t2-stage {
   border:1px solid #cbd8e8!important;
   border-radius:16px!important;
   background:#fff!important;
@@ -258,9 +256,7 @@
   margin:20px 0!important;
   box-shadow:0 3px 16px rgba(24,48,78,.06)!important;
 }
-#task2-root .t2-stage[data-t2-section="overview"]>h3,
-#task2-root .t2-stage[data-t2-section="track"]>h3,
-#task2-root .t2-stage[data-t2-section="documents"]>h3 {
+#task2-root .t2-stage>h3 {
   font-size:clamp(20px,2.4vw,27px)!important;
   line-height:1.25!important;
   color:#16334f!important;

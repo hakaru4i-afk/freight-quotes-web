@@ -39,37 +39,39 @@ result.className="lw-contact-result lw-ok";result.textContent=c.sent+(json.refer
 }catch(err){result.className="lw-contact-result lw-error";result.textContent=c.err+" "+String(err.message||"").slice(0,140)}
 finally{formBusy=false;button.disabled=false;button.textContent=c.send;}
 }
+const labels={ru:{search:"Поиск по компании, контакту, тексту, ID",all:"Все статусы",kind:"Все категории",save:"Сохранить",new:"Новый",read:"Прочитано",in_progress:"В работе",closed:"Завершено",rejected:"Отклонено",history:"История",newCount:"Новых предложений",sort:"Сначала новые"},en:{search:"Search company, contact, message or ID",all:"All statuses",kind:"All categories",save:"Save",new:"New",read:"Read",in_progress:"In progress",closed:"Completed",rejected:"Rejected",history:"History",newCount:"New proposals",sort:"Newest first"},zh:{search:"搜索公司、联系人、消息或编号",all:"全部状态",kind:"全部类别",save:"保存",new:"新建",read:"已读",in_progress:"处理中",closed:"已完成",rejected:"已拒绝",history:"历史",newCount:"新方案",sort:"最新优先"}};
+let ownerQuery="",ownerStatus="",ownerKind="",ownerSort="recent";
 function ownerHost(){
-const role=document.querySelector(".cabinet-app[data-cabinet-role=owner]");
-if(!role)return null;
-const help=role.querySelector('.cabinet-panel[data-section="overview"]')||role.querySelector('.cabinet-panel[data-section="help"]');if(!help)return null;
-let el=help.querySelector("#lw-owner-inquiries");if(!el){el=document.createElement("section");el.id="lw-owner-inquiries";help.prepend(el);}
-
-return el;
+ const screen=document.querySelector('.cabinet-app[data-cabinet-role="owner"] #ow-cooperation-screen');if(!screen)return null;
+ let host=screen.querySelector('#lw-owner-inquiries');if(!host){host=document.createElement('section');host.id='lw-owner-inquiries';screen.append(host);}return host;
+}
+function countOwner(){
+ const cab=document.querySelector('.cabinet-app[data-cabinet-role="owner"]');if(!cab)return;
+ const overview=cab.querySelector('.cabinet-panel[data-section="overview"]');if(!overview)return;
+ let b=overview.querySelector('#ow-partner-count');if(!b){b=document.createElement('button');b.id='ow-partner-count';b.type='button';b.addEventListener('click',()=>cab.querySelector('[data-ow-register="cooperation"]')?.click());overview.prepend(b);}
+ const text=labels[lang()].newCount+': '+ownerItems.filter(i=>i.status==='new').length;if(b.textContent!==text)b.textContent=text;
 }
 function drawOwner(){
-const el=ownerHost();if(!el)return;const c=tr();
-el.innerHTML='<div class="lw-owner-head"><div><h2>'+esc(c.owner)+'</h2><small>Logistics Workspace · staging</small></div><button type="button" data-lw-refresh>'+esc(c.refresh)+'</button></div>'+
-(ownerError?'<p class="lw-error">'+esc(ownerError)+'</p>':"")+
-(!ownerItems.length?'<p>'+esc(ownerLoading?"…":c.empty)+'</p>':'<div class="lw-owner-list">'+ownerItems.map(i=>
-'<article class="lw-inquiry"><div class="lw-inquiry-top"><strong>'+esc(i.company_name)+'</strong><small>'+esc(i.created_at?new Date(i.created_at).toLocaleString(lang()==="zh"?"zh-CN":lang()==="en"?"en-GB":"ru-RU"):"")+'</small></div>'+
-'<p><b>'+esc(i.partner_kind==="carrier"?c.carrier:c.supplier)+'</b> · '+esc(i.status==="new"?c.new:i.status==="closed"?c.close:c.read)+'</p>'+
-'<p>'+esc(i.contact_name)+' · '+esc(i.contact_details)+'</p><p class="lw-inquiry-text">'+esc(i.message)+'</p>'+(!Array.isArray(i.attachments)||!i.attachments.length?'':'<div class="lw-inquiry-files"><b>'+esc(c.attached)+'</b>'+i.attachments.map(a=>'<button type="button" class="lw-file-download" data-lw-file="'+esc(a.id)+'" data-lw-filename="'+esc(a.name)+'">'+esc(c.download)+': '+esc(a.name)+' ('+Math.ceil(Number(a.size||0)/1024)+' KB)</button>').join('')+'</div>')+
-(i.status!=="closed"?'<div class="lw-inquiry-actions">'+(i.status==="new"?'<button type="button" data-lw-status="read" data-lw-id="'+esc(i.id)+'">'+esc(c.read)+'</button>':"")+'<button type="button" data-lw-status="closed" data-lw-id="'+esc(i.id)+'">'+esc(c.close)+'</button></div>':"")+'</article>').join("")+'</div>');
+ countOwner();const el=ownerHost();if(!el)return;const c=tr(),w=labels[lang()];
+ if(el.dataset.language!==lang()||!el.querySelector('.lw-owner-head')){
+  el.dataset.language=lang();el.innerHTML='<div class="lw-owner-head"><h2>'+esc(c.owner)+'</h2><button type="button" data-lw-refresh>'+esc(c.refresh)+'</button></div><div class="ow-toolbar"><input type="search" data-partner-search aria-label="'+esc(w.search)+'" placeholder="'+esc(w.search)+'"><select data-partner-status aria-label="'+esc(w.all)+'"><option value="">'+esc(w.all)+'</option>'+['new','read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'">'+esc(w[x])+'</option>').join('')+'</select><select data-partner-kind aria-label="'+esc(w.kind)+'"><option value="">'+esc(w.kind)+'</option><option value="supplier">'+esc(c.supplier)+'</option><option value="carrier">'+esc(c.carrier)+'</option></select><select data-partner-sort aria-label="'+esc(w.sort)+'"><option value="recent">'+esc(w.sort)+'</option><option value="old">'+esc(lang()==='ru'?'Сначала старые':lang()==='zh'?'旧记录优先':'Oldest first')+'</option></select></div><p class="lw-error" role="status"></p><div class="lw-owner-list"></div>';
+  el.querySelector('[data-partner-search]').value=ownerQuery;el.querySelector('[data-partner-status]').value=ownerStatus;el.querySelector('[data-partner-kind]').value=ownerKind;el.querySelector('[data-partner-sort]').value=ownerSort;
+ }
+ el.querySelector('.lw-error').textContent=ownerError;
+ let items=ownerItems.filter(i=>(!ownerStatus||i.status===ownerStatus)&&(!ownerKind||i.partner_kind===ownerKind)&&JSON.stringify(i).toLocaleLowerCase().includes(ownerQuery.toLocaleLowerCase()));if(ownerSort==='old')items=[...items].reverse();
+ el.querySelector('.lw-owner-list').innerHTML=!items.length?'<p>'+esc(ownerLoading?'…':c.empty)+'</p>':items.map(i=>'<article class="lw-inquiry" data-inquiry-id="'+esc(i.id)+'"><details><summary><strong>'+esc(i.company_name)+'</strong> · '+esc(w[i.status]||i.status)+' · '+esc(new Date(i.created_at).toLocaleString(lang()==='zh'?'zh-CN':lang()==='en'?'en-GB':'ru-RU',{timeZone:'Europe/Minsk'}))+'</summary><p>'+esc(i.id)+' · '+esc(i.partner_kind==='carrier'?c.carrier:c.supplier)+'</p><p>'+esc(i.contact_name)+' · '+esc(i.contact_details)+'</p><p class="lw-inquiry-text">'+esc(i.message)+'</p>'+(i.attachments||[]).map(f=>'<button type="button" class="lw-file-download" data-lw-file="'+esc(f.id)+'" data-lw-filename="'+esc(f.name)+'">'+esc(c.download)+': '+esc(f.name)+'</button>').join('')+'<label>'+esc(w.all)+'<select data-inquiry-status><option value="new" disabled'+(i.status==='new'?' selected':'')+'>'+esc(w.new)+'</option>'+['read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'"'+(i.status===x?' selected':'')+'>'+esc(w[x])+'</option>').join('')+'</select></label><button type="button" data-lw-status data-lw-id="'+esc(i.id)+'">'+esc(w.save)+'</button><h3>'+esc(w.history)+'</h3><ul>'+(i.history||[]).map(h=>'<li>'+esc(w[h.status]||h.status)+' · '+esc(h.actor)+' · '+esc(new Date(h.at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}))+'</li>').join('')+'</ul></details></article>').join('');
 }
 async function loadOwner(){
-if(!ownerHost()||ownerLoading||ownerBusy)return;ownerLoading=true;
-try{const response=await fetch("/api/partner-inquiries",{cache:"no-store"}),json=await response.json();if(!response.ok||!json.ok)throw Error("HTTP "+response.status);ownerItems=Array.isArray(json.items)?json.items:[];ownerLoaded=true;ownerError="";}
-catch(e){ownerError="Обращения временно недоступны: "+e.message}
-finally{ownerLoading=false;drawOwner()}
+ if(!document.querySelector('.cabinet-app[data-cabinet-role="owner"]')||ownerLoading||ownerBusy)return;ownerLoading=true;
+ try{const all=[];let offset=0;do{const response=await fetch('/api/partner-inquiries?offset='+offset,{cache:'no-store'}),json=await response.json();if(!response.ok||!json.ok)throw Error('HTTP '+response.status);all.push(...json.items);offset=json.nextOffset;}while(offset!==null&&offset!==undefined);ownerItems=all;ownerLoaded=true;ownerError='';}
+ catch(e){ownerError=tr().err+' '+e.message;}
+ finally{ownerLoading=false;drawOwner();}
 }
 async function ownerAction(e){
-const b=e.target.closest("[data-lw-status]");if(!b||ownerBusy)return;
-ownerBusy=true;b.disabled=true;try{
-const r=await fetch("/api/partner-inquiries",{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:b.dataset.lwId,status:b.dataset.lwStatus})}),j=await r.json();if(!r.ok||!j.ok)throw Error("HTTP "+r.status);
-ownerBusy=false;await loadOwner();
-}catch(x){ownerError=x.message;drawOwner()}
-finally{ownerBusy=false;}
+ const b=e.target.closest('[data-lw-status]');if(!b||ownerBusy)return;const item=ownerItems.find(x=>x.id===b.dataset.lwId);if(!item)return;
+ const status=b.closest('[data-inquiry-id]').querySelector('[data-inquiry-status]').value;ownerBusy=true;b.disabled=true;
+ try{const r=await fetch('/api/partner-inquiries',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,status,expectedStatus:item.status})}),j=await r.json();if(!r.ok||!j.ok)throw Error('HTTP '+r.status);ownerBusy=false;await loadOwner();}
+ catch(x){ownerError=x.message;drawOwner();}finally{ownerBusy=false;b.disabled=false;}
 }
 async function ownerFile(e){
 const b=e.target.closest("[data-lw-file]");if(!b||b.disabled)return;
@@ -84,13 +86,18 @@ let lastLang="";
 function mount(){
 publicForm();
 const host=ownerHost();
+if(document.querySelector('.cabinet-app[data-cabinet-role="owner"]')){countOwner();
 if(host){if(lastLang!==lang()&&ownerLoaded)drawOwner();else if(!host.querySelector(".lw-owner-head"))drawOwner();
+}
 if(!ownerLoaded&&!ownerLoading&&!ownerError)void loadOwner();}
 lastLang=lang();
 }
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;mount()})}
 document.addEventListener("submit",submit);
 document.addEventListener("click",e=>{if(e.target.closest("[data-lw-refresh]"))void loadOwner();if(e.target.closest("[data-lw-status]"))void ownerAction(e);if(e.target.closest("[data-lw-file]"))void ownerFile(e)});
+window.addEventListener("ow-workspace-changed",()=>{drawOwner();schedule();});
+document.addEventListener("input",e=>{if(e.target.matches("[data-partner-search]")){ownerQuery=e.target.value;drawOwner();}});
+document.addEventListener("change",e=>{if(e.target.matches("[data-partner-status]"))ownerStatus=e.target.value;else if(e.target.matches("[data-partner-kind]"))ownerKind=e.target.value;else if(e.target.matches("[data-partner-sort]"))ownerSort=e.target.value;else return;drawOwner();});
 new MutationObserver(schedule).observe(document.getElementById("root")||document.body,{subtree:true,childList:true});
 new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
 window.addEventListener("hashchange",()=>{if(location.hash==="#help")void loadOwner()});

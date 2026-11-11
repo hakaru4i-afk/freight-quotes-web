@@ -368,20 +368,20 @@ body.lw-cc-owner-view .test-cabinets a{
 /* OWNER-COMMAND-04 QA contrast correction: old green/grey helper colors were
    unreadable when the Owner navigated from the overview to dark form pages. */
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"])
- :is(h1,h2,h3,h4,label,legend,.field>.field-label){
+ :is(h1,h2,h3,h4,label,legend,.field>.field-label):not(:where(#task2-root *,#ow-workspace *)){
  color:#edf6ff!important;
 }
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"])
- :is(.field-help,.lw-field-help,.form-hint,.hint,.quiet,.small,.help-text){
+ :is(.field-help,.lw-field-help,.form-hint,.hint,.quiet,.small,.help-text):not(:where(#task2-root *,#ow-workspace *)){
  color:#bdd7ec!important;opacity:1!important;
 }
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"])
- :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea){
+ :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):not(:where(#task2-root *,#ow-workspace *)){
  color:#f3f9ff!important;background:#0d2540!important;
  border:1px solid #446989!important;
 }
 .staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-panel:not([data-section="overview"])
- :is(input,textarea)::placeholder{
+ :is(input,textarea):not(:where(#task2-root *,#ow-workspace *))::placeholder{
  color:#a9c5df!important;opacity:1!important;
 }
 
