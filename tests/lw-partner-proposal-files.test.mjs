@@ -38,3 +38,20 @@ test("server rejects forged PDF and never saves its proposal",async()=>{
   assert.equal(response.status,400,"Forged PDF should fail before database insert; got "+response.status);
  }finally{clearTimeout(timeout)}
 });
+
+test("one synthetic staging proposal persists a genuine PDF file",{skip:process.env.LW_REAL_UPLOAD!=="1"},async()=>{
+ const form=new FormData();
+ form.append("partnerKind","supplier");
+ form.append("company","QA_ONLY_PARTNER_FILES_20261111");
+ form.append("contactName","Automated QA");
+ form.append("contactDetails","qa-internal@example.invalid");
+ form.append("message","Staging-only synthetic document upload, not a real supplier proposal.");
+ form.append("consent","on");
+ form.append("attachments",new Blob(["%PDF-1.4\\n1 0 obj\\n<<>>\\nendobj\\n%%EOF\\n"],{type:"application/pdf"}),"qa_proposal.pdf");
+ const abort=new AbortController();const timeout=setTimeout(()=>abort.abort(),30000);
+ try{const response=await fetch(api,{method:"POST",headers:{Origin:"https://hakaru4i-afk.github.io"},body:form,signal:abort.signal});
+ const body=await response.json();assert.equal(response.status,201,"Valid staging file upload: "+JSON.stringify(body));
+ assert.equal(body.ok,true);assert.equal(body.attachmentCount,1);assert.match(body.reference,/^[0-9a-f]{8}$/);
+ console.log("QA_PARTNER_UPLOAD_REFERENCE",body.reference);
+ }finally{clearTimeout(timeout)}
+});
