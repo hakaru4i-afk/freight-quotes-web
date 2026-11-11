@@ -10,14 +10,14 @@
   "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "0ed8fee1154fb025d57fbf8b2fc8a54da4b4f345",
+  "servedAppBlobSha": "a29da61eb328a78498950421213131aea0d3382e",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 89,
+    "backendVersion": 90,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -28,7 +28,7 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
+    "backendSourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
     "backendSourceSha": "a2f45183be1079c2b1e351f8ceab33c9f8e82134",
     "backendIsolation": "Isolated RC v8 is separate from shared staging v89; both use verified source 276409c2d1e2768b491e032f270fb845604804c4.",
     "lateBidApi": "freight-api v61",
@@ -45,7 +45,7 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 89,
+    "lastObservedBackendVersion": 90,
     "backendDeploymentStatus": "SHARED_STAGING_API_V89_ACTIVE; QA_V8_SAME_BUSINESS_SOURCE; FULL_ACCEPTANCE_OPEN",
     "backendCandidate": {
       "sourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
@@ -521,16 +521,16 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
+    "backendSourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 8,
-    "isolatedQaBundleSha256": "798ec83ee2b3c317139a0f415edc96ef97244e11f4d0b21c943c643119e36a3d",
+    "isolatedQaVersion": 9,
+    "isolatedQaBundleSha256": "1b0328d599ca93833757fab6f9e3338b19be59d6eccf3a3dd68448cd92896ca8",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
-    "sharedBackendVersion": 89,
-    "sharedBackendBundleSha256": "dee6a283a97043b404707b779be11c3874552946bc64a44c2e0d4601f39bfdb3"
+    "isolatedQaSourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
+    "sharedBackendVersion": 90,
+    "sharedBackendBundleSha256": "d2453a13450c0ab2cc51e9c0e968e3e6eec4a3d2f9ef180cce1436f6146f5239"
   },
   "businessProcessReview": {
     "modelVersion": "20261111-logic-7",
@@ -551,10 +551,10 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "5fea2e93b87df81ae5c5",
+  "stagingAssetBuildId": "e7233d671f437ce58ff5",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
-    "app.js": "db9d1753c02594b1e993540d0e56c794733b5563f23c0a2b5c1cefc293751c6c",
+    "app.js": "8d9a0112f6473ffa9521e7933f39396ca7e968e92435ea1abb0fb7e7c6bcb84e",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",

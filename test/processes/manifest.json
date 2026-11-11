@@ -1,8 +1,8 @@
 {
-  "version": "20261111-logic-7",
-  "modelSha256": "2448fb39443ba25dcfd4fe6dc9792d5792d3daa1352462858004c0d1fc883553",
+  "version": "20261111-logic-8",
+  "modelSha256": "7b9d5fc51e14fb2bc1669176d87b3283d91b2b23bb41f497b22c93231a5a6bd4",
   "modelSnapshot": {
-    "version": "20261111-logic-7",
+    "version": "20261111-logic-8",
     "date": "2026-11-11",
     "releaseStatus": "RELEASE_BLOCKED",
     "roles": {
@@ -195,7 +195,7 @@
         "optimal": "Одна точка принятия; после успеха сразу показывать ближайшее обязательное действие, сохранять историю принятия.",
         "exceptions": "Повтор принятия идемпотентен; проигравшему исполнение запрещено.",
         "risks": "Не обойти текущего победителя и не потерять исходную дату.",
-        "verification": "Реальные принятие, повтор, отрицательные роли и сохранение дат подтверждены.",
+        "verification": "Реальные принятие, повтор, отрицательные роли и сохранение дат подтверждены. 11.11: API v90/QA v9 — четвёртый перенос: concurrent 200/409, пятый409; повтор не добавляет историю или аудит; исходная дата, две контейнерные записи и точка трекинга сохранены.",
         "nodes": [
           {
             "id": "P04-1",
@@ -590,7 +590,7 @@
       ]
     ],
     "reviewedSourceSignatures": {
-      "test/app.js": "db9d1753c02594b1e993540d0e56c794733b5563f23c0a2b5c1cefc293751c6c",
+      "test/app.js": "8d9a0112f6473ffa9521e7933f39396ca7e968e92435ea1abb0fb7e7c6bcb84e",
       "test/task2-panel-sidebar-only-20261107.js": "a1c24156a0244ebdbe9e8b94cbdbdd6497a1e23153bc7f675fa2b5ecdc26d30b",
       "test/late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
       "test/task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
@@ -600,7 +600,7 @@
       "test/ved-single-workspace-20261108.js": "1f9c19d149c9e39408398ecfe6e95b4be47e70ef69997769a068b4f395f99db7",
       "test/lw-ved-shared-chat-20261109.js": "e1455d347128028ae8dbc3208c71529a5a9650048ab7b8c2150c920d6bb65a24"
     },
-    "reviewedBackendSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
+    "reviewedBackendSourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
     "previousVersion": "20261110-logic-3",
     "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c."
   },
