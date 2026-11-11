@@ -19,7 +19,7 @@ jobs:
       - name: Check syntax and protected proposal endpoint
         run: |
           node --check test/lw-public-cooperation-20261108.js
-          node --test tests/lw-partner-proposal-files.test.mjs
+          LW_REAL_UPLOAD=1 node --test tests/lw-partner-proposal-files.test.mjs
       - name: Stamp exact staging asset and process signatures
         run: |
           node scripts/stamp-staging-rc.mjs --write
