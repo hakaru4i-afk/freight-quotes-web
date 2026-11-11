@@ -14,11 +14,12 @@ assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
 const root=resolve('.'),base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
-const sessions=JSON.parse(await readFile('/tmp/freight-rc20261110-private/sessions.json','utf8'));
+const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
-await new Promise(done=>server.listen(0,'127.0.0.1',done));const origin='http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
+await new Promise(done=>server.listen(0,'127.0.0.1',done));const published=process.env.QA_BROWSER_PUBLISHED==='true';
+const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
+const browser=await chromium.launch({headless:true});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
 await mkdir('reports/isolated-rc',{recursive:true});
 const html=await readFile('test/index.html','utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile('test/'+name)).digest('hex');}
@@ -26,7 +27,7 @@ for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]
 try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,designer,content,purchasing,certification').split(',')){
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
  const context=await browser.newContext({viewport:{width:1440,height:900}});const errors=[];
- await context.addInitScript(({token})=>{if(window.top===window&&location.protocol==='http:')localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
+ await context.addInitScript(({token})=>{if(window.top===window&&/^https?:$/.test(location.protocol))localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
  await context.route('**/*',async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
@@ -39,12 +40,18 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
    await route.fulfill({status:r.status,headers:out,body});return;
   }
+  if(published&&url.origin===origin&&url.pathname.startsWith('/freight-quotes-web/test/')){
+   const r=await fetch(url.href,{signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await r.arrayBuffer());
+   const name=decodeURIComponent(url.pathname.slice('/freight-quotes-web/test/'.length))||'index.html';
+   if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
+   const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];await route.fulfill({status:r.status,headers,body:bytes});return;
+  }
   if(url.origin===origin||['data:','blob:'].includes(url.protocol)){await route.continue();return;}
   await route.abort();
  });
  const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
  try{
-  await page.goto(origin+'/test/',{waitUntil:'domcontentloaded'});
+  await page.goto(origin+(published?'/freight-quotes-web/test/':'/test/'),{waitUntil:'domcontentloaded'});
   await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile('reports/isolated-rc/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));

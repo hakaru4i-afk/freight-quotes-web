@@ -1,0 +1,70 @@
+name: Isolated QA published role browser
+on:
+  workflow_dispatch:
+concurrency:
+  group: task12-staging-observer
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  real-qa:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
+      QA_BROWSER_PUBLISHED: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify real QA sessions and role identities
+        env:
+          QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
+          QA_OWNER_PASSWORD: ${{ secrets.QA_OWNER_PASSWORD }}
+          QA_CARRIER_A_LOGIN: ${{ secrets.QA_CARRIER_A_LOGIN }}
+          QA_CARRIER_A_PASSWORD: ${{ secrets.QA_CARRIER_A_PASSWORD }}
+          QA_CARRIER_B_LOGIN: ${{ secrets.QA_CARRIER_B_LOGIN }}
+          QA_CARRIER_B_PASSWORD: ${{ secrets.QA_CARRIER_B_PASSWORD }}
+          QA_VED_LOGIN: ${{ secrets.QA_VED_LOGIN }}
+          QA_VED_PASSWORD: ${{ secrets.QA_VED_PASSWORD }}
+          QA_LOGISTIC_LOGIN: ${{ secrets.QA_LOGISTIC_LOGIN }}
+          QA_LOGISTIC_PASSWORD: ${{ secrets.QA_LOGISTIC_PASSWORD }}
+          QA_SUPPLIER_LOGIN: ${{ secrets.QA_SUPPLIER_LOGIN }}
+          QA_SUPPLIER_PASSWORD: ${{ secrets.QA_SUPPLIER_PASSWORD }}
+          QA_DESIGNER_LOGIN: ${{ secrets.QA_DESIGNER_LOGIN }}
+          QA_DESIGNER_PASSWORD: ${{ secrets.QA_DESIGNER_PASSWORD }}
+          QA_CONTENT_LOGIN: ${{ secrets.QA_CONTENT_LOGIN }}
+          QA_CONTENT_PASSWORD: ${{ secrets.QA_CONTENT_PASSWORD }}
+          QA_PURCHASING_LOGIN: ${{ secrets.QA_PURCHASING_LOGIN }}
+          QA_PURCHASING_PASSWORD: ${{ secrets.QA_PURCHASING_PASSWORD }}
+          QA_CERTIFICATION_LOGIN: ${{ secrets.QA_CERTIFICATION_LOGIN }}
+          QA_CERTIFICATION_PASSWORD: ${{ secrets.QA_CERTIFICATION_PASSWORD }}
+        run: node tests/task12-ci-auth.mjs
+      - run: npm install --no-save playwright@1.56.1
+      - run: npx playwright install --with-deps chromium
+      - name: Read all role cabinets from actual published assets
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Owner creates an isolated request through published UI
+        env:
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_CREATE: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Carrier submits a real isolated bid through published UI
+        env:
+          QA_BROWSER_ACTORS: carrierB
+          QA_BROWSER_BID: 'true'
+          QA_BROWSER_IMPORT: xlsx
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: isolated-qa-redacted-evidence
+          path: |
+            reports/ci-qa-auth.json
+            reports/isolated-rc/browser-results-*.json
+          retention-days: 7
+      - name: Revoke sessions and remove private runner files
+        if: always()
+        run: node tests/task12-ci-auth.mjs --logout
