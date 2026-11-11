@@ -8,13 +8,13 @@ const html=readFileSync("test/index.html","utf8");
 const api="https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/api/partner-inquiries";
 
 test("public partnership form attaches files rather than spreadsheet row templates",()=>{
- assert.match(script,/name=\\"attachments\\"/);
- assert.match(script,/data-task2-csv=\\"1\\"/);
+ assert.ok(script.includes('name="attachments"'));
+ assert.ok(script.includes('data-task2-csv="1"'));
  assert.match(script,/body:fd/);
  assert.doesNotMatch(script,/JSON\.stringify\(\{partnerKind/);
  assert.match(script,/lw-inquiry-files/);
  assert.match(script,/ownerFile\(e\)/);
- assert.match(script,/cabinet-panel\[data-section=\\"overview\\"\]/);
+ assert.ok(script.includes('cabinet-panel[data-section="overview"]'));
  assert.match(css,/#lw-contact-form \.t2-legacy-csv\{display:none!important\}/);
  assert.match(html,/lw-public-cooperation-20261108\.js\?v=692702b4670c/);
  assert.match(html,/lw-public-cooperation-20261108\.css\?v=e0b399fec9cf/);
