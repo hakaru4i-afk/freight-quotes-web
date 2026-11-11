@@ -355,9 +355,19 @@
    if(!state.items.some(o=>o.order_code===state.selected))state.selected=state.items[0]?.order_code||"";
    await loadDetail();
  }
+ let detailRequest=0;
+ async function selectShipment(order,{force=false}={}){
+   if(!force&&state.selected===order&&state.detail?.shipment?.order_code===order)return;
+   state.selected=order;return loadDetail();
+ }
  async function loadDetail(){
-   state.detail=state.selected?await get("?order="+encodeURIComponent(state.selected)):null;
-   state.notice="";show();
+   const order=state.selected,request=++detailRequest;
+   state.detail=null;state.notice="";show();
+   let detail;
+   try{detail=order?await get("?order="+encodeURIComponent(order)):null;}
+   catch(error){if(request!==detailRequest||order!==state.selected)return;throw error;}
+   if(request!==detailRequest||order!==state.selected)return;
+   state.detail=detail;state.notice="";show();
  }
  async function update(action,fields,files){
    if(state.busy)return;
@@ -725,7 +735,7 @@
  document.addEventListener("click",ev=>{onClick(ev).catch(e=>alertText(e.message,true));});
  document.addEventListener("submit",ev=>{onSubmit(ev).catch(e=>alertText(e.message,true));});
  document.addEventListener("change",async ev=>{
-   if(ev.target.id==="t2-select"){state.selected=ev.target.value;try{await loadDetail();}catch(e){alertText(e.message,true);}}
+   if(ev.target.id==="t2-select"){try{await selectShipment(ev.target.value);}catch(e){alertText(e.message,true);}}
    if(ev.target.matches('form[data-t2-form="request_docs"] select[name="types"]')){
      const selected=Array.from(ev.target.selectedOptions).map(o=>o.value);
      const info=ev.target.closest("label")?.querySelector("[data-t2-selected-documents]");
@@ -744,8 +754,7 @@
    try{
      if(!state.items.some(item=>item.order_code===order))await loadList();
      if(!state.items.some(item=>item.order_code===order))return;
-     state.selected=order;
-     await loadDetail();
+     await selectShipment(order,{force:true});
    }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
  });
  document.addEventListener("DOMContentLoaded",mount);
