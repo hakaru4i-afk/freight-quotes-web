@@ -34,10 +34,13 @@ test("carrier acceptance remains a single actionable panel through container rer
     return route.abort();
    });
    try{
-    await page.goto("https://qa.test/mock#carrier-orders",{waitUntil:"domcontentloaded"});
+    await page.goto("https://qa.test/mock#overview",{waitUntil:"domcontentloaded"});
     await page.addScriptTag({content:script});
+    assert.equal(reads,0,"overview must not preload the acceptance list");
+    // React navigation changes history and renders the panel without hashchange.
+    await page.evaluate(()=>{history.replaceState(null,"","#carrier-orders");document.querySelector("main").append(document.createElement("div"));});
     const root=page.locator("#carrier-awarded-workflow");
-    await page.waitForFunction(()=>document.querySelectorAll("#carrier-awarded-workflow [data-flow-action='take']").length===1);
+    await page.waitForFunction(()=>document.querySelectorAll("#carrier-awarded-workflow [data-flow-action='take']").length===1,null,{timeout:4000});
     assert.equal(await root.count(),1,"initial mount");
     // React-like hydration: the app starts with the section wrapper and later
     // creates a nested #carrier-orders. The existing root must move, not clone.

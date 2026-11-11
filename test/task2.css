@@ -63,3 +63,15 @@
 @media(prefers-color-scheme:dark){
  body[data-theme="dark"] .t2-readonly,body[data-theme="dark"] .t2-form,body[data-theme="dark"] .t2-item,body[data-theme="dark"] .t2-picker{background:#1d2927;color:#eef8f2;border-color:#486259}
 }
+/* Execution forms must fit their panel after a shipment is accepted. */
+#task2-root :is(.t2-pto-compact,.t2-container-compact){display:grid;gap:10px;align-items:start;width:100%;min-width:0;margin:0 0 14px}
+#task2-root .t2-pto-compact{grid-template-columns:minmax(140px,.7fr) minmax(190px,1fr) minmax(190px,1fr) 116px}
+#task2-root .t2-container-compact{grid-template-columns:minmax(0,1fr) 116px}
+#task2-root .t2-pto-cell{display:flex;flex-direction:column;gap:6px;min-width:0}
+#task2-root .t2-pto-cell :is(input,select){min-width:0;max-width:100%;width:100%;box-sizing:border-box}
+#task2-root :is(.t2-pto-compact,.t2-container-compact)>.t2-btn{width:116px;height:38px;min-height:38px;align-self:start;margin-top:22px}
+@media(max-width:1100px){#task2-root .t2-pto-compact{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){
+ #task2-root :is(.t2-pto-compact,.t2-container-compact){grid-template-columns:minmax(0,1fr)}
+ #task2-root :is(.t2-pto-compact,.t2-container-compact)>.t2-btn{width:100%;margin-top:0}
+}

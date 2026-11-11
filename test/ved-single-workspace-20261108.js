@@ -1,6 +1,13 @@
 /* VED-01: keep only active workspace navigation; do not grant access or alter routes. */
 (()=>{'use strict';
 let queued=false;
+function renameActiveLink(link){
+ // React retains references to its icon, text and active-route marker. Replacing
+ // link.textContent detaches those nodes and breaks the next route update.
+ const label=[...link.childNodes].find(node=>node.nodeType===3&&node.textContent.trim());
+ if(label)label.nodeValue='Активные перевозки';
+ link.setAttribute('aria-label','Активные перевозки');
+}
 function apply(){
  const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\s*)Кабинет ВЭД(?:\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"]');
  if(!cabinet)return;
@@ -13,7 +20,7 @@ function apply(){
   const keep=section==='overview'||section==='approved-shipments'||
     /^(help|faq|feedback|suggestions|proposals|chats|chat|messages|support)$/.test(section)||
     /помощ|faq|предложени|чат|сообщени|инструкци/i.test(label);
-  if(section==='approved-shipments')a.textContent='Активные перевозки';
+  if(section==='approved-shipments')renameActiveLink(a);
   a.hidden=!keep;
   if(!keep)a.style.setProperty('display','none','important');
   if(!keep){a.setAttribute('aria-hidden','true');a.tabIndex=-1}
@@ -29,8 +36,7 @@ function apply(){
   if(overview)overview.insertAdjacentElement('afterend',active);
   else nav.append(active);
  }
- active.textContent='Активные перевозки';
- for(const el of active.querySelectorAll('span'))el.textContent='Активные перевозки';
+ renameActiveLink(active);
  active.hidden=false;
  active.removeAttribute('aria-hidden');
  active.removeAttribute('tabindex');

@@ -1,8 +1,8 @@
 {
-  "version": "20261111-logic-5",
-  "modelSha256": "2b41d4eb0e8a4ef3337c094bc6e30886cd07ba49f29d69d7c9dd77238d54a168",
+  "version": "20261111-logic-6",
+  "modelSha256": "39737837a968e4836d96fe14c914931ad3173dc213cad4c078b6713438034724",
   "modelSnapshot": {
-    "version": "20261111-logic-5",
+    "version": "20261111-logic-6",
     "date": "2026-11-11",
     "releaseStatus": "RELEASE_BLOCKED",
     "roles": {
@@ -590,17 +590,19 @@
       ]
     ],
     "reviewedSourceSignatures": {
-      "test/app.js": "203a067c046c93c812d8f052b9a2b911f22b3cb6fe683d141c4047afb4635f74",
-      "test/task2-panel-sidebar-only-20261107.js": "2feac3ab6a240d1e77e6ed1cb1ef1b8706678aba5740737510ccd694c3d92492",
+      "test/app.js": "f5d1da596128657f74018b272833131f7870c3633d42b5cb9878b6d8477555c3",
+      "test/task2-panel-sidebar-only-20261107.js": "520207429e4509955827fe92ec70a0f7a9b225b7228856907645e55c71efe49a",
       "test/late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
       "test/task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
-      "test/carrier-acceptance-workflow-20261107.js": "326090d914e5a106511da283e4538d60b293ea610c8ddee2815354e59e64f178",
+      "test/carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
       "test/current-workspace-help-20261108.js": "dd2290886283dfe4611b4f447fc0204bc8f623f1e25ff18b055a8174cc6451f9",
-      "test/lw-pending-tasks-all-roles-20261109.js": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47"
+      "test/lw-pending-tasks-all-roles-20261109.js": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47",
+      "test/ved-single-workspace-20261108.js": "1f9c19d149c9e39408398ecfe6e95b4be47e70ef69997769a068b4f395f99db7",
+      "test/lw-ved-shared-chat-20261109.js": "e1455d347128028ae8dbc3208c71529a5a9650048ab7b8c2150c920d6bb65a24"
     },
-    "reviewedBackendSourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
+    "reviewedBackendSourceCommit": "276409c2d1e2768b491e032f270fb845604804c4",
     "previousVersion": "20261110-logic-3",
-    "technicalContext": "Техническая маршрутизация staging API в регион базы eu-central-1; бизнес-этапы, SLA и права не изменены. QA backend v8 проверяется отдельно от общего staging v88."
+    "technicalContext": "Исправлены SPA принятие перевозки, сохранность React-узлов меню ВЭД и мобильная сетка ПТО/таможни. Права/этапы/SL сохранены. API v89 и QA v8 используют один проверенный source; маршрутизация staging в регион базы eu-central-1."
   },
   "files": [
     "business-process-current.svg",

@@ -1,0 +1,20 @@
+# Owner → two carriers → VED · staging QA
+
+The protected workflow `isolated-qa-published-browser.yml` executes real published UI and real isolated API operations. It requires the 20 Environment secrets listed in [setup](PROTECTED-E2E-SETUP.md); no new Variables or token permissions are needed. It never writes production or shared staging business data.
+
+The run creates a fresh isolated Owner request with a real document and required fields, submits Carrier A CSV and Carrier B XLSX offers, verifies the import preview does not submit, compares both bids, selects one winner, then accepts with that actual winner. VED is denied before acceptance and allowed afterward; the losing carrier remains denied. VED creates a typed document request addressed to the separate Logistic account and verifies it appears only in the recipient's pending feed. VED opens one shared conversation and sends a manual message with an attachment. Owner, VED and winner download exactly the same bytes; the loser cannot read the conversation or attachment. No automatic template message may precede the manual message. The addressed Logistic account then uploads the requested file, confirms the handoff and disappears from the pending feed; wrong-recipient and missing-file completion are denied, and this handoff must not complete the separate PTO review.
+
+Each browser scenario checks desktop and 390×844, real HTTP failures, page errors and horizontal overflow. Phase JSON files preserve earlier evidence when another step uses the same actor. Canonical role reports also retain the state required by the next step. Partial writes are not blindly repeated: a new workflow run starts with a new synthetic order. Session cleanup always runs. Credentials and session files are never uploaded.
+
+The browser coordinator uses TLS-verified real HTTP transport and checked Pages bytes. Separate DOM regressions use explicit local fixtures to reproduce SPA navigation and React ownership failures; those fixtures do not count as authenticated E2E.
+
+## Defects reproduced during the actual journey
+
+- `CARRIER-SPA-TAKE-20261111`: the winner had no acceptance button after SPA navigation using history.replaceState. The helper waited for hashchange and stayed hidden. Initialize on the actual panel mount, retain a single panel/handler and one acceptance POST.
+- `CARRIER-EXEC-MOBILE-20261111`: the accepted shipment's PTO/customs inline grid required at least 666px and overflowed a 390px screen. Use responsive stylesheet grids; retain every field and save action. The accepted state and role guards remain server-controlled.
+- `VED-NAV-DOM-20261111`: label replacement removed React-owned icon/text/active-marker nodes. Opening chat after shipment navigation raised removeChild NotFoundError. Change only the label text node and preserve React-owned nodes.
+- `CARRIER-WINNER-LABEL-20261111`: a duplicate legacy paragraph advertised open bidding on a won request. Remove that paragraph; the canonical deadline/status indicator already handles winner, archive and late submission.
+- `TASK2-BUSY-ACTIONS-20261111`: document upload could leave completion buttons clickable while list refresh was still in progress, so the next click was silently dropped. Disable mutation controls through refresh, restore only controls disabled by this operation, and preserve controls disabled by policy.
+- `RC-ASSET-VERSION-20261111`: the old status version was not a valid build ID for the existing update notifier. Stamp the app's ID, status ID, active cache keys and exact asset digests together with `node scripts/stamp-staging-rc.mjs --write`; CI uses `--check`. Production paths are excluded.
+
+The 37 broad acceptance groups remain separate and fail closed. This journey does not verify every transport mode, date-reschedule limit, deadline race, claim, complete platform restore or production acceptance. The updated observer reflects the approved single pre-PTO VED review and Owner fallback; it does not add separate PTO/customs/warehouse tasks or undefer the transport instruction.

@@ -52,11 +52,45 @@ jobs:
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_CREATE: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Carrier A imports CSV and submits a real isolated bid
+        env:
+          QA_BROWSER_ACTORS: carrierA
+          QA_BROWSER_BID: 'true'
+          QA_BROWSER_IMPORT: csv
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Carrier submits a real isolated bid through published UI
         env:
           QA_BROWSER_ACTORS: carrierB
           QA_BROWSER_BID: 'true'
           QA_BROWSER_IMPORT: xlsx
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Owner compares both offers and chooses one winner
+        id: selection
+        env:
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_SELECT: 'true'
+        run: |
+          node tests/task12-isolated-browser.e2e.mjs
+          node --input-type=module <<'JS'
+          import {readFileSync,appendFileSync} from 'node:fs';
+          const winner=JSON.parse(readFileSync('reports/isolated-rc/browser-results-owner.json','utf8')).roles[0].selection.winnerActor;
+          if(!['carrierA','carrierB'].includes(winner))throw Error('INVALID_WINNER_ACTOR');
+          appendFileSync(process.env.GITHUB_OUTPUT,'winner_actor='+winner+'\n');
+          JS
+      - name: Winning carrier accepts; loser and premature VED access are denied
+        env:
+          QA_BROWSER_ACTORS: ${{ steps.selection.outputs.winner_actor }}
+          QA_BROWSER_ACCEPT: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: VED assigns documents and sends a real shared message with attachment
+        env:
+          QA_BROWSER_ACTORS: ved
+          QA_BROWSER_VED_WORK: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Addressed Logistic uploads documents and confirms the handoff
+        env:
+          QA_BROWSER_ACTORS: logistic
+          QA_BROWSER_LOGISTIC_DOCUMENT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()

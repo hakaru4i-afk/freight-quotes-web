@@ -108,8 +108,11 @@ const observer=new MutationObserver(()=>{
  const parent=node();
  if(!parent)return;
  const roots=[...document.querySelectorAll("#"+ROOT_ID)];
- if(roots.length===1&&parent.contains(roots[0]))return;
- scheduled=true;requestAnimationFrame(()=>{scheduled=false;render();});
+ if(roots.length===1&&parent.contains(roots[0])){
+  if(!loaded&&!loading)void refresh();
+  return;
+ }
+ scheduled=true;requestAnimationFrame(()=>{scheduled=false;render();if(!loaded&&!loading)void refresh();});
 });
 observer.observe(document.documentElement,{childList:true,subtree:true});
 document.addEventListener("DOMContentLoaded",()=>{if(visible()){render();void refresh();}});

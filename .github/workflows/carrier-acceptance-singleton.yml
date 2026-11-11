@@ -7,6 +7,12 @@ on:
       - test/index.html
       - tests/carrier-acceptance-singleton-browser.test.mjs
       - .github/workflows/carrier-acceptance-singleton.yml
+  pull_request:
+    paths:
+      - test/carrier-acceptance-workflow-20261107.js
+      - test/index.html
+      - tests/carrier-acceptance-singleton-browser.test.mjs
+      - .github/workflows/carrier-acceptance-singleton.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,9 +30,11 @@ jobs:
           node --check test/carrier-acceptance-workflow-20261107.js
           node --check tests/carrier-acceptance-singleton-browser.test.mjs
           grep -Fq 'function singleRoot(parent)' test/carrier-acceptance-workflow-20261107.js
-          grep -Fq 'carrier-acceptance-workflow-20261107.js?v=0afa7c6c7bf6' test/index.html
+          SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
+          grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" test/index.html
           ! grep -Fq 'carrier-acceptance-workflow-20261107.js' index.html
   served:
+    if: github.event_name != 'pull_request'
     needs: source
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -36,11 +44,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
           for attempt in {1..36}; do
             curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/accept-index.html || true
             curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/carrier-acceptance-workflow-20261107.js?qa=$GITHUB_SHA" -o /tmp/accept-workflow.js || true
-            if grep -Fq 'carrier-acceptance-workflow-20261107.js?v=0afa7c6c7bf6' /tmp/accept-index.html 2>/dev/null \
+            if grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" /tmp/accept-index.html 2>/dev/null \
               && cmp -s test/carrier-acceptance-workflow-20261107.js /tmp/accept-workflow.js; then
               echo 'PASS: staging has exact singleton workflow and updated cache key'
               sha256sum /tmp/accept-workflow.js
@@ -51,7 +60,7 @@ jobs:
           echo '::error::Staging script has not been published byte-for-byte'
           exit 1
   browser:
-    needs: served
+    needs: source
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
