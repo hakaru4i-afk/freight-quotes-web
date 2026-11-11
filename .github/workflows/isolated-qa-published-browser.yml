@@ -92,6 +92,11 @@ jobs:
           QA_BROWSER_ACTORS: logistic
           QA_BROWSER_LOGISTIC_DOCUMENT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify VED draft persistence, reload and no repeated submissions
+        env:
+          QA_BROWSER_ACTORS: ved
+          QA_BROWSER_VED_VERIFY: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
