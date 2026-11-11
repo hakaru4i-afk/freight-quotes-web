@@ -28,7 +28,7 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "e690d53de99d32baaa8be2671c0b8df63d7e12a7",
+    "backendSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
     "backendSourceSha": "2752206acaf62853b540b9fc12b5b505c419ed2c",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
@@ -521,14 +521,14 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "e690d53de99d32baaa8be2671c0b8df63d7e12a7",
+    "backendSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
     "isolatedQaVersion": 10,
     "isolatedQaBundleSha256": "1b0328d599ca93833757fab6f9e3338b19be59d6eccf3a3dd68448cd92896ca8",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "e690d53de99d32baaa8be2671c0b8df63d7e12a7",
+    "isolatedQaSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
     "sharedBackendVersion": 92,
     "sharedBackendBundleSha256": "d2453a13450c0ab2cc51e9c0e968e3e6eec4a3d2f9ef180cce1436f6146f5239"
   },
