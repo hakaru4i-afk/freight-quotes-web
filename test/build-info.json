@@ -23,16 +23,16 @@
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
-    "qaStatus": "SHARED_STAGING_V89; ISOLATED_QA_V8_REAL_ROLE_CHECKS; COMPLETE_ACCEPTANCE_OPEN",
+    "qaStatus": "SHARED_STAGING_V90; ISOLATED_QA_V9_REAL_ROLE_CHECKS; COMPLETE_ACCEPTANCE_OPEN",
     "manualAcceptance": "PENDING_OWNER_END_TO_END",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
     "backendSourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
     "backendSourceSha": "a2f45183be1079c2b1e351f8ceab33c9f8e82134",
-    "backendIsolation": "Isolated RC v8 is separate from shared staging v89; both use verified source 276409c2d1e2768b491e032f270fb845604804c4.",
+    "backendIsolation": "Isolated RC v9 is separate from shared staging v90; both use verified source d1a1a4df292cc71f10967e82d5131d794043c996.",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "11.11.2026: shared staging v89 / isolated RC v8, source 276409c2d1e2768b491e032f270fb845604804c4. SPA acceptance, VED navigation and mobile execution forms await publication verification. Production unchanged.",
+    "stagingBuildNote": "11.11.2026: shared staging v90 / isolated RC v9, source d1a1a4df292cc71f10967e82d5131d794043c996. Three-cabinet journey and tracking verified on isolated roles; full protected CI/acceptance remain blocked. Production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "2a9c4b0ab12f40a54396af826d52e5f0505a0cfa",
@@ -46,20 +46,20 @@
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
     "lastObservedBackendVersion": 90,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V89_ACTIVE; QA_V8_SAME_BUSINESS_SOURCE; FULL_ACCEPTANCE_OPEN",
+    "backendDeploymentStatus": "SHARED_STAGING_API_V90_ACTIVE; QA_V9_SAME_BUSINESS_SOURCE; FULL_ACCEPTANCE_OPEN",
     "backendCandidate": {
-      "sourceCommit": "75cd5649dbdb9163cb5eff199df0b5b07c53e3bd",
-      "gitBlob": "94ca51db927eb8e8909cd951233af825e65025a7",
-      "sha256": "c93791c3a87b975b21e70d2b3582bdb029da0e2492fce253d5755aa1d4acf6f8"
+      "sourceCommit": "d1a1a4df292cc71f10967e82d5131d794043c996",
+      "gitBlob": "a2f45183be1079c2b1e351f8ceab33c9f8e82134",
+      "sha256": "8fbdc5c483b8e54da3a19669e8761abf9dad9bc5565828d7bdf6ee0fa00a29e3"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "a5fce157d913d434eae7e54877928f6d2bfb3ba9",
-        "sha256": "263786c13b4a4226184a24a5a7f73e09f9aa41267ee0e89ce7840bbe1c3677e0"
+        "gitBlob": "a29da61eb328a78498950421213131aea0d3382e",
+        "sha256": "8d9a0112f6473ffa9521e7933f39396ca7e968e92435ea1abb0fb7e7c6bcb84e"
       },
       "task2-panel.js": {
-        "gitBlob": "d3b5d7ebb3b066f7ccf65566854f6c515de53a47",
-        "sha256": "2feac3ab6a240d1e77e6ed1cb1ef1b8706678aba5740737510ccd694c3d92492"
+        "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
+        "sha256": "a1c24156a0244ebdbe9e8b94cbdbdd6497a1e23153bc7f675fa2b5ecdc26d30b"
       },
       "task2-guidance.js": {
         "gitBlob": "21463b573a233892b1dda4f93306b8fab0f2f770",
