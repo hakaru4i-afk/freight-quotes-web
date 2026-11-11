@@ -1,16 +1,16 @@
 {
   "environment": "staging",
-  "version": "56ce75a24e6c3141b92c",
+  "version": "a9d1f48872ab822f008a",
   "releaseVersion": "SH-01.30.50 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "issue17-compact-document-20261106",
+  "build": "SH-01.30.50 v",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "Issue #47 staging QA: independent one-minute pg_cron deadline sweep ENABLED (no-response SL -3 once, timely bid admitted, timely decline exempt). Existing Task1/Task2 cabinets are available for Owner manual testing; 26-group acceptance remains pending.",
+  "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "6f1596a80f253631a15bcb69f5201a9b5f4ab9bb",
+  "servedAppBlobSha": "5fb96edfd62592bc299cbbdd0f5fcb436db5d7b0",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -28,11 +28,11 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
+    "backendSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
     "backendSourceSha": "2752206acaf62853b540b9fc12b5b505c419ed2c",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "11.11.2026: shared staging v90 / isolated RC v9, source d1a1a4df292cc71f10967e82d5131d794043c996. Three-cabinet journey and tracking verified on isolated roles; full protected CI/acceptance remain blocked. Production unchanged.",
+    "stagingBuildNote": "SH-01.30.50 v candidate; canonical source51fc453 and model logic8. QA14 actual deployment verified; shared staging remains91 pending final candidate checks. Full37 acceptance and protected CI remain open.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "2a9c4b0ab12f40a54396af826d52e5f0505a0cfa",
@@ -45,17 +45,17 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 92,
+    "lastObservedBackendVersion": 91,
     "backendDeploymentStatus": "CANDIDATE_V92_AWAITING_REAL_QA_AND_SHARED_PUBLICATION",
     "backendCandidate": {
-      "sourceCommit": "e690d53de99d32baaa8be2671c0b8df63d7e12a7",
-      "gitBlob": "2752206acaf62853b540b9fc12b5b505c419ed2c",
-      "sha256": "9e658434a10cd3c44aae52b3ca905a1c168f2627abe8b7f26344985161bf26e4"
+      "sourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
+      "gitBlob": "e4d052a46352f6f6448ef307616de213050c8053",
+      "sha256": "7aadc18ea14e3037ec018d41afbe1071884443ba353ec31426dec254e7bc66ae"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "6f1596a80f253631a15bcb69f5201a9b5f4ab9bb",
-        "sha256": "47321f06cb5b8e587a44d42c423169c0d7410a67b001b992e35cef563bdf3af2"
+        "gitBlob": "5fb96edfd62592bc299cbbdd0f5fcb436db5d7b0",
+        "sha256": "de5b6decce54f72fc26d96e443665cbd2847384c426fdc47acdda22541f51f23"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -521,16 +521,16 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
+    "backendSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 10,
-    "isolatedQaBundleSha256": "1b0328d599ca93833757fab6f9e3338b19be59d6eccf3a3dd68448cd92896ca8",
+    "isolatedQaVersion": 14,
+    "isolatedQaBundleSha256": "d76be7c5426976bef6e4a45667b19dd543d2f5ff96af9b489a4add4f93128bea",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "565018a7b30e2c01cf525cfda0c857b0020f26f4",
-    "sharedBackendVersion": 92,
-    "sharedBackendBundleSha256": "d2453a13450c0ab2cc51e9c0e968e3e6eec4a3d2f9ef180cce1436f6146f5239"
+    "isolatedQaSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
+    "sharedBackendVersion": 91,
+    "sharedBackendBundleSha256": "06f3149b7ad2763f78a4dd48a6de0f7b13479bc794ec80fc1818d3f313a104aa"
   },
   "businessProcessReview": {
     "modelVersion": "20261111-logic-7",
@@ -551,12 +551,12 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "56ce75a24e6c3141b92c",
+  "stagingAssetBuildId": "a9d1f48872ab822f008a",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "d9d326d142cba1fb5c5773852d7d065c63938eae92e83dbc620cfa658bc8a45b",
-    "app.js": "47321f06cb5b8e587a44d42c423169c0d7410a67b001b992e35cef563bdf3af2",
+    "app.js": "de5b6decce54f72fc26d96e443665cbd2847384c426fdc47acdda22541f51f23",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -629,5 +629,16 @@
     "SH-01.30.49 v",
     "SH-01.30.50 v"
   ],
-  "primaryBusinessVersion": "SH-01.30.50 v"
+  "primaryBusinessVersion": "SH-01.30.50 v",
+  "canonicalSourceProvenance": {
+    "sourceCommit": "staging-manifest.json#/frontendCommit",
+    "legacyBundleFields": [
+      "sourceCommit",
+      "sourceHash",
+      "builtAt",
+      "patchSourceCommit",
+      "patchSourceBranch"
+    ],
+    "interpretation": "Legacy original bundle metadata remains historical. Current reviewed FE/API/SQL/assets and publication are recorded in staging-manifest.json and the publication receipt."
+  }
 }
