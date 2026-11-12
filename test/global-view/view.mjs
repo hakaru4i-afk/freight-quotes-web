@@ -37,7 +37,7 @@ class GlobalRouteView extends HTMLElement {
       Object.values(instances).forEach(instance => instance.destroy());
     };
     const previousMode = this.dataset.mode ?? '3d';
-    const [request, offer, tracking] = JSON.parse(this.dataset.route ?? '[{},null]');
+    const [request, offer, tracking, distance] = JSON.parse(this.dataset.route ?? '[{},null]');
     const hero = node('div', 'gv-hero');
     const header = node('header', 'gv-header');
     header.append(node('h2', 'gv-title', 'Global View'),
@@ -132,7 +132,15 @@ class GlobalRouteView extends HTMLElement {
     distancePanel.setAttribute('aria-live', 'polite');
     distancePanel.append(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Рассчитываем расстояния…'));
     summary.append(distancePanel);
-    if (Array.isArray(tracking)) distancePanel.hidden = true;
+    if (Array.isArray(tracking)) {
+      const km = value => {
+        const number = typeof value === 'number' || (typeof value === 'string' && value.trim()) ? Number(value) : NaN;
+        return Number.isFinite(number) && number >= 0 ? number.toLocaleString('ru-RU') + ' км' : 'не рассчитано';
+      };
+      distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'),
+        node('p', '', 'Общий километраж: ' + km(distance?.total)),
+        node('p', '', 'Остаток на дату последнего сообщения: ' + km(distance?.remaining)));
+    }
     else calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
       distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
