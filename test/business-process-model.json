@@ -618,7 +618,7 @@
     "test/lw-contrast-canonical-20261111.css": "77abc66ba992acd1c86d953a5f3e52e96f89612dc463121fa08c82cbd849b38b",
     "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-    "test/app.js": "db2ce652bcce944891d8e9d3c3a0f4d178901d5f285a527b2e4b71299e7b8702",
+    "test/app.js": "4d22da2cfa978b74475876c6acc24a61afb783a5a3696d9c70dd8349a2adc055",
     "test/late-bid-staging-3ff2c9ab03f5.js": "c384620856a1f69fc909f3eae0bee8676e0b1b8d3bc84b3fc48aea181d49275f",
     "test/task2-panel-sidebar-only-20261107.js": "7d171e08b40a4258d29e5b3f78df7d1e71ad5c6e9d07280d1e56dead4c566771",
     "test/task2-i18n.js": "be7aa6a37b8d055e04e9e73cb666bbccc470154f911ede666cb8bf527892a2cd",
@@ -651,7 +651,7 @@
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/task2-panel.js": "7d171e08b40a4258d29e5b3f78df7d1e71ad5c6e9d07280d1e56dead4c566771"
   },
-  "reviewedBackendSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
+  "reviewedBackendSourceCommit": "c10ee0f5ae6bd8745e273e38c547ead3c5bb98d9",
   "previousVersion": "20261111-logic-8",
   "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c."
 }
