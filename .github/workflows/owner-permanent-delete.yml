@@ -33,11 +33,12 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          EXPECTED_CACHE_KEY=$(git hash-object test/app.js | cut -c1-12)
           for attempt in {1..30}; do
-            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?audit=$GITHUB_SHA" -o /tmp/lw-index.html || true
-            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/app.js?audit=$GITHUB_SHA" -o /tmp/lw-app.js || true
-            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?audit=$GITHUB_SHA" -o /tmp/lw-help.js || true
-            if grep -Fq 'app.js?v=8a89e5acdfe3' /tmp/lw-index.html 2>/dev/null \
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-index.html || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/app.js?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-app.js || true
+            curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-help.js || true
+            if grep -Fq "app.js?v=$EXPECTED_CACHE_KEY" /tmp/lw-index.html 2>/dev/null \
                && cmp -s test/app.js /tmp/lw-app.js \
                && cmp -s test/current-workspace-help-20261108.js /tmp/lw-help.js; then
               echo 'PASS: published staging app and FAQ exactly match repository'
