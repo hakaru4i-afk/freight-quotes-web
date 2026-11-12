@@ -1,5 +1,5 @@
 import { calculateMapDistances } from './distance.mjs?v=km01';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=gv06';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=map50';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -37,7 +37,7 @@ class GlobalRouteView extends HTMLElement {
       Object.values(instances).forEach(instance => instance.destroy());
     };
     const previousMode = this.dataset.mode ?? '3d';
-    const [request, offer] = JSON.parse(this.dataset.route ?? '[{},null]');
+    const [request, offer, tracking] = JSON.parse(this.dataset.route ?? '[{},null]');
     const hero = node('div', 'gv-hero');
     const header = node('header', 'gv-header');
     header.append(node('h2', 'gv-title', 'Global View'),
@@ -77,6 +77,22 @@ class GlobalRouteView extends HTMLElement {
     try { places = await loadCities(); } catch { lookupFailed = true; }
     if (signal.aborted) return;
     const route = routeModel(request, offer, placeIndex(places));
+    if (Array.isArray(tracking)) {
+      const history = node('section', 'gv-tracking');
+      history.append(node('h3', '', 'Сообщения о местонахождении груза'));
+      const list = node('ol', 'gv-stops');
+      for (const [index, entry] of tracking.entries()) {
+        const latest = index === tracking.length - 1;
+        const label = (latest ? 'Последнее сообщение · ' : '') + entry.location_text + ' · ' + String(entry.observed_at).slice(0, 10);
+        const geo = entry.geocode;
+        const located = geo?.status === 'resolved' && Number.isFinite(geo.lat) && Number.isFinite(geo.lon)
+          && Math.abs(geo.lat) <= 90 && Math.abs(geo.lon) <= 180;
+        list.append(node('li', '', label + (located ? (geo.precision === 'city' ? ' · Центр города, приблизительно' : '') : ' · Нет координат')));
+        if (located) route.markers.push({ lat: geo.lat, lng: geo.lon, label, number: latest ? '●' : '○', endpoint: latest });
+      }
+      history.append(list);
+      info.append(history);
+    }
     const mode = modes[route.mode];
     const activities = node('div', 'gv-activities');
     activities.append(node('h3', '', 'Маршрут перевозки'));
@@ -116,7 +132,8 @@ class GlobalRouteView extends HTMLElement {
     distancePanel.setAttribute('aria-live', 'polite');
     distancePanel.append(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Рассчитываем расстояния…'));
     summary.append(distancePanel);
-    calculateMapDistances(route, { signal }).then(result => {
+    if (Array.isArray(tracking)) distancePanel.hidden = true;
+    else calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
       distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
       const totalText = result.totalKm == null ? 'Общий километраж: нет точного расчёта' : 'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км' + (result.estimated ? ' (ориентировочно)' : '');
