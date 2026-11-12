@@ -22,6 +22,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify native environment main-only policy before using QA credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tests/task12-ci-environment-policy.mjs
       - name: Verify real QA sessions and role identities
         env:
           QA_OWNER_LOGIN: ${{ secrets.QA_OWNER_LOGIN }}
@@ -124,6 +128,7 @@ jobs:
           name: isolated-qa-redacted-evidence
           path: |
             reports/ci-qa-auth.json
+            reports/ci-qa-environment-policy.json
             reports/isolated-rc/browser-results-*.json
           retention-days: 7
       - name: Revoke sessions and remove private runner files
