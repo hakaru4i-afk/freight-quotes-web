@@ -1,10 +1,10 @@
 name: Canonical staging alignment
 on:
   pull_request:
-    paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/staging-alignment.yml']
+    paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/**']
   push:
     branches: [main]
-    paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/staging-alignment.yml']
+    paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/**']
   workflow_dispatch:
 permissions:
   contents: read

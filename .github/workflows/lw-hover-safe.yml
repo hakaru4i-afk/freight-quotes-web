@@ -32,10 +32,11 @@ jobs:
         run: |
           set -euo pipefail
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
+          EXPECTED_CACHE_KEY=$(git hash-object test/lw-hover-safe-20261108.css | cut -c1-12)
           for attempt in {1..32}; do
-            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/hover-index.html || true
-            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/lw-hover-safe-20261108.css?qa=$GITHUB_SHA" -o /tmp/hover.css || true
-            if grep -q 'lw-hover-safe-20261108.css?v=lw-hover-03' /tmp/hover-index.html 2>/dev/null \
+            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/index.html?qa=$GITHUB_SHA-$attempt" -o /tmp/hover-index.html || true
+            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/lw-hover-safe-20261108.css?qa=$GITHUB_SHA-$attempt" -o /tmp/hover.css || true
+            if grep -Fq "lw-hover-safe-20261108.css?v=$EXPECTED_CACHE_KEY" /tmp/hover-index.html 2>/dev/null \
               && cmp -s test/lw-hover-safe-20261108.css /tmp/hover.css; then
               echo "PASS exact hover shield on staging"
               sha256sum /tmp/hover.css

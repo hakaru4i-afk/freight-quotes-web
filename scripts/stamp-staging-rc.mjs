@@ -1,4 +1,4 @@
-import{readFileSync,writeFileSync}from'node:fs';import{createHash}from'node:crypto';import{dirname,resolve}from'node:path';import{fileURLToPath}from'node:url';
+import{readFileSync,writeFileSync,readdirSync,existsSync}from'node:fs';import{createHash}from'node:crypto';import{dirname,resolve}from'node:path';import{fileURLToPath}from'node:url';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),read=name=>readFileSync(resolve(root,'test',name),'utf8'),write=(name,text)=>writeFileSync(resolve(root,'test',name),text);
 const hash=value=>createHash('sha256').update(value).digest('hex'),blob=name=>{const bytes=readFileSync(resolve(root,'test',name));return createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');};
 let html=read('index.html'),app=read('app.js');const meta=JSON.parse(read('build-info.json')),status=JSON.parse(read('site-status.json'));
@@ -25,5 +25,12 @@ if(process.argv.includes('--write')){
  for(const [name,expected] of Object.entries(meta.task2.frontendCandidateComponents||{}))if(expected.gitBlob!==blob(name)||expected.sha256!==hash(readFileSync(resolve(root,'test',name))))throw Error('STALE_CANDIDATE_COMPONENT:'+name);
  if(meta.servedStyleBlobSha!==blob('style.css')||meta.lateBidUiSha!==blob(meta.lateBidUiScript)||meta.task2.guidanceSha!==blob(meta.task2.guidanceScript)||meta.task2.i18n.sourceSha!==blob('task2-i18n.js')||meta.task2.isolatedQaBundleSha256!==meta.stabilizationQa20261110.isolatedQaBundleSha256)throw Error('STALE_ACTIVE_COMPONENT_METADATA');
  if(meta.servedAppBlobSha!==blob('app.js')||meta.task2.frontendSha!==blob(meta.task2.frontendScript)||meta.task2.styleSha!==blob('task2.css')||meta.carrierAcceptance.blobSha!==blob(meta.carrierAcceptance.script))throw Error('STALE_COMPONENT_BLOB');
+}
+// Workflow smoke checks must use the same cache contract as the published HTML.
+for(const name of readdirSync(resolve(root,'.github/workflows')).filter(n=>/\.ya?ml$/.test(n))){
+ const content=readFileSync(resolve(root,'.github/workflows',name),'utf8');
+ for(const match of content.matchAll(/([A-Za-z0-9_-]+\.(?:js|mjs|css))\?v=([a-zA-Z0-9-]+)/g)){
+  const asset=match[1];if(existsSync(resolve(root,'test',asset))&&match[2]!==blob(asset).slice(0,12))throw Error('STALE_WORKFLOW_CACHE_REF:'+name+':'+asset);
+ }
 }
 console.log('STAGING_ASSET_VERSION_'+(process.argv.includes('--write')?'STAMPED':'CURRENT'),buildId);
