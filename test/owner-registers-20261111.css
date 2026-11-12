@@ -1,14 +1,28 @@
-/* OW-01.30.46 v owner registers and current process model */
+/* OW-01.30.47 v owner registers and current process model */
+.staff-portal[data-cabinet-role="owner"][data-ow-register-view]:not([data-ow-register-view=""]) .cabinet-content>:not(#ow-workspace){display:none!important}
+#ow-workspace{background:var(--portal-dark-surface,#0c2b47);color:var(--portal-dark-ink,#edf6ff);border:1px solid #315b81;border-radius:14px;padding:18px;min-width:0;overflow-wrap:anywhere}
+#ow-workspace>h2{color:var(--portal-dark-ink,#edf6ff);margin:0 0 16px}
+.ow-toolbar,.ow-tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+#ow-workspace :is(input,select,textarea){background:#fff;color:#18344f;-webkit-text-fill-color:currentColor;border:1px solid #849aaf;border-radius:7px;padding:9px;max-width:100%;min-width:0;box-sizing:border-box}
+#ow-workspace :is(button,a.ow-action){background:#155e4c;color:#fff;-webkit-text-fill-color:currentColor;border:1px solid #6fa894;border-radius:7px;padding:9px 13px;cursor:pointer;min-height:40px}
+#ow-workspace :is(button,input,select,textarea,a):focus-visible{outline:3px solid #9adbef;outline-offset:3px}
+#ow-workspace button:disabled{background:#38536c;color:#fff;cursor:wait}
+.ow-toolbar input[type="search"]{flex:1;min-width:180px}.ow-source{font-size:12px;word-break:break-all}
+.ow-record{background:#fff;color:#18344f;border:1px solid #aebfcd;border-radius:9px;padding:12px;margin:10px 0}
+.ow-record pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:13px/1.6 ui-monospace,monospace;color:inherit;max-width:100%}
+.ow-record summary{cursor:pointer;font-weight:650}.ow-editor-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 240px;gap:12px}
+.ow-editor-canvas{background:#edf3f8;border:1px solid #a3b7c8;border-radius:9px;overflow:hidden;min-width:0;position:relative}
+.ow-editor-canvas svg{display:block;width:100%;height:560px;touch-action:none}.ow-editor-canvas text{fill:#18344f;font:13px system-ui,sans-serif;pointer-events:none}
+.ow-editor-inspector{background:#fff;color:#18344f;padding:12px;border-radius:9px}.ow-editor-inspector label{display:grid;gap:5px;margin-bottom:12px;color:#18344f}.ow-editor-inspector h3{color:#18344f}
+.ow-editor-palette{display:grid;gap:9px;align-content:start}.ow-editor-revisions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.ow-editor-message{white-space:pre-wrap}#ow-partner-count{margin-bottom:12px}
+@media(max-width:900px){.ow-editor-grid{grid-template-columns:1fr}.ow-editor-palette{display:flex;flex-wrap:wrap}.ow-editor-canvas svg{height:430px}#ow-workspace{padding:12px}.ow-toolbar>*{max-width:100%}}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]{display:flex!important;align-items:center!important;gap:8px;min-height:34px!important;line-height:1.3;padding:7px 11px!important;color:#e9f4ff!important;text-decoration:none;white-space:normal}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:hover{background:#214d72!important;color:#fff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register][aria-current="page"]{background:#1a527a!important;box-shadow:inset 3px 0 #7bd0ff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:focus-visible{outline:2px solid #8ad7ff!important;outline-offset:-2px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head,.staff-portal[data-cabinet-role="owner"] #ow-business-process{border:1px solid #315b81;border-radius:14px;padding:17px;background:#0c2b47;color:#edf8ff;margin-bottom:15px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head h2,.staff-portal[data-cabinet-role="owner"] #ow-business-process h2{font-size:21px!important;color:#fff!important;margin:0 0 8px}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head small,.staff-portal[data-cabinet-role="owner"] #ow-business-process small{display:inline-block;padding:4px 10px;border-radius:9px;border:1px solid #3c6e94;background:#19466b;color:#d5efff;font-weight:700}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head p,.staff-portal[data-cabinet-role="owner"] #ow-business-process p{font-size:12px!important;color:#d6ebfa!important;line-height:1.5;margin:11px 0}
-.staff-portal[data-cabinet-role="owner"] #ow-register-head a,.staff-portal[data-cabinet-role="owner"] #ow-business-process a{font-size:13px;color:#8ad8ff!important;font-weight:700;text-decoration:underline}
-.staff-portal[data-cabinet-role="owner"] #ow-business-process{display:grid;gap:10px;min-width:0}
-.staff-portal[data-cabinet-role="owner"] #ow-process-frame{width:100%;height:min(78vh,900px);border:1px solid #5e809a;border-radius:10px;background:#f5f8fc}
-.staff-portal[data-cabinet-role="owner"][data-ow-register-view="process"] #portal-feedback-root{display:none!important}
-@media(max-width:760px){.staff-portal[data-cabinet-role="owner"] #ow-process-frame{height:72vh}.staff-portal[data-cabinet-role="owner"] #ow-business-process{padding:10px}}
+#ow-workspace a{color:#9adbef}
+#ow-workspace .ow-record a{color:#20548c}
+/* The cooperation cards use the Owner dark surface; generic light details do not. */
+#ow-cooperation-screen .lw-inquiry summary{color:inherit}
+#ow-cooperation-screen .lw-inquiry summary strong{color:inherit}

@@ -7,7 +7,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:""};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
@@ -103,6 +103,13 @@
    if(state.role==="ved" && (!started || x.status==="awaiting_take")){
      root.innerHTML=heading+'<div class="t2-empty"><h3>Нет активных перевозок</h3><p>Перевозка появится после подтверждённого принятия победителем.</p></div>';
      return;
+   }
+   if(d.addressedOnly){
+     html+='<section class="t2-stage"><h3>Адресные запросы документов</h3><p class="t2-muted">Здесь доступны только назначенные вам запросы ВЭД и прикреплённые к ним файлы.</p><div class="t2-stack">'+(d.tasks||[]).map(taskCard).join("")+'</div>';
+     const open=(d.tasks||[]).filter(t=>!["completed","cancelled"].includes(t.status));
+     if(open.length)html+='<form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Запрос ВЭД</span><select name="taskId" required>'+open.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description)+'</option>').join("")+'</select></label><label class="t2-field"><span>Документы</span><input type="file" name="files" multiple required></label><button type="submit" class="t2-btn">Загрузить документы</button></form>';
+     html+='<div class="t2-stack">'+(d.docs||[]).map(f=>'<button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">'+esc(f.name)+'</button>').join("")+'</div></section>';
+     root.innerHTML=html;syncBusyControls();return;
    }
    if(d.role==="carrier"&&d.state&&d.state.status!=="completed"){
      const sources=[d.shipment,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
@@ -329,8 +336,10 @@
  }
  async function loadList(){
    const list=await get("");
-   state.role=(document.querySelector('.cabinet-role')?.textContent||'').includes('ВЭД')?'ved':list.role;
-   if(["ved","logistic"].includes(state.role)){
+   state.role=list.addressedOnly?'logistic':list.role==='logistic'?'ved':list.role;
+   const cabinet=document.querySelector('.cabinet-app');if(cabinet&&list.addressedOnly&&cabinet.dataset.addressedLogistic!=='true'){cabinet.dataset.addressedLogistic='true';window.dispatchEvent(new Event('lw-addressed-logistic-ready'));}
+   state.addressedOnly=!!list.addressedOnly;state.login=String(list.viewer||"").toLowerCase();
+   if(["ved","logistic"].includes(state.role)&&!state.addressedOnly){
      try{
        const recipientInfo=await get("?logistic_recipients=1");
        state.logistics=Array.isArray(recipientInfo.recipients)?recipientInfo.recipients:[];

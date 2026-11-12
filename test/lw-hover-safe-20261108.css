@@ -5,7 +5,7 @@
    of unreadable white-on-white highlights, particularly on dark cabinet cards. */
 
 :where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing,.test-cabinets)
-  :is(button,.btn,.t2-btn,[role="button"],input[type="submit"],input[type="button"]):hover:not(:disabled):not([aria-disabled="true"]) {
+  :is(button,.btn,.t2-btn,[role="button"],input[type="submit"],input[type="button"]):not(svg *):hover:not(:disabled):not([aria-disabled="true"]) {
   filter:none!important;
   -webkit-filter:none!important;
   opacity:1!important;
@@ -14,6 +14,7 @@
   box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
   transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease!important;
 }
+/* SVG nodes use transform for their position; button hover must not reset it. */
 /* Remove the white shimmer overlay entirely. Preserve actual button labels/icons. */
 [data-cabinet-role] .btn::after,
 [data-cabinet-role] .btn:hover::after {

@@ -1,6 +1,6 @@
 {
   "version": "stg47-cabinets-bfcc6ad97597",
-  "status": "NOT_PUBLISHED",
+  "status": "HISTORICAL_NOT_PUBLISHED",
   "privateBackend": {
     "sourceCommit": "6c4ce1a831c270b0c57aa9cef2033477c6099aec",
     "gitBlob": "d9c73146c96a0848d772fdc23ad7d3739d690999",
@@ -43,5 +43,9 @@
     "observedVersion": 11,
     "bundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "build": "issue47qa-draft-lock-v11"
-  }
+  },
+  "recordKind": "HISTORICAL_CANDIDATE",
+  "current": false,
+  "supersededBy": "./staging-manifest.json",
+  "historicalStatus": "NOT_PUBLISHED"
 }

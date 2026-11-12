@@ -1,3 +1,4 @@
+import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
@@ -13,7 +14,7 @@ test("staging loads compact owner assets once; root production is not modified",
  for(const path of ["owner-workspace-compact-20261108.js","owner-workspace-compact-20261108.css","current-workspace-help-20261108.js"])
    assert.equal(html.split(path).length-1,1,"missing or duplicated asset "+path);
  assert.ok(!html.includes("portal-help-20261108.js"),"legacy duplicate help unexpectedly loaded");
- assert.ok(html.includes("current-workspace-help-20261108.css?v=owner-01"));
+ assert.ok(html.includes(runtimeAssetUrl('current-workspace-help-20261108.css')));
  assert.ok(!html.includes("transport-applications.js"),"deferred document must not be promoted as an active script");
 });
 test("syntax, no backend mutations, URLs and role permissions unchanged",()=>{

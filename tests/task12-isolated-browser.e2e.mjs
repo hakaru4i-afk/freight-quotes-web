@@ -1,3 +1,6 @@
+import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
+import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
+import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -19,7 +22,7 @@ if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
 assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
-const phase=process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
+const phase=process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=resolve('.'),base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
@@ -31,11 +34,11 @@ await mkdir('reports/isolated-rc',{recursive:true});
 const html=await readFile('test/index.html','utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile('test/'+name)).digest('hex');}
 
-try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,designer,content,purchasing,certification').split(',')){
+try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification').split(',')){
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
  const context=await browser.newContext({viewport:{width:1440,height:900}});const errors=[];
  await context.addInitScript(({token})=>{if(window.top===window&&/^https?:$/.test(location.protocol))localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
- await context.route('**/*',async route=>{
+ const realTransport=async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
   const path=url.hostname==='ibclzdkxiozbzmniiygv.supabase.co'?url.pathname.split('/freight-api')[1]:url.pathname.startsWith('/api/')?url.pathname:null;
@@ -55,13 +58,15 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   }
   if(url.origin===origin||['data:','blob:'].includes(url.protocol)){await route.continue();return;}
   await route.abort();
- });
+ };await context.route('**/*',realTransport);
+ const createPublicPage=async()=>{const ctx=await browser.newContext({viewport:{width:1366,height:768}});await ctx.route('**/*',realTransport);const anonymous=await ctx.newPage();anonymous.on('pageerror',e=>errors.push(e.message));await anonymous.goto(origin+(published?'/freight-quotes-web/test/':'/test/')+'#lw-partners',{waitUntil:'domcontentloaded'});return{page:anonymous,close:()=>ctx.close()};};
  const page=await context.newPage();const consoleErrors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){let value=m.text();for(const token of Object.values(sessions))value=value.replaceAll(token,'[REDACTED_SESSION]');consoleErrors.push(value.slice(0,1500));}});
  try{
   await page.goto(origin+(published?'/freight-quotes-web/test/':'/test/'),{waitUntil:'domcontentloaded'});
   await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile('reports/isolated-rc/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));
+  if(process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'&&actor==='logistic')await addressedLogisticScenario({page,rec,base,sessions});
   if(process.env.QA_BROWSER_CREATE==='true'&&actor==='owner'){
    const order='QA-UI-'+Date.now();rec.createdOrder=order;
    const nav=page.locator('.cabinet-sidebar nav a[href="#create-request"]').first();await nav.evaluate(el=>el.click());
@@ -150,7 +155,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    let mutations=0;const observe=req=>{if(req.method()!=='POST')return;const path=new URL(req.url()).pathname;if(path.endsWith('/api/task2')||path.endsWith('/api/chats')&&(req.headers()['content-type']||'').includes('multipart/form-data'))mutations++;};page.on('request',observe);
    await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());await page.locator('#t2-select').selectOption(order,{timeout:60000});const form=page.locator('[data-t2-form="ved_logistic_docs"]');await form.waitFor({state:'visible',timeout:60000});const draft='Unsent draft preserved on reselect';await form.locator('[name="assignedLogin"]').selectOption('rc20261110-logistic');await form.locator('[name="description"]').fill(draft);await form.locator('[name="types"]').selectOption({label:'Упаковочный лист'});
    let duplicateReads=0;const count=req=>{const url=new URL(req.url());if(req.method()==='GET'&&url.pathname.endsWith('/api/task2')&&url.searchParams.get('order')===order)duplicateReads++;};page.on('request',count);await page.locator('#t2-select').selectOption(order);await page.waitForTimeout(500);page.off('request',count);assert.equal(duplicateReads,0);assert.equal(await form.locator('[name="assignedLogin"]').inputValue(),'rc20261110-logistic');assert.equal(await form.locator('[name="description"]').inputValue(),draft);assert.deepEqual(await form.locator('[name="types"]').evaluate(el=>[...el.selectedOptions].map(x=>x.value)),['Упаковочный лист']);
-   const taskData=await api('ved','/api/task2?order='+encodeURIComponent(order));assert.equal(taskData.status,200);const tasks=taskData.data.tasks.filter(t=>t.task_type==='ved_request_logistic');assert.equal(tasks.length,1);assert.equal(tasks[0].status,'completed');assert.equal(tasks[0].payload.files.length,1);
+   const taskData=await api('ved','/api/task2?order='+encodeURIComponent(order));assert.equal(taskData.status,200);const tasks=taskData.data.tasks.filter(t=>t.id===prior.addressedRequest.taskId);assert.equal(tasks.length,1);assert.equal(tasks[0].status,'completed');assert.equal(tasks[0].payload.files.length,1);
    const verifyChat=async()=>{await page.locator('.cabinet-sidebar nav a[href="#chats"]').first().evaluate(el=>el.click());const chatPage=page.locator('#lw-ved-chat-page');await chatPage.locator('[data-vc-order="'+order+'"]').click({timeout:60000});const chat=await api('ved','/api/chats?id='+prior.sharedChat.chatId);assert.equal(chat.status,200);assert.equal(chat.data.messages.length,1);assert.equal(chat.data.messages[0].files.length,1);await chatPage.getByText(chat.data.messages[0].body,{exact:true}).waitFor({state:'visible',timeout:60000});return chat.data.messages[0].files[0].id;};
    const fileId=await verifyChat();await page.reload({waitUntil:'domcontentloaded'});await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});assert.equal(await verifyChat(),fileId);
    for(const id of ['ved','owner',owner.selection.winnerActor]){const r=await fetch(base+'/api/chat-files?id='+fileId+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[id]}});assert.equal(r.status,200);assert.equal(createHash('sha256').update(Buffer.from(await r.arrayBuffer())).digest('hex'),prior.sharedChat.sha256);}
@@ -271,6 +276,8 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
     assert.equal(await page.getByText('Foreign QA task must stay hidden',{exact:true}).count(),0);
    }
   }
+  if(process.env.QA_BROWSER_ALIGNMENT==='true')await alignmentScenarios({page,actor,base,sessions,rec,report,createPublicPage});
+  if(process.env.QA_BROWSER_MATRIX==='true')await cabinetMatrix({page,actor,rec});
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    await page.setViewportSize(viewport);await page.waitForTimeout(1200);
    const layout=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,text:document.body.innerText.length,role:document.querySelector('[data-cabinet-role]')?.getAttribute('data-cabinet-role')}));
@@ -280,6 +287,6 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   rec.runtimeErrors=consoleErrors.filter(value=>/^(?:[A-Za-z]+Error:|Error:)|Minified React error|The above error occurred/.test(value)).slice(0,5);assert.deepEqual(rec.runtimeErrors,[],'Caught application render error');assert.equal(await page.getByText('Не удалось открыть раздел',{exact:true}).count(),0,'Application error boundary');assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
  }catch(e){rec.failureScreenshot='reports/isolated-rc/'+actor+'-'+phase+'-failure.png';await page.screenshot({path:rec.failureScreenshot,fullPage:true});
    await writeFile('reports/isolated-rc/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
-   rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
+   rec.errorStack=String(e.stack||'').slice(0,5000);for(const token of Object.values(sessions))rec.errorStack=rec.errorStack.replaceAll(token,'[REDACTED_SESSION]');rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
  await context.close();
-}}finally{await browser.close();await new Promise(done=>server.close(done));report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);await writeFile('reports/isolated-rc/browser-results-'+actorName+'.json',bytes);await writeFile('reports/isolated-rc/browser-results-'+actorName+'-'+phase+'.json',bytes);}
+}}finally{await browser.close();await new Promise(done=>server.close(done));report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile('reports/isolated-rc/browser-results-'+actorName+'.json',bytes);await writeFile('reports/isolated-rc/browser-results-'+actorName+'-'+phase+'.json',bytes);}

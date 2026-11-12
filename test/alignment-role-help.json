@@ -1,0 +1,149 @@
+{
+  "businessVersions": [
+    "OW-01.30.47 v",
+    "OW-01.30.48 v",
+    "SH-01.30.49 v",
+    "SH-01.30.50 v"
+  ],
+  "roles": {
+    "owner": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Откройте нужный реестр в левом меню. «Полный канонический архив» содержит всю историю; «Оперативные записи» — другой источник. Ищите ID, версию, роль, статус или дату; при конфликте обновите источник.",
+        "Выберите процесс P01–P10. Перетащите блок или переместите стрелками; задайте роль, ответственного и условие. Для связи выберите источник, «Соединить», затем цель. Сохранение и откат создают черновики; «На согласование» не активирует правила.",
+        "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Open a register from the sidebar. Full canonical archive contains the complete history; Operational records is a different source. Search ID, version, role, status or date; refresh if the source changed.",
+        "Choose P01–P10. Drag a block or use arrow keys; edit role, assignee and condition. Select a source, Connect, then its target. Saving and rollback create drafts; requesting approval does not activate rules.",
+        "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "从左侧菜单打开登记册。完整权威档案包含全部历史，运营记录是另一来源。按编号、版本、角色、状态或日期搜索；来源冲突时刷新。",
+        "选择P01–P10。拖动节点或用方向键移动，编辑角色、负责人及条件。选择源节点、连接、再选目标节点。保存和恢复只创建草稿，申请审批不会启用规则。",
+        "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+      ]
+    },
+    "carrier": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+      ]
+    },
+    "logistic": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+      ]
+    },
+    "supplier": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+      ]
+    },
+    "designer": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。"
+      ]
+    },
+    "content": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。"
+      ]
+    },
+    "purchasing": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。"
+      ]
+    },
+    "certification": {
+      "ru": [
+        "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
+        "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой."
+      ],
+      "en": [
+        "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
+        "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline."
+      ],
+      "zh": [
+        "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
+        "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。"
+      ]
+    }
+  }
+}

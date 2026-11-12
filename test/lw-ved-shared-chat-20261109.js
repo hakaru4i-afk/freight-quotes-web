@@ -103,8 +103,9 @@ async function init(root){
 let scanScheduled=false;
 const PAGE_ID="lw-ved-chat-page";
 function vedCabinet(){
+ if(document.querySelector('.cabinet-app[data-addressed-logistic="true"]'))return null;
  return [...document.querySelectorAll(".cabinet-app")].find(c=>
-  c.dataset.cabinetRole==="ved"||
+  c.dataset.cabinetRole==="ved"||c.dataset.vedHomeScope==="true"||
   (c.dataset.cabinetRole==="logistic"&&/ВЭД/.test(c.querySelector(".cabinet-role")?.textContent||""))||
   /Кабинет ВЭД/.test(c.querySelector(".cabinet-role")?.textContent||"")
  )||null;

@@ -1,3 +1,4 @@
+import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -18,7 +19,7 @@ function ratio(a, b) {
   return (hi + .05) / (lo + .05);
 }
 test('contrast patch is linked after every existing staging palette sheet', () => {
-  const patch = index.indexOf('task2-contrast-hotfix.css?v=t2-contrast-20261106-c1');
+  const patch = index.indexOf(runtimeAssetUrl('task2-contrast-hotfix.css'));
   assert.ok(patch > index.indexOf('style.css?v='));
   assert.ok(patch > index.indexOf('task2.css?v='));
   assert.ok(patch > index.indexOf('transport-application.css?v='));

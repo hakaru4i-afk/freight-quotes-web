@@ -7,6 +7,8 @@ import {createHash} from 'node:crypto';
 const expectedDir=resolve(process.env.QA_SERVED_EXPECTED_DIR||'.','test');
 const local=name=>fs.readFileSync(resolve(expectedDir,name));
 const manifest=JSON.parse(local('build-info.json'));
+// API advances independently while a PR still verifies exact deployed frontend bytes.
+const apiManifest=JSON.parse(fs.readFileSync(resolve('test/build-info.json')));
 const base='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 async function get(name){
@@ -34,9 +36,9 @@ test('Staging API health and anonymous denial are independently verified',async(
  const result=await health.json();
  assert.equal(result.projectRef,'ibclzdkxiozbzmniiygv');
  assert.equal(result.environment,'staging');
- assert.equal(result.build,manifest.task2.backendBuild);
- assert.equal(manifest.task2.backendFunction,'freight-api');
- assert.equal(manifest.task2.backendVersion,manifest.task2.lastObservedBackendVersion);
+ assert.equal(result.build,apiManifest.task2.backendBuild);
+ assert.equal(apiManifest.task2.backendFunction,'freight-api');
+ assert.equal(apiManifest.task2.backendVersion,apiManifest.task2.lastObservedBackendVersion);
  const unauth=await fetch(api+'/api/late-bid-drafts',{signal:AbortSignal.timeout(15000)});
  assert.ok([401,403].includes(unauth.status),'Anonymous API data exposure');
 });
