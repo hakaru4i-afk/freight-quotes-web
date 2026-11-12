@@ -651,7 +651,7 @@
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/task2-panel.js": "ba7359380fd8e68a77fd5322c4b843b785b5a86e089f23bc811ba92152a10186"
   },
-  "reviewedBackendSourceCommit": "eea4344a28c94d4d74513c0bc26eecb0478f902f",
+  "reviewedBackendSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
   "previousVersion": "20261111-logic-8",
   "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c."
 }

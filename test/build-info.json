@@ -521,14 +521,14 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "eea4344a28c94d4d74513c0bc26eecb0478f902f",
+    "backendSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 16,
-    "isolatedQaBundleSha256": "67e7e1cd4cdb01d6c264bac453bb064b56444c87da1d090b5a23c898de27f624",
+    "isolatedQaVersion": 17,
+    "isolatedQaBundleSha256": "24671b8069ba6d57a34917e445fc30e2d03b7608d1b7a232f7606548ed3b2608",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "eea4344a28c94d4d74513c0bc26eecb0478f902f",
+    "isolatedQaSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
     "sharedBackendVersion": 92,
     "sharedBackendBundleSha256": "6d33a8755dae80c39d0cfcf294d217130d09d970c60465dfe2463bd340c223a5"
   },
