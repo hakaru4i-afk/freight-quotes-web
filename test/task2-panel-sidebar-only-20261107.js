@@ -220,7 +220,11 @@
      const mapRoute=[
        {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode},
        {departure_station:o.departure_station,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
-       pts.map(({location_text,observed_at,geocode})=>({location_text,observed_at,geocode}))
+       pts.map(({location_text,observed_at,geocode})=>({location_text,observed_at,geocode})),
+       {
+         total:d.route?.source ? d.route.total_km : null,
+         remaining:pts.at(-1)?.route_calculation_status==="verified" ? pts.at(-1).remaining_km : null
+       }
      ];
      html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
      if(carrier&&x.status!=="completed"){
