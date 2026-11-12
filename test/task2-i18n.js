@@ -2,6 +2,14 @@
 (function(){
 "use strict";
 const dict={
+"Кабинет логиста":["Logistics workspace", "物流工作台"],
+"Адресные запросы документов":["Addressed document requests", "指定文件请求"],
+"Здесь доступны только назначенные вам запросы ВЭД и прикреплённые к ним файлы.":["Only document requests assigned to you by foreign trade and their linked files are available here.", "此处仅显示外贸部门分配给您的文件请求及关联文件。"],
+"Запрос ВЭД":["Foreign-trade request", "外贸请求"],
+"РАБОЧЕЕ ПРОСТРАНСТВО ЛОГИСТА":["LOGISTICS WORKSPACE", "物流工作台"],
+"Назначенные вам запросы ВЭД и связанные с ними файлы.":["Foreign-trade requests assigned to you and their linked files.", "外贸部门分配给您的请求及关联文件。"],
+"Открыть запросы документов →":["Open document requests →", "打开文件请求 →"],
+"Запросы документов":["Document requests", "文件请求"],
 "Проверка ВЭД при недоступном километраже":["Foreign-trade review when distance is unavailable", "无法计算里程时的外贸审核"],
 "Причина":["Reason", "原因"],
 "Основание: документ или ссылка на подтверждение":["Evidence: document or reference", "证明：文件或参考链接"],

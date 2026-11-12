@@ -336,7 +336,7 @@
  }
  async function loadList(){
    const list=await get("");
-   state.role=list.addressedOnly?'logistic':(document.querySelector('.cabinet-role')?.textContent||'').includes('ВЭД')?'ved':list.role;
+   state.role=list.addressedOnly?'logistic':list.role==='logistic'?'ved':list.role;
    const cabinet=document.querySelector('.cabinet-app');if(cabinet&&list.addressedOnly&&cabinet.dataset.addressedLogistic!=='true'){cabinet.dataset.addressedLogistic='true';window.dispatchEvent(new Event('lw-addressed-logistic-ready'));}
    state.addressedOnly=!!list.addressedOnly;state.login=String(list.viewer||"").toLowerCase();
    if(["ved","logistic"].includes(state.role)&&!state.addressedOnly){

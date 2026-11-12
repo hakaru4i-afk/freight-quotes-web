@@ -2,17 +2,18 @@
 (()=>{'use strict';
 let queued=false;
 function renameActiveLink(link,addressed=false){
+ const lang=document.documentElement.lang.toLowerCase(),i=lang.startsWith('zh')?2:lang.startsWith('en')?1:0,text=(addressed?['Запросы документов','Document requests','文件请求']:['Активные перевозки','Active shipments','在途运输'])[i];
  // React retains references to its icon, text and active-route marker. Replacing
  // link.textContent detaches those nodes and breaks the next route update.
  const label=[...link.childNodes].find(node=>node.nodeType===3&&node.textContent.trim());
- if(label)label.nodeValue=addressed?'Запросы документов':'Активные перевозки';
- link.setAttribute('aria-label',addressed?'Запросы документов':'Активные перевозки');
+ if(label&&label.nodeValue.trim()!==text)label.nodeValue=text;
+ link.setAttribute('aria-label',text);
 }
 function apply(){
- const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\s*)Кабинет ВЭД(?:\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"],.cabinet-app[data-addressed-logistic="true"]');
+ const cabinet=[...document.querySelectorAll('.cabinet-app')].find(el=>/^(?:\s*)Кабинет ВЭД(?:\s*)$/i.test(el.querySelector('.cabinet-role')?.textContent||'')) || document.querySelector('.cabinet-app[data-cabinet-role="ved"],.cabinet-app[data-ved-home-scope="true"],.cabinet-app[data-addressed-logistic="true"]');
  if(!cabinet)return;
  const addressed=cabinet.dataset.addressedLogistic==='true';
- if(addressed){const label=cabinet.querySelector('.cabinet-role');if(label&&label.textContent!=='Кабинет логиста')label.textContent='Кабинет логиста';const chat=cabinet.querySelector('#lw-ved-chat-page');if(chat)chat.hidden=true;}
+ if(addressed){const label=cabinet.querySelector('.cabinet-role');if(label&&label.dataset.addressedRole!=='true'){label.dataset.addressedRole='true';label.textContent='Кабинет логиста';}const chat=cabinet.querySelector('#lw-ved-chat-page');if(chat)chat.hidden=true;}
  cabinet.dataset.vedHomeScope='true';
  const nav=cabinet.querySelector('.cabinet-sidebar nav');
  if(!nav)return;
