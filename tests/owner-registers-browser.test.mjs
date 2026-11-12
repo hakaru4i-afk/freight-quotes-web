@@ -14,7 +14,7 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    await page.waitForFunction(()=>window.owOwnerRegistersVersion==="OW-01.30.47 v",{timeout:20000});
    await page.evaluate(()=>{
     const fixture=document.createElement("section");fixture.className="cabinet-app staff-portal";fixture.dataset.cabinetRole="owner";
-    fixture.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar"><nav class="lw-owner-nav">'+
+    fixture.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar mobile-open"><nav class="lw-owner-nav">'+
      '<a href="#overview"><span>◉</span>Главная</a><a href="#portal-feedback"><span>✎</span>Центр доработок</a>'+
      '<a href="#help"><span>?</span>Помощь / FAQ</a></nav></aside>'+
      '<main class="cabinet-content"><div class="cabinet-panel" data-section="overview"><div class="overview-welcome">Главная</div></div>'+
@@ -26,16 +26,19 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    assert.equal(await nav.count(),5);
    assert.match(await page.locator('.cabinet-app[data-cabinet-role="owner"] .cabinet-sidebar nav a[href="#help"]').innerText(),/FAQ и инструкции/);
    await page.locator('[data-ow-register="updates"]').click();
+   await page.waitForFunction(id=>document.querySelector('#ow-workspace')?.dataset.archiveName===id,'updates');
    await page.locator("#ow-workspace").waitFor({timeout:12000});
    assert.match(await page.locator("#ow-workspace h2").innerText(),/Реестр обновлений/);
    await page.locator('[data-ow-register="remarks"]').click();
+   await page.waitForFunction(id=>document.querySelector('#ow-workspace')?.dataset.archiveName===id,'remarks');
    assert.match(await page.locator("#ow-workspace h2").innerText(),/Реестр замечаний/);
    await page.locator('[data-ow-register="developments"]').click();
+   await page.waitForFunction(id=>document.querySelector('#ow-workspace')?.dataset.archiveName===id,'developments');
    assert.match(await page.locator("#ow-workspace h2").innerText(),/Реестр разработок/);
    await page.locator('[data-ow-register="process"]').click();
    await page.locator('#ow-process-editor').waitFor({timeout:12000});
    assert.equal(await page.locator('#ow-process-frame').count(),0,'Editor replaces the old iframe viewer');
-   await page.locator('[data-ow-register="cooperation"]').click();
+   await page.locator('[data-ow-register="cooperation"]').click();await page.locator('#ow-cooperation-screen').waitFor();
    assert.match(await page.locator('[data-ow-register="cooperation"]').getAttribute("aria-current"),/page/);
    await page.screenshot({path:"ow-registers-"+size.width+".png",fullPage:true});
    assert.deepEqual(errors.filter(e=>!e.includes("NetworkError")),[],"Browser runtime errors");

@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "cbf500ee707027164bb6",
+  "version": "36f307ee8f10a2463ace",
   "releaseVersion": "SH-01.30.50 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "0e14e500b6c740b1b105d0559cbe12a8f6d83887",
+  "servedAppBlobSha": "4449ababca34ccd112c548e5ea6a1250dd7b781c",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -29,7 +29,7 @@
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
     "backendSourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
-    "backendSourceSha": "2752206acaf62853b540b9fc12b5b505c419ed2c",
+    "backendSourceSha": "e4d052a46352f6f6448ef307616de213050c8053",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "SH-01.30.50 v: shared staging92 and isolated QA15 use canonical source e8ee1ba; model20261111-logic-8. Ten isolated roles and Owner editor/API checks passed. Full37 acceptance/protected CI/independent restore remain open.",
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "0e14e500b6c740b1b105d0559cbe12a8f6d83887",
-        "sha256": "66780e260b6509ba2179a56ef896c1ba8f657532770dfa75090c47d9bd87d1a0"
+        "gitBlob": "4449ababca34ccd112c548e5ea6a1250dd7b781c",
+        "sha256": "8ba41150b19534e083d3c906c6e30ed40905d6cc65568ae6cc8367a7095f4be2"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -91,7 +91,7 @@
     "actRevisionGuard": true,
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
-    "backendBuild": "issue17-compact-document-20261106",
+    "backendBuild": "SH-01.30.50 v",
     "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
     "backendActiveBundleSha256": "fab91cd7c93f72ae08d3f67faedae87d31c0a0340b1ad4162ff55b11b8768f1d",
     "slPenaltyRetention": {
@@ -551,12 +551,12 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "cbf500ee707027164bb6",
+  "stagingAssetBuildId": "36f307ee8f10a2463ace",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "d9d326d142cba1fb5c5773852d7d065c63938eae92e83dbc620cfa658bc8a45b",
-    "app.js": "66780e260b6509ba2179a56ef896c1ba8f657532770dfa75090c47d9bd87d1a0",
+    "app.js": "8ba41150b19534e083d3c906c6e30ed40905d6cc65568ae6cc8367a7095f4be2",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -597,7 +597,8 @@
     "portal-contrast-accessibility-20261108.css": "9321dc652343953313789025277a69c7272732d1447536d865b58732b71dcc74",
     "portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
-    "process-editor-20261111.mjs": "cf5df9ea8d3f77078a7f89c16303ca4af6a65eaa75ed2ff9250aeaa36fb9ab85",
+    "process-editor-20261111.mjs": "832610135a96d782ea594377740d2157dde0598043bbafe8c9e23b9221286558",
+    "process-model-diff.mjs": "f9bc43ef9d526307315c823d2e6a7dfe8198626e0da47c79913b9eff056177c8",
     "process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
@@ -645,5 +646,5 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-12T05:03:07.074Z"
+  "assetBuildRecordedAt": "2026-11-12T05:10:39.686Z"
 }

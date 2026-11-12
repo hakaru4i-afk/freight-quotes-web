@@ -57,7 +57,7 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  assert.equal(health.status,200);
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(h.build,JSON.parse(read("build-info.json").toString("utf8")).task2.backendBuild);
+ assert.equal(h.build,JSON.parse(readFileSync("test/build-info.json","utf8")).task2.backendBuild);
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
   assert.ok([401,403].includes(resp.status),"Anonymous "+route+" returned "+resp.status);
