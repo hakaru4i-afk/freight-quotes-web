@@ -40,6 +40,9 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const cacheKey=name=>{const b=readFileSync('test/'+name);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex').slice(0,12);};
           const base='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
           let ok=false;
           for(let i=0;i<20;i++){
@@ -50,8 +53,10 @@ jobs:
                 fetch(base+'task2-guidance-42dc6ccc8a20.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text()),
                 fetch(base+'carrier-csv-wps-hotfix.js?qa='+stamp,{cache:'no-store'}).then(r=>r.text())
               ]);
-              if(html.includes('task2-guidance-42dc6ccc8a20.js?v=42dc6ccc8a20') &&
-                 html.includes('carrier-csv-wps-hotfix.js?v=1e867d941474') &&
+              if(html.includes('task2-guidance-42dc6ccc8a20.js?v='+cacheKey('task2-guidance-42dc6ccc8a20.js')) &&
+                 html.includes('carrier-csv-wps-hotfix.js?v='+cacheKey('carrier-csv-wps-hotfix.js')) &&
+                 guide===readFileSync('test/task2-guidance-42dc6ccc8a20.js','utf8') &&
+                 codec===readFileSync('test/carrier-csv-wps-hotfix.js','utf8') &&
                  guide.includes('Скачать Excel-шаблон') &&
                  guide.includes('freight-form-') &&
                  codec.includes('window.freightXlsxInterop=Object.freeze({makeXlsx,unzip,xlsxToCsv})')){
