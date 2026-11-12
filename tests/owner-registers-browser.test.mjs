@@ -8,6 +8,8 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
  try{
   for(const size of [{width:1366,height:768},{width:390,height:844}]){
    const page=await browser.newPage({viewport:size});
+   // Every changed screen controller must come from the candidate, even while Pages serves the baseline.
+   await page.route('**/lw-public-cooperation-20261108.js*',r=>r.fulfill({path:'test/lw-public-cooperation-20261108.js',contentType:'text/javascript'}));
    await page.route('**/owner-registers-20261111.js*',r=>r.fulfill({path:'test/owner-registers-20261111.js',contentType:'text/javascript'}));
    for(const name of ['process-editor-20261111.mjs','process-model-graph.mjs','process-model-diff.mjs'])await page.route('**/'+name+'*',r=>r.fulfill({path:'test/'+name,contentType:'text/javascript'}));
    const errors=[];page.on("pageerror",e=>errors.push(e.message));
