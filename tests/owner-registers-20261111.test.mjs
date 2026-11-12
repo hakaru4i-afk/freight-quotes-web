@@ -20,6 +20,6 @@ test("HTML includes safe local frame CSP and new files",()=>{
  assert.match(html,/frame-src 'self' https:\/\/yandex\.ru/);
  assert.ok(html.includes(runtimeAssetUrl('owner-registers-20261111.js')));
  assert.ok(html.includes(runtimeAssetUrl('owner-registers-20261111.css')));
- assert.ok(readFileSync("test/process-map.html","utf8").includes("20261111-logic-8"));
+ assert.ok(readFileSync("test/process-map.html","utf8").includes(JSON.parse(readFileSync("test/business-process-model.json","utf8")).version));
  assert.match(css,/ow-editor-grid/);assert.match(css,/max-width:900px/);
 });

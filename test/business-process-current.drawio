@@ -4,7 +4,7 @@ LOGIC_OK
 LOGIC_OK
 Назначенный перевозчик получает исходные данные; до 20 вариантов, обязательные условия и срок, явная отправка." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-carrier"><mxGeometry x="10" y="325" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P03" value="P03 · Сравнение, тендер и один победитель
 LOGIC_OK
-Только владелец выбирает одного победителя; активная поздняя подготовка блокирует выбор; штраф не отменяется подачей." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-owner"><mxGeometry x="10" y="515" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P04" value="P04 · Принятие и начало исполнения
+Только владелец выбирает одного победителя; активная поздняя подготовка блокирует выбор; штраф не отменяется подачей. Данные конкурента в активном тендере строго обезличены и минимальны; после торгов доступ к ним прекращается. Свои предложения и результат участия сохраняются." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-owner"><mxGeometry x="10" y="515" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P04" value="P04 · Принятие и начало исполнения
 LOGIC_OK
 Победитель принимает перевозку напрямую, без отдельной транспортной заявки. ВЭД получает доступ после принятия." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-carrier"><mxGeometry x="10" y="705" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P05" value="P05 · Трекинг, контрольные точки и сроки
 LOGIC_IMPROVED
@@ -14,7 +14,7 @@ LOGIC_IMPROVED
 LOGIC_OK
 Назначенный поставщик фиксирует фактическую готовность, комплект или объяснения отсутствия; владелец предоставляет подписанную проформу." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-supplier"><mxGeometry x="10" y="1275" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P08" value="P08 · Назначенные задачи остальных сотрудников
 LOGIC_IMPROVED
-Показывать реальные невыполненные назначения; новых процессов контента, закупок и сертификации без решения владельца не создавать." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-content"><mxGeometry x="10" y="1465" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P09" value="P09 · Завершение перевозки
+Показывать реальные невыполненные назначения; новых процессов контента, закупок и сертификации без решения владельца не создавать. Supplier A/B изолированы по назначению заказов, документов и чатов, включая прямые ID и экспорт." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-content"><mxGeometry x="10" y="1465" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P09" value="P09 · Завершение перевозки
 LOGIC_IMPROVED
 Закрывает только уполномоченный сотрудник после обязательных событий и задач; контейнер либо явное разрешённое решение без него." style="rounded=1;whiteSpace=wrap;html=0;fillColor=#ffffff;strokeColor=#365dad;" vertex="1" parent="lane-owner"><mxGeometry x="10" y="1655" width="270" height="140" as="geometry"/></mxCell><mxCell id="summary-P10" value="P10 · Service Level, сроки и допуск
 LOGIC_OK

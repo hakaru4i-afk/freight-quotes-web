@@ -40,6 +40,8 @@ jobs:
           QA_LOGISTIC_PASSWORD: ${{ secrets.QA_LOGISTIC_PASSWORD }}
           QA_SUPPLIER_LOGIN: ${{ secrets.QA_SUPPLIER_LOGIN }}
           QA_SUPPLIER_PASSWORD: ${{ secrets.QA_SUPPLIER_PASSWORD }}
+          QA_SUPPLIER_B_LOGIN: ${{ secrets.QA_SUPPLIER_B_LOGIN }}
+          QA_SUPPLIER_B_PASSWORD: ${{ secrets.QA_SUPPLIER_B_PASSWORD }}
           QA_DESIGNER_LOGIN: ${{ secrets.QA_DESIGNER_LOGIN }}
           QA_DESIGNER_PASSWORD: ${{ secrets.QA_DESIGNER_PASSWORD }}
           QA_CONTENT_LOGIN: ${{ secrets.QA_CONTENT_LOGIN }}
@@ -108,6 +110,13 @@ jobs:
           QA_BROWSER_ACTORS: ved
           QA_BROWSER_VED_VERIFY: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify addressed Logistic file isolation and duplicate submission protection
+        env:
+          QA_BROWSER_ACTORS: logistic
+          QA_BROWSER_LOGISTIC_SECURITY: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Run real Carrier A B and Supplier A B privacy gate
+        run: node tests/security-gate-real.e2e.mjs
       - name: Verify private registers, proposals and draft editor as Owner
         env:
           QA_BROWSER_ACTORS: owner
@@ -115,10 +124,10 @@ jobs:
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify all other roles cannot read private engineering archives
         env:
-          QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,designer,content,purchasing,certification
+          QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification
           QA_BROWSER_ALIGNMENT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
-      - name: Verify ten cabinets in RU EN ZH on desktop and mobile
+      - name: Verify eleven cabinets in RU EN ZH on desktop and mobile
         env:
           QA_BROWSER_MATRIX: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
@@ -127,6 +136,7 @@ jobs:
         with:
           name: isolated-qa-redacted-evidence
           path: |
+            reports/isolated-rc/security-gate-real.json
             reports/ci-qa-auth.json
             reports/ci-qa-environment-policy.json
             reports/isolated-rc/browser-results-*.json
