@@ -217,6 +217,12 @@
      let html='<div class="t2-facts">'+readonly("Исходная плановая дата (заблокирована)",sourceDate)+readonly("Фактическая дата выхода",fmt(x.actual_departure))+
        readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
+     const mapRoute=[
+       {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode},
+       {departure_station:o.departure_station,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
+       pts.map(({location_text,observed_at,geocode})=>({location_text,observed_at,geocode}))
+     ];
+     html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
        html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
