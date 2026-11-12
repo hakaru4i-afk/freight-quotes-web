@@ -21,3 +21,8 @@
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:hover{background:#214d72!important;color:#fff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register][aria-current="page"]{background:#1a527a!important;box-shadow:inset 3px 0 #7bd0ff!important}
 .staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:focus-visible{outline:2px solid #8ad7ff!important;outline-offset:-2px}
+#ow-workspace a{color:#9adbef}
+#ow-workspace .ow-record a{color:#20548c}
+/* The cooperation cards use the Owner dark surface; generic light details do not. */
+#ow-cooperation-screen .lw-inquiry summary{color:inherit}
+#ow-cooperation-screen .lw-inquiry summary strong{color:inherit}

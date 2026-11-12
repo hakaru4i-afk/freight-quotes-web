@@ -18,6 +18,7 @@ export function checkAlignment(root){
   if(hash(execFileSync('git',['show',m.frontendCommit+':'+path],{cwd:root,maxBuffer:16*1024*1024}))!==expected)throw Error('SOURCE_COMMIT_MISMATCH:'+path);
  }
  const info=JSON.parse(read('test/build-info.json')),model=JSON.parse(read('test/business-process-model.json'));
+ if(!/^\d{14}$/.test(m.sqlMigrationVersion||'')||m.sqlMigrationVersion!==info.sqlMigrationVersion)throw Error('SQL_MIGRATION_VERSION_MISMATCH');
  if(m.apiVersion!==info.task2.backendVersion||m.apiSourceCommit!==info.stabilizationQa20261110.backendSourceCommit||m.processModelVersion!==model.version)throw Error('VERSION_PAIR_MISMATCH');
  if(hash(read('test/alignment-role-help.json'))!==m.roleHelpSha256)throw Error('STALE_ROLE_HELP');
  const help=JSON.parse(read('test/alignment-role-help.json'));for(const [role,langs]of Object.entries(help.roles))for(const l of ['ru','en','zh'])if(!langs[l]?.length)throw Error('MISSING_ROLE_HELP:'+role+':'+l);

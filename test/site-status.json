@@ -1,9 +1,9 @@
 {
-  "version": "a9d1f48872ab822f008a",
+  "version": "cbf500ee707027164bb6",
   "maintenance": false,
   "environment": "staging",
   "release": {
-    "version": "SH-01.30.50 v · тестовая",
+    "version": "SH-01.30.50 v",
     "date": "2026-11-11",
     "title": "Единые источники и черновики процессов",
     "changes": [

@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "a9d1f48872ab822f008a",
+  "version": "cbf500ee707027164bb6",
   "releaseVersion": "SH-01.30.50 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "5fb96edfd62592bc299cbbdd0f5fcb436db5d7b0",
+  "servedAppBlobSha": "0e14e500b6c740b1b105d0559cbe12a8f6d83887",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -28,11 +28,11 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
+    "backendSourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
     "backendSourceSha": "2752206acaf62853b540b9fc12b5b505c419ed2c",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "SH-01.30.50 v candidate; canonical source51fc453 and model logic8. QA14 actual deployment verified; shared staging remains91 pending final candidate checks. Full37 acceptance and protected CI remain open.",
+    "stagingBuildNote": "SH-01.30.50 v: shared staging92 and isolated QA15 use canonical source e8ee1ba; model20261111-logic-8. Ten isolated roles and Owner editor/API checks passed. Full37 acceptance/protected CI/independent restore remain open.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "2a9c4b0ab12f40a54396af826d52e5f0505a0cfa",
@@ -45,17 +45,17 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 91,
-    "backendDeploymentStatus": "CANDIDATE_V92_AWAITING_REAL_QA_AND_SHARED_PUBLICATION",
+    "lastObservedBackendVersion": 92,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V92_ACTIVE",
     "backendCandidate": {
-      "sourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
+      "sourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
       "gitBlob": "e4d052a46352f6f6448ef307616de213050c8053",
       "sha256": "7aadc18ea14e3037ec018d41afbe1071884443ba353ec31426dec254e7bc66ae"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "5fb96edfd62592bc299cbbdd0f5fcb436db5d7b0",
-        "sha256": "de5b6decce54f72fc26d96e443665cbd2847384c426fdc47acdda22541f51f23"
+        "gitBlob": "0e14e500b6c740b1b105d0559cbe12a8f6d83887",
+        "sha256": "66780e260b6509ba2179a56ef896c1ba8f657532770dfa75090c47d9bd87d1a0"
       },
       "task2-panel.js": {
         "gitBlob": "000969ec1fbff5afcfd66f36a887e06aa2238e1f",
@@ -521,16 +521,16 @@
     "productionChanged": false
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
+    "backendSourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 14,
-    "isolatedQaBundleSha256": "d76be7c5426976bef6e4a45667b19dd543d2f5ff96af9b489a4add4f93128bea",
+    "isolatedQaVersion": 15,
+    "isolatedQaBundleSha256": "2b55591169b59a48eea2e30a43a6ee6a82d29a39c8611d7b8194b9d8179987ed",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "51fc453c119b2821719b919f0f3254a5bd989fa8",
-    "sharedBackendVersion": 91,
-    "sharedBackendBundleSha256": "06f3149b7ad2763f78a4dd48a6de0f7b13479bc794ec80fc1818d3f313a104aa"
+    "isolatedQaSourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
+    "sharedBackendVersion": 92,
+    "sharedBackendBundleSha256": "6d33a8755dae80c39d0cfcf294d217130d09d970c60465dfe2463bd340c223a5"
   },
   "businessProcessReview": {
     "modelVersion": "20261111-logic-7",
@@ -551,12 +551,12 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "a9d1f48872ab822f008a",
+  "stagingAssetBuildId": "cbf500ee707027164bb6",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "d9d326d142cba1fb5c5773852d7d065c63938eae92e83dbc620cfa658bc8a45b",
-    "app.js": "de5b6decce54f72fc26d96e443665cbd2847384c426fdc47acdda22541f51f23",
+    "app.js": "66780e260b6509ba2179a56ef896c1ba8f657532770dfa75090c47d9bd87d1a0",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -582,7 +582,7 @@
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
     "lw-public-cooperation-20261108.css": "fbaada085f5e3347b17d25428062b629e73ef906c42db18d2a3396fe05551b5f",
-    "lw-public-cooperation-20261108.js": "90f3fd14d4b2c01f8bb8043abfc795e24e90269da7447b0c73a0a944c73660ad",
+    "lw-public-cooperation-20261108.js": "8000a97cddf4de33847a18df3c80cf4fe01b755c2bd9be6b2a6e87107bc7fa62",
     "lw-ved-shared-chat-20261109.css": "3247de4deeae08ccd4bca8bc062d2e9fed5f15a2b1658f9eaf23a9896c67c1f8",
     "lw-ved-shared-chat-20261109.js": "e1455d347128028ae8dbc3208c71529a5a9650048ab7b8c2150c920d6bb65a24",
     "lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
@@ -590,14 +590,14 @@
     "offer-edit-modal-readability-20261108.css": "ac402655682dfe32bca0b35b39a55a5dc3b391b16b44b9a226644c0c7369fd65",
     "owner-command-center-20261108.css": "b500ad4df0193556f7635d2ace5af43a3e0290ddd5d4140a19bf835202e7e6aa",
     "owner-command-center-20261108.js": "65d112964bc13b4b78d8a431a2d094767a0ec10821c6092083e1a77708a01fa9",
-    "owner-registers-20261111.css": "66c242e2ead5895b38f1c2ed8ff7098a8684e514be010dc1dfddbd33affc015d",
+    "owner-registers-20261111.css": "1b232ea42a7f66052ded1ffeceb27b68bd5183da9068847bf46bb139fd19d38e",
     "owner-registers-20261111.js": "bace6e9ec9cbec5d74fd2db6b5a7d2f973cc9c5d93288034a3e7318415b29ac1",
     "owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
     "owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
     "portal-contrast-accessibility-20261108.css": "9321dc652343953313789025277a69c7272732d1447536d865b58732b71dcc74",
     "portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
-    "process-editor-20261111.mjs": "6065224d04d875dba82583ab54f072cb96bdd246080b6293706e9812e07a6ae7",
+    "process-editor-20261111.mjs": "cf5df9ea8d3f77078a7f89c16303ca4af6a65eaa75ed2ff9250aeaa36fb9ab85",
     "process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
@@ -640,5 +640,10 @@
       "patchSourceBranch"
     ],
     "interpretation": "Legacy original bundle metadata remains historical. Current reviewed FE/API/SQL/assets and publication are recorded in staging-manifest.json and the publication receipt."
-  }
+  },
+  "sqlMigrationVersion": "20261111182346",
+  "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
+  "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
+  "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
+  "assetBuildRecordedAt": "2026-11-12T05:03:07.074Z"
 }

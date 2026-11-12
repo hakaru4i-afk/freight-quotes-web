@@ -24,7 +24,7 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    const nav=page.locator('.cabinet-app[data-cabinet-role="owner"] [data-ow-register]');
    await page.waitForFunction(()=>document.querySelectorAll('.cabinet-app[data-cabinet-role="owner"] a[data-ow-register]').length===5,{timeout:16000});
    assert.equal(await nav.count(),5);
-   assert.match(await page.locator('.cabinet-app[data-cabinet-role="owner"] a[href="#help"]').innerText(),/FAQ и инструкции/);
+   assert.match(await page.locator('.cabinet-app[data-cabinet-role="owner"] .cabinet-sidebar nav a[href="#help"]').innerText(),/FAQ и инструкции/);
    await page.locator('[data-ow-register="updates"]').click();
    await page.locator("#ow-workspace").waitFor({timeout:12000});
    assert.match(await page.locator("#ow-workspace h2").innerText(),/Реестр обновлений/);
