@@ -19,7 +19,7 @@
       "issue": 47
     }
   ],
-  "frontendCommit": "99991b43cf3b132bf58264d6371616b17bd2d270",
+  "frontendCommit": "bc7a68e16891867bb3a128f5728926f096b9b903",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "778ee9c5f381e47b0dff8d6de30c803b4fd2dda960482747f952621afc898b62",
@@ -72,8 +72,8 @@
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "test/app.js": "0f092da6a251838789e0e99ae0cac23bafe9c89ef9b9ff3cdf267ba451a03359",
-    "test/build-info.json": "caf12d3776751a47790331e774da4dcd22684be5b47e23e6a570c25e2ff88be3",
-    "test/business-process-model.json": "4f19fdde7394801fd61af89315754c8e0ab0f9ef15d7362156da2aad349c2333",
+    "test/build-info.json": "bf5d23b63fcf203d656becffe12884d4965a10f9eeff90740cf638d34f157946",
+    "test/business-process-model.json": "aba27f73bd0cd03261e3f8e4183a47d10d55757f8cda1df85d55f7d061ce7879",
     "test/carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "test/carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -132,7 +132,7 @@
     "test/portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "test/portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
     "test/process-editor-20261111.mjs": "0ddb94b8bbf5cfc96787ac1783c56a5b291295d09e400f7bc5c7a5249d9e03a8",
-    "test/process-map.html": "d9a4dba9c32ee916ab8cae22ad2baf8a393f8ad2c99c30ec7a6b7add6e07eab4",
+    "test/process-map.html": "96f184db354763545efb57d0de4c5f8402a0b519bd39fe74ec3cfc98cde8f676",
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "test/qa-20261101a/app.js": "07fd7596a9d6d814d4e48fab54c0bd3019dee76fe91a30c0856c465ce4662db1",
@@ -291,7 +291,7 @@
   "roleHelpSha256": "73a7ee2fe47c60b4b9dab1b1a24e9793327685ee46695f62e3dcfac6c4c8d1ce",
   "apiVersion": 93,
   "sqlMigrationVersion": "20261111182346",
-  "apiSourceCommit": "eea4344a28c94d4d74513c0bc26eecb0478f902f",
+  "apiSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
   "apiBundleSha256": "6d33a8755dae80c39d0cfcf294d217130d09d970c60465dfe2463bd340c223a5",
   "processModelVersion": "20261112-logic-9",
   "canonicalHash": "071c00cbecafc0de10c29a0dda647d2bd6beefca8176821f207cf2ef9108597e",

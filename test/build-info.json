@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "97ac159c2380fd6392a9",
+  "version": "8e181d12af7b35cb253c",
   "releaseVersion": "SH-01.30.50 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "add447950d73d16a19e3df64c3053f36b3ae13d2",
+  "servedAppBlobSha": "36d7153ce4e5365e9bf8b7f09c82d40c9adb21b1",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -28,8 +28,8 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
-    "backendSourceSha": "e4d052a46352f6f6448ef307616de213050c8053",
+    "backendSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
+    "backendSourceSha": "d9033c7a503353bc12a35a86c31d88d029775ee7",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "SH-01.30.50 v: shared staging92 and isolated QA15 use canonical source e8ee1ba; model20261111-logic-8. Ten isolated roles and Owner editor/API checks passed. Full37 acceptance/protected CI/independent restore remain open.",
@@ -45,17 +45,17 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 92,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V92_ACTIVE",
+    "lastObservedBackendVersion": 93,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V93_ACTIVE",
     "backendCandidate": {
-      "sourceCommit": "e8ee1bade43a8a7681f90661bdaae02d9ec9ffb6",
-      "gitBlob": "e4d052a46352f6f6448ef307616de213050c8053",
-      "sha256": "7aadc18ea14e3037ec018d41afbe1071884443ba353ec31426dec254e7bc66ae"
+      "sourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
+      "gitBlob": "d9033c7a503353bc12a35a86c31d88d029775ee7",
+      "sha256": "99f094f924b8cd3b85eb3d28b98295178085e52fd1b266c92e664806794375df"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "add447950d73d16a19e3df64c3053f36b3ae13d2",
-        "sha256": "0f092da6a251838789e0e99ae0cac23bafe9c89ef9b9ff3cdf267ba451a03359"
+        "gitBlob": "36d7153ce4e5365e9bf8b7f09c82d40c9adb21b1",
+        "sha256": "02654c1ee9517ae4864935dd33bb13374ae11ef221baaa53b98f8ce448db6d23"
       },
       "task2-panel.js": {
         "gitBlob": "d5e9b228d7d1c861cfe6ba8d0fa1689396ce325d",
@@ -92,8 +92,8 @@
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "58d00def4ff667c364475a37f585f925f50323fecd7af3542986d8eb8657adde",
     "backendBuild": "SH-01.30.50 v",
-    "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
-    "backendActiveBundleSha256": "fab91cd7c93f72ae08d3f67faedae87d31c0a0340b1ad4162ff55b11b8768f1d",
+    "backendBundleSHA256": "89e25c7c47861725229220f87e0fee1ac4dbea33bdd8617e114374907770c589",
+    "backendActiveBundleSha256": "89e25c7c47861725229220f87e0fee1ac4dbea33bdd8617e114374907770c589",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -129,7 +129,7 @@
       "validation": "published smoke and exact-source CI PENDING",
       "productionChanged": false
     },
-    "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest",
+    "backendBuildMeaning": "Health business version, deployed provider version/bundle and exact source bytes are independently verified; production is separate.",
     "vedDocumentsTaskVisibility": "OWNER_CONFIRMED_2026-11-09",
     "carrierRequestDocsCSV": "REMOVED_2026-11-09",
     "requestDocsFormFeedback": "INLINED_CONFIRMATION_AND_DOCUMENT_AUTO_DESCRIPTION_2026-11-09",
@@ -166,7 +166,12 @@
       }
     },
     "styleSha": "4ae80a134af3f094485a34b253e6610152c6f8ee",
-    "historicalStagingBuildNote20261109": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged."
+    "historicalStagingBuildNote20261109": "09.11.2026 staging: API v84, frontend Task2 8289e37. VED shared chat uses /api/chats with owner/carrier, manual messages and files; no automatic template messages from document uploads/requests. VED can assign typed document requests to named enabled logistic; migration applied. Only VED logistic-class account currently enabled so actual addressed task E2E remains blocked by missing other active recipient. Production unchanged.",
+    "historicalBackendRuntimeFields": {
+      "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
+      "backendActiveBundleSha256": "fab91cd7c93f72ae08d3f67faedae87d31c0a0340b1ad4162ff55b11b8768f1d",
+      "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
+    }
   },
   "lateBidUiSha": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
@@ -529,8 +534,8 @@
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
     "isolatedQaSourceCommit": "f0623c4ad92706862f103d974032ddf148ddc4bb",
-    "sharedBackendVersion": 92,
-    "sharedBackendBundleSha256": "6d33a8755dae80c39d0cfcf294d217130d09d970c60465dfe2463bd340c223a5"
+    "sharedBackendVersion": 93,
+    "sharedBackendBundleSha256": "89e25c7c47861725229220f87e0fee1ac4dbea33bdd8617e114374907770c589"
   },
   "businessProcessReview": {
     "modelVersion": "20261111-logic-7",
@@ -551,12 +556,12 @@
     "blobSha": "f57a5daa31bfa5d12f3ad4121154e700e800bb4d",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "97ac159c2380fd6392a9",
+  "stagingAssetBuildId": "8e181d12af7b35cb253c",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "73a7ee2fe47c60b4b9dab1b1a24e9793327685ee46695f62e3dcfac6c4c8d1ce",
-    "app.js": "0f092da6a251838789e0e99ae0cac23bafe9c89ef9b9ff3cdf267ba451a03359",
+    "app.js": "02654c1ee9517ae4864935dd33bb13374ae11ef221baaa53b98f8ce448db6d23",
     "carrier-acceptance-workflow-20261107.css": "ee43ef917d8ce40a68dc0590f00d9036dabbbb38095b19d76d9cabded65b8327",
     "carrier-acceptance-workflow-20261107.js": "0023f8eed993c9898587f065d56bb6003267ec77ad427948c031f8f8b72b903f",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -646,6 +651,6 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-12T06:01:13.254Z",
+  "assetBuildRecordedAt": "2026-11-12T06:04:01.274Z",
   "processModelVersion": "20261112-logic-9"
 }
