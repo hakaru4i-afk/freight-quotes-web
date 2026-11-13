@@ -186,12 +186,8 @@
         '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
        '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
      }
-     if(state.role==="ved"||state.role==="logistic"){
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><div class="lw-ved-chat-mount" data-lw-ved-chat-order="'+esc(state.selected)+'"><p class="t2-muted">Открываем общую переписку перевозки…</p></div>';
-      }else{
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><p class="t2-muted">Открывайте полный чат перевозки в разделе переписки кабинета.</p>';
-      }
-     // Свободный чат — через единый /api/chats, без шаблонов и дублирующих форм.
+     // Переписка, выбор заявки и адресата — только в отдельном меню «Чаты по заявкам».
+     // Чат/файлы/API сохраняются, в этом разделе — исключительно документы и задачи.
      return html;
    }
    if(state.tab==="stages"){
