@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "04bb895b68f87dab7a72",
+  "version": "ccba71ed5c3cec80b3fc",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "5a9676867744342baaa2f89a33cf70992118d295",
+  "servedAppBlobSha": "554c4880a04fc4e1cc24751c661afda1fb0dd460",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "5a9676867744342baaa2f89a33cf70992118d295",
-        "sha256": "af606151ea0bb8db76fdf8cfbcc5fef5b4bb516fd99d0f607594e32acac1f1fd"
+        "gitBlob": "554c4880a04fc4e1cc24751c661afda1fb0dd460",
+        "sha256": "8b485a96d5fe498127c957af30a2a6aa8aa3b83661336ba9a1cb819219084714"
       },
       "task2-panel.js": {
         "gitBlob": "b5855586fd2ac54635a40eddd38b8c15e7471384",
@@ -556,12 +556,12 @@
     "blobSha": "dae8afc0e6a4fba7c3af1c21c93c0964b76f17cb",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "04bb895b68f87dab7a72",
+  "stagingAssetBuildId": "ccba71ed5c3cec80b3fc",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "f05d6624a745176b38b75e2c71eee2cd5f48cd4b1ae3aa58cef58aec54748400",
-    "app.js": "af606151ea0bb8db76fdf8cfbcc5fef5b4bb516fd99d0f607594e32acac1f1fd",
+    "app.js": "8b485a96d5fe498127c957af30a2a6aa8aa3b83661336ba9a1cb819219084714",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "395874b4060edf9e6abbe9031c5e63c398b3160b7de0c13731fd0f1776f43736",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -590,8 +590,8 @@
     "lw-pending-tasks-all-roles-20261109.js": "065c2c1f2ab9eaac82194bf421678dda79da32f6ef6d32fc61227114df015f47",
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
-    "lw-public-cooperation-20261108.css": "fbaada085f5e3347b17d25428062b629e73ef906c42db18d2a3396fe05551b5f",
-    "lw-public-cooperation-20261108.js": "c555c8d0bf8fdb78964b9b24754fc6ef252bd9fc0e3ce73c209b8fbd087c6c8a",
+    "lw-public-cooperation-20261108.css": "c2acb70cb804a52338b7bee906e7c76ee596c3734823b2dacf1569ab0fc53de5",
+    "lw-public-cooperation-20261108.js": "cda4cee0b90d2743c8e3ffb9ab4e955b5b3a3197f7c3f3c1778d2dfc2af445a3",
     "lw-ved-shared-chat-20261109.css": "773dace363b52ed4192977c97569d6a5be13c1ad2e027f177112e4e2aa7e7f4a",
     "lw-ved-shared-chat-20261109.js": "62ea0b58922086afdb31516ff767710992cf6e00d3b6c65a570e8211d9063111",
     "lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
@@ -600,7 +600,7 @@
     "owner-command-center-20261108.css": "8fa40a358b77c5bd55186eb1c39281fdfd95bc4d43f5bc8da565dbf0147908a0",
     "owner-command-center-20261108.js": "7d2e32feacad7cc180f101e87ede2faad1eaf19ffceccf9879b9a818f6f5bd12",
     "owner-registers-20261111.css": "019782407a0192045cb490b47d8ff71cc8368f3334428032d0263c62ce7a8026",
-    "owner-registers-20261111.js": "9d791736527ceac87cbdcf0b433e4538e6d37cac19df999722519804fa461b03",
+    "owner-registers-20261111.js": "caa844fbd5d0cec58b053a94142a685323b9a563e7c8c1bf15a879a2fb256742",
     "owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
     "owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
     "portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
@@ -655,7 +655,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-13T23:25:37.599Z",
+  "assetBuildRecordedAt": "2026-11-13T23:28:00.647Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,

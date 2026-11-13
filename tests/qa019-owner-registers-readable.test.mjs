@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 const file=name=>readFileSync(new URL('../test/'+name,import.meta.url),'utf8');
 const source=file('owner-registers-20261111.js'),css=file('owner-registers-20261111.css');
 const cooperation=file('lw-public-cooperation-20261108.js'),html=file('index.html');
+const command=file('owner-command-center-20261108.js');
 
 test('QA-019 readable owner archives: no raw JSON as primary entry',()=>{
  assert.doesNotThrow(()=>new Function(source));
@@ -41,4 +42,13 @@ test('QA-019 pinned staging assets are exact 12-character blob hashes',()=>{
   const found=html.match(new RegExp(name.replaceAll('.','\\.')+'\\?v=([a-f0-9]{12})'));
   assert.ok(found,'missing pinned '+name);
  }
+});
+
+test('QA-019 Owner landing displays active development tasks with server data',()=>{
+ assert.doesNotThrow(()=>new Function(command));
+ assert.match(command,/function developmentMarkup\(/);
+ assert.match(command,/request\("\/api\/portal-feedback"\)/);
+ assert.match(command,/status==='in_progress'\|\|x\.status==='release'/);
+ assert.match(command,/developmentMarkup\(\)/);
+ assert.match(command,/safeRoute\(id\)/);
 });
