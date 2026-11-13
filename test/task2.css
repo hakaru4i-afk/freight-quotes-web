@@ -75,3 +75,54 @@
  #task2-root :is(.t2-pto-compact,.t2-container-compact){grid-template-columns:minmax(0,1fr)}
  #task2-root :is(.t2-pto-compact,.t2-container-compact)>.t2-btn{width:100%;margin-top:0}
 }
+
+
+/* QA-011: never mix ongoing shipments with archived shipments.
+   Keep action buttons aligned without glow in the carrier/Owner/VED workspace. */
+#task2-root .t2-list-filters {
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+  gap:8px!important;margin:12px 0 15px!important;
+}
+#task2-root button.t2-list-filter {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;padding:9px 13px!important;min-height:42px!important;
+  background:#eaf2f6!important;color:#22465b!important;
+  -webkit-text-fill-color:#22465b!important;
+  border:1px solid #adc2d1!important;border-radius:8px!important;
+  font-size:13px!important;font-weight:700!important;line-height:1.35!important;
+  box-shadow:none!important;filter:none!important;transform:none!important;
+  text-shadow:none!important;transition:none!important;
+}
+#task2-root button.t2-list-filter > span {
+  min-width:24px!important;display:inline-grid!important;place-items:center!important;
+  padding:3px 5px!important;border-radius:6px!important;
+  background:#d8e8ee!important;color:#1c4055!important;-webkit-text-fill-color:#1c4055!important;
+}
+#task2-root button.t2-list-filter.is-active,
+#task2-root button.t2-list-filter.is-active:hover:not(:disabled) {
+  background:#19506a!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  border-color:#19506a!important;
+}
+#task2-root button.t2-list-filter.is-active > span {
+  background:#eef6fa!important;color:#184963!important;-webkit-text-fill-color:#184963!important;
+}
+#task2-root button.t2-list-filter:hover:not(:disabled):not(.is-active) {
+  background:#dcebf2!important;color:#184963!important;-webkit-text-fill-color:#184963!important;
+  border-color:#668fa5!important;box-shadow:0 1px 4px rgba(15,53,71,.12)!important;
+}
+#task2-root .t2-picker {
+  min-width:0!important;max-width:100%!important;
+}
+#task2-root .t2-picker select {
+  box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
+}
+#task2-root .t2-heading .t2-btn,
+#task2-root .t2-stage .t2-btn {
+  box-shadow:none!important;filter:none!important;
+  transform:none!important;text-shadow:none!important;
+  min-height:40px!important;
+}
+@media(max-width:390px){
+  #task2-root .t2-list-filters {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #task2-root .t2-list-filters button {min-width:0!important;white-space:normal!important}
+}
