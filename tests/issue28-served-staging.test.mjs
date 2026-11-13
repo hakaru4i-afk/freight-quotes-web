@@ -25,7 +25,7 @@ async function retry(fn){
 test("GitHub Pages serves document-only staging baseline or candidate byte-for-byte",async()=>{
   assert.equal(expected.environment,"staging");
   assert.equal(expected.projectRef,"ibclzdkxiozbzmniiygv");
-  if(expected.primaryBusinessVersion){assert.equal(expected.releaseVersion,'SH-01.30.50 v');assert.equal(expected.version,expected.stagingAssetBuildId);assert.match(expected.legacyVersionLabels.releaseVersion,/^\d+\.\d+\.\d+$/);}else{assert.ok(process.env.QA_SERVED_EXPECTED_DIR,'Legacy metadata is allowed only for explicit deployed baseline');assert.match(expected.releaseVersion,/^\d+\.\d+\.\d+$/);}
+  if(expected.primaryBusinessVersion){assert.match(expected.primaryBusinessVersion,/^SH-\d{2}\.\d{2}\.\d{2} v$/);assert.equal(expected.releaseVersion,expected.primaryBusinessVersion);assert.equal(expected.version,expected.stagingAssetBuildId);assert.match(expected.legacyVersionLabels.releaseVersion,/^\d+\.\d+\.\d+$/);}else{assert.ok(process.env.QA_SERVED_EXPECTED_DIR,'Legacy metadata is allowed only for explicit deployed baseline');assert.match(expected.releaseVersion,/^\d+\.\d+\.\d+$/);}
   await retry(async()=>{
     const [build,html,app]=await Promise.all([serve("build-info.json"),serve("index.html"),serve("app.js")]);
     const active=JSON.parse(build.toString("utf8"));
