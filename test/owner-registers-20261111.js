@@ -123,7 +123,7 @@ async function startWork(id,recordId,title,description){
   if(currentHost&&original===selected()&&source?.name===original)paintArchive(currentHost,original);
  }
 }
-const nativeTitles=new WeakMap();
+
 const selected=()=>new URL(location.href).searchParams.get('ownerView')||'';
 function navigate(id){const u=new URL(location.href);if(id)u.searchParams.set('ownerView',id);else u.searchParams.delete('ownerView');history.pushState({},'',u);key='';source=null;query='';filters={version:'',role:'',status:'',from:'',to:''};request++;loading=false;schedule();window.dispatchEvent(new Event('ow-workspace-changed'));}
 function sections(){if(!source)return[];return (source.legacyEntries||source.markdown.split(/(?=^## )/m).map((text,i)=>({id:'archive-'+i,markdown:text}))).map(x=>({id:x.id,text:x.markdown}));}
