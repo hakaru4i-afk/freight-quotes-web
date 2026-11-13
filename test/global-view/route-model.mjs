@@ -63,10 +63,19 @@ export function placeIndex(rows) {
     const key = normal(label);
     const exact = lookup(key);
     if (exact) return exact;
-    const parts = key.split(/[,，]/).map(part => part.trim().replace(/^(?:г\.|город|city of)\s*/, ''));
-    const candidates = parts.map((part, i) => lookup(part + ' ' + (parts[i + 1] ?? '')) ?? lookup(part)).filter(Boolean);
-    const unique = new Map(candidates.map(point => [point.lat + ',' + point.lng, point]));
-    return unique.size === 1 ? unique.values().next().value : null;
+    // The bundled gazetteer only verifies a city and its ISO country code.
+    // An unmatched qualifier may be a different country or a street address.
+    const parts = key.split(/[,，]/).map(part => part.trim());
+    if (parts.length === 1) return lookup(parts[0].replace(/^(?:г\.|город|city of)\s*/, ''));
+    if (parts.length !== 2) return null;
+    const countryCode = value => ({
+      'китай': 'cn', china: 'cn', '中国': 'cn',
+      'беларусь': 'by', belarus: 'by', '白俄罗斯': 'by'
+    })[value] ?? (/^[a-z]{2}$/.test(value) ? value : '');
+    const [city, country] = countryCode(parts[0]) ? [...parts].reverse() : parts;
+    const cityName = city.replace(/^(?:г\.|город|city of)\s*/, '');
+    const code = countryCode(country);
+    return code ? lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code) : null;
   };
 }
 
@@ -82,7 +91,7 @@ export function routeModel(request, offer, resolve) {
   const stops = [];
   const push = (label, role) => {
     if (label && normal(label) !== normal(stops.at(-1)?.label)) {
-      stops.push({ label, role, position: resolve(label) });
+      stops.push({ label, role, position: resolve(label,role) });
     }
   };
   push(origin, 'Погрузка · владелец');
@@ -99,7 +108,7 @@ export function routeModel(request, offer, resolve) {
       const key = normal(label);
       if (seen.has(key)) continue;
       seen.add(key);
-      deferred.push({ label, role, position: resolve(label) });
+      deferred.push({ label, role, position: resolve(label,role) });
     }
   };
   if (carrier.length) collectUnordered(owner, 'Промежуточный пункт · владелец');

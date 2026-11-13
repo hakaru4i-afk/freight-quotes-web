@@ -1,6 +1,6 @@
 import './leaflet.js';
 import './topojson.js';
-import { modes, shortestLongitude } from './route-model.mjs';
+import { modes, shortestLongitude } from './route-model.mjs?v=c9d86882b1e4';
 
 let geography;
 const topology = () => geography ??= fetch(new URL('./countries.json', import.meta.url))
@@ -68,14 +68,14 @@ export async function createMap(stage, route, places) {
     const coordinates = [point.lat, shortestLongitude(point.lng, reference)];
     points.push(coordinates);
     const label = document.createElement('span');
-    label.dataset.stopNumber = point.number;
+    label.dataset.stopNumber = point.number;label.dataset.current=String(!!point.current);
     label.textContent = point.number + ' · ' + point.label.split(' / ')[0];
     label.title = point.label;
     const nearPrevious = index > 0 && map.distance(coordinates, points[index - 1]) < 190000;
     const nearNext = index < route.markers.length - 1 &&
       map.distance(coordinates, [route.markers[index + 1].lat, shortestLongitude(route.markers[index + 1].lng, reference)]) < 190000;
     const direction = nearPrevious ? 'bottom' : nearNext ? 'top' : 'auto';
-    L.circleMarker(coordinates, { radius: point.endpoint ? 6 : 4, color: '#ffedbd', weight: 2, fillColor: style.color, fillOpacity: 1 })
+    L.circleMarker(coordinates, { radius: point.current?8:point.endpoint ? 6 : 4, color:point.current?'#75efaf':'#ffedbd', weight: 2, fillColor:point.current?'#75efaf':style.color, fillOpacity: 1 })
       .bindTooltip(label, { permanent: true, direction, offset: [0, nearPrevious ? 7 : -8], className: 'gv-map-stop', opacity: 1 })
       .addTo(map);
   }

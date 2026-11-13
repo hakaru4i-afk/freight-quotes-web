@@ -11,7 +11,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment: isolated-qa
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 50
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
       QA_BROWSER_PUBLISHED: 'true'
@@ -131,12 +131,16 @@ jobs:
         env:
           QA_BROWSER_MATRIX: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: MAP50 published Owner two carriers winner and two weekly reports
+        run: node tests/map50-published-chain.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: isolated-qa-redacted-evidence
           path: |
             reports/isolated-rc/security-gate-real.json
+            reports/map50-published/*.json
+            reports/map50-published/*.png
             reports/ci-qa-auth.json
             reports/ci-qa-environment-policy.json
             reports/isolated-rc/browser-results-*.json

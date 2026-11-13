@@ -2,6 +2,27 @@
 (function(){
 "use strict";
 const dict={
+"3D-глобус":["3D globe","3D地球"],"2D-карта":["2D map","2D地图"],"Режим карты":["Map mode","地图模式"],"Приблизить":["Zoom in","放大"],"Отдалить":["Zoom out","缩小"],"К маршруту":["Fit route","显示路线"],"Маршрут заявки":["Request route","申请路线"],"Маршрут перевозки":["Shipment route","运输路线"],"Контроль перевозки":["Shipment overview","运输概况"],"Объект":["Facility","设施"],"Пунктов с координатами":["Stops with coordinates","有坐标的地点"],"На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.":["The map shows the shipment plan. The exact path and GPS position are not verified.","地图显示运输计划。精确路径和GPS位置尚未确认。"],"Определить координаты маршрута":["Resolve route locations","确定路线坐标"],
+
+"Еженедельный отчёт перевозчика, не GPS в реальном времени.":["Weekly carrier report, not live GPS.", "承运商每周报告，并非实时GPS。"],
+"Сообщения о местонахождении груза":["Reported cargo locations", "货物位置报告"],
+"Расстояние перевозки":["Shipment distance", "运输距离"],
+"Центр города":["City center, approximate", "城市中心（近似）"],
+"Нет координат":["No coordinates", "无坐标"],
+"Координаты":["Coordinates", "坐标"],
+"Уточнить геоточку":["Clarify location", "地点"],
+"Исходный адрес сохраняется; уточнение и подтверждение записываются в аудит.":["The original address is retained; clarification and confirmation are audited.", "保留原地址；澄清与确认将记录在审计中。"],
+"Выберите подтверждённый результат":["Select a verified result", "选择已验证的结果"],
+"Уточнение: страна, город, объект":["Clarification: country, city, facility", "澄清：国家、城市、设施"],
+"Причина уточнения":["Reason for clarification", "澄清原因"],
+"Подтверждаю уточнение":["I confirm this clarification", "我确认此澄清"],
+"Сохранить уточнение":["Save clarification", "保存澄清"],
+"Повторить геокодирование":["Retry geocoding", "重试地理编码"],
+"Погрузка · владелец":["Loading · Owner", "装货 · 货主"],
+"Доставка · владелец":["Delivery · Owner", "交货 · 货主"],
+"Станция / порт отправления · перевозчик":["Departure station / port · Carrier", "起运站/港口 · 承运商"],
+"Маршрут ставки · перевозчик":["Quoted route · Carrier", "报价路线 · 承运商"],
+"Порядок не указан":["Order requires clarification", "顺序需要澄清"],
 "Кабинет логиста":["Logistics workspace", "物流工作台"],
 "Адресные запросы документов":["Addressed document requests", "指定文件请求"],
 "Здесь доступны только назначенные вам запросы ВЭД и прикреплённые к ним файлы.":["Only document requests assigned to you by foreign trade and their linked files are available here.", "此处仅显示外贸部门分配给您的文件请求及关联文件。"],
