@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "583e31ea480a550f5e02068881b1bcb26896ce63",
+  "frontendCommit": "fc9ca58544a6ca0a55019c211f6846fa9084852d",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "5172f52bb317fe3d05f4c2801f65926da7650e4c1553c93060d85f4afd50fcad",
@@ -292,7 +292,7 @@
     "tests/task12-ci-auth.test.mjs": "68f4d311728cfda9732853d4690cde90e1603f1f9cfd8c0ccc8f0f667370ee1c",
     "tests/task12-ci-environment-policy.mjs": "308caba5c8ce9833b6e44bef1ecc4e5ec06e1a378298f59eff2e1e90d67fd29b",
     "tests/task12-ci-environment-policy.test.mjs": "3e461b13578d8196ba5d2ecb3f35749f24685135d23f242b794e349a851e2b7b",
-    "tests/task12-isolated-browser.e2e.mjs": "4f903ba61ad57ce2d59be2d4af7b55d9fb7b9c7a2c4b92c667e760e984bedbac",
+    "tests/task12-isolated-browser.e2e.mjs": "f8ad2183b363a9416dc730a1b6e36f81093912cace5e3498f540e62a6a805b9a",
     "tests/task12-live-journey.e2e.mjs": "4b4342a3a8a471167e8a8ca4c55f72ae0480b347d001217f4efbcbd9c2d3eb6d",
     "tests/task12-observer-smoke.test.mjs": "f04b6f7a7698dd10c5270a4bfe40a5debf7098e7f7bece58567583409b119dd2",
     "tests/task12-real-api-security-negative.test.mjs": "d9137532f837b92ef72f9b56d69ea715dd0840bb5e439e63937a0809c4e7282c",
