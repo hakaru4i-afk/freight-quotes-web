@@ -19,7 +19,7 @@ const workWords=[
 const statusNames={sent:['Новое','New','新建'],read:['Прочитано','Read','已阅'],evaluated:['Оценено','Evaluated','已评估'],in_progress:['В работе','In progress','进行中'],release:['Готовится к выпуску','Preparing release','准备发布'],completed:['Завершено','Completed','已完成'],denied:['Отклонено','Rejected','已拒绝']};
 const plain=x=>String(x??'').replace(/\s+/g,' ').trim();
 const short=(x,max=190)=>plain(x).slice(0,max);
-const archiveMarker=(id,recordId)=>'ARCHIVE:'+id+':'+recordId;
+const archiveMarker=(id,recordId)=>'[ARCHIVE:'+id+':'+recordId+']';
 const taskFor=(id,recordId)=>workItems.find(x=>String(x.description||'').includes(archiveMarker(id,recordId)));
 function statusLabel(code,releaseStatus){
  const w=workWords[locale()],r=String(releaseStatus||'').toUpperCase(),s=String(code||'').toUpperCase();
@@ -130,7 +130,7 @@ function sections(){if(!source)return[];return (source.legacyEntries||source.mar
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);
  const l=locale(),w=words[l];host.replaceChildren(el('h2',names[id][l]));
- const tabs=el('div',null,{class:'ow-tabs'}),archive=el('button',w.archive,{type:'button','aria-pressed':'true'}),op=el('button',w.operational,{type:'button'});op.onclick=()=>{navigate('');location.hash='#portal-feedback';};tabs.append(archive,op);host.append(tabs);
+ const tabs=el('div',null,{class:'ow-tabs'}),archive=el('button',w.archive,{type:'button','aria-pressed':'true'}),op=el('button',w.operational,{type:'button'});archive.onclick=()=>{query='';sort='recent';filters={version:'',role:'',status:'',from:'',to:''};paintArchive(host,id);};op.onclick=()=>{navigate('');location.hash='#portal-feedback';};tabs.append(archive,op);host.append(tabs);
  const toolbar=el('div',null,{class:'ow-toolbar'}),search=el('input',null,{type:'search',placeholder:w.search,'aria-label':w.search}),order=el('select',null,{'aria-label':w.recent});
  for(const[v,t]of [['recent',w.recent],['old',w.old]])order.append(el('option',t,{value:v}));order.value=sort;search.value=query;
  const refresh=el('button',w.refresh,{type:'button'});refresh.onclick=async()=>{await refreshWork(true);void load(id,host,source?.sha256);};search.oninput=()=>{query=search.value;drawRecords(records);};order.onchange=()=>{sort=order.value;drawRecords(records);};toolbar.append(search,order,refresh);host.append(toolbar);
