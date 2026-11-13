@@ -7,7 +7,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",listView:"active",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
@@ -96,7 +96,18 @@
      return;
    }
    const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":"В работе";
-   html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+state.items.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
+   const activeItems=state.items.filter(i=>i.process_status!=="completed");
+   const archivedItems=state.items.filter(i=>i.process_status==="completed");
+   const visibleItems=state.listView==="archive"?archivedItems:activeItems;
+   html+='<nav class="t2-list-filters" aria-label="Фильтр перевозок">'+
+     [['active','Новые и в работе',activeItems.length],['archive','Архив',archivedItems.length]].map(([key,label,count])=>
+       '<button type="button" class="t2-list-filter'+(state.listView===key?' is-active':'')+'" data-t2-filter="'+key+'" aria-pressed="'+(state.listView===key?'true':'false')+'">'+label+' <span>'+count+'</span></button>'
+     ).join('')+'</nav>';
+   if(!visibleItems.length){
+     root.innerHTML=html+'<div class="t2-empty"><p>В выбранной категории перевозок нет.</p></div>';
+     return;
+   }
+   html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+visibleItems.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
     esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+workflowLabel(i))+'</option>').join("")+'</select></label></div>';
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
@@ -372,7 +383,8 @@
      }
      state.items=checked;
    }else state.items=incoming;
-   if(!state.items.some(o=>o.order_code===state.selected))state.selected=state.items[0]?.order_code||"";
+   const visible=state.items.filter(i=>state.listView==="archive"?i.process_status==="completed":i.process_status!=="completed");
+   if(!visible.some(o=>o.order_code===state.selected))state.selected=visible[0]?.order_code||"";
    await loadDetail();
  }
  let detailRequest=0;
@@ -700,8 +712,18 @@
    return update(kind,{...data,...(csvMeta?{csv:csvMeta}:{})});
  }
  async function onClick(ev){
-   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download]");
+   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download],[data-t2-filter]");
    if(!hit)return;
+   if(hit.hasAttribute("data-t2-filter")){
+     const next=hit.getAttribute("data-t2-filter");
+     if(!["active","archive"].includes(next))return;
+     state.listView=next;
+     const visible=state.items.filter(i=>next==="archive"?i.process_status==="completed":i.process_status!=="completed");
+     const order=visible.some(i=>i.order_code===state.selected)?state.selected:(visible[0]?.order_code||"");
+     if(order!==state.selected){await selectShipment(order,{force:true});}
+     else show();
+     return;
+   }
    if(hit.hasAttribute("data-t2-csv-download"))return csv.download(hit.closest("form"));
    if(hit.hasAttribute("data-t2-refresh")){try{await loadList();}catch(e){alertText(e.message,true);}return;}
    if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
@@ -774,6 +796,7 @@
    try{
      if(!state.items.some(item=>item.order_code===order))await loadList();
      if(!state.items.some(item=>item.order_code===order))return;
+     state.listView=state.items.find(item=>item.order_code===order)?.process_status==="completed"?"archive":"active";
      await selectShipment(order,{force:true});
    }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
  });
