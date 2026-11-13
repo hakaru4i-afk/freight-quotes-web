@@ -80,6 +80,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile(evidenceDir+'/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));
   if(process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'&&actor==='logistic')await addressedLogisticScenario({page,rec,base,sessions});
+  if(process.env.QA_OWNER_REGISTERS==='true')await (await import('./nov14-owner-registers-real.mjs')).ownerRegistersScenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_NOV14_PHASE)await (await import('./nov14-real-scenario.mjs')).nov14Scenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_MAP_GEOCODES==='true')await map50Scenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_BROWSER_CREATE==='true'&&actor==='owner'){

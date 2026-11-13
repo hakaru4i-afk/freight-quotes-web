@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "ccba71ed5c3cec80b3fc",
+  "version": "b670ae53120d160e2c96",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "554c4880a04fc4e1cc24751c661afda1fb0dd460",
+  "servedAppBlobSha": "a314f00e5f9f2ef135e2d1c9acf33895c136c568",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 99,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "b5855586fd2ac54635a40eddd38b8c15e7471384",
+    "frontendSha": "221fe1e8ca58942c0378a97f411a88e1e787de33",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
@@ -54,12 +54,12 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "554c4880a04fc4e1cc24751c661afda1fb0dd460",
-        "sha256": "8b485a96d5fe498127c957af30a2a6aa8aa3b83661336ba9a1cb819219084714"
+        "gitBlob": "a314f00e5f9f2ef135e2d1c9acf33895c136c568",
+        "sha256": "b4f3c2b0d5be2f83c8738e6de796df296747710d4afc0b1cb953cd0fb8d0e820"
       },
       "task2-panel.js": {
-        "gitBlob": "b5855586fd2ac54635a40eddd38b8c15e7471384",
-        "sha256": "adedffede53755d2afb6a75e5c8f63901b9a6b9150206fe97c3d24900cef8fef"
+        "gitBlob": "221fe1e8ca58942c0378a97f411a88e1e787de33",
+        "sha256": "da70d37c4c1095905e64699908febd52e5cbd6ffc0ad4f8e63aab160789a6a2e"
       },
       "task2-guidance.js": {
         "gitBlob": "21463b573a233892b1dda4f93306b8fab0f2f770",
@@ -556,12 +556,12 @@
     "blobSha": "dae8afc0e6a4fba7c3af1c21c93c0964b76f17cb",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "ccba71ed5c3cec80b3fc",
+  "stagingAssetBuildId": "b670ae53120d160e2c96",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "f05d6624a745176b38b75e2c71eee2cd5f48cd4b1ae3aa58cef58aec54748400",
-    "app.js": "8b485a96d5fe498127c957af30a2a6aa8aa3b83661336ba9a1cb819219084714",
+    "app.js": "b4f3c2b0d5be2f83c8738e6de796df296747710d4afc0b1cb953cd0fb8d0e820",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "395874b4060edf9e6abbe9031c5e63c398b3160b7de0c13731fd0f1776f43736",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -618,7 +618,7 @@
     "task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
     "task2-help-i18n.js": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5",
     "task2-i18n.js": "ed71e17929532cdf5f1ef83d22463abc0cab258d08edb4800f7792a7a2f56113",
-    "task2-panel-sidebar-only-20261107.js": "adedffede53755d2afb6a75e5c8f63901b9a6b9150206fe97c3d24900cef8fef",
+    "task2-panel-sidebar-only-20261107.js": "da70d37c4c1095905e64699908febd52e5cbd6ffc0ad4f8e63aab160789a6a2e",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "cb9ddc0070edd714f86da23060a1708089afffa85e10be0673aace925ac4878c",
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
@@ -655,7 +655,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-13T23:28:00.647Z",
+  "assetBuildRecordedAt": "2026-11-13T23:44:27.382Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,

@@ -375,7 +375,7 @@
      // Defense in depth: VED must not display shipments pending carrier acceptance.
      // The backend MUST enforce the same rule for list, detail and file endpoints.
      const accepted=incoming.filter(item=>item.process_status!=="awaiting_take" &&
-       ["in_progress","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
+       ["in_progress","waiting_container","claim","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
      // The authenticated list already enforces acceptance and shipment scope.
      // Do not silently discard every shipment after a failed N+1 detail request.
      state.items=accepted;
