@@ -44,3 +44,93 @@
 #lw-ved-chat-page [data-vc-list-refresh]{cursor:pointer;border:1px solid #b6c4d3;border-radius:8px;background:white;color:#23506f;font-weight:600;padding:8px 11px;font-size:12px;}
 #lw-ved-chat-page .lw-ved-chat-mount{margin:0;}
 @media(max-width:560px){#lw-ved-chat-page{padding:8px!important;}#lw-ved-chat-page .lw-ved-chat-orders{padding:9px;}}
+
+
+/* QA-013 / LW-CONTRAST-ALL: chat light surfaces must not inherit the white
+   text-fill/gradient from Owner or Carrier dark cabinets. Scoped to the
+   actual shared shipment chat; does not affect authentication or messages. */
+.cabinet-app .lw-ved-chat-mount,
+.cabinet-app .lw-ved-chat-layout,
+#lw-ved-chat-page .lw-ved-chat-layout {
+  --chat-ink:#192f40;
+  --chat-muted:#375265;
+  --chat-link:#124e80;
+  color:var(--chat-ink)!important;
+  -webkit-text-fill-color:currentColor!important;
+  background:#fff!important;
+  color-scheme:light;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-header,.lw-ved-chat-composer),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-header,.lw-ved-chat-composer) {
+  color:var(--chat-ink)!important;
+  -webkit-text-fill-color:currentColor!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-header strong,
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-meta strong,
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message p,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-header strong,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-meta strong,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message p {
+  color:#1a3345!important;-webkit-text-fill-color:#1a3345!important;
+  opacity:1!important;text-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-header small,.lw-ved-chat-meta time,.lw-ved-chat-placeholder,.lw-ved-chat-composer label,.lw-ved-chat-files),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-header small,.lw-ved-chat-meta time,.lw-ved-chat-placeholder,.lw-ved-chat-composer label,.lw-ved-chat-files) {
+  color:#355167!important;-webkit-text-fill-color:#355167!important;
+  opacity:1!important;text-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-thread,.lw-ved-chat-message,.lw-ved-chat-composer),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-thread,.lw-ved-chat-message,.lw-ved-chat-composer) {
+  filter:none!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message {
+  background:#fff!important;border-color:#becedd!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message.mine,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message.mine {
+  background:#e5f3e9!important;border-color:#b4d3bd!important;
+}
+.cabinet-app .lw-ved-chat-layout textarea,
+#lw-ved-chat-page .lw-ved-chat-layout textarea {
+  background:#fff!important;color:#1b3244!important;
+  -webkit-text-fill-color:#1b3244!important;
+  border-color:#859eae!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout textarea::placeholder,
+#lw-ved-chat-page .lw-ved-chat-layout textarea::placeholder {
+  color:#53677b!important;-webkit-text-fill-color:#53677b!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-file,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-file {
+  background:#ecf3f8!important;color:#125684!important;
+  -webkit-text-fill-color:#125684!important;
+}
+.cabinet-app .lw-ved-chat-layout button,
+#lw-ved-chat-page .lw-ved-chat-layout button {
+  filter:none!important;text-shadow:none!important;box-shadow:none!important;
+  transition:background-color .15s ease!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-refresh],
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-refresh] {
+  background:#f5f9fb!important;color:#1a4c65!important;
+  -webkit-text-fill-color:#1a4c65!important;border-color:#8ba9ba!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-refresh]:hover,
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-refresh]:hover {
+  background:#e2edf4!important;color:#1a4c65!important;-webkit-text-fill-color:#1a4c65!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-submit],
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-submit] {
+  background:#176a47!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  border-color:#176a47!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-submit]:hover:not(:disabled),
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-submit]:hover:not(:disabled) {
+  background:#12583c!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  box-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(button,a,textarea):focus-visible,
+#lw-ved-chat-page .lw-ved-chat-layout :is(button,a,textarea):focus-visible {
+  outline:3px solid #1368af!important;outline-offset:2px!important;
+}
