@@ -2,6 +2,7 @@
 (function(){
 "use strict";
 const dict={
+"Исполнение перевозок":["Shipment execution","运输执行"],
 "3D-глобус":["3D globe","3D地球"],"2D-карта":["2D map","2D地图"],"Режим карты":["Map mode","地图模式"],"Приблизить":["Zoom in","放大"],"Отдалить":["Zoom out","缩小"],"К маршруту":["Fit route","显示路线"],"Маршрут заявки":["Request route","申请路线"],"Маршрут перевозки":["Shipment route","运输路线"],"Контроль перевозки":["Shipment overview","运输概况"],"Объект":["Facility","设施"],"Пунктов с координатами":["Stops with coordinates","有坐标的地点"],"На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.":["The map shows the shipment plan. The exact path and GPS position are not verified.","地图显示运输计划。精确路径和GPS位置尚未确认。"],"Определить координаты маршрута":["Resolve route locations","确定路线坐标"],
 
 "Еженедельный отчёт перевозчика, не GPS в реальном времени.":["Weekly carrier report, not live GPS.", "承运商每周报告，并非实时GPS。"],
