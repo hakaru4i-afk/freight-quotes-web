@@ -145,7 +145,7 @@
  function syncBusyControls(){
    const root=document.getElementById("task2-root");if(!root)return;
    root.setAttribute("aria-busy",String(state.busy));
-   for(const button of root.querySelectorAll('form button[type="submit"],[data-t2-task-complete],[data-t2-act-response],[data-t2-action]')){
+   for(const button of root.querySelectorAll('form input,form textarea,form select,form button[type="submit"],[data-t2-task-complete],[data-t2-act-response],[data-t2-action]')){
      if(state.busy&&!button.disabled){button.dataset.t2BusyDisabled="true";button.disabled=true;}
      else if(!state.busy&&button.dataset.t2BusyDisabled){button.disabled=false;delete button.dataset.t2BusyDisabled;}
    }
@@ -218,13 +218,14 @@
        readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      const mapRoute=[
-       {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode},
-       {departure_station:o.departure_station,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
-       pts.map(({location_text,observed_at,geocode})=>({location_text,observed_at,geocode})),
+       {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode,orderCode:o.order_code,viewerRole:d.role},
+       {departure_station:o.incoterm_place,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
+       pts.map(({id,location_text,observed_at,recorded_at,geocode})=>({id,location_text,observed_at,recorded_at,geocode})),
        {
-         total:d.route?.source ? d.route.total_km : null,
-         remaining:pts.at(-1)?.route_calculation_status==="verified" ? pts.at(-1).remaining_km : null
-       }
+         total:d.route?.source&&!d.route.estimated ? d.route.total_km : null,
+         remaining:!d.route?.estimated&&pts.at(-1)?.route_calculation_status==="verified" ? pts.at(-1).remaining_km : null,
+         source:d.route?.source,calculatedAt:d.route?.updated_at
+       },d.plannedGeocodes||{owner:[],offer:[]}
      ];
      html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
      if(carrier&&x.status!=="completed"){
@@ -776,6 +777,7 @@
      await selectShipment(order,{force:true});
    }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
  });
+ window.addEventListener("map-geocodes-changed",()=>{loadDetail().catch(e=>alertText(e.message,true));});
  document.addEventListener("DOMContentLoaded",mount);
  mount();
 })();

@@ -9,6 +9,7 @@ export async function calculateMapDistances(route,{signal,fetchImpl=fetch}={}){
  let knownMeters=0;
  for(let i=0;i<legs.length;i++){
   const a=stops[i].position,b=stops[i+1].position;
+  if(a?.queryScope==='configured-private'||b?.queryScope==='configured-private'){legs[i].reason='PRIVATE_ROUTER_REQUIRED';continue}
   if(!valid(a)||!valid(b)){legs[i].reason='COORDINATES_MISSING';continue}
   if(a.lat===b.lat&&a.lng===b.lng){legs[i]={...legs[i],status:'calculated',km:0,reason:null,estimated:!!(a.approximate||b.approximate),source:'identical coordinates'};continue}
   try{

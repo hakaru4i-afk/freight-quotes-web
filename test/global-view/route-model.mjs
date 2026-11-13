@@ -91,7 +91,7 @@ export function routeModel(request, offer, resolve) {
   const stops = [];
   const push = (label, role) => {
     if (label && normal(label) !== normal(stops.at(-1)?.label)) {
-      stops.push({ label, role, position: resolve(label) });
+      stops.push({ label, role, position: resolve(label,role) });
     }
   };
   push(origin, 'Погрузка · владелец');
@@ -108,7 +108,7 @@ export function routeModel(request, offer, resolve) {
       const key = normal(label);
       if (seen.has(key)) continue;
       seen.add(key);
-      deferred.push({ label, role, position: resolve(label) });
+      deferred.push({ label, role, position: resolve(label,role) });
     }
   };
   if (carrier.length) collectUnordered(owner, 'Промежуточный пункт · владелец');

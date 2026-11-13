@@ -1,6 +1,6 @@
 import * as T from './three.module.min.js';
 import { OrbitControls } from './orbit-controls.js';
-import { modes } from './route-model.mjs';
+import { modes } from './route-model.mjs?v=c9d86882b1e4';
 
 const rad = Math.PI / 180;
 const vector = ({ lat, lng }) => new T.Vector3(
@@ -117,18 +117,18 @@ export async function createGlobe(stage, route) {
   const markerMaterial = new T.MeshBasicMaterial({ color: '#fff5c1' });
   const markerHalo = routeGlow.clone();
   markerHalo.opacity = .26;
-  const labels = [...route.markers].sort((a, b) => Number(b.endpoint) - Number(a.endpoint)).map(point => {
+  const labels = [...route.markers].sort((a, b) => Number(!!b.current)-Number(!!a.current)||Number(!!b.tracking)-Number(!!a.tracking)||Number(b.endpoint) - Number(a.endpoint)).map(point => {
     const position = vector(point);
-    const mark = new T.Mesh(markerGeometry, markerMaterial);
-    mark.position.copy(position).multiplyScalar(1.014);
-    const radius = point.endpoint ? .015 : .010;
+    const mark = new T.Mesh(markerGeometry,point.current?new T.MeshBasicMaterial({color:'#75efaf'}):markerMaterial);
+    mark.position.copy(position).multiplyScalar(point.current?1.03:1.014);
+    const radius = point.current?.021:point.endpoint ? .015 : .010;
     mark.scale.setScalar(radius);
     const halo = new T.Mesh(markerGeometry, markerHalo);
     halo.position.copy(mark.position);
     halo.scale.setScalar(radius * 1.8);
     scene.add(mark, halo);
     const label = document.createElement('span');
-    label.className = 'gv-globe-label' + (point.endpoint ? ' gv-label-endpoint' : '');
+    label.className = 'gv-globe-label'+(point.current?' gv-current-location':'') + (point.endpoint ? ' gv-label-endpoint' : '');
     label.dataset.stopNumber = point.number;
     label.textContent = point.number + ' · ' + point.label;
     stage.append(label);
