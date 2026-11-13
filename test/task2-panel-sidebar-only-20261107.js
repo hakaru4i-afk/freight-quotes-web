@@ -217,7 +217,8 @@
        ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
        ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
      ];
-     return '<h3>Этапы перевозки</h3><p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
+     // The outer t2-stage already renders the tab title: keep a single heading.
+     return '<p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
        '<div class="t2-milestones">'+milestones.map(([n,label,done,detail])=>
          '<div class="t2-milestone '+(done?"is-done":"is-pending")+'"><span class="t2-milestone-number">'+n+'</span><div><strong>'+esc(label)+'</strong><p>'+detail+'</p></div><span class="t2-milestone-status">'+(done?"Зафиксировано":"Ожидается")+'</span></div>'
        ).join("")+'</div>'+
