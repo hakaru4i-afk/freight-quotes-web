@@ -107,6 +107,7 @@ class GlobalRouteView extends HTMLElement {
     }
     this.routeSnapshot=JSON.parse(JSON.stringify(route));
     this.dataset.coordinateSource=plannedGeocodes?'server':'city-preview';
+    let trackingHistory = null;
     if (Array.isArray(tracking)) {
       const history = node('section', 'gv-tracking');
       history.append(node('h3', '', 'Сообщения о местонахождении груза'),node('p','','Еженедельный отчёт перевозчика, не GPS в реальном времени.'));
@@ -123,7 +124,7 @@ class GlobalRouteView extends HTMLElement {
       }
       this.routeSnapshot=JSON.parse(JSON.stringify(route));this.dataset.trackingCount=String(tracking.length);this.dataset.latestObservedAt=tracking.at(-1)?.observed_at||'';
       history.append(list);
-      info.append(history);
+      trackingHistory = history; // Позиции и факты перевозки показываются под одним маршрутом.
     }
     const mode = modes[route.mode];
     const activities = node('div', 'gv-activities');
@@ -139,6 +140,7 @@ class GlobalRouteView extends HTMLElement {
       list.append(item);
     }
     activities.append(list);
+    if (trackingHistory) activities.append(trackingHistory);
     if (route.deferred.length) {
       activities.append(node('h4', 'gv-unordered-title', 'Порядок не указан'));
       const unordered = node('ul', 'gv-unordered');
@@ -193,11 +195,12 @@ class GlobalRouteView extends HTMLElement {
       }
       distancePanel.append(legList, node('small', '', 'Автомобильные участки рассчитываются по дорожной сети. При координатах центра города километраж ориентировочный. Для других видов транспорта расстояние по прямой не подставляется.'));
     }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Расчёт временно недоступен')); });
-    if(Array.isArray(tracking)&&distance?.total==null){
+    // OSRM — автомобильная сеть; для ЖД/моря/авиа не строим ложный дорожный километраж.
+    if(Array.isArray(tracking)&&distance?.total==null&&route.mode==='road'){
       distancePanel.dataset.status='loading';
       calculateMapDistances(route,{signal}).then(result=>{if(signal.aborted)return;distancePanel.dataset.status=result.status;
         const value=result.totalKm??(result.knownKm>0?result.knownKm:null);
-        distancePanel.append(node('p','',value==null?t('Дорожная схема: не рассчитано','Road plan: not calculated','公路计划：未计算'):(result.totalKm==null?t('Известные дорожные участки: ','Known road legs: ','已知公路路段：'):t('Дорожная схема: ','Road plan: ','公路计划：'))+value.toLocaleString(numberLocale)+t(' км (ориентировочно)',' km (estimated)',' 公里（估算）')),node('small','','OSRM / OpenStreetMap · '+result.calculatedAt+t(' · Ориентировочная схема не подтверждает точный остаток и не запускает задачу ВЭД.',' · The estimated plan does not verify the exact remaining distance or trigger foreign-trade review.',' · 估算计划不能确认精确剩余里程，也不会触发外贸审核。')));
+        distancePanel.append(node('p','',value==null?t('Дорожная схема: не рассчитано','Road plan: not calculated','公路计划：未计算'):(result.totalKm==null?t('Известные дорожные участки: ','Known road legs: ','已知公路路段：'):t('Дорожная схема: ','Road plan: ','公路计划：'))+value.toLocaleString(numberLocale)+t(' км (ориентировочно)',' km (estimated)',' 公里（估算）')),node('small','','OSRM / OpenStreetMap'+(result.calculatedAt?' · '+result.calculatedAt:'')+t(' · Ориентировочная схема не подтверждает точный остаток и не запускает задачу ВЭД.',' · The estimated plan does not verify the exact remaining distance or trigger foreign-trade review.',' · 估算计划不能确认精确剩余里程，也不会触发外贸审核。')));
       }).catch(()=>{if(!signal.aborted){distancePanel.dataset.status='unavailable';distancePanel.append(node('p','',t('Дорожный сервис временно недоступен','Road service temporarily unavailable','公路服务暂时不可用')));}});
     }
     info.append(activities, summary);
