@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 99,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "590eea1497f665edc0528a1e165d1d16cb7a7e9c",
+    "frontendSha": "10da1200d4182eefeaf6792f550e7194c8f669af",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
@@ -173,7 +173,7 @@
       "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
     }
   },
-  "lateBidUiSha": "c6188598d9b3247a385efbf0c8ca4085b6dbb852",
+  "lateBidUiSha": "267f0bf27882f75a00336e75f70bea5a2e946100",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
