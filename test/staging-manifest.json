@@ -24,7 +24,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "23d3765d4a0b9a21bffdad2283d0d1b400907c2a",
+  "frontendCommit": "454e9448dc8f1fc87f9ca812e47089f8a529935e",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "266dbd457d4e58c5f19d1c4556dea29f100678e34465320ead3452cfc0f175fb",
@@ -223,7 +223,7 @@
     "tests/issue17-formal-document-ui.test.mjs": "cfa5a1ccf85e5b297f7f5d13047ac7cca927760c686185ebc84ff315efb67ede",
     "tests/issue17-model.test.mjs": "3898b5ddc593adcfdc08351da15418e7612ce46d6dec3e93d623a91c9273dae4",
     "tests/issue28-document-only.test.mjs": "63fdd94caf903ec4d1d4d148c365355e64fc67bf3a87364d0abf23faa5231ff9",
-    "tests/issue28-served-staging.test.mjs": "15de538f12e784cb1ebaddb819eb5ae814a604b25dd41eee5010918f799fdbae",
+    "tests/issue28-served-staging.test.mjs": "e3e4a7cf0a185466f3234f4c6ff57c9c1ecf4cf96262d1c71a73c3967d2dd1c4",
     "tests/issue28-workflow-separation.test.mjs": "bfc9c2ffffcdbbf988f06cc379e851ffd91343b6a9712def2a90d0499afb503e",
     "tests/issue47-agreed-roles-and-owner-registers.test.mjs": "d8fc497d189699c0a0cad76572b724b1a6a0724d206172f6a9e78d17a5341162",
     "tests/issue47-bid-edit-route.test.mjs": "a2c8eb9066c70ccead23bc64374a62d3cb06ff1072539facd8ffbc549cf0c898",
