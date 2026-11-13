@@ -129,11 +129,15 @@
      for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key],n=typeof v==="number"?v:parseInt(String(v??"").trim(),10);if(Number.isFinite(n)&&n>0&&n<=3650){days=n;break;}}if(Number.isFinite(days))break;}
      const total=Number.isFinite(days)?Math.ceil(days/7):0;
      const completed=(d.points||[]).filter(p=>p.location_text&&p.observed_at).length;
-     const start=new Date(d.state.actual_departure||d.state.original_departure||d.shipment.pickup||"");
-     const deadline=Number.isFinite(start.getTime())?new Date(start.getTime()+7*(completed+1)*86400000):null;
-     const overdue=deadline&&Date.now()>deadline.getTime();
+     // Плановая дата и будущая «фактическая» дата не подтверждают, что груз вышел.
+     const actual=d.state.actual_departure?new Date(d.state.actual_departure):null;
+     const departed=!!(actual&&Number.isFinite(actual.getTime())&&actual.getTime()<=Date.now());
+     const deadline=departed?new Date(actual.getTime()+7*(completed+1)*86400000):null;
+     const overdue=!!(deadline&&Date.now()>deadline.getTime());
      const remaining=Math.max(0,total-completed);
-     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border:1px solid #d5a544;border-left:4px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>'+(overdue?'Просрочен еженедельный трекинг':'Требуется обновить местоположение груза')+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Заполнить трекинг</button></div>';
+     const message=overdue?'Просрочен еженедельный трекинг':departed?'Следующий отчёт о местоположении':'План трекинга — ожидается фактическое отправление';
+     const noticeStyle=overdue?'border:1px solid #d5a544;border-left:4px solid #d5a544;background:#fff8e9;color:#533d13':'border:1px solid #b8ccdc;border-left:4px solid #5f879f;background:#eef5fd;color:#173650';
+     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border-radius:9px;'+noticeStyle+'"><strong>'+message+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Открыть трекинг</button></div>';
      else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
    }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
@@ -197,12 +201,8 @@
         '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
        '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
      }
-     if(state.role==="ved"||state.role==="logistic"){
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><div class="lw-ved-chat-mount" data-lw-ved-chat-order="'+esc(state.selected)+'"><p class="t2-muted">Открываем общую переписку перевозки…</p></div>';
-      }else{
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><p class="t2-muted">Открывайте полный чат перевозки в разделе переписки кабинета.</p>';
-      }
-     // Свободный чат — через единый /api/chats, без шаблонов и дублирующих форм.
+     // Отдельное меню «Чаты по заявкам» — единственная точка переписки.
+     // Здесь только документы, запросы и вложения; чат API и сообщения сохраняются.
      return html;
    }
    if(state.tab==="stages"){
@@ -240,22 +240,9 @@
        },d.plannedGeocodes||{owner:[],offer:[]}
      ];
      html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
+     // Заполнение недельных точек находится под единственной картой Global View.
      if(carrier&&x.status!=="completed"){
-       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
-       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
-         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
-         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
-           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
-           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
-           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
-           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
-         }).join("")+'</div>';
-       html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
-        '<span class="t2-actual-label">Фактическое отправление</span>'+
-        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
-         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
-         '</div>';
-       html+='<div class="t2-block-title">2. Еженедельный трекинг груза</div>'+
+       html+='<div class="t2-block-title">Еженедельный трекинг — контрольные точки Global View</div>'+
 
          '<div class="t2-weekly-tracking">'+
          (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
@@ -277,6 +264,23 @@
              }).join('')+
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
+     }
+
+     if(carrier&&x.status!=="completed"){
+       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
+       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
+         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
+           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
+           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
+           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
+           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
+         }).join("")+'</div>';
+       html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
+        '<span class="t2-actual-label">Фактическое отправление</span>'+
+        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
+         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '</div>';
        html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
          '<form data-t2-form="save" class="t2-pto-compact">'+
          (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
@@ -301,11 +305,7 @@
      }
      /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
-     html+='<h3>Движение груза</h3><div class="t2-stack">'+(pts.length?pts.map(p=>'<div class="t2-item"><div><strong>'+esc(p.location_text)+'</strong><br><small>'+fmt(p.observed_at)+' · '+esc(p.comment||"")+'</small></div><small>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</small></div>').join(""):'<p class="t2-muted">Контрольных точек пока нет.</p>')+'</div>';
-     if(pts.length){
-       const place=pts[pts.length-1].location_text;
-       html+='<h3>Карта местоположения</h3><iframe class="t2-map" loading="lazy" title="Карта груза" src="https://yandex.ru/map-widget/v1/?text='+encodeURIComponent(place)+'"></iframe><p><a target="_blank" rel="noopener noreferrer" href="https://yandex.ru/maps/?text='+encodeURIComponent(place)+'">Открыть карту</a></p>';
-     }
+     // Движение груза отображает только Global View вместе с историей контрольных точек.
      html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
      return html;
    }
