@@ -25,7 +25,7 @@ if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
 assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
-const phase=process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
+const phase=process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=resolve('.'),base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
@@ -73,6 +73,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile(evidenceDir+'/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));
   if(process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'&&actor==='logistic')await addressedLogisticScenario({page,rec,base,sessions});
+  if(process.env.QA_NOV14_PHASE)await (await import('./nov14-real-scenario.mjs')).nov14Scenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_MAP_GEOCODES==='true')await map50Scenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_BROWSER_CREATE==='true'&&actor==='owner'){
    const order=process.env.QA_MAP_ORDER||'QA-UI-'+Date.now();rec.createdOrder=order;
@@ -80,7 +81,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const panel=page.locator('.cabinet-panel[data-section="create-request"]');await panel.waitFor({state:'visible'});
    await panel.locator('input[aria-label="Номер заказа *"]').fill(order);
    const fields=panel.locator('fieldset.request-owner-fields');
-   for(const [selector,value] of [['input[placeholder^="Что перевозим"]','Synthetic browser shipment'],['input[placeholder^="Имя, телефон"]','Synthetic QA sender'],['input[placeholder^="Страна, город, адрес склада"]',map50?'Китай, Шеньчжэнь':'Brest, Belarus'],['input[placeholder^="Например, 1250"]','1250'],['input[placeholder^="Страна, город, адрес доставки"]',map50?'Беларусь, Минск, Колядичи':'Minsk, Belarus'],['input[placeholder^="Например, 8,4"]','12.5'],['input[placeholder^="Наименование, упаковка"]','Synthetic QA cargo']])await fields.locator(selector).fill(value);
+   for(const [selector,value] of [['input[placeholder^="Что перевозим"]','Synthetic browser shipment'],['input[placeholder^="Имя, телефон"]','Synthetic QA sender'],['input[placeholder^="Страна, город, адрес склада"]',process.env.QA_NOV14_RAIL==='true'?'Китай, Нинбо':map50?'Китай, Шеньчжэнь':'Brest, Belarus'],['input[placeholder^="Например, 1250"]','1250'],['input[placeholder^="Страна, город, адрес доставки"]',map50?'Беларусь, Минск, Колядичи':'Minsk, Belarus'],['input[placeholder^="Например, 8,4"]','12.5'],['input[placeholder^="Наименование, упаковка"]','Synthetic QA cargo']])await fields.locator(selector).fill(value);
    await fields.locator('select').first().selectOption('EXW');await fields.locator('select').nth(1).selectOption('no');
    await fields.locator('input[type="date"]').fill(map50?'2026-11-01':'2026-12-05');await fields.locator('input[type="datetime-local"]').fill('2026-12-15T12:00');
    const files=panel.locator('input[type="file"]');rec.fileInputs=await files.count();
@@ -102,9 +103,9 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await form.locator('input[name="carrier"]').fill('Synthetic browser carrier');await form.locator('input[name="contact"]').fill('Synthetic QA contact');
    const v=form.locator('fieldset.quote-variant').first();
    await v.locator('input[aria-label="Общая ставка за партию"]').fill('1550');await v.locator('select[aria-label="Валюта"]').selectOption('USD');
-   await v.locator('select[name$=".mode"]').selectOption({label:'Авто'});await v.locator('input[name$=".pickup"]').fill(map50?'2026-11-02':'2026-12-05');await v.locator('input[name$=".days"]').fill('21');
-   await v.locator('input[name$=".incotermPlace"]').fill(map50?'Китай, Шэньчжэнь, порт Yantian':'Brest warehouse');
-   if(map50)await v.locator('textarea[name$=".waypoints"]').fill((actor==='carrierA'?'Китай, Шанхай':'Китай, Нинбо')+'\nБеларусь, Брест');await v.locator('select[name$=".insurance"]').selectOption({label:'Включено'});
+   await v.locator('select[name$=".mode"]').selectOption({label:process.env.QA_NOV14_RAIL==='true'?'ЖД':'Авто'});await v.locator('input[name$=".pickup"]').fill(map50?'2026-11-02':'2026-12-05');await v.locator('input[name$=".days"]').fill(process.env.QA_NOV14_RAIL==='true'?'65':'21');
+   await v.locator('input[name$=".incotermPlace"]').fill(process.env.QA_NOV14_RAIL==='true'?'Китай, Пекин, станция Beijing Railway Station':map50?'Китай, Шэньчжэнь, порт Yantian':'Brest warehouse');
+   if(map50)await v.locator('textarea[name$=".waypoints"]').fill(process.env.QA_NOV14_RAIL==='true'?'Россия, Забайкальск, станция Забайкальск':(actor==='carrierA'?'Китай, Шанхай':'Китай, Нинбо')+'\nБеларусь, Брест');await v.locator('select[name$=".insurance"]').selectOption({label:'Включено'});
    await v.locator('input[name$=".validUntil"]').fill('2026-12-20');await v.locator('textarea[name$=".includes"]').fill('Transport and documents');await v.locator('textarea[name$=".extras"]').fill('No extras');
    if(process.env.QA_BROWSER_IMPORT==='xlsx'){
     const downloaded=page.waitForEvent('download');

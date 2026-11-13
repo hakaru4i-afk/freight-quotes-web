@@ -76,9 +76,9 @@ test("LW-PUBLIC-01 staging landing has exactly one visible sign-in and a globe",
    assert.match(result.globeSrc,/lw-approved-globe-20261108/,"Approved globe photo not installed");
    assert.match(result.freightSrc,/lw-approved-freight-20261108/,"Approved transport scene not installed");
    for(const asset of ["lw-approved-globe-20261108.jpg","lw-approved-freight-20261108.jpg","lw-approved-plane-20261108.jpg"]){
-    const response=await page.request.get(new URL(asset,url).toString(),{timeout:25000});
-    assert.equal(response.status(),200,"Missing served approved visual asset "+asset);
-    const bytes=await response.body();
+    const response=await fetch(new URL(asset,url),{signal:AbortSignal.timeout(25000)});
+    assert.equal(response.status,200,"Missing served approved visual asset "+asset);
+    const bytes=new Uint8Array(await response.arrayBuffer());
     assert.ok(bytes.length>2000,"Empty image asset: "+asset);
     assert.equal(bytes[0],0xff,"Invalid JPEG: "+asset);
     assert.equal(bytes[1],0xd8,"Invalid JPEG: "+asset);

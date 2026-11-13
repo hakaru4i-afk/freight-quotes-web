@@ -49,8 +49,8 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    await page.close();
   }
   const ctx=await browser.newContext();
-  const anon=await ctx.request.get(api,{timeout:20000});
-  assert.ok([401,403].includes(anon.status()),"unauthorized partner register is accessible: "+anon.status());
+  const anon=await fetch(api,{timeout:20000});
+  assert.ok([401,403].includes(anon.status),"unauthorized partner register is accessible: "+anon.status);
   await ctx.close();
  }finally{await browser.close()}
 });

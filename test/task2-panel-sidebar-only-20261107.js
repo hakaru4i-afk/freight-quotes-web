@@ -268,6 +268,7 @@
 
      if(carrier&&x.status!=="completed"){
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
+       html+=(x.untrusted_actual_departure?'<p role="status">Ранее сохранена ошибочная будущая дата '+fmt(x.untrusted_actual_departure)+'. Она сохранена в истории, но не считается фактическим отправлением. Переносы плановой даты доступны.</p>':"");
        html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
          '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
          '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
@@ -279,7 +280,7 @@
        html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
         '<span class="t2-actual-label">Фактическое отправление</span>'+
         (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
-         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label>'+(x.untrusted_actual_departure?'<label>Причина исправления<textarea name="actual_departure_reason" required minlength="10" maxlength="700"></textarea></label>':'<span class="t2-actual-note">Указывается один раз</span>')+'<button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
          '</div>';
        html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
          '<form data-t2-form="save" class="t2-pto-compact">'+
@@ -354,7 +355,7 @@
    return '<article class="t2-item"><div><strong>'+esc(labels[t.task_type]||t.task_type)+'</strong> '+badge(t.status)+
     '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
     '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
-    (canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
+    (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
      (isReverse?"Подтвердить передачу документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
  async function loadList(){
@@ -375,14 +376,9 @@
      // The backend MUST enforce the same rule for list, detail and file endpoints.
      const accepted=incoming.filter(item=>item.process_status!=="awaiting_take" &&
        ["in_progress","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
-     const checked=[];
-     for(const item of accepted){
-       try{
-         const detail=await get("?order="+encodeURIComponent(item.order_code));
-         if(detail?.state && detail?.shipment?.carrier_login && detail.state.status!=="awaiting_take")checked.push(item);
-       }catch(_){/* inaccessible: do not display */ }
-     }
-     state.items=checked;
+     // The authenticated list already enforces acceptance and shipment scope.
+     // Do not silently discard every shipment after a failed N+1 detail request.
+     state.items=accepted;
    }else state.items=incoming;
    const visible=state.items.filter(i=>state.listView==="archive"?i.process_status==="completed":i.process_status!=="completed");
    if(!visible.some(o=>o.order_code===state.selected))state.selected=visible[0]?.order_code||"";
@@ -598,6 +594,14 @@
        if(!saved?.ok)return;
      }return;
    }
+   if(kind==="pto-review"){
+     const decision=ev.submitter?.value;
+     if(decision==="approve"&&!f.elements.packageComplete.checked){alertText("Подтвердите полноту комплекта документов.",true);return;}
+     if(decision==="remarks"&&String(data.remarks||"").trim().length<10){alertText("Опишите замечания: от 10 символов.",true);return;}
+     const signature=JSON.stringify({decision,remarks:data.remarks});
+     if(f.dataset.reviewSignature!==signature){f.dataset.reviewSignature=signature;f.dataset.reviewRequest=crypto.randomUUID();}
+     await update("complete_task",{taskId:data.taskId,reviewDecision:decision,packageComplete:f.elements.packageComplete.checked,remarks:data.remarks,requestId:f.dataset.reviewRequest});return;
+   }
    if(kind==="weekly-point"){
      if(!String(data.location||"").trim()||!data.location_date){alertText("Укажите местонахождение и дату.",true);return;}
      const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="Сохраняем…";}
@@ -612,7 +616,7 @@
      if(btn){btn.disabled=true;btn.textContent="Сохраняем…";}
      if(feedback)feedback.textContent="Проверяем сохранение…";
      try{
-       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure)}});
+       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure),actual_departure_reason:data.actual_departure_reason||""}});
        if(!result?.ok){if(feedback)feedback.textContent="Ошибка сохранения. Дата не подтверждена.";return;}
        await loadDetail();
        const stored=state.detail?.state?.actual_departure;
@@ -726,7 +730,14 @@
      return;
    }
    if(hit.hasAttribute("data-t2-csv-download"))return csv.download(hit.closest("form"));
-   if(hit.hasAttribute("data-t2-refresh")){try{await loadList();}catch(e){alertText(e.message,true);}return;}
+   if(hit.hasAttribute("data-t2-refresh")){
+     if(state.busy||state.refreshing)return;
+     state.refreshing=true;hit.disabled=true;
+     const root=document.getElementById(eid);if(root)root.dataset.refreshing="true";
+     try{await loadList();}catch(e){alertText(e.message,true);}
+     finally{state.refreshing=false;if(root)root.dataset.refreshing="false";const button=root?.querySelector("[data-t2-refresh]");if(button)button.disabled=false;}
+     return;
+   }
    if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
    if(hit.hasAttribute("data-t2-open-transport")){
      location.hash="#transport-applications";return;

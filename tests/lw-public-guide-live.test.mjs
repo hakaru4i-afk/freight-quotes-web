@@ -69,10 +69,10 @@ test("public endpoint rejects unauthenticated reading and malformed submission",
  const browser=await chromium.launch({headless:true});
  try{
   const ctx=await browser.newContext();
-  const read=await ctx.request.get(api,{timeout:30000});
-  assert.ok([401,403].includes(read.status()),"Public access to Owner inbox: "+read.status());
-  const invalid=await ctx.request.post(api,{headers:{"Content-Type":"application/json","Origin":"https://hakaru4i-afk.github.io"},data:{"partnerKind":"supplier"},timeout:30000});
-  assert.equal(invalid.status(),400,"Backend did not reject incomplete partnership form");
+  const read=await fetch(api,{signal:AbortSignal.timeout(30000)});
+  assert.ok([401,403].includes(read.status),"Public access to Owner inbox: "+read.status);
+  const invalid=await fetch(api,{method:"POST",headers:{"Content-Type":"application/json","Origin":"https://hakaru4i-afk.github.io"},body:JSON.stringify({partnerKind:"supplier"}),signal:AbortSignal.timeout(30000)});
+  assert.equal(invalid.status,400,"Backend did not reject incomplete partnership form");
   await ctx.close();
  }finally{await browser.close()}
 });
