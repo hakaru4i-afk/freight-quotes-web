@@ -335,5 +335,9 @@
       ],
       "note": "Не доказывает корректные переходы статусов, работу SL или авторизованную безопасность"
     }
-  ]
+  ],
+  "primaryBusinessVersion": "SH-01.30.52 v",
+  "versionPair": {
+    "ref": "staging-manifest.json"
+  }
 }
