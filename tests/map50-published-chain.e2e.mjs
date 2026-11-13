@@ -12,4 +12,5 @@ run('owner','QA_BROWSER_CREATE');run('carrierA,carrierB','QA_BROWSER_BID');run('
 const winner=JSON.parse(readFileSync(evidence+'/browser-results-owner.json')).roles[0].selection.winnerActor;
 if(!['carrierA','carrierB'].includes(winner))throw Error('Invalid selected carrier');
 run(winner,'QA_BROWSER_ACCEPT');run('owner','QA_MAP_GEOCODES');run(winner,'QA_MAP_GEOCODES');run('ved','QA_MAP_GEOCODES');
+const edits=spawnSync(process.execPath,['tests/map50-real-edits.e2e.mjs'],{env:{...process.env,QA_BROWSER_EVIDENCE_DIR:evidence},stdio:'inherit',timeout:300000});if(edits.error)throw edits.error;if(edits.status!==0)throw Error('MAP50 actual edit/readback failed');
 console.log('MAP50_PUBLISHED_CHAIN_PASS');
