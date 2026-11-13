@@ -57,3 +57,19 @@ test('QA-011: updated scripts/styles are actually linked with new cache keys',()
     'task2.css'
   ])assert.match(html,new RegExp(name.replaceAll('.','\\.')+'\\?v=[a-f0-9]{12}'));
 });
+
+
+test('QA-012: one shipment stages header with unchanged milestones',()=>{
+  const s=read('task2-panel-sidebar-only-20261107.js');
+  assert.match(s,/\["stages","Этапы перевозки"\]/);
+  assert.doesNotMatch(s, /return '<h3>Этапы перевозки<\/h3><p class="t2-muted">/);
+  assert.match(s, /const milestones=\[/);
+  assert.match(s, /\["8","Закрытие перевозки"/);
+});
+test('QA-013: shared chat has readable colors for body, inputs and buttons',()=>{
+  const css=read('lw-ved-shared-chat-20261109.css');
+  assert.match(css,/QA-013 \/ LW-CONTRAST-ALL/);
+  assert.match(css,/\.lw-ved-chat-message p/);
+  assert.match(css,/\.lw-ved-chat-layout textarea::placeholder/);
+  assert.match(css,/\[data-vc-submit\]:hover/);
+});
