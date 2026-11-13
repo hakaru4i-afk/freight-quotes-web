@@ -24,6 +24,7 @@ test("VED uses real Owner/Carrier shared chat API and has no canned message temp
 });
 test("VED has active chat menu, shipment history, file attachment and send feedback",()=>{
  assert.match(chat,/const PAGE_ID="lw-ved-chat-page"/);
+ assert.match(chat,/class="lw-ved-chat-mount"/);
  assert.match(chat,/href="#chats"/);
  assert.match(chat,/data-vc-orders/);
  assert.match(chat,/data-vc-send/);
@@ -33,8 +34,8 @@ test("VED has active chat menu, shipment history, file attachment and send feedb
  assert.match(chat,/function renderMessages/);
  assert.match(css,/\.lw-ved-chat-message\.mine/);
 });
-test("Task2 no longer displays the templated chat form; it hosts the shared chat",()=>{
- assert.match(panel,/class="lw-ved-chat-mount"/);
+test("Task2 delegates conversation UI to the separate chats page without embedded duplicate",()=>{
+ assert.doesNotMatch(panel,/class="lw-ved-chat-mount"/);
  assert.doesNotMatch(panel,/html\+=form\("message"/);
  assert.doesNotMatch(panel,/class="t2-chat"/);
 });
@@ -60,6 +61,6 @@ test("VED chat is the same real conversation service, not a CSV form; switching 
  assert.match(chat,/root\.dataset\.vedChatId=""/);
  assert.match(chat,/fd\.append\("files",file,file\.name\)/);
  assert.doesNotMatch(chat,/Скачать CSV шаблон|Загрузить CSV|data-t2-csv/);
- assert.match(panel,/class="lw-ved-chat-mount"/);
+ assert.doesNotMatch(panel,/class="lw-ved-chat-mount"/);
  assert.doesNotMatch(panel,/html\+=form\("message"/);
 });
