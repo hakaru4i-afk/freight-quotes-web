@@ -1,5 +1,6 @@
 // Full real workflow; callable from protected CI or the existing local QA session.
 import{spawnSync}from'node:child_process';import{readFileSync}from'node:fs';
+process.env.QA_MAP_ORDER||='QA-NOV14-'+Date.now();
 const evidence=process.env.QA_NOV14_EVIDENCE_DIR||'reports/nov14-published';
 function run(actors,flag,value='true'){
  const env={...process.env,QA_MAP50:'true',QA_NOV14_RAIL:'true',QA_BROWSER_EVIDENCE_DIR:evidence,QA_BROWSER_ACTORS:actors};
