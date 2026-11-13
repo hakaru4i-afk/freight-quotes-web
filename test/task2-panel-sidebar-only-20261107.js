@@ -195,7 +195,7 @@
           "Направить задачу логисту"));
      }
      if(x.status!=="completed"){
-       html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
+       html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, файлы сохраняются в документах перевозки; для отправки в переписке прикрепите их в разделе «Чаты по заявкам».</small></label>'+
        (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)&&
         (t.task_type!=="ved_request_logistic"||state.role==="owner"||String(t.assigned_login||"").toLowerCase()===state.login)).map(t=>
         '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+

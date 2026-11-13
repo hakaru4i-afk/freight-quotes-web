@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "b670ae53120d160e2c96",
+  "version": "26e01071683a1c1435b4",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "a314f00e5f9f2ef135e2d1c9acf33895c136c568",
+  "servedAppBlobSha": "56544d59ee6aca863b894600d25cd8850198b269",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -19,7 +19,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 99,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "221fe1e8ca58942c0378a97f411a88e1e787de33",
+    "frontendSha": "494213de2aea391fb68e6b855c67757af28ce5a4",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "21463b573a233892b1dda4f93306b8fab0f2f770",
     "tablesApplied": true,
@@ -54,16 +54,16 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "a314f00e5f9f2ef135e2d1c9acf33895c136c568",
-        "sha256": "b4f3c2b0d5be2f83c8738e6de796df296747710d4afc0b1cb953cd0fb8d0e820"
+        "gitBlob": "56544d59ee6aca863b894600d25cd8850198b269",
+        "sha256": "33a6c7bdf01834bbf6bfc5d4c274c4653cfe30f1c20dfd077b7e7afce8ebbf69"
       },
       "task2-panel.js": {
-        "gitBlob": "221fe1e8ca58942c0378a97f411a88e1e787de33",
-        "sha256": "da70d37c4c1095905e64699908febd52e5cbd6ffc0ad4f8e63aab160789a6a2e"
+        "gitBlob": "494213de2aea391fb68e6b855c67757af28ce5a4",
+        "sha256": "8295d09be1c041755ceb55bc47ff1b851e0a31142ccdfc2857f934fb56fb70c6"
       },
       "task2-guidance.js": {
-        "gitBlob": "21463b573a233892b1dda4f93306b8fab0f2f770",
-        "sha256": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039"
+        "gitBlob": "7281af9c35c6f872d2cd9ad96d46ee411b464aaa",
+        "sha256": "e8c78f90c988ebb7d948c1363bd6a9e7927a6da1fc09bb154bd5f3947c1830b0"
       },
       "late-bid-staging.js": {
         "gitBlob": "267f0bf27882f75a00336e75f70bea5a2e946100",
@@ -556,12 +556,12 @@
     "blobSha": "dae8afc0e6a4fba7c3af1c21c93c0964b76f17cb",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "b670ae53120d160e2c96",
+  "stagingAssetBuildId": "26e01071683a1c1435b4",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "f05d6624a745176b38b75e2c71eee2cd5f48cd4b1ae3aa58cef58aec54748400",
-    "app.js": "b4f3c2b0d5be2f83c8738e6de796df296747710d4afc0b1cb953cd0fb8d0e820",
+    "app.js": "33a6c7bdf01834bbf6bfc5d4c274c4653cfe30f1c20dfd077b7e7afce8ebbf69",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "395874b4060edf9e6abbe9031c5e63c398b3160b7de0c13731fd0f1776f43736",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -571,7 +571,7 @@
     "carrier-defer-transport-application-20261107.css": "1f66be0e0b22cd27d86dc51e63a9e9d1ec4aa8f7af4d521b60973ad9d2d286ab",
     "carrier-defer-transport-application-20261107.js": "0f7a7173b6cf83514e3969c487803a7c89ad8406f0afc005c707d2e44d75ca3b",
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
-    "current-workspace-help-20261108.js": "969f5c93555a6a961dd3501bdf297a0562a1468a3d470a147accee62f9f21bc1",
+    "current-workspace-help-20261108.js": "3afe0414d31129fe8a07a89c72604c44ff22d7a46988adce7c95df945705ffce",
     "global-view/distance.mjs": "3822e5a78418e54335995a8ddf3aee01d65548b5c0b690a47f33cc8dc9cb6554",
     "global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
@@ -616,9 +616,9 @@
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
     "task2-contrast-hotfix.css": "eaf63a6e55af6ae0d5e478970648e0375bb6f9fab6cf7d8470fd6cacab4dbe8b",
     "task2-guidance-42dc6ccc8a20.js": "01f5d74c943dc901a9e1ca69bbc109910daa5fd66543947a193700af16e00039",
-    "task2-help-i18n.js": "c37f31b2f930c2204ef5ce794bdd0c301f5c7bfadd43c7e2347c669360a964e5",
+    "task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
     "task2-i18n.js": "ed71e17929532cdf5f1ef83d22463abc0cab258d08edb4800f7792a7a2f56113",
-    "task2-panel-sidebar-only-20261107.js": "da70d37c4c1095905e64699908febd52e5cbd6ffc0ad4f8e63aab160789a6a2e",
+    "task2-panel-sidebar-only-20261107.js": "8295d09be1c041755ceb55bc47ff1b851e0a31142ccdfc2857f934fb56fb70c6",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "cb9ddc0070edd714f86da23060a1708089afffa85e10be0673aace925ac4878c",
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
@@ -655,7 +655,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-13T23:44:27.382Z",
+  "assetBuildRecordedAt": "2026-11-13T23:49:59.549Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,
