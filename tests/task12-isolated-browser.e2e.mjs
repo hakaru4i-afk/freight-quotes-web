@@ -8,14 +8,21 @@ import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
  */
 import {chromium} from 'playwright';
 import {createServer} from 'node:http';
-import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {readFile,mkdir,writeFile,cp,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 const evidenceDir=process.env.QA_BROWSER_EVIDENCE_DIR||'reports/isolated-rc';
 const map50=process.env.QA_MAP50==='true';
-const metadata=JSON.parse(await readFile('test/build-info.json','utf8')).stabilizationQa20261110;
+// Freeze source bytes before browser startup: a concurrent merge must never
+// change a running test's HTML or assets underneath it.
+assert.equal(execFileSync('git',['diff','--name-only','--diff-filter=U'],{encoding:'utf8'}).trim(),'','Resolve merge conflicts before QA');
+const sourceTreeDirty=execFileSync('git',['diff','HEAD','--name-only','--','test'],{encoding:'utf8'}).trim().length>0;
+if(process.env.QA_BROWSER_PUBLISHED==='true')assert.equal(sourceTreeDirty,false,'Commit runtime source before published QA');
+const frozenSource=await mkdtemp('/tmp/freight-browser-source-');
+await cp(resolve('test'),resolve(frozenSource,'test'),{recursive:true});
+const metadata=JSON.parse(await readFile(resolve(frozenSource,'test/build-info.json'),'utf8')).stabilizationQa20261110;
 // An isolated backend candidate can be verified before changing published metadata.
 if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
  const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE,'utf8'));
@@ -26,16 +33,16 @@ assert.equal(metadata.isolatedQaFunction,'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
 const phase=process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
-const root=resolve('.'),base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
+const root=frozenSource,base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:'freight-api-qa-rc20261110',backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
-const html=await readFile('test/index.html','utf8');
-for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile('test/'+name)).digest('hex');}
+const html=await readFile(resolve(root,'test/index.html'),'utf8');
+for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile(resolve(root,'test',name))).digest('hex');}
 
 try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification').split(',')){
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
@@ -300,4 +307,4 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await writeFile(evidenceDir+'/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
    rec.errorStack=String(e.stack||'').slice(0,5000);for(const token of Object.values(sessions))rec.errorStack=rec.errorStack.replaceAll(token,'[REDACTED_SESSION]');rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);process.exitCode=1;}
  await context.close();
-}}finally{await browser.close();await new Promise(done=>server.close(done));report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile(evidenceDir+'/browser-results-'+actorName+'.json',bytes);await writeFile(evidenceDir+'/browser-results-'+actorName+'-'+phase+'.json',bytes);}
+}}finally{await browser.close();await new Promise(done=>server.close(done));await rm(frozenSource,{recursive:true,force:true});report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile(evidenceDir+'/browser-results-'+actorName+'.json',bytes);await writeFile(evidenceDir+'/browser-results-'+actorName+'-'+phase+'.json',bytes);}
