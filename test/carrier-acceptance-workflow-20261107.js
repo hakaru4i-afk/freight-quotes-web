@@ -3,11 +3,11 @@
 "use strict";
 const ROOT_ID="carrier-awarded-workflow";
 const route="#carrier-orders";
-let items=[],role="",busy=false,loaded=false,loading=false,notice="",lastShown=false;
+let items=[],role="",busy=false,loaded=false,loading=false,notice="",lastShown=false,activeView="new";
 const localizations={
- ru:{heading:"Заявки к исполнению",intro:"Здесь находятся перевозки, по которым Владелец выбрал вас победителем. Примите одобренную заявку в работу — после этого исполнение и трекинг доступны в разделе «Мои перевозки».",refresh:"Обновить",empty:"Пока нет выигранных перевозок.",awaiting:"Ожидает принятия",preparing:"Подготовка транспортной заявки",pending:"Документ на согласовании",returned:"Возвращена на доработку",approved:"Документ согласован",performing:"В работе",completed:"Перевозка завершена",take:"Взять в работу",document:"Транспортная заявка",execution:"Открыть исполнение",view:"Открыть заявку",error:"Не удалось загрузить заявки",saving:"Принимаем заявку…",accepted:"Заявка принята. Продолжайте в разделе «Мои перевозки».",confirm:"Принять выбранную перевозку в работу?",order:"Заказ",bitrix:"Битрикс",price:"Согласованная ставка",mode:"Транспорт",reason:"Исполнение доступно после принятия выбранной заявки в работу."},
- en:{heading:"Shipments assigned to you",intro:"Shipments awarded to you by the Owner. Accept an awarded shipment, then continue tracking and execution in My Shipments.",refresh:"Refresh",empty:"No awarded shipments yet.",awaiting:"Awaiting acceptance",preparing:"Preparing transport instruction",pending:"Document awaiting approval",returned:"Returned for revision",approved:"Document approved",performing:"In progress",completed:"Completed",take:"Accept shipment",document:"Transport instruction",execution:"Open execution",view:"Open shipment",error:"Unable to load shipments",saving:"Accepting…",accepted:"Shipment accepted. Continue in My Shipments.",confirm:"Accept this shipment?",order:"Order",bitrix:"Bitrix",price:"Agreed rate",mode:"Transport",reason:"Execution is available after the awarded shipment is accepted."},
- zh:{heading:"待执行的运输订单",intro:"货主选中您为承运人的运输订单。接受中标运输任务后，即可前往“我的运输”执行和跟踪。",refresh:"刷新",empty:"暂无中标运输订单。",awaiting:"待接受",preparing:"准备运输委托书",pending:"文件待审批",returned:"退回修改",approved:"文件已批准",performing:"运输中",completed:"已完成",take:"接受任务",document:"运输委托书",execution:"进入执行",view:"查看运输",error:"无法加载订单",saving:"正在接受…",accepted:"已接受订单。请前往“我的运输”继续操作。",confirm:"确定接受该运输订单？",order:"订单",bitrix:"Bitrix",price:"确认运费",mode:"运输方式",reason:"接受中标订单后即可开始执行。"}
+ ru:{heading:"Заявки к исполнению",intro:"Здесь находятся перевозки, по которым Владелец выбрал вас победителем. Примите одобренную заявку в работу — после этого исполнение и трекинг доступны в разделе «Мои перевозки».",refresh:"Обновить",empty:"В этой категории нет перевозок.",filterNew:"Новые",filterProgress:"В работе",filterArchive:"Архив",awaiting:"Ожидает принятия",preparing:"Подготовка транспортной заявки",pending:"Документ на согласовании",returned:"Возвращена на доработку",approved:"Документ согласован",performing:"В работе",completed:"Перевозка завершена",take:"Взять в работу",document:"Транспортная заявка",execution:"Открыть исполнение",view:"Открыть заявку",error:"Не удалось загрузить заявки",saving:"Принимаем заявку…",accepted:"Заявка принята. Продолжайте в разделе «Мои перевозки».",confirm:"Принять выбранную перевозку в работу?",order:"Заказ",bitrix:"Битрикс",price:"Согласованная ставка",mode:"Транспорт",reason:"Исполнение доступно после принятия выбранной заявки в работу."},
+ en:{heading:"Shipments assigned to you",intro:"Shipments awarded to you by the Owner. Accept an awarded shipment, then continue tracking and execution in My Shipments.",refresh:"Refresh",empty:"No shipments in this category.",filterNew:"New",filterProgress:"In progress",filterArchive:"Archive",awaiting:"Awaiting acceptance",preparing:"Preparing transport instruction",pending:"Document awaiting approval",returned:"Returned for revision",approved:"Document approved",performing:"In progress",completed:"Completed",take:"Accept shipment",document:"Transport instruction",execution:"Open execution",view:"Open shipment",error:"Unable to load shipments",saving:"Accepting…",accepted:"Shipment accepted. Continue in My Shipments.",confirm:"Accept this shipment?",order:"Order",bitrix:"Bitrix",price:"Agreed rate",mode:"Transport",reason:"Execution is available after the awarded shipment is accepted."},
+ zh:{heading:"待执行的运输订单",intro:"货主选中您为承运人的运输订单。接受中标运输任务后，即可前往“我的运输”执行和跟踪。",refresh:"刷新",empty:"该类别暂无运输订单。",filterNew:"新任务",filterProgress:"执行中",filterArchive:"归档",awaiting:"待接受",preparing:"准备运输委托书",pending:"文件待审批",returned:"退回修改",approved:"文件已批准",performing:"运输中",completed:"已完成",take:"接受任务",document:"运输委托书",execution:"进入执行",view:"查看运输",error:"无法加载订单",saving:"正在接受…",accepted:"已接受订单。请前往“我的运输”继续操作。",confirm:"确定接受该运输订单？",order:"订单",bitrix:"Bitrix",price:"确认运费",mode:"运输方式",reason:"接受中标订单后即可开始执行。"}
 };
 const t=()=>localizations[document.documentElement.lang.slice(0,2)]||localizations.ru;
 const e=v=>String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
@@ -42,9 +42,19 @@ function render(){
  if(role!=="carrier"){root.remove();return;}
  const dict=t();
  const sorted=items.slice().sort((a,b)=>Number(stage(a)[0]==="awaiting")-Number(stage(b)[0]==="awaiting")).reverse();
+ const grouped={new:[],progress:[],archive:[]};
+ sorted.forEach(item=>{
+   const key=stage(item)[0];
+   grouped[key==="awaiting"?"new":key==="completed"?"archive":"progress"].push(item);
+ });
+ const visibleItems=grouped[activeView]||grouped.new;
+ const filters=[["new",dict.filterNew],["progress",dict.filterProgress],["archive",dict.filterArchive]];
  root.innerHTML='<div class="carrier-flow-head"><div><h2>'+e(dict.heading)+'</h2><p>'+e(dict.intro)+'</p></div><button type="button" data-flow-refresh>'+e(dict.refresh)+'</button></div>'+
  (notice?'<p class="carrier-flow-message" role="status">'+e(notice)+'</p>':'')+
- (sorted.length?'<div class="carrier-flow-grid">'+sorted.map(item=>{
+ '<nav class="carrier-flow-filters" aria-label="Фильтр перевозок">'+filters.map(([key,label])=>
+   '<button type="button" class="carrier-flow-filter'+(activeView===key?' is-active':'')+'" data-flow-filter="'+e(key)+'" aria-pressed="'+(activeView===key?'true':'false')+'">'+e(label)+' <span>'+grouped[key].length+'</span></button>'
+ ).join('')+'</nav>'+
+ (visibleItems.length?'<div class="carrier-flow-grid">'+visibleItems.map(item=>{
   const [key,action,href]=stage(item),no=item.registration_no||item.order_code;
   const title=key==="approved"&&item.process_status!=="completed"?dict.performing:dict[key];
   return '<article class="carrier-flow-card"><div class="carrier-flow-title"><strong>'+e(no)+'</strong><span class="carrier-flow-status">'+e(title)+'</span></div>'+
@@ -94,9 +104,14 @@ function openAction(order,action){
  if(action==="document")location.hash="#approved-shipments";
 }
 document.addEventListener("click",ev=>{
- const btn=ev.target.closest("#"+ROOT_ID+" [data-flow-action],#"+ROOT_ID+" [data-flow-refresh]");
+ const btn=ev.target.closest("#"+ROOT_ID+" [data-flow-action],#"+ROOT_ID+" [data-flow-refresh],#"+ROOT_ID+" [data-flow-filter]");
  if(!btn)return;
  ev.preventDefault();
+ if(btn.hasAttribute("data-flow-filter")){
+   const filter=btn.dataset.flowFilter;
+   if(["new","progress","archive"].includes(filter)){activeView=filter;render();}
+   return;
+ }
  if(btn.hasAttribute("data-flow-refresh")){void refresh(true);return;}
  const order=btn.dataset.flowOrder,action=btn.dataset.flowAction;
  if(items.some(x=>x.order_code===order)&&["take","execution","view"].includes(action))openAction(order,action);
