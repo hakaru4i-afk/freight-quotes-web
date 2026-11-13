@@ -154,3 +154,5 @@ global-route-view .gv-unordered-title { margin: 12px 0 4px; color: inherit; font
 .gv-tracking{grid-column:1/-1;min-width:0}.gv-tracking .gv-stops>li{display:block;overflow-wrap:anywhere}.gv-tracking .gv-geocode-edit{margin-top:8px}.gv-geocode-edit summary{white-space:normal;display:inline-block}#task2-root global-route-view .gv-title,#task2-root global-route-view .gv-summary h3{color:#f3f7ff!important}.gv-geocode-form{color:#173650}.gv-geocode-form small{color:#28465f}
 
 #task2-root global-route-view .gv-geocode-edit>summary{color:#164653!important;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+.gv-current-caption{margin:0;padding:10px 16px;color:#d5ffeb;background:#102b31;font-size:13px;line-height:1.5;overflow-wrap:anywhere;border-top:1px solid #30575b}

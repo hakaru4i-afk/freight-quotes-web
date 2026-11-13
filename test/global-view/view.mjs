@@ -38,6 +38,9 @@ class GlobalRouteView extends HTMLElement {
       Object.values(instances).forEach(instance => instance.destroy());
     };
     const previousMode = this.dataset.mode ?? '3d';
+    const language=/^zh/i.test(document.documentElement.lang)?'zh':/^en/i.test(document.documentElement.lang)?'en':'ru';
+    const t=(ru,en,zh)=>({ru,en,zh})[language];
+    const numberLocale={ru:'ru-RU',en:'en-US',zh:'zh-CN'}[language];
     const [request, offer, inputTracking, distance, plannedGeocodes] = JSON.parse(this.dataset.route ?? '[{},null]');
     const tracking=Array.isArray(inputTracking)?[...inputTracking].sort((a,b)=>Date.parse(a.observed_at)-Date.parse(b.observed_at)||String(a.recorded_at||'').localeCompare(String(b.recorded_at||''))||String(a.id||'').localeCompare(String(b.id||''))):null;
     const hero = node('div', 'gv-hero');
@@ -115,7 +118,7 @@ class GlobalRouteView extends HTMLElement {
         const geo = entry.geocode;
         const located = geo?.status === 'resolved' && Number.isFinite(geo.lat) && Number.isFinite(geo.lon)
           && Math.abs(geo.lat) <= 90 && Math.abs(geo.lon) <= 180;
-        const item=node('li','',label+(located?(geo.precision==='city'?' · Центр города, приблизительно':''):' · Нет координат'));const edit=correction({...geo,id:geo?.geoPointId},'tracking');if(edit)item.append(edit);list.append(item);
+        const item=node('li','',label+(located?(geo.precision==='city'?t(' · Центр города, приблизительно',' · City center, approximate',' · 城市中心（近似）'):''):' · Нет координат'));const edit=correction({...geo,id:geo?.geoPointId},'tracking');if(edit)item.append(edit);list.append(item);if(latest)hero.append(node('p','gv-current-caption',label+(located?'':t(' · Нет координат',' · No coordinates',' · 无坐标'))));
         if (located) route.markers.push({ lat: geo.lat, lng: geo.lon, label, number: latest ? '●' : '○', endpoint: latest,tracking:true,current:latest,observed_at:entry.observed_at,pointId:entry.id });
       }
       this.routeSnapshot=JSON.parse(JSON.stringify(route));this.dataset.trackingCount=String(tracking.length);this.dataset.latestObservedAt=tracking.at(-1)?.observed_at||'';
@@ -131,7 +134,7 @@ class GlobalRouteView extends HTMLElement {
       const detail = node('div', 'gv-stop-detail');
       const status = !stop.position ? 'Нет координат' : stop.position.approximate ? 'Центр города' : stop.position.precision==='facility'?'Объект':stop.position.precision==='address'?'Точный адрес':'Координаты';
       detail.append(node('strong', '', stop.label), node('small', '', stop.role));
-      const source=/владелец/.test(stop.role)?'owner':'offer',record=plannedGeocodes?.[source]?.find(p=>p.label===stop.label),edit=correction(record,source);if(record?.clarification)detail.append(node('small','','Уточнение: '+record.clarification));if(edit)detail.append(edit);
+      const source=/владелец/.test(stop.role)?'owner':'offer',record=plannedGeocodes?.[source]?.find(p=>p.label===stop.label),edit=correction(record,source);if(record?.clarification)detail.append(node('small','',t('Уточнение: ','Clarification: ','澄清：')+record.clarification));if(edit)detail.append(edit);
       item.append(node('span', 'gv-stop-number', String(index + 1)), detail, node('span', 'gv-stop-status', status));
       list.append(item);
     }
@@ -147,7 +150,7 @@ class GlobalRouteView extends HTMLElement {
     }
     const summary = node('aside', 'gv-summary');
     const badge = node('span', 'gv-mode', icons[route.mode] + '  ' +
-      (route.mode === 'unknown' && route.transport ? route.transport : mode.label));
+      (route.mode === 'unknown' && route.transport ? route.transport : ({road:t(mode.label,'Road','公路'),rail:t(mode.label,'Rail','铁路'),sea:t(mode.label,'Sea','海运'),air:t(mode.label,'Air','空运'),multi:t(mode.label,'Multimodal','多式联运'),unknown:t(mode.label,'Unspecified','未指定')})[route.mode]));
     const located = [...route.stops, ...route.deferred].filter(stop => stop.position).length;
     const total = route.stops.length + route.deferred.length;
     summary.append(node('h3', '', 'Контроль перевозки'), badge,
@@ -165,11 +168,11 @@ class GlobalRouteView extends HTMLElement {
     if (Array.isArray(tracking)) {
       const km = value => {
         const number = typeof value === 'number' || (typeof value === 'string' && value.trim()) ? Number(value) : NaN;
-        return Number.isFinite(number) && number >= 0 ? number.toLocaleString('ru-RU') + ' км' : 'не рассчитано';
+        return Number.isFinite(number) && number >= 0 ? number.toLocaleString(numberLocale) + t(' км',' km',' 公里') : t('не рассчитано','not calculated','未计算');
       };
       distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'),
-        node('p', '', 'Общий километраж: ' + km(distance?.total)),
-        node('p', '', 'Остаток на дату последнего сообщения: ' + km(distance?.remaining)));
+        node('p', '', t('Общий километраж: ','Total distance: ','总里程：') + km(distance?.total)),
+        node('p', '', t('Остаток на дату последнего сообщения: ','Remaining at last report: ','最后报告时的剩余里程：') + km(distance?.remaining)));
     }
     else calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
@@ -194,8 +197,8 @@ class GlobalRouteView extends HTMLElement {
       distancePanel.dataset.status='loading';
       calculateMapDistances(route,{signal}).then(result=>{if(signal.aborted)return;distancePanel.dataset.status=result.status;
         const value=result.totalKm??(result.knownKm>0?result.knownKm:null);
-        distancePanel.append(node('p','',value==null?'Дорожная схема: не рассчитано':(result.totalKm==null?'Известные дорожные участки: ':'Дорожная схема: ')+value.toLocaleString('ru-RU')+' км (ориентировочно)'),node('small','','OSRM / OpenStreetMap · '+result.calculatedAt+' · Ориентировочная схема не подтверждает точный остаток и не запускает задачу ВЭД.'));
-      }).catch(()=>{if(!signal.aborted){distancePanel.dataset.status='unavailable';distancePanel.append(node('p','','Дорожный сервис временно недоступен'));}});
+        distancePanel.append(node('p','',value==null?t('Дорожная схема: не рассчитано','Road plan: not calculated','公路计划：未计算'):(result.totalKm==null?t('Известные дорожные участки: ','Known road legs: ','已知公路路段：'):t('Дорожная схема: ','Road plan: ','公路计划：'))+value.toLocaleString(numberLocale)+t(' км (ориентировочно)',' km (estimated)',' 公里（估算）')),node('small','','OSRM / OpenStreetMap · '+result.calculatedAt+t(' · Ориентировочная схема не подтверждает точный остаток и не запускает задачу ВЭД.',' · The estimated plan does not verify the exact remaining distance or trigger foreign-trade review.',' · 估算计划不能确认精确剩余里程，也不会触发外贸审核。')));
+      }).catch(()=>{if(!signal.aborted){distancePanel.dataset.status='unavailable';distancePanel.append(node('p','',t('Дорожный сервис временно недоступен','Road service temporarily unavailable','公路服务暂时不可用')));}});
     }
     info.append(activities, summary);
 
