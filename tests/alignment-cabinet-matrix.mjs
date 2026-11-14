@@ -20,9 +20,7 @@ export async function cabinetMatrix({page,actor,rec}){
  if(actor==='owner')for(const [lang,label]of languages)for(const screen of ['updates','remarks','developments','cooperation','process']){try{
   await language(lang,label);await page.locator('[data-ow-register="'+screen+'"]').click();
   if(['updates','remarks','developments'].includes(screen)){
-   const cards=page.locator('#ow-workspace .ow-work-card[data-record-id]');
-   await cards.first().waitFor({timeout:45000});
-   assert.ok(await cards.count()>0,'The actual archive must contain source records');
+   await page.waitForFunction(()=>[...document.querySelectorAll('#ow-workspace .ow-work-card[data-record-id]')].some(card=>card.getClientRects().length&&card.dataset.recordId&&card.textContent.trim()),{},{timeout:45000});
   }else if(screen==='process')await page.locator('#ow-process-editor [data-editor-node]').first().waitFor({timeout:30000});else await page.locator('#ow-cooperation-screen .lw-owner-head').waitFor({timeout:30000});
   for(const size of sizes)await capture(lang,size,screen);
  }catch(e){failures.push({lang,screen,error:e.message});}}
