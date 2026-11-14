@@ -60,3 +60,15 @@ test("owner offer review: completed selection disables stale controls for every 
  assert.ok(!app.includes("Новый выбор заменит предыдущий вариант.") || app.includes("Отбор завершён"));
  assert.equal(info.ownerOfferReviewFix.productionChanged,false);
 });
+
+
+test("carrier late-bid CTA mounts in My Requests and disappears for ineligible requests",()=>{
+ assert.match(panel,/function carrierOrdersPanel\(\)/);
+ assert.match(panel,/data-section="carrier-orders"/);
+ assert.match(panel,/#late-bid-controls-carrier/);
+ assert.match(panel,/Подать позднюю ставку/);
+ assert.match(panel,/deadlineMs\(i\.deadline\)/);
+ assert.match(panel,/!i\.has_winner&&!i\.declined&&!i\.has_bid/);
+ const served=readFileSync("test/"+info.lateBidUiScript,"utf8");
+ assert.equal(served,panel,"the tested source must be the exact script served to staging");
+});

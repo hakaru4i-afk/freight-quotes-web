@@ -4,6 +4,7 @@ on:
     paths:
       - 'test/app.js'
       - 'test/late-bid-staging.js'
+      - 'test/late-bid-staging-3ff2c9ab03f5.js'
       - 'test/index.html'
       - 'test/build-info.json'
       - 'tests/issue47-late-ui.test.mjs'
@@ -28,6 +29,7 @@ jobs:
           node-version: '24'
       - run: node --check test/app.js
       - run: node --check test/late-bid-staging.js
+      - run: node --check test/late-bid-staging-3ff2c9ab03f5.js
       - run: node --test tests/issue47-late-ui.test.mjs tests/issue47-task2-csv.test.mjs
       - name: Staging-only API auth smoke
         run: |

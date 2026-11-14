@@ -13,9 +13,31 @@ function ownerOfferPanel(){
  if(location.hash.split("?")[0]!=="#offers")return null;
  return document.querySelector('.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="offers"]');
 }
+function carrierOrdersPanel(){
+ if(location.hash.split("?")[0]!=="#carrier-orders")return null;
+ const cabinet=document.querySelector('.cabinet-app[data-cabinet-role="carrier"]');
+ if(!cabinet)return null;
+ return cabinet.querySelector('.cabinet-panel[data-section="carrier-orders"] #carrier-orders')||
+   cabinet.querySelector('.cabinet-panel[data-section="carrier-orders"]')||
+   cabinet.querySelector('.carrier-portal #carrier-orders');
+}
+function deadlineMs(value){
+ const raw=String(value??"").trim();
+ if(!raw)return NaN;
+ if(/(?:Z|[+-][0-9]{2}:[0-9]{2})$/i.test(raw))return Date.parse(raw);
+ const normalized=raw.includes("T")?raw:raw.replace(" ","T");
+ return Date.parse(normalized+"+03:00");
+}
 function locate(){
  if(quotePage){const host=document.querySelector("main .form-shell");if(!host)return null;
  let node=host.querySelector("#late-bid-controls");if(!node){node=document.createElement("section");node.id="late-bid-controls";node.className="section";const heading=host.querySelector(".form-heading");(heading||host).insertAdjacentElement(heading?"afterend":"afterbegin",node);}return node;}
+ const carrierHost=carrierOrdersPanel();
+ document.querySelectorAll("#late-bid-controls-carrier").forEach(n=>{if(!carrierHost||!carrierHost.contains(n))n.remove();});
+ if(carrierHost){
+   let node=carrierHost.querySelector("#late-bid-controls-carrier");
+   if(!node){node=document.createElement("section");node.id="late-bid-controls-carrier";node.className="section late-bid-carrier-panel";carrierHost.prepend(node);}
+   return node;
+ }
  // The Owner's late-draft lock belongs ONLY to the offer review section.
  // Do not mount it in <main>: that node is shared by every cabinet tab.
  const host=ownerOfferPanel();
@@ -39,7 +61,7 @@ function quoteView(data){
  window.freightLateDraftOrder=order;
  if(old!==window.freightLateDraftActive)window.dispatchEvent(new Event("freight-late-bid-state"));
  if(!assigned||String(assigned.workflow_status||"").toLowerCase()==="annulled"){root.hidden=true;return;}
- const overdue=new Date(assigned.deadline+"+03:00").getTime()<=Date.now();
+ const deadline=deadlineMs(assigned.deadline);const overdue=Number.isFinite(deadline)&&deadline<=Date.now();
  if(!overdue||data.role!=="carrier"){root.hidden=true;return;}
  root.hidden=false;
  const blocked=assigned.has_winner?"По заявке уже выбран победитель. Новые ставки запрещены.":
@@ -53,14 +75,17 @@ function quoteView(data){
 }
 function carrierInboxView(data){
  const root=locate();if(!root)return;
- if(data.role!=="carrier"){root.hidden=true;return;}
+ if(data.role!=="carrier"){root.hidden=true;root.innerHTML="";return;}
  const late=(data.assigned||[]).filter(i=>{
-  const deadline=Date.parse(String(i.deadline||"").replace(/(?:Z|[+-]\\d\\d:\\d\\d)$/,"")+"+03:00");
+  const deadline=deadlineMs(i.deadline);
   return Number.isFinite(deadline)&&deadline<=Date.now()&&!i.has_winner&&!i.declined&&!i.has_bid&&String(i.workflow_status||"").toLowerCase()!=="annulled";
  });
- if(!late.length){root.hidden=true;return;}
- root.hidden=false;root.style.cssText="margin:16px 0;padding:16px;border:1px solid #76c6dd;border-radius:12px;background:#102d42;color:#eafaff";
- root.innerHTML='<h3 style="margin:0 0 8px">Просроченные ставки — подача открыта</h3><p>Пока победитель не выбран, вы можете подготовить и отправить ставку после дедлайна. Решение о её рассмотрении принимает Владелец.</p>'+late.map(i=>'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:10px 0"><strong>Заявка '+esc(i.order_code)+'</strong><a class="btn secondary" style="display:inline-block" href="?page=quote&amp;order='+encodeURIComponent(i.order_code)+'">Подготовить позднюю ставку</a></div>').join('');
+ if(!late.length){root.hidden=true;root.innerHTML="";return;}
+ root.hidden=false;
+ root.className="section late-bid-carrier-panel";
+ root.style.cssText="margin:16px 0;padding:16px;border:1px solid #76c6dd;border-radius:12px;background:#102d42;color:#eafaff";
+ root.innerHTML='<h3 style="margin:0 0 8px">Просроченные ставки — подача открыта</h3><p>Пока победитель не выбран, вы можете подать позднюю ставку. Её рассмотрение решает Владелец; штраф за пропуск основного срока сохраняется.</p>'+
+   late.map(i=>'<div class="late-bid-carrier-row" style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin:10px 0;padding:10px 0;border-top:1px solid rgba(118,198,221,.28)"><strong>Заявка '+esc(i.order_code)+'</strong><a class="btn secondary" role="button" aria-label="Подать позднюю ставку по заявке '+esc(i.order_code)+'" style="display:inline-flex;align-items:center;justify-content:center" href="?page=quote&amp;order='+encodeURIComponent(i.order_code)+'">Подать позднюю ставку</a></div>').join("");
 }
 function ownerView(data){
  const root=locate();if(!root)return;
@@ -92,12 +117,16 @@ async function refresh(){
  // or show diagnostic status in VED, Supplier, Designer or other cabinets.
  const cabinet=document.querySelector('.cabinet-app[data-cabinet-role]');
  const role=cabinet?.getAttribute('data-cabinet-role');
+ if(!quotePage && role==='carrier' && !carrierOrdersPanel()){
+   document.querySelector("#late-bid-controls-carrier")?.remove();
+   return;
+ }
  if(!quotePage && role==='owner' && !ownerOfferPanel()){
    document.querySelector("#late-bid-controls-owner")?.remove();
    return;
  }
  if(!quotePage && role!=='owner' && role!=='carrier'){
-   document.querySelector('#late-bid-controls-owner')?.remove();
+   document.querySelector('#late-bid-controls-owner,#late-bid-controls-carrier')?.remove();
    return;
  }
  if(refreshPending)return;refreshPending=true;
@@ -136,8 +165,16 @@ document.addEventListener("click",ev=>{
 },true);
 if(quotePage){document.addEventListener("change",ev=>{if(ev.target.matches('input[name="order"]'))refresh();});}
 const observer=new MutationObserver(()=>{
- if(!latest)return;
+ if(!latest){
+   if(quotePage||location.hash.split("?")[0]==="#carrier-orders"||location.hash.split("?")[0]==="#offers")refresh();
+   return;
+ }
  if(quotePage){const root=document.querySelector("#late-bid-controls");if(!root)quoteView(latest);return;}
+ if(latest.role==="carrier"){
+   const scope=carrierOrdersPanel();
+   if(!scope){document.querySelector("#late-bid-controls-carrier")?.remove();return;}
+   if(!scope.querySelector("#late-bid-controls-carrier"))carrierInboxView(latest);
+ }
  if(latest.role==="owner"){
    const scope=ownerOfferPanel();
    if(!scope){document.querySelector("#late-bid-controls-owner")?.remove();return;}

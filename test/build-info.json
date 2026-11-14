@@ -173,7 +173,7 @@
       "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
     }
   },
-  "lateBidUiSha": "267f0bf27882f75a00336e75f70bea5a2e946100",
+  "lateBidUiSha": "447b037d674dc38b2d2608a95a4e014501322ecf",
   "candidateStatus": "PUBLISHED_STAGING_PARTIAL",
   "isolatedQaApi": {
     "function": "freight-api-qa-issue47qa",
@@ -746,5 +746,14 @@
     "qa-20261101a/protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
     "qa-issue43/logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
     "qa-issue43/protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280"
+  },
+  "lateBidCarrierCtaFix": {
+    "status": "SOURCE_FIXED_PENDING_PUBLICATION",
+    "date": "2026-11-14",
+    "area": "Carrier cabinet · My requests",
+    "rootCause": "Carrier late-bid inbox renderer had no carrier mount point; locate() returned null outside quote and Owner offers views.",
+    "behavior": "Show Подать позднюю ставку only for an assigned overdue request before winner selection, decline, prior bid or annulment.",
+    "deadlineTimezone": "Europe/Minsk",
+    "uiAsset": "late-bid-staging-3ff2c9ab03f5.js"
   }
 }
