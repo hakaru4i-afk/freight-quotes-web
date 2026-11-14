@@ -234,7 +234,7 @@
          if(["ved","logistic"].includes(state.role))controls+=action("Запросить документ у перевозчика",request("request_carrier_docs","Направить перевозчику"));
          if(carrier)controls+=action("Загрузить документ",upload(key,items.filter(t=>!["completed","cancelled"].includes(t.status))));
        }
-       const list=entries.length?entries.map(row).join(""):'<p class="t2-muted t2-doc-empty">Пока нет документов</p>';
+       const list=entries.length?entries.slice(0,2).map(row).join("")+(entries.length>2?'<details class="t2-doc-more"><summary>Показать ещё '+(entries.length-2)+' документ(ов)</summary><div class="t2-stack">'+entries.slice(2).map(row).join("")+'</div></details>':""):'<p class="t2-muted t2-doc-empty">Пока нет документов</p>';
        const requests=items.length?'<details class="t2-doc-tasks"><summary>Запросы и проверка документов <span>'+items.filter(t=>!["completed","cancelled"].includes(t.status)).length+' ожидают</span></summary><div class="t2-stack">'+items.map(taskCard).join("")+'</div></details>':"";
        return '<section class="t2-docs-group" data-doc-source="'+key+'"><div class="t2-docs-group-head"><h4>'+title+'</h4><span class="t2-doc-count">'+entries.length+' файл(ов)</span></div>'+
          '<div class="t2-docs-list">'+list+'</div><div class="t2-doc-actions">'+controls+'</div>'+requests+'</section>';
