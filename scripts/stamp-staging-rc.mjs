@@ -5,6 +5,15 @@ let html=read('index.html'),app=read('app.js');const meta=JSON.parse(read('build
 for(const [name,dependencies]of [['process-model-diff.mjs',['process-model-graph.mjs']],['process-editor-20261111.mjs',['process-model-graph.mjs','process-model-diff.mjs']]]){let content=read(name);for(const dependency of dependencies){const exact="from './"+dependency+"?v="+blob(dependency).slice(0,12)+"'",re=new RegExp("from '\\./"+dependency.replaceAll('.', '\\.')+"(?:\\?v=[a-f0-9]+)?'");if(process.argv.includes('--write'))content=content.replace(re,exact);else if(!content.includes(exact))throw Error('STALE_MODULE_CACHE:'+name+':'+dependency);}if(process.argv.includes('--write'))write(name,content);}
 const primaryVersion=meta.primaryBusinessVersion;
 if(!/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(primaryVersion||''))throw Error('INVALID_PRIMARY_BUSINESS_VERSION');
+// Alias files are generated from reviewed canonical sources. A normal stamp
+// must refuse divergent code; explicit synchronization follows reconciliation.
+for(const [canonical,served] of [['late-bid-staging.js',meta.lateBidUiScript],['task2-guidance.js',meta.task2.guidanceScript],['task2-panel.js',meta.task2.frontendScript]]){
+ const source=read(canonical),active=read(served);
+ if(source!==active){
+  if(process.argv.includes('--write')&&process.argv.includes('--sync-artifacts'))write(served,source);
+  else throw Error('DIVERGENT_CANONICAL_ARTIFACT:'+canonical+':'+served+'; reconcile source before --write --sync-artifacts');
+ }
+}
 for(const [name,deps]of [['global-view/globe.mjs',['route-model.mjs']],['global-view/map.mjs',['route-model.mjs']],['global-view/view.mjs',['distance.mjs','route-model.mjs','globe.mjs','map.mjs']]]){
  let content=read(name);for(const dependency of deps){const version=blob('global-view/'+dependency).slice(0,12),re=new RegExp("((?:from\\s*|import\\s*\\()\\s*['\"]\\./"+dependency.replaceAll('.', '\\.')+")(?:\\?v=[^'\"]+)?(['\"])",'g');
  if(process.argv.includes('--write'))content=content.replace(re,'$1?v='+version+'$2');else if(!content.includes('./'+dependency+'?v='+version))throw Error('STALE_MODULE_CACHE:'+name+':'+dependency);

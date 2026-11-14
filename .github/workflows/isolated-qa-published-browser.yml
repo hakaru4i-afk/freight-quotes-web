@@ -145,6 +145,8 @@ jobs:
             reports/isolated-rc/security-gate-real.json
             reports/map50-published/*.json
             reports/map50-published/*.png
+            reports/nov14-published/*.json
+            reports/nov14-published/*.png
             reports/ci-qa-auth.json
             reports/ci-qa-environment-policy.json
             reports/isolated-rc/browser-results-*.json
