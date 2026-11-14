@@ -40,7 +40,7 @@ async function get(path){
  return data;
 }
 async function fetchOwner(){
- const results=await Promise.allSettled([get("/api/workload"),get("/api/portal-feedback")]);
+ const results=await Promise.allSettled([get("/api/workload"),get("/api/portal-feedback"),get("/api/pending-tasks")]);
  const tasks=[],errors=[];
  let total=0;
  if(results[0].status==="fulfilled"){
@@ -59,6 +59,17 @@ async function fetchOwner(){
   total+=pending.length;
   for(const r of pending.slice(0,20))tasks.push(makeTask("feedback:"+r.id,word("received"),(r.code||"")+" · "+short(r.description,65),"portal-feedback","",r.created_at));
  }else errors.push("Предложения");
+ if(results[2].status==="fulfilled"){
+  const items=Array.isArray(results[2].value.items)?results[2].value.items:[];
+  const fallback=items.filter(t=>t.task_type==="owner_pto_review_start"&&isOpen(t.status));
+  total+=fallback.length;
+  for(const t of fallback){
+   tasks.push(makeTask("owner-review:"+t.id,
+     language()==="en"?"Start foreign-trade document review":language()==="zh"?"启动外贸文件审核":"Запустить проверку документов ВЭД",
+     (t.registration_no||t.order_code)+" · "+(t.description||"Невозможно подтвердить остаток километров"),
+     "approved-shipments",t.order_code,t.created_at));
+  }
+ }else errors.push("Задачи по документам ВЭД");
  return {tasks,total:Math.max(total,tasks.length),errors,supported:true};
 }
 async function fetchTask2(role){
