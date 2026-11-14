@@ -288,7 +288,7 @@
        html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
        html+=(x.untrusted_actual_departure?'<p role="status">Ранее сохранена ошибочная будущая дата '+fmt(x.untrusted_actual_departure)+'. Она сохранена в истории, но не считается фактическим отправлением. Переносы плановой даты доступны.</p>':"");
        html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
-         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+(fmt(x.original_departure||o.pickup)==="Уточните исходную дату"?fmt(o.pickup):fmt(x.original_departure||o.pickup))+'</strong><span>Максимум 4 переноса</span></div>'+
          '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
            const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
            if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
