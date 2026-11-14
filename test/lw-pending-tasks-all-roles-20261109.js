@@ -61,7 +61,7 @@ async function fetchOwner(){
  }else errors.push("Предложения");
  if(results[2].status==="fulfilled"){
   const items=Array.isArray(results[2].value.items)?results[2].value.items:[];
-  const fallback=items.filter(t=>t.task_type==="owner_pto_review_start"&&isOpen(t.status));
+  const fallback=items.filter(t=>t.task_type==="other"&&String(t.dedupe_key||"").startsWith("owner-pto:")&&isOpen(t.status));
   total+=fallback.length;
   for(const t of fallback){
    tasks.push(makeTask("owner-review:"+t.id,
