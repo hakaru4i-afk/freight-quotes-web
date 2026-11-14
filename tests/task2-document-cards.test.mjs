@@ -61,4 +61,5 @@ test("completed shipment is read only; Owner cannot create carrier requests",()=
   assert.doesNotMatch(html,/data-t2-form="request_carrier_docs"/);
  }
  assert.doesNotMatch(makeRenderer("owner")(detail,false,true),/data-t2-form="request_carrier_docs"/);
+ assert.equal((makeRenderer("owner")(detail,false,true).match(/data-t2-form="upload"/g)||[]).length,1);
 });
