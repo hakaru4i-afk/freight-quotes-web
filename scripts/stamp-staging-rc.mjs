@@ -26,8 +26,21 @@ const observer=JSON.parse(read('qa-observer.json'));
 if(observer.primaryBusinessVersion!==primaryVersion||observer.versionPair?.ref!=='staging-manifest.json')throw Error('STALE_QA_OBSERVER_VERSION_PAIR');
 const files=[...new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"\s]*)?"/g)].map(x=>x[1]).filter(x=>/\.(?:js|mjs|css)$/.test(x)).concat('staging-api-region.mjs','process-model-graph.mjs','process-model-diff.mjs','alignment-role-help.json','global-view/route-model.mjs','global-view/distance.mjs','global-view/globe.mjs','global-view/map.mjs'))].sort();
 const pattern=/currentVersion:"[a-f0-9]{20}"/g;if([...app.matchAll(pattern)].length!==1)throw Error('APP_BUILD_ID_NOT_UNIQUE');
+// Include vendored visual dependencies in the build identity. Generated process
+// SVGs are checked by their model gate and excluded to avoid a hash cycle.
+const visualAssets=[];
+function collectVisual(dir=''){
+ for(const entry of readdirSync(resolve(root,'test',dir),{withFileTypes:true})){
+  if(['processes','process-history'].includes(entry.name))continue;
+  const name=(dir?dir+'/':'')+entry.name;
+  if(entry.isDirectory())collectVisual(name);
+  else if(/\.(?:png|jpe?g|svg|webp|woff2?|ttf|otf)$/.test(name)&&name!=='business-process-current.svg')visualAssets.push(name);
+ }
+}
+collectVisual();visualAssets.sort();
+const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
-const buildId=hash(JSON.stringify({assets:signature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
+const buildId=hash(JSON.stringify({assets:signature,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
 if(process.argv.includes('--write')){
  if(meta.stagingAssetBuildId!==buildId||!meta.assetBuildRecordedAt)meta.assetBuildRecordedAt=new Date().toISOString();
@@ -37,8 +50,9 @@ if(process.argv.includes('--write')){
  meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;meta.version=buildId;meta.releaseVersion=primaryVersion;
  meta.currentAssetSha256=Object.fromEntries(files.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));status.version=buildId;
  for(const name of Object.keys(meta.task2.frontendCandidateComponents||{}))meta.task2.frontendCandidateComponents[name]={gitBlob:blob(name),sha256:hash(readFileSync(resolve(root,'test',name)))};
- write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
+ meta.visualAssetSha256=visualSignature;write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
 }else{
+ if(JSON.stringify(meta.visualAssetSha256)!==JSON.stringify(visualSignature))throw Error('STALE_VISUAL_ASSET_DIGEST');
  if(meta.version!==buildId||meta.releaseVersion!==primaryVersion)throw Error('STALE_PRIMARY_VERSION');
  if(!app.includes('currentVersion:"'+buildId+'"')||meta.stagingAssetBuildId!==buildId||status.version!==buildId)throw Error('STALE_STAGING_BUILD_ID');
  for(const name of critical)if(!html.includes(name+'?v='+blob(name).slice(0,12)))throw Error('STALE_CACHE_KEY:'+name);

@@ -10,7 +10,7 @@ export function checkAlignment(root){
  const versions=new Map();for(const {version,issue}of m.businessVersions){if(versions.has(version)&&versions.get(version)!==issue)throw Error('BUSINESS_VERSION_COLLISION');versions.set(version,issue);}
  const hash=b=>createHash('sha256').update(b).digest('hex');
  const excluded=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
- function visit(dir){for(const e of readdirSync(resolve(root,dir),{withFileTypes:true})){if(['process-history','processes'].includes(e.name))continue;const p=dir+'/'+e.name;if(e.isDirectory())visit(p);else if(/\.(js|mjs|css|html|json|md|yml)$/.test(p)&&!excluded.has(p)&&!m.assetHashes[p])throw Error('UNINDEXED_DEPENDENCY:'+p);}}
+ function visit(dir){for(const e of readdirSync(resolve(root,dir),{withFileTypes:true})){if(['process-history','processes'].includes(e.name))continue;const p=dir+'/'+e.name;if(e.isDirectory())visit(p);else if(/\.(js|mjs|css|html|json|md|yml|png|jpe?g|svg|webp|woff2?|ttf|otf)$/.test(p)&&!excluded.has(p)&&!m.assetHashes[p])throw Error('UNINDEXED_DEPENDENCY:'+p);}}
  for(const d of ['test','docs','scripts','tests','.github/workflows'])visit(d);
  for(const [path,expected]of Object.entries(m.assetHashes)){
   const absolute=resolve(root,path);if(!absolute.startsWith(resolve(root,'test')+'/')&&!absolute.startsWith(resolve(root,'docs')+'/')&&!absolute.startsWith(resolve(root,'scripts')+'/')&&!absolute.startsWith(resolve(root,'tests')+'/')&&!absolute.startsWith(resolve(root,'.github/workflows')+'/'))throw Error('INVALID_DEPENDENCY_PATH');
