@@ -37,7 +37,7 @@
    if(iso&&!/[zZ]|[+-]\d{2}:\d{2}$/.test(raw))return iso[3]+"."+iso[2]+"."+iso[1]+(iso[4]?", "+iso[4]+":"+iso[5]:"");
    const d=new Date(raw);
    if(!Number.isNaN(d.getTime()))return d.toLocaleString("ru-RU",{timeZone:"Europe/Minsk"});
-   return "Дата не распознана";
+   return "Уточните исходную дату";
  };
  const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
  const badge=s=>'<span class="t2-badge">'+esc(s||"—")+"</span>";
@@ -174,12 +174,30 @@
      return readHeader+'<div class="t2-facts">'+readonly("Ставка победителя",price)+readonly("Транспорт",o.mode)+readonly("Маршрут",o.route)+readonly("Груз",o.cargo)+readonly("Вес/объём",(o.weight||"—")+" / "+(o.volume||"—"))+
       readonly("Контакт отправителя",o.sender_contact)+readonly("Исходная плановая дата выхода",x.original_departure||o.pickup||"—")+readonly("Фактическая дата выхода",x.actual_departure?fmt(x.actual_departure):"Не указана")+'</div>'+
       
-      '<h3>Указанные контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("Контейнер",c.container_no)).join(""):'<p class="t2-muted">Номер пока не указан.</p>')+'</div>'+
+
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
    if(state.tab==="documents"){
-     let html='<h3>Документы исполнения перевозки</h3><p class="t2-muted">Здесь находятся сопроводительные файлы, запросы ВЭД и переписка во время перевозки.</p><div class="t2-stack">'+(d.docs||[]).map(f=>'<div class="t2-item"><span>'+esc(f.name)+' <small>'+esc(f.category)+'</small></span><button class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>').join("")+'</div>';
-     html+='<h3>Документы и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number","ved_request_logistic"].includes(t.task_type)).map(taskCard).join("")+'</div>';
+     const allDocs=Array.isArray(d.docs)?d.docs:[];
+     const sourceOf=f=>{
+       const category=String(f.category||"").toLowerCase();
+       const login=String(f.uploaded_by||f.uploaded_by_login||f.author_role||f.role||"").toLowerCase();
+       if(/owner|владел|request_file|initial|customer/.test(category+" "+login))return "owner";
+       if(/ved|вэд|logistic|логист/.test(category+" "+login))return "ved";
+       if(/carrier|перевоз|transport/.test(category+" "+login))return "carrier";
+       return "other";
+     };
+     const groupedDocs={owner:[],ved:[],carrier:[],other:[]};
+     allDocs.forEach(f=>groupedDocs[sourceOf(f)].push(f));
+     const docRow=f=>'<div class="t2-item t2-document-item"><div><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.category||"Документ перевозки")+'</small></div><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
+     let html='<h3>Реестр документов перевозки</h3><p class="t2-muted">Файлы привязаны к этой перевозке. Владелец, ВЭД и назначенный перевозчик видят общий комплект с соблюдением серверных прав доступа.</p>'+
+       '<div class="t2-docs-overview">'+[
+         ["owner","Документы владельца"],["ved","Документы ВЭД"],["carrier","Документы перевозчика"],["other","Другие документы"]
+       ].filter(([key])=>key!=="other"||groupedDocs.other.length).map(([key,title])=>
+         '<section class="t2-docs-group" data-doc-source="'+key+'"><h4>'+title+' <span>'+groupedDocs[key].length+'</span></h4><div class="t2-stack">'+
+         (groupedDocs[key].length?groupedDocs[key].map(docRow).join(""):'<p class="t2-muted">Документов пока нет</p>')+'</div></section>'
+       ).join("")+'</div>';
+     html+='<h3>Запросы документов и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number","ved_request_logistic"].includes(t.task_type)).map(taskCard).join("")+'</div>';
      if(carrier&&x.status!=="completed"){
        html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
         field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small><small data-t2-selected-documents aria-live="polite">Выберите документ и нажмите «Направить запрос ВЭД».</small></label>',"Направить запрос ВЭД");
@@ -195,7 +213,7 @@
           "Направить задачу логисту"));
      }
      if(x.status!=="completed"){
-       html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, файлы сохраняются в документах перевозки; для отправки в переписке прикрепите их в разделе «Чаты по заявкам».</small></label>'+
+       html+='<h3>Загрузить документы в общий реестр</h3><form class="t2-form t2-doc-upload" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, файлы сохраняются в документах перевозки; для отправки в переписке прикрепите их в разделе «Чаты по заявкам».</small></label>'+
        (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)&&
         (t.task_type!=="ved_request_logistic"||state.role==="owner"||String(t.assigned_login||"").toLowerCase()===state.login)).map(t=>
         '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
@@ -292,8 +310,8 @@
            '<label class="t2-pto-cell" title="Дата завершения импортного таможенного оформления (Минск)"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
          '<button type="submit" class="t2-btn">Сохранить</button></form>'+
          '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
-         '<div class="t2-block-title">4. Номер контейнера</div>'+
-         '<form data-t2-form="container" class="t2-container-compact">'+
+         '<div class="t2-block-title">4. Контейнеры</div><p class="t2-muted">Единый раздел: все сохранённые номера отображаются здесь и используются при закрытии перевозки.</p>'+
+         '<div class="t2-container-existing">'+(cs.length?cs.map(c=>'<span class="t2-container-pill">'+esc(c.container_no)+'</span>').join(""):'<span class="t2-muted">Номеров пока нет</span>')+'</div>'+         '<form data-t2-form="container" class="t2-container-compact">'+
          '<label class="t2-pto-cell" style="min-width:0"><span>№ контейнера (необязательно)</span><input type="text" name="container_no" maxlength="50" placeholder="Введите номер контейнера" required style="width:100%;height:38px;min-width:0;box-sizing:border-box;background:#fff!important;color:#17243a!important;border:1px solid #cbd5e1!important;border-radius:8px!important;padding:0 12px!important;box-shadow:none!important;appearance:none!important;-webkit-text-fill-color:#17243a!important"></label>'+
          '<button type="submit" class="t2-btn">Сохранить</button></form>';
         // Склад — фактическое событие перевозчика после таможни, а НЕ новая задача ВЭД.
@@ -305,7 +323,7 @@
         }else if(x.warehouse_at)html+='<div class="t2-block-title">5. Прибытие груза на склад</div>'+readonly("Прибытие подтверждено",fmt(x.warehouse_at));
      }
      /* History of dates is shown directly above the new transfer fields. */
-     html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
+
      // Движение груза отображает только Global View вместе с историей контрольных точек.
      html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
      return html;
