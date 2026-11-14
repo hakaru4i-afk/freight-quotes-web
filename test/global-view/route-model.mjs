@@ -5,6 +5,7 @@ const split = value => clean(value).split(/\s*(?:\r?\n|→|->|;|\s+[–—-]\s+)
 
 const aliases = {
   'Шэньчжэнь': 'Shenzhen', 'Шенчжень': 'Shenzhen', '深圳': 'Shenzhen', '深圳市': 'Shenzhen',
+  'Ханчжоу': 'Hangzhou', '杭州': 'Hangzhou', '杭州市': 'Hangzhou',
   'Нинбо': 'Ningbo', '宁波': 'Ningbo', '宁波市': 'Ningbo',
   'Минск': 'Minsk', 'Мінск': 'Minsk', '明斯克': 'Minsk',
   'Шанхай': 'Shanghai', '上海': 'Shanghai', 'Гуанчжоу': 'Guangzhou', '广州': 'Guangzhou',
