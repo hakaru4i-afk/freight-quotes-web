@@ -82,7 +82,7 @@ test('QA-011: Owner request winner actions form one aligned desktop row and stac
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}});
-  await page.setContent('<style>body{margin:0}.cabinet-panel{width:1100px;margin:20px}.notice{padding:16px;background:#eaf5f2;border:1px solid #cee8df;border-radius:11px}</style>'+style+
+  await page.setContent('<style>body{margin:0}.cabinet-panel{width:min(1100px,calc(100vw - 40px));margin:20px}.notice{padding:16px;background:#eaf5f2;border:1px solid #cee8df;border-radius:11px}</style>'+style+
    '<section class="cabinet-app staff-portal" data-cabinet-role="owner"><div class="cabinet-panel" data-section="request-registry">'+
    '<div class="notice"><strong>Тестовый перевозчик №1 · test.carrier.alpha</strong>'+
    '<button>Чат с исполнителем</button><button>Победитель отказался от исполнения</button><button>Завершение перевозки / подтвердить доставку</button></div>'+
@@ -91,18 +91,20 @@ test('QA-011: Owner request winner actions form one aligned desktop row and stac
    '</div></section>');
   for(const selector of ['.notice:first-child','.winner-actions']){
    const row=page.locator(selector);
-   const metrics=await row.evaluate(el=>{const bs=[...el.querySelectorAll(':scope > button')];const rs=bs.map(b=>{const r=b.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scroll:b.scrollWidth,client:b.clientWidth}});return{display:getComputedStyle(el).display,rs,overflow:el.scrollWidth>el.clientWidth+1};});
+   const metrics=await row.evaluate(el=>{const bs=[...el.querySelectorAll(':scope > button')];const rs=bs.map(b=>{const r=b.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scroll:b.scrollWidth,client:b.clientWidth}});return{display:getComputedStyle(el).display,rs,overflow:el.scrollWidth>el.clientWidth+1,pageOverflow:document.documentElement.scrollWidth>innerWidth+1};});
    assert.equal(metrics.display,'flex',selector+' must be a flex action row');
    assert.equal(metrics.rs.length,3,selector+' must contain three actions');
    assert.ok(Math.max(...metrics.rs.map(x=>x.y))-Math.min(...metrics.rs.map(x=>x.y))<=1,selector+' desktop buttons must share one row');
    assert.ok(metrics.rs.every(x=>x.height>=44&&x.width>0&&x.scroll<=x.client+1),selector+' buttons must be readable without horizontal overflow');
    assert.equal(metrics.overflow,false,selector+' must not overflow its card');
+   assert.equal(metrics.pageOverflow,false,selector+' desktop page must not overflow');
   }
   await page.setViewportSize({width:390,height:844});
   for(const selector of ['.notice:first-child','.winner-actions']){
-   const row=page.locator(selector);const metrics=await row.evaluate(el=>{const bs=[...el.querySelectorAll(':scope > button')];return{width:el.clientWidth,scroll:el.scrollWidth,rs:bs.map(b=>{const r=b.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scroll:b.scrollWidth,client:b.clientWidth}})};});
+   const row=page.locator(selector);const metrics=await row.evaluate(el=>{const bs=[...el.querySelectorAll(':scope > button')];return{width:el.clientWidth,scroll:el.scrollWidth,pageOverflow:document.documentElement.scrollWidth>innerWidth+1,rs:bs.map(b=>{const r=b.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,scroll:b.scrollWidth,client:b.clientWidth}})};});
    assert.equal(metrics.rs.length,3);
    assert.ok(metrics.scroll<=metrics.width+1,selector+' mobile card must not overflow');
+   assert.equal(metrics.pageOverflow,false,selector+' mobile page must not overflow');
    assert.ok(metrics.rs.every(x=>x.width>=300&&x.scroll<=x.client+1),selector+' mobile actions must use full readable width');
    assert.ok(metrics.rs[0].y<metrics.rs[1].y&&metrics.rs[1].y<metrics.rs[2].y,selector+' mobile actions must stack in order');
   }
