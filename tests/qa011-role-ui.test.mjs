@@ -82,7 +82,7 @@ test('QA-011: Owner request winner actions form one aligned desktop row and stac
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}});
-  await page.setContent('<style>body{margin:0}.cabinet-panel{width:min(1100px,calc(100vw - 40px));margin:20px}.notice{padding:16px;background:#eaf5f2;border:1px solid #cee8df;border-radius:11px}</style>'+style+
+  await page.setContent('<style>body{margin:0}.cabinet-panel{width:min(1100px,calc(100vw - 40px));margin:20px}.notice{padding:16px;background:#eaf5f2;border:1px solid #cee8df;border-radius:11px}</style><style>'+style+'</style>'+
    '<section class="cabinet-app staff-portal" data-cabinet-role="owner"><div class="cabinet-panel" data-section="request-registry">'+
    '<div class="notice"><strong>Тестовый перевозчик №1 · test.carrier.alpha</strong>'+
    '<button>Чат с исполнителем</button><button>Победитель отказался от исполнения</button><button>Завершение перевозки / подтвердить доставку</button></div>'+
