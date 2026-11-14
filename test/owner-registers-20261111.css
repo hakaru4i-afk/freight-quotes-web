@@ -8,6 +8,7 @@
 #ow-workspace :is(button,input,select,textarea,a):focus-visible{outline:3px solid #9adbef;outline-offset:3px}
 #ow-workspace button:disabled{background:#38536c;color:#fff;cursor:wait}
 .ow-toolbar input[type="search"]{flex:1;min-width:180px}.ow-source{font-size:12px;word-break:break-all}
+#ow-workspace>.ow-extra-filters>summary{color:var(--portal-dark-ink,#edf6ff)}
 .ow-record{background:#fff;color:#18344f;border:1px solid #aebfcd;border-radius:9px;padding:12px;margin:10px 0}
 .ow-record pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:13px/1.6 ui-monospace,monospace;color:inherit;max-width:100%}
 .ow-record summary{cursor:pointer;font-weight:650}.ow-editor-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 240px;gap:12px}
@@ -32,6 +33,7 @@
 #ow-workspace .ow-live-board h3{font-size:19px;line-height:1.3;color:#15354c;margin:0 76px 4px 0}
 #ow-workspace .ow-work-count{position:absolute;right:18px;top:15px;background:#dceee8;color:#11593f;min-width:43px;text-align:center;border-radius:10px;padding:8px;font-size:22px}
 #ow-workspace .ow-board-help{color:#3b5871!important;font-size:14px;margin:7px 0 13px;line-height:1.45}
+#ow-workspace>.ow-board-help{color:var(--portal-dark-ink,#edf6ff)!important}
 #ow-workspace .ow-work-error{color:#7e2834!important}
 #ow-workspace .ow-work-success{color:#126342!important;font-weight:700}
 #ow-workspace .ow-active-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:12px 0}
