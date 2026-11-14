@@ -205,7 +205,7 @@
        '<label class="t2-field"><span>Уточнение (необязательно)</span><textarea name="description" rows="2" placeholder="Дополнительные требования к документу"></textarea></label>'+
        '<button class="t2-btn" type="submit">'+esc(button)+'</button><div class="t2-request-feedback" role="status" aria-live="polite"></div></form>';
      const upload=(key,choices)=>{
-       const options=choices.length?'<option value="">Без привязки к запросу</option>'+choices.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description||"Запрос")+'</option>').join(""):'<option value="">Общие документы перевозки</option>';
+       const options=choices.length?choices.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description||"Запрос")+'</option>').join("")+'<option value="">Не относится к запросу</option>':'<option value="">Общие документы перевозки</option>';
        return '<form class="t2-form t2-doc-form" data-t2-form="upload">'+
          '<input type="hidden" name="category" value="'+key+'">'+
          '<label class="t2-field"><span>Выберите файлы</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото; до 10 МБ на файл</small></label>'+
