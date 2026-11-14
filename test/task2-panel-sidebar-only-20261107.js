@@ -184,12 +184,12 @@
        const login=String(f.uploaded_by||f.uploaded_by_login||f.author_role||f.role||"").toLowerCase();
        if(/owner|владел|request_file|initial|customer/.test(category+" "+login))return "owner";
        if(/ved|вэд|logistic|логист/.test(category+" "+login))return "ved";
-       if(/carrier|перевоз|transport/.test(category+" "+login))return "carrier";
+       if(/carrier|перевоз/.test(category+" "+login))return "carrier";
        return "other";
      };
      const groupedDocs={owner:[],ved:[],carrier:[],other:[]};
      allDocs.forEach(f=>groupedDocs[sourceOf(f)].push(f));
-     const docRow=f=>'<div class="t2-item t2-document-item"><div><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.category||"Документ перевозки")+'</small></div><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
+     const docRow=f=>'<div class="t2-item t2-document-item"><div><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.uploaded_at?fmt(f.uploaded_at):"Документ перевозки")+'</small></div><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
      let html='<h3>Реестр документов перевозки</h3><p class="t2-muted">Файлы привязаны к этой перевозке. Владелец, ВЭД и назначенный перевозчик видят общий комплект с соблюдением серверных прав доступа.</p>'+
        '<div class="t2-docs-overview">'+[
          ["owner","Документы владельца"],["ved","Документы ВЭД"],["carrier","Документы перевозчика"],["other","Другие документы"]
