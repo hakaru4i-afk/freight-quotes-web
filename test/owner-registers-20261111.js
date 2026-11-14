@@ -22,7 +22,7 @@ const short=(x,max=190)=>plain(x).slice(0,max);
 const archiveMarker=(id,recordId)=>'[ARCHIVE:'+id+':'+recordId+']';
 const taskFor=(id,recordId)=>{
  const row=source?.records?.find(x=>x.id===recordId),marker=row?.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
- return workItems.find(x=>String(x.description||'').includes(archiveMarker(id,recordId))||marker&&String(x.description||'').includes(marker));
+ return workItems.find(x=>x.sender_role==='owner'&&(String(x.description||'').includes(archiveMarker(id,recordId))||marker&&String(x.description||'').includes(marker)));
 };
 function statusLabel(code,releaseStatus){
  const w=workWords[locale()],r=String(releaseStatus||'').toUpperCase(),s=String(code||'').toUpperCase();

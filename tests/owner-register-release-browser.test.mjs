@@ -19,7 +19,7 @@ test('Owner confirms a readable task, reloads it and filters without moving cont
    if(req.method==='GET'){send(res,{ok:true,owner:true,items,events,hasMore:false});return;}
    let raw='';for await(const chunk of req)raw+=chunk;const body=JSON.parse(raw);writes.push(body);
    assert.deepEqual(body,{action:'start_register',register:'remarks',recordId:record.id});
-   if(!items.length){items.push({id:'work-one',code:'IM-2026-000001',status:'in_progress',description:record.title+'\n[WORK:'+record.sourceTaskKey+']'});events.push({request_id:'work-one',description:'Владелец взял задачу в работу',actor_login:'test-owner',created_at:'2026-11-14T13:00:00Z'});}
+   if(!items.length){items.push({id:'work-one',sender_role:'owner',code:'IM-2026-000001',status:'in_progress',description:record.title+'\n[WORK:'+record.sourceTaskKey+']'});events.push({request_id:'work-one',description:'Владелец взял задачу в работу',actor_login:'test-owner',created_at:'2026-11-14T13:00:00Z'});}
    send(res,{ok:true,item:items[0],message:'Задача взята в работу'});return;
   }
   res.setHeader('content-type','text/html');res.end(pageHtml);
