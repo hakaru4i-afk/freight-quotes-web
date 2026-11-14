@@ -44,3 +44,6 @@ body:has(.cycle-landing) .language-control > span[aria-hidden="true"]{display:no
 #lw-owner-inquiries .lw-inquiry .lw-take-cooperation:hover{background:#12583f}
 #lw-owner-inquiries .lw-inquiry .lw-take-cooperation:focus-visible{outline:3px solid #79cfe2;outline-offset:2px}
 #lw-owner-inquiries .lw-inquiry .lw-take-cooperation:disabled{cursor:wait;opacity:.65}
+
+/* QA-019: the dedicated registry supplies its single shared heading. */
+#ow-cooperation-screen #lw-owner-inquiries .lw-owner-head-actions{justify-content:flex-end}

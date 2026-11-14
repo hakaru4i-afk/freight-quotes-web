@@ -8,7 +8,7 @@ const isNumber=v=>typeof v==="number"&&Number.isFinite(v)||typeof v==="string"&&
 const fmt=v=>isNumber(v)?Number(v).toLocaleString("ru-RU"):"—";
 const short=v=>String(v??"").trim().slice(0,90);
 const localDate=v=>{if(!v)return "—";const d=new Date(v);return Number.isNaN(+d)?"—":d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Minsk"})};
-const statusText=v=>({new:"Новая",open:"Открыта",accepted:"В работе",approved:"Допущена",selected:"Победитель выбран",awarded:"Победитель выбран",completed:"Завершено",archived:"Архив",annulled:"Аннулирована",pending:"Ожидает решения",active:"Активна",in_progress:"В работе",rejected:"Отклонена",no_response:"Нет ответа"})[String(v||"").toLowerCase()]||short(v)||"—";
+const statusText=v=>({new:"Новая",open:"Открыта",accepted:"В работе",approved:"Допущена",selected:"Победитель выбран",awarded:"Победитель выбран",completed:"Завершено",archived:"Архив",annulled:"Аннулирована",pending:"Ожидает решения",active:"Активна",in_progress:"В работе",waiting_container:"Ожидается номер контейнера",claim:"Претензия",rejected:"Отклонена",no_response:"Нет ответа"})[String(v||"").toLowerCase()]||short(v)||"—";
 const icon=s=>'<span class="lw-cc-icon" aria-hidden="true">'+s+'</span>';
 let state={workload:null,registry:null,shipments:null,sl:null,development:null,errors:[],loading:false,tab:"requests",updated:null};
 let queued=false,hasLoaded=false,inFlight=false;
