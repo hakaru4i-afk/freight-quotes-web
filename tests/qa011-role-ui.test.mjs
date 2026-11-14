@@ -77,7 +77,7 @@ test('QA-013: shared chat has readable colors for body, inputs and buttons',()=>
 
 test('QA-011: Owner request winner actions form one aligned desktop row and stack on mobile',async()=>{
  const html=read('index.html');
- const style=html.match(/<style id="qa011-owner-winner-actions">([\\s\\S]*?)<\\/style>/)?.[1];
+ const style=html.match(/<style id="qa011-owner-winner-actions">([\s\S]*?)<\/style>/)?.[1];
  assert.ok(style,'Owner winner action layout must be included in staging HTML');
  const browser=await chromium.launch({headless:true});
  try{
