@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "2eb67bffc0d06e1ac2f5",
+  "version": "8538e5090c0121a73f09",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "02d1d8a97a09aaf0d2264418c055cf5ee6178566",
+  "servedAppBlobSha": "10abcb8719fb4cedb84ddd1da1e6bb9fe025d7bb",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "02d1d8a97a09aaf0d2264418c055cf5ee6178566",
-        "sha256": "dcb8c27aea3a122a15343cf6af72d5a83831a95729dcd4574a0c70261cef7753"
+        "gitBlob": "10abcb8719fb4cedb84ddd1da1e6bb9fe025d7bb",
+        "sha256": "db947a30349346530e01f8f0a120a1962154d6d90170007a89454a87b24313aa"
       },
       "task2-panel.js": {
         "gitBlob": "494213de2aea391fb68e6b855c67757af28ce5a4",
@@ -574,12 +574,12 @@
     "blobSha": "dae8afc0e6a4fba7c3af1c21c93c0964b76f17cb",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "2eb67bffc0d06e1ac2f5",
+  "stagingAssetBuildId": "8538e5090c0121a73f09",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "dcb8c27aea3a122a15343cf6af72d5a83831a95729dcd4574a0c70261cef7753",
+    "app.js": "db947a30349346530e01f8f0a120a1962154d6d90170007a89454a87b24313aa",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "395874b4060edf9e6abbe9031c5e63c398b3160b7de0c13731fd0f1776f43736",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -673,7 +673,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-14T05:17:24.467Z",
+  "assetBuildRecordedAt": "2026-11-14T05:37:34.628Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,
@@ -724,5 +724,27 @@
     "qaBundleSha256": "572ec3e08462cf08875fe1a2266939e45f3deff64a83c011b463245846a8cae4",
     "verificationScope": "HISTORICAL_FEATURE_EVIDENCE",
     "currentRuntimeRef": "stabilizationQa20261110"
+  },
+  "visualAssetSha256": {
+    "business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
+    "global-view/earth-day.webp": "ff7e35389fcd5fa9dcbe66469098819b28b1f4b73638941fdb5e9f486ae9e7b3",
+    "global-view/earth-night.webp": "ad87150733e79b5c322909e8be6d49b8719bf8c6d83bea19c95c4ad5720891f2",
+    "global-view/images/layers-2x.png": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+    "global-view/images/layers.png": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+    "global-view/images/marker-icon-2x.png": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+    "global-view/images/marker-icon.png": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+    "global-view/images/marker-shadow.png": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+    "logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
+    "lw-approved-freight-20261108.jpg": "eb6040a190d21153a131a0c2469a862a044b073965f9bf719c271b779bf914a3",
+    "lw-approved-globe-20261108.jpg": "3c4175d18687a5e6a658ffafd3c4cbf153ee0061de209dbc4e5ca0aeebcc63c3",
+    "lw-approved-plane-20261108.jpg": "1674b46a2ddb35f3cabd3b4e93d6b42dfd7503d79dd7baa531b53703a4d20eeb",
+    "lw-premium-globe-20261108.svg": "c5b67c7d1d1111e58fe62055b86d2cad5e3872168a8f0d1437a93adc0bc179be",
+    "lw2-hero-20261107.svg": "9676ddca044289e46e42fb904b257d9e67979c452f652085bd100922a0b5e036",
+    "owner-command-hero-20261108.svg": "3abeddac0d726f2437a405732d686a0a0f15234efa5c8f877b91d6a4a5249fce",
+    "protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+    "qa-20261101a/logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
+    "qa-20261101a/protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+    "qa-issue43/logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
+    "qa-issue43/protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280"
   }
 }
