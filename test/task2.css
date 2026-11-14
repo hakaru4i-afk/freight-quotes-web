@@ -126,3 +126,44 @@
   #task2-root .t2-list-filters {display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
   #task2-root .t2-list-filters button {min-width:0!important;white-space:normal!important}
 }
+
+
+/* QA-DOCS-IN-CARD-14NOV: one-screen document overview, source-scoped actions. */
+#task2-root [data-t2-section="documents"]{padding:12px 14px!important;min-height:0!important}
+#task2-root [data-t2-section="documents"]>h3{font-size:18px!important;line-height:1.3;margin:0 0 7px!important}
+#task2-root .t2-docs-note{font-size:12px!important;line-height:1.45;margin:0 0 10px!important}
+#task2-root .t2-docs-overview{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+#task2-root .t2-docs-group{min-width:0;background:#f9fbfa!important;border:1px solid #d3e2dc!important;border-radius:11px!important;padding:10px 12px!important}
+#task2-root .t2-docs-group-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px}
+#task2-root .t2-docs-group-head h4{font-size:16px!important;line-height:1.25;margin:0!important;color:#183c35!important;font-weight:750}
+#task2-root .t2-doc-count{font-size:11px;background:#e2f2eb;color:#1c5346;padding:3px 8px;border-radius:99px;white-space:nowrap}
+#task2-root .t2-doc-empty{margin:5px 0!important;font-size:12px!important}
+#task2-root .t2-docs-list{display:grid;gap:5px;min-width:0}
+#task2-root .t2-document-item{display:flex!important;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:7px 9px!important;margin:0!important;border:1px solid #e1e9e4!important;border-radius:7px!important;background:#fff}
+#task2-root .t2-document-item>span{flex:1;min-width:150px;overflow-wrap:anywhere}
+#task2-root .t2-document-item strong{font-size:13px!important}
+#task2-root .t2-document-item small{display:block;color:#526c64;font-size:11px}
+#task2-root .t2-document-item .t2-btn{font-size:12px!important;min-height:32px!important;padding:5px 10px!important}
+#task2-root .t2-doc-actions{display:flex;flex-wrap:wrap;align-items:flex-start;gap:7px;margin-top:7px}
+#task2-root .t2-doc-action{min-width:0;flex:0 1 auto}
+#task2-root .t2-doc-action[open]{flex:1 1 100%}
+#task2-root .t2-doc-action>summary{display:list-item;list-style:revert;cursor:pointer;border:1px solid #9fbfb6;background:#fff;color:#155743;font-size:12px;font-weight:700;line-height:1.35;padding:7px 12px;border-radius:8px}
+#task2-root .t2-doc-action>summary:hover{background:#eef6f2}
+#task2-root .t2-doc-action>summary:focus-visible,#task2-root .t2-doc-tasks>summary:focus-visible{outline:3px solid #b98f31;outline-offset:2px}
+#task2-root .t2-doc-form{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px!important;margin:7px 0 0!important;padding:10px!important;background:#fff!important}
+#task2-root .t2-doc-form .t2-field{min-width:0;max-width:100%;margin:0!important}
+#task2-root .t2-doc-form .t2-field>span{font-size:12px;font-weight:650}
+#task2-root .t2-doc-form input,#task2-root .t2-doc-form select,#task2-root .t2-doc-form textarea{box-sizing:border-box!important;max-width:100%;width:100%;min-width:0!important;min-height:38px!important;padding:7px 9px!important;background:#fff!important;color:#173b33!important;-webkit-text-fill-color:#173b33!important}
+#task2-root .t2-doc-form>button{justify-self:start;font-size:12px!important}
+#task2-root .t2-doc-tasks,#task2-root .t2-doc-more,#task2-root .t2-doc-unclassified{margin-top:6px;font-size:12px}
+#task2-root .t2-doc-tasks>summary,#task2-root .t2-doc-more>summary,#task2-root .t2-doc-unclassified>summary{color:#385d54;cursor:pointer;font-weight:650;padding:5px 0}
+#task2-root .t2-doc-tasks>summary span{color:#8d5313}
+#task2-root .t2-doc-tasks .t2-item{margin:4px 0!important;padding:7px 9px!important;font-size:12px}
+#task2-root .t2-doc-unclassified{padding:6px 10px;border:1px dashed #a9bcb5;border-radius:8px}
+@media(max-width:680px){
+ #task2-root [data-t2-section="documents"]{padding:9px!important}
+ #task2-root .t2-doc-form{grid-template-columns:minmax(0,1fr)!important}
+ #task2-root .t2-doc-action[open],#task2-root .t2-doc-action>summary{width:100%;box-sizing:border-box}
+ #task2-root .t2-docs-group{padding:9px!important}
+ #task2-root .t2-document-item{align-items:flex-start}
+}
