@@ -9,6 +9,16 @@ const node = (tag, className, text) => {
 };
 const icons = { rail: '▤', road: '▰', sea: '⚓', air: '✈', multi: '⇄', unknown: '◇' };
 let cities;
+let carrierDataPromise;
+const autoGeocodeAttempts = new Set();
+function loadCarrierData() {
+  return carrierDataPromise ??= fetch('/api/carrier', { credentials: 'same-origin', cache: 'no-store' })
+    .then(async response => {
+      if (!response.ok) throw Error('Carrier route data unavailable');
+      return response.json();
+    })
+    .catch(error => { carrierDataPromise = null; throw error; });
+}
 function loadCities() {
   return cities ??= fetch(new URL('./places.json', import.meta.url)).then(response => {
     if (!response.ok) throw Error('City data unavailable');
@@ -41,7 +51,65 @@ class GlobalRouteView extends HTMLElement {
     const language=/^zh/i.test(document.documentElement.lang)?'zh':/^en/i.test(document.documentElement.lang)?'en':'ru';
     const t=(ru,en,zh)=>({ru,en,zh})[language];
     const numberLocale={ru:'ru-RU',en:'en-US',zh:'zh-CN'}[language];
-    const [request, offer, inputTracking, distance, plannedGeocodes] = JSON.parse(this.dataset.route ?? '[{},null]');
+    let [request, offer, inputTracking, distance, plannedGeocodes] = JSON.parse(this.dataset.route ?? '[{},null]');
+    const isCarrier = request.viewerRole === 'carrier' || Boolean(document.querySelector('.carrier-portal'));
+    let carrierEntry = null;
+    let carrierOrderCode = String(request.orderCode || request.order_code || this.dataset.orderCode || '').trim();
+    let carrierApiLoaded = false;
+    if (isCarrier) {
+      try {
+        const data = await loadCarrierData();
+        if (signal.aborted) return;
+        const notifications = data.notifications || [];
+        carrierEntry = carrierOrderCode
+          ? notifications.find(item => String(item.order_code || '').toUpperCase() === carrierOrderCode.toUpperCase())
+          : null;
+        if (!carrierEntry) {
+          for (let ancestor = this.parentElement; ancestor && !carrierEntry; ancestor = ancestor.parentElement) {
+            const text = ancestor.innerText || ancestor.textContent || '';
+            const matches = notifications.filter(item => item.order_code && text.includes(item.order_code));
+            if (matches.length === 1) carrierEntry = matches[0];
+          }
+        }
+        if (!carrierEntry) {
+          const normalize = value => String(value || '').normalize('NFKC').toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
+          carrierEntry = notifications.find(item =>
+            normalize(item.origin) === normalize(request.origin) &&
+            normalize(item.destination) === normalize(request.destination)
+          ) || null;
+        }
+        if (carrierEntry) {
+          carrierOrderCode = carrierEntry.order_code;
+          request = { ...request, orderCode: carrierOrderCode, viewerRole: 'carrier' };
+          const ownBid = (data.bids || []).find(item => item.round_id === carrierEntry.round_id);
+          if (!offer && ownBid) offer = ownBid;
+          if (!plannedGeocodes) plannedGeocodes = carrierEntry.plannedGeocodes || ownBid?.plannedGeocodes || null;
+          carrierApiLoaded = true;
+        }
+      } catch { /* Keep the offline city preview if the carrier API is unavailable. */ }
+    }
+    const hasUnresolved = value => [...(value?.owner || []), ...(value?.offer || [])].some(point => point.status === 'needs_details');
+    if (isCarrier && carrierOrderCode && carrierEntry && (!plannedGeocodes || !plannedGeocodes.owner?.length || hasUnresolved(plannedGeocodes))) {
+      const attemptKey = 'carrier:' + carrierOrderCode;
+      if (!autoGeocodeAttempts.has(attemptKey)) {
+        autoGeocodeAttempts.add(attemptKey);
+        try {
+          const response = await fetch('/api/carrier', {
+            method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'refresh_geocodes', order_code: carrierOrderCode }), signal
+          });
+          const result = await response.json();
+          if (response.ok && result.plannedGeocodes) {
+            plannedGeocodes = result.plannedGeocodes;
+            carrierEntry.plannedGeocodes = plannedGeocodes;
+          } else {
+            autoGeocodeAttempts.delete(attemptKey);
+          }
+        } catch {
+          autoGeocodeAttempts.delete(attemptKey);
+        }
+      }
+    }
     const tracking=Array.isArray(inputTracking)?[...inputTracking].sort((a,b)=>Date.parse(a.observed_at)-Date.parse(b.observed_at)||String(a.recorded_at||'').localeCompare(String(b.recorded_at||''))||String(a.id||'').localeCompare(String(b.id||''))):null;
     const hero = node('div', 'gv-hero');
     const header = node('header', 'gv-header');
@@ -86,24 +154,17 @@ class GlobalRouteView extends HTMLElement {
       const point=(source||[]).find(p=>p.original_text===label||p.label===label);
       return point?.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon)?{lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id}:null;
     }:placeIndex(places);
-    const correction=(record,source)=>{
-      const canChange=request.viewerRole==='owner'||request.viewerRole==='carrier'&&source!=='owner';
-      if(!record?.id||!canChange)return null;
-      const details=node('details','gv-geocode-edit'),form=node('form','gv-geocode-form');form.dataset.geoId=record.id;
-      details.append(node('summary','','Уточнить геоточку'));form.append(node('small','','Исходный адрес сохраняется; уточнение и подтверждение записываются в аудит.'));
-      if(record.candidates?.length){const select=node('select','');select.name='candidateId';select.setAttribute('aria-label','Выберите подтверждённый результат');select.append(new Option('Выберите подтверждённый результат',''));for(const c of record.candidates)select.append(new Option((c.label||c.candidateId)+(c.objectType?' · '+c.objectType:''),c.candidateId));form.append(select);}
-      const query=node('input','');query.name='queryText';query.placeholder='Уточнение: страна, город, объект';query.maxLength=350;query.setAttribute('aria-label',query.placeholder);
-      const reason=node('input','');reason.name='reason';reason.placeholder='Причина уточнения';reason.setAttribute('aria-label',reason.placeholder);reason.minLength=10;reason.maxLength=700;
-      const label=node('label',''),check=node('input','');check.type='checkbox';check.name='confirmed';label.append(check,document.createTextNode(' Подтверждаю уточнение'));
-      const save=node('button','','Сохранить уточнение');save.type='submit';const retry=node('button','','Повторить геокодирование');retry.type='button';retry.dataset.geoRetry=record.id;
-      form.append(query,reason,label,save,retry);details.append(form);return details;
-    };
-    this.addEventListener('submit',async event=>{const form=event.target.closest('.gv-geocode-form');if(!form)return;event.preventDefault();const data=Object.fromEntries(new FormData(form));await updatePoint(form,{pointId:form.dataset.geoId,queryText:data.queryText,candidateId:data.candidateId,reason:data.reason,confirmed:data.confirmed==='on'});},{signal});
-    this.addEventListener('click',async event=>{const button=event.target.closest('[data-geo-retry]');if(button){event.preventDefault();await updatePoint(button.closest('form'),{pointId:button.dataset.geoRetry});}},{signal});
-    async function updatePoint(form,data){const buttons=[...form.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);let status=form.querySelector('[role="status"]');if(!status){status=node('p','');status.setAttribute('role','status');form.append(status);}status.textContent='Сохраняем…';try{const r=await fetch('/api/task2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_retry',order:request.orderCode,...data})});const result=await r.json();if(!r.ok)throw Error(result.error||'Ошибка геокодирования');status.textContent='Сохранено';window.dispatchEvent(new Event('map-geocodes-changed'));}catch(e){status.textContent=e.message;}finally{buttons.forEach(b=>b.disabled=false);}}
+    const correction=()=>null;
     const route = routeModel(request, offer, resolve);
-    if(plannedGeocodes&&!plannedGeocodes.owner?.length&&['owner','carrier'].includes(request.viewerRole)){
-      const button=node('button','','Определить координаты маршрута');button.type='button';button.addEventListener('click',async()=>{button.disabled=true;try{const r=await fetch('/api/task2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_route',order:request.orderCode})});const d=await r.json();if(!r.ok)throw Error(d.error);window.dispatchEvent(new Event('map-geocodes-changed'));}catch(e){button.textContent=e.message;button.disabled=false;}},{signal});info.append(button);
+    if(!carrierApiLoaded && plannedGeocodes && !plannedGeocodes.owner?.length && ['owner','carrier'].includes(request.viewerRole) && request.orderCode){
+      const attemptKey='task2:'+request.orderCode;
+      if(!autoGeocodeAttempts.has(attemptKey)){
+        autoGeocodeAttempts.add(attemptKey);
+        fetch('/api/task2',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_route',order:request.orderCode}),signal})
+          .then(async response=>{const result=await response.json();if(!response.ok)throw Error(result.error||'Не удалось определить координаты');return result;})
+          .then(()=>window.dispatchEvent(new Event('map-geocodes-changed')))
+          .catch(()=>autoGeocodeAttempts.delete(attemptKey));
+      }
     }
     this.routeSnapshot=JSON.parse(JSON.stringify(route));
     this.dataset.coordinateSource=plannedGeocodes?'server':'city-preview';
