@@ -22,7 +22,7 @@ test('shared shipment documents have origin sections without duplicate rows',()=
 });
 test('staging loads aligned forms and current script version',()=>{
   assert.match(html,/task2-execution-layout-20261114\.css/);
-  assert.match(html,/task2-panel-sidebar-only-20261107\.js\?v=1ab6db2ba041/);
+  assert.match(html,/task2-panel-sidebar-only-20261107\.js\?v=35a90afe5716/);
   assert.match(css,/t2-actual-row/);
   assert.match(css,/t2-document-item/);
 });
