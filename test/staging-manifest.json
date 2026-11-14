@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "7401c3256ecf591144a3d686923a1d1c42127478",
+  "frontendCommit": "8c27ff0cb1b3652d1f0f23f68c596fbd8a56c733",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
@@ -122,7 +122,7 @@
     "test/global-view/view.mjs": "69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "73874d33e34a1d2997d9599ba319563dccdfe6674decceb9a030cb31bc9be574",
+    "test/index.html": "5cda35e20f73a5ecb94b2ec6ca502026e1a011596d4292f0e5789bbe295054a9",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
     "test/late-bid-staging.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
