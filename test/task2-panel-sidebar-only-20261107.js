@@ -224,7 +224,7 @@
          controls+=action("Загрузить документ",upload(key,[]));
        if(active&&key==="ved"){
          if(carrier)controls+=action("Запросить документ у ВЭД",request("request_docs","Направить запрос ВЭД"));
-         if(staff)controls+=action("Загрузить документ",upload(key,items.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)&&!["completed","cancelled"].includes(t.status))));
+         if(["ved","logistic"].includes(state.role))controls+=action("Загрузить документ",upload(key,items.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)&&!["completed","cancelled"].includes(t.status))));
          if(["ved","logistic"].includes(state.role)&&(state.logistics||[]).length)
            controls+=action("Запросить документ у логиста",request("ved_logistic_docs","Направить логисту",
              '<label class="t2-field"><span>Исполнитель</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
