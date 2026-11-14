@@ -64,10 +64,11 @@ test("carrier acceptance remains a single actionable panel through container rer
     await page.evaluate(()=>{location.hash="#overview"});
     await page.evaluate(()=>{location.hash="#carrier-orders"});
     await page.waitForFunction(()=>document.querySelectorAll("#carrier-awarded-workflow [data-flow-action='take']").length===1);
-    await page.evaluate(()=>{window.confirm=()=>true});
+    await page.evaluate(()=>{window.__confirmCalls=0;window.confirm=()=>{window.__confirmCalls++;return true}});
     await page.locator("#carrier-awarded-workflow [data-flow-action='take']").click();
     await page.waitForFunction(()=>location.hash==="#approved-shipments");
     assert.equal(takeCalls,1,"one acceptance API mutation");
+    assert.equal(await page.evaluate(()=>window.__confirmCalls),0,"acceptance must not open a confirmation dialog");
     assert.ok(reads>=2,"load and refresh ran");
     assert.deepEqual(errors,[],"browser errors");
     assert.equal(await page.locator("#carrier-awarded-workflow").count(),1,"post-acceptance no duplicate");
