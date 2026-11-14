@@ -8,7 +8,7 @@ const js=readFileSync('test/owner-registers-20261111.js'),css=readFileSync('test
 const record={id:'ISSUE-web-60',sourceTaskKey:'github:freight-quotes-web:60',register:'remarks',title:'Перевозка не появляется у ВЭД после принятия',area:'Исполнение перевозок',roles:['carrier','logistic'],description:'Перевозчик принял перевозку, но ВЭД не видит её в списке активных.',expected:'Показывать принятую перевозку ВЭД автоматически.',impact:'ВЭД не может вовремя проверить документы.',reason:'Не задерживать оформление.',priority:'P0',status:'awaiting_decision',detectedAt:'2026-11-14T12:00:00Z',version:'SH-01.30.52 v',responsible:'Codex',verification:'Проверка рабочего выпуска ещё не выполнена.',technical:{issue:'https://github.com/hakaru4i-afk/freight-quotes-web/issues/60',cause:'Technical hidden cause'}};
 const pageHtml='<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/style"><div id="root"><div class="cabinet-app" data-cabinet-role="owner"><aside class="cabinet-sidebar"><nav></nav></aside><main class="cabinet-content"></main></div></div><script src="/script"></script></html>';
 test('Owner confirms a readable task, reloads it and filters without moving controls; mobile390',async t=>{
- const items=[],writes=[],events=[];
+ const items=[{id:'untrusted',sender_role:'carrier',status:'in_progress',description:'Untrusted feedback [WORK:github:freight-quotes-web:60]'}],writes=[],events=[];
  const send=(res,data)=>{res.setHeader('content-type','application/json');res.end(JSON.stringify(data));};
  const server=createServer(async(req,res)=>{
   const url=new URL(req.url,'http://local');
@@ -19,8 +19,8 @@ test('Owner confirms a readable task, reloads it and filters without moving cont
    if(req.method==='GET'){send(res,{ok:true,owner:true,items,events,hasMore:false});return;}
    let raw='';for await(const chunk of req)raw+=chunk;const body=JSON.parse(raw);writes.push(body);
    assert.deepEqual(body,{action:'start_register',register:'remarks',recordId:record.id});
-   if(!items.length){items.push({id:'work-one',sender_role:'owner',code:'IM-2026-000001',status:'in_progress',description:record.title+'\n[WORK:'+record.sourceTaskKey+']'});events.push({request_id:'work-one',description:'Владелец взял задачу в работу',actor_login:'test-owner',created_at:'2026-11-14T13:00:00Z'});}
-   send(res,{ok:true,item:items[0],message:'Задача взята в работу'});return;
+   if(!items.some(x=>x.sender_role==='owner')){items.push({id:'work-one',sender_role:'owner',code:'IM-2026-000001',status:'in_progress',description:record.title+'\n[WORK:'+record.sourceTaskKey+']'});events.push({request_id:'work-one',description:'Владелец взял задачу в работу',actor_login:'test-owner',created_at:'2026-11-14T13:00:00Z'});}
+   send(res,{ok:true,item:items.find(x=>x.sender_role==='owner'),message:'Задача взята в работу'});return;
   }
   res.setHeader('content-type','text/html');res.end(pageHtml);
  });
@@ -37,7 +37,7 @@ test('Owner confirms a readable task, reloads it and filters without moving cont
  await card.getByRole('button',{name:'Взять в работу',exact:true}).click();await page.getByRole('dialog').getByRole('button',{name:'Отмена'}).click();assert.equal(writes.length,0);
  await card.getByRole('button',{name:'Взять в работу',exact:true}).click();assert.match(await page.getByRole('dialog').innerText(),/ВЭД не может вовремя/);await page.getByRole('dialog').getByRole('button',{name:'Подтвердить',exact:true}).click();
  await card.getByText('Задача уже находится в работе').waitFor();assert.equal(writes.length,1);
- await page.reload();await page.locator('.ow-human-status[data-state="working"]').waitFor();assert.equal(await card.getByRole('button',{name:'Взять в работу',exact:true}).count(),0);assert.equal(items.length,1);
+ await page.reload();await page.locator('.ow-human-status[data-state="working"]').waitFor();assert.equal(await card.getByRole('button',{name:'Взять в работу',exact:true}).count(),0);assert.equal(items.filter(x=>x.sender_role==='owner').length,1);assert.equal(items.find(x=>x.id==='untrusted').status,'in_progress');
  await card.getByText('История изменений',{exact:true}).click();assert.match(await card.innerText(),/Владелец взял задачу в работу/);
  await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
  await page.screenshot({path:'/tmp/owner-register-release-mobile.png',fullPage:true});assert.deepEqual(errors,[]);
