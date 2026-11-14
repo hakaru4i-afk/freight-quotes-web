@@ -28,7 +28,7 @@ async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDa
     const fields=payload.fields||{};
     if(fields.new_plan_date)detail.plans.push({planned_departure:fields.new_plan_date,reason:fields.new_plan_reason||""});
     if(fields.actual_departure)state.actual_departure=fields.actual_departure;
-    if(fields.pto_yes&&!state.pto_at){state.pto_at=fields.pto_date;/* current active process does not create VED tasks */}
+    if(fields.pto_yes&&!state.pto_at){state.pto_at=fields.pto_date;/* VED review is assigned before PTO, not by arrival. */}
     if(fields.customs_date)state.customs_at=fields.customs_date;
     if(fields.container_no)detail.containers=[{container_no:fields.container_no}];
     if(fields.location)detail.points.push({location_text:fields.location,observed_at:fields.location_date,comment:fields.location_comment||""});
@@ -85,25 +85,30 @@ test("T2-18 ROBOT: auto, rail, sea and air execution render without transport ap
   assert.deepEqual(errors,[],mode+" execution errors");
  }
 });
-test("T2-20 ROBOT: PТО tracks arrival without dispatching tasks to VED",async t=>{
+test("T2-20 ROBOT: PТО arrival preserves the previously completed VED review",async t=>{
  const {page,posts,detail}=await fixture(t);
+ detail.state.pto_checked_at="2026-11-07T12:00:00Z";
  const form=page.locator('form[data-t2-form="save"]');
  await form.locator('select[name="pto_yes"]').selectOption("yes");
  await form.locator('input[name="pto_date"]').fill("2027-06-19T10:00");
  await save(page);
  const event=posts.find(x=>x.action==="save");
  assert.equal(event.fields.pto_yes,true);
- assert.equal(detail.tasks.filter(x=>x.task_type==="pto_review").length,0,"Active process must not dispatch to VED");
+ assert.equal(detail.tasks.filter(x=>x.task_type==="pto_review").length,0,"Arrival must not duplicate the earlier VED review");
  assert.ok(detail.state.pto_at);
 });
 test("T2-21 ROBOT: container is optional during tracking, can be added later",async t=>{
  const {page,posts,detail}=await fixture(t);
- assert.match(await page.locator('#task2-root [data-t2-section="track"]').innerText(),/продолжение работы разрешено/);
+ assert.equal(detail.containers.length,0);
+ assert.equal(await page.locator('form[data-t2-form="container"]').count(),1);
  const form=page.locator('form[data-t2-form="container"]');
  await form.locator('input[name="container_no"]').fill("MSCU1234567");
  await save(page,"container");
  assert.equal(posts.find(x=>x.action==="save").fields.container_no,"MSCU1234567");
  assert.equal(detail.containers.length,1);
+ await page.reload();
+ await page.locator('#task2-root .t2-context').waitFor();
+ assert.match(await page.locator('.t2-container-existing').innerText(),/MSCU1234567/);
 });
 test("T2-22 ROBOT: carrier cannot close; Owner can finish without container after explicit decision",async t=>{
  const carrier=await fixture(t,{role:"carrier"});

@@ -48,7 +48,7 @@
    '<small>'+esc(tip||tips[name]||"")+'</small></label>';
  const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
  const form=(kind,body,button="Сохранить изменения",hidden=false)=>
-  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","ved_logistic_docs"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
+  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","request_carrier_docs","ved_logistic_docs"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
   (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+
   (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':kind==="ved_logistic_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.vedRequestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.vedRequestStatus?.order===state.selected?state.vedRequestStatus.message:"")+'</div>':"")+'</form>';
  const call=async(params,files)=>{
@@ -178,49 +178,71 @@
       '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
    }
    if(state.tab==="documents"){
-     const allDocs=Array.isArray(d.docs)?d.docs:[];
+     // A single compact document register: actions live inside their source card.
+     // The API is authoritative for document ownership and task assignments.
+     const files=Array.isArray(d.docs)?d.docs:[],active=x.status!=="completed";
      const sourceOf=f=>{
        const category=String(f.category||"").toLowerCase();
-       const login=String(f.uploaded_by||f.uploaded_by_login||f.author_role||f.role||"").toLowerCase();
-       if(/owner|владел|request_file|initial|customer/.test(category+" "+login))return "owner";
-       if(/ved|вэд|logistic|логист/.test(category+" "+login))return "ved";
-       if(/carrier|перевоз/.test(category+" "+login))return "carrier";
+       if(/owner_file|owner|initial|request_file/.test(category))return "owner";
+       if(category==="ved"||category==="logistic")return "ved";
+       if(category==="carrier")return "carrier";
+       const role=String(f.uploaded_role||f.actor_role||"").toLowerCase();
+       if(role==="owner")return "owner";
+       if(role==="logistic"||role==="ved")return "ved";
+       if(role==="carrier")return "carrier";
+       if(String(f.actor||"").toLowerCase()===String(o.carrier_login||"").toLowerCase())return "carrier";
        return "other";
      };
-     const groupedDocs={owner:[],ved:[],carrier:[],other:[]};
-     allDocs.forEach(f=>groupedDocs[sourceOf(f)].push(f));
-     const docRow=f=>'<div class="t2-item t2-document-item"><div><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.uploaded_at?fmt(f.uploaded_at):"Документ перевозки")+'</small></div><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
-     let html='<h3>Реестр документов перевозки</h3><p class="t2-muted">Файлы привязаны к этой перевозке. Владелец, ВЭД и назначенный перевозчик видят общий комплект с соблюдением серверных прав доступа.</p>'+
-       '<div class="t2-docs-overview">'+[
-         ["owner","Документы владельца"],["ved","Документы ВЭД"],["carrier","Документы перевозчика"],["other","Другие документы"]
-       ].filter(([key])=>key!=="other"||groupedDocs.other.length).map(([key,title])=>
-         '<section class="t2-docs-group" data-doc-source="'+key+'"><h4>'+title+' <span>'+groupedDocs[key].length+'</span></h4><div class="t2-stack">'+
-         (groupedDocs[key].length?groupedDocs[key].map(docRow).join(""):'<p class="t2-muted">Документов пока нет</p>')+'</div></section>'
-       ).join("")+'</div>';
-     html+='<h3>Запросы документов и задачи ВЭД</h3><p class="t2-muted">Проверка комплекта документов по поставке автоматически создаётся один раз при подтверждённом остатке маршрута менее 1000 км. Проверка выполняется до прибытия на ПТО.</p><div class="t2-stack">'+tasks.filter(t=>["pto_review","missing_documents","transport_documents","container_number","ved_request_logistic"].includes(t.task_type)).map(taskCard).join("")+'</div>';
-     if(carrier&&x.status!=="completed"){
-       html+='<h3>Запросить документы у ВЭД</h3>'+form("request_docs",'<label class="t2-field"><span>Тип запроса</span><select name="kind"><option value="missing_documents">Недостающие документы</option><option value="transport_documents">Документы на перевозку</option></select><small>Можно отправлять запросы несколько раз; каждый станет отдельным заданием ВЭД.</small></label>'+
-        field("description","Что требуется?","textarea")+'<label class="t2-field"><span>Типы документов <span class="t2-help" title="Для нескольких документов удерживайте Ctrl или Shift">?</span></span><select name="types" multiple size="7">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Можно выбрать несколько видов документов и уточнить список в описании.</small><small data-t2-selected-documents aria-live="polite">Выберите документ и нажмите «Направить запрос ВЭД».</small></label>',"Направить запрос ВЭД");
-     }
-     if(["ved","logistic"].includes(state.role)&&x.status!=="completed"){
-       html+='<h3>Запросить документы у логиста</h3><p class="t2-muted">Адресное поручение выбранному сотруднику. Логист увидит его на главной странице и приложит документы именно к этой задаче.</p>'+
-        (!(state.logistics||[]).length?'<p class="t2-muted" role="status">Сейчас нет другого активного логиста для назначения. Форма станет доступной после подключения сотрудника.</p>':
-        form("ved_logistic_docs",
-          '<label class="t2-field"><span>Кому направить запрос</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
-          (state.logistics||[]).map(u=>'<option value="'+esc(u.login)+'">'+esc(u.name||u.login)+'</option>').join("")+'</select></label>'+
-          field("description","Что требуется?","textarea")+
-          '<label class="t2-field"><span>Типы документов</span><select name="types" multiple size="6">'+docTypes.map(x=>'<option value="'+esc(x)+'">'+esc(x)+'</option>').join("")+'</select><small>Выберите один или несколько документов; описание необязательно, если выбран документ.</small></label>',
-          "Направить задачу логисту"));
-     }
-     if(x.status!=="completed"){
-       html+='<h3>Загрузить документы в общий реестр</h3><form class="t2-form t2-doc-upload" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, файлы сохраняются в документах перевозки; для отправки в переписке прикрепите их в разделе «Чаты по заявкам».</small></label>'+
-       (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)&&
-        (t.task_type!=="ved_request_logistic"||state.role==="owner"||String(t.assigned_login||"").toLowerCase()===state.login)).map(t=>
-        '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
-       '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
-     }
-     // Отдельное меню «Чаты по заявкам» — единственная точка переписки.
-     // Здесь только документы, запросы и вложения; чат API и сообщения сохраняются.
+     const docs={owner:[],ved:[],carrier:[],other:[]};
+     files.forEach(f=>docs[sourceOf(f)].push(f));
+     const row=f=>'<div class="t2-item t2-document-item"><span><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.created?fmt(f.created):"Прикреплён к перевозке")+'</small></span><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
+     const types='<option value="" disabled selected>Выберите документ</option>'+docTypes.map(t=>'<option value="'+esc(t)+'">'+esc(t)+'</option>').join("");
+     const action=(label,inner)=>'<details class="t2-doc-action"><summary>'+esc(label)+'</summary>'+inner+'</details>';
+     const request=(kind,button,extra="")=>
+       '<form class="t2-form t2-doc-form" data-t2-form="'+kind+'">'+extra+
+       (kind==="request_docs"?'<input type="hidden" name="kind" value="missing_documents">':"")+
+       '<label class="t2-field"><span>Какой документ нужен?</span><select name="types" required>'+types+'</select></label>'+
+       '<label class="t2-field"><span>Уточнение (необязательно)</span><textarea name="description" rows="2" placeholder="Дополнительные требования к документу"></textarea></label>'+
+       '<button class="t2-btn" type="submit">'+esc(button)+'</button><div class="t2-request-feedback" role="status" aria-live="polite"></div></form>';
+     const upload=(key,choices)=>{
+       const options=choices.length?choices.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description||"Запрос")+'</option>').join("")+'<option value="">Не относится к запросу</option>':'<option value="">Общие документы перевозки</option>';
+       return '<form class="t2-form t2-doc-form" data-t2-form="upload">'+
+         '<input type="hidden" name="category" value="'+key+'">'+
+         '<label class="t2-field"><span>Выберите файлы</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото; до 10 МБ на файл</small></label>'+
+         (choices.length?'<label class="t2-field"><span>Ответ на запрос</span><select name="taskId">'+options+'</select></label>':"")+
+         '<button class="t2-btn" type="submit">Загрузить в этот раздел</button></form>';
+     };
+     const taskLists={
+       ved:tasks.filter(t=>["pto_review","missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)),
+       carrier:tasks.filter(t=>t.task_type==="ved_request_carrier"),
+       owner:[]
+     };
+     const group=(key,title)=>{
+       const entries=docs[key],items=taskLists[key]||[];
+       let controls="";
+       if(active&&key==="owner"&&state.role==="owner")
+         controls+=action("Загрузить документ",upload(key,[]));
+       if(active&&key==="ved"){
+         if(carrier)controls+=action("Запросить документ у ВЭД",request("request_docs","Направить запрос ВЭД"));
+         if(["ved","logistic"].includes(state.role))controls+=action("Загрузить документ",upload(key,items.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)&&!["completed","cancelled"].includes(t.status))));
+         if(["ved","logistic"].includes(state.role)&&(state.logistics||[]).length)
+           controls+=action("Запросить документ у логиста",request("ved_logistic_docs","Направить логисту",
+             '<label class="t2-field"><span>Исполнитель</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
+             state.logistics.map(u=>'<option value="'+esc(u.login)+'">'+esc(u.name||u.login)+'</option>').join("")+'</select></label>'));
+       }
+       if(active&&key==="carrier"){
+         if(["ved","logistic"].includes(state.role))controls+=action("Запросить документ у перевозчика",request("request_carrier_docs","Направить перевозчику"));
+         if(carrier)controls+=action("Загрузить документ",upload(key,items.filter(t=>!["completed","cancelled"].includes(t.status))));
+       }
+       const list=entries.length?entries.slice(0,2).map(row).join("")+(entries.length>2?'<details class="t2-doc-more"><summary>Показать ещё '+(entries.length-2)+' документ(ов)</summary><div class="t2-stack">'+entries.slice(2).map(row).join("")+'</div></details>':""):'<p class="t2-muted t2-doc-empty">Пока нет документов</p>';
+       const requests=items.length?'<details class="t2-doc-tasks"><summary>Запросы и проверка документов <span>'+items.filter(t=>!["completed","cancelled"].includes(t.status)).length+' ожидают</span></summary><div class="t2-stack">'+items.map(taskCard).join("")+'</div></details>':"";
+       return '<section class="t2-docs-group" data-doc-source="'+key+'"><div class="t2-docs-group-head"><h4>'+title+'</h4><span class="t2-doc-count">'+entries.length+' файл(ов)</span></div>'+
+         '<div class="t2-docs-list">'+list+'</div><div class="t2-doc-actions">'+controls+'</div>'+requests+'</section>';
+     };
+     let html='<p class="t2-muted t2-docs-note">Документы хранятся по источникам. Запрос и загрузка находятся прямо в карточке соответствующего участника.</p>'+
+       '<div class="t2-docs-overview">'+group("owner","Документы владельца")+group("ved","Документы ВЭД")+group("carrier","Документы перевозчика")+'</div>';
+     if(docs.other.length)html+='<details class="t2-doc-unclassified"><summary>Документы без определённого источника · '+docs.other.length+'</summary>'+
+       '<div class="t2-stack">'+docs.other.map(row).join("")+'</div></details>';
      return html;
    }
    if(state.tab==="stages"){
@@ -229,8 +251,8 @@
        ["1","Заявка принята в работу",true,"После выбора победителя и принятия перевозчиком начинается исполнение"],
        ["2","Фактический выход груза",!!x.actual_departure,x.actual_departure?fmt(x.actual_departure):"Ожидается отметка перевозчика"],
        ["3","Движение груза",pts.length>0,latestPoint?esc(latestPoint.location_text)+" · "+fmt(latestPoint.observed_at):"Ожидается первая контрольная точка"],
-       ["4","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"Не зафиксировано"],
-       ["5","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка"],
+       ["4","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка до ПТО"],
+       ["5","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"После подтверждения документов ВЭД"],
        ["6","Таможенное оформление",!!x.customs_at,x.customs_at?fmt(x.customs_at):"Не завершено"],
        ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
        ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
@@ -367,14 +389,14 @@
  }
  function taskCard(t){
    const active=t.status!=="completed"&&t.status!=="cancelled",staff=["owner","logistic","ved"].includes(state.role);
-   const labels={pto_review:"Проверка документов перед ПТО",missing_documents:"Недостающие документы",transport_documents:"Документы на перевозку",container_number:"Заполнить номер контейнера",ved_request_logistic:"Запрос ВЭД логисту"};
-   const canComplete=staff&&active&&(!t.assigned_login||String(t.assigned_login).toLowerCase()===state.login||state.role==="owner");
+   const labels={pto_review:"Проверка документов перед ПТО",missing_documents:"Недостающие документы",transport_documents:"Документы на перевозку",container_number:"Заполнить номер контейнера",ved_request_logistic:"Запрос ВЭД логисту",ved_request_carrier:"Запрос ВЭД перевозчику"};
+   const canComplete=staff&&active&&(t.task_type==="ved_request_carrier"||!t.assigned_login||String(t.assigned_login).toLowerCase()===state.login||state.role==="owner");
    const isReverse=t.task_type==="ved_request_logistic";
    return '<article class="t2-item"><div><strong>'+esc(labels[t.task_type]||t.task_type)+'</strong> '+badge(t.status)+
     '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
     '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
     (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
-     (isReverse?"Подтвердить передачу документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
+     (isReverse?"Подтвердить передачу документов":t.task_type==="ved_request_carrier"?"Подтвердить получение документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
  async function loadList(){
    const list=await get("");
@@ -605,7 +627,7 @@
    if(kind==="upload"){
      const files=f.querySelector('input[type=file]')?.files||[];
      if(!files.length){alertText("Выберите файлы",true);return;}
-     for(const file of files){const fd=new FormData();fd.append("action","upload");fd.append("order",state.selected);fd.append("file",file);fd.append("category","task2");if(data.taskId)fd.append("taskId",data.taskId);
+     for(const file of files){const fd=new FormData();fd.append("action","upload");fd.append("order",state.selected);fd.append("file",file);fd.append("category",data.category||"task2");if(data.taskId)fd.append("taskId",data.taskId);
        if(!uploadIds.has(file))uploadIds.set(file,crypto.randomUUID());
        fd.append("uploadId",uploadIds.get(file));
        const saved=await update("upload",{},fd);
@@ -705,6 +727,13 @@
      finally{const b=document.querySelector('#task2-root form[data-t2-form="ved_logistic_docs"] button[type=submit]');if(b){b.disabled=false;b.textContent="Направить задачу логисту";}}
      return;
    }
+   if(kind==="request_carrier_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value).filter(Boolean);
+     const description=String(data.description||"").trim();
+     if(!types.length&&!description){alertText("Выберите документ для запроса",true);return;}
+     await update("request_carrier_docs",{types,description:description||"Предоставить документ: "+types.join(", "),requestId:crypto.randomUUID()});
+     return;
+   }
    if(kind==="request_docs"){
      const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
      const description=String(data.description||"").trim();
@@ -768,7 +797,7 @@
      if(kind==="warehouse_acceptance"){
        const answer=window.prompt("Дата фактической приёмки на складе (YYYY-MM-DDTHH:mm)",new Date().toISOString().slice(0,16));
        if(!answer)return;payload.date=minskISO(answer);
-     }else if(!window.confirm("Завершить задачу ВЭД после проверки документов?"))return;
+     }else if(!window.confirm(kind==="ved_request_carrier"?"Подтвердить, что документы перевозчика получены и проверены?":"Завершить задачу ВЭД после проверки документов?"))return;
      await update("complete_task",payload);return;
    }
    if(hit.dataset.t2ActResponse){

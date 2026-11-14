@@ -7,10 +7,10 @@ const words=[{group:'06 · Реестры и процессы',help:'FAQ и ин
 const locale=()=>/^zh/i.test(document.documentElement.lang)?2:/^en/i.test(document.documentElement.lang)?1:0;
 const owner=()=>document.querySelector('.cabinet-app[data-cabinet-role="owner"]');
 const el=(tag,text,attrs={})=>{const e=document.createElement(tag);if(text!==null)e.textContent=text;for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);return e;};
-let queued=false,key='',lastView='',loading=false,request=0,source=null,query='',sort='recent',filters={version:'',role:'',status:'',from:'',to:''};const nativeTitles=new WeakMap();
+let queued=false,key='',lastView='',loading=false,request=0,source=null,query='',sort='recent',filters={version:'',role:'',status:'',priority:'',area:'',from:'',to:'',view:'all'};const nativeTitles=new WeakMap();
 // The canonical archive remains read-only. Decisions are persisted through the existing
 // Owner-only /api/portal-feedback lifecycle, not in browser storage.
-let workItems=[],workBusy='',workReady=false,workError='',workNotice='';
+let workItems=[],workEvents=[],workBusy='',workReady=false,workError='',workNotice='';
 const workWords=[
  {active:'Сейчас разрабатывается',empty:'Нет работ в активной разработке',start:'Взять в работу',working:'В работе',open:'Открыть задачу',details:'История и технические сведения',changed:'Сохранено на сервере',claimed:'Работа взята в разработку',planning:'В проекте',ready:'Готово к проверке',released:'Выпущено',blocked:'Выпуск не разрешён',partial:'Частично готово',unverified:'Не проверено',proposed:'Зарегистрировано',rejected:'Отклонено',finished:'Работа завершена',sourceName:'Из какого реестра',subtitle:'Название, понятный статус и действия. Код скрыт в истории.'},
  {active:'Work in progress',empty:'No active development tasks',start:'Start work',working:'In progress',open:'Open task',details:'History and technical details',changed:'Saved to server',claimed:'Work started',planning:'Planned',ready:'Ready for verification',released:'Released',blocked:'Release blocked',partial:'Partially done',unverified:'Unverified',proposed:'Registered',rejected:'Rejected',finished:'Completed',sourceName:'Source register',subtitle:'Plain-language summary, status and actions. Technical metadata is in history.'},
@@ -20,7 +20,10 @@ const statusNames={sent:['Новое','New','新建'],read:['Прочитано'
 const plain=x=>String(x??'').replace(/\s+/g,' ').trim();
 const short=(x,max=190)=>plain(x).slice(0,max);
 const archiveMarker=(id,recordId)=>'[ARCHIVE:'+id+':'+recordId+']';
-const taskFor=(id,recordId)=>workItems.find(x=>String(x.description||'').includes(archiveMarker(id,recordId)));
+const taskFor=(id,recordId)=>{
+ const row=source?.records?.find(x=>x.id===recordId),marker=row?.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
+ return workItems.find(x=>String(x.description||'').includes(archiveMarker(id,recordId))||marker&&String(x.description||'').includes(marker));
+};
 function statusLabel(code,releaseStatus){
  const w=workWords[locale()],r=String(releaseStatus||'').toUpperCase(),s=String(code||'').toUpperCase();
  if(/^(RELEASED|PRODUCTION_RELEASED|DEPLOYED_PRODUCTION|PUBLISHED_PRODUCTION)$/.test(r))return w.released;
@@ -65,8 +68,15 @@ async function feedbackRequest(body){
  return json;
 }
 async function refreshWork(silent=false){
- try{const data=await feedbackRequest();if(!data.owner)throw Error('OWNER_ACCESS_REQUIRED');workItems=Array.isArray(data.items)?data.items:[];workError='';workReady=true;}
- catch(e){workError=String(e.message||e);workReady=true;if(!silent)throw e;}
+ try{
+  const items=[],events=[];let offset=0;
+  for(;;){const response=await fetch('/api/portal-feedback?offset='+offset,{cache:'no-store'}),data=await response.json();
+   if(!response.ok||!data.ok||!data.owner)throw Error('OWNER_ACCESS_REQUIRED');
+   items.push(...(data.items||[]));events.push(...(data.events||[]));
+   if(!data.hasMore)break;offset=data.nextOffset;
+  }
+  workItems=items;workEvents=events;workError='';workReady=true;
+ }catch(e){workError=String(e.message||e);workReady=true;if(!silent)throw e;}
 }
 function drawWork(host){
  const l=locale(),w=workWords[l],panel=el('section',null,{class:'ow-live-board'});
@@ -91,94 +101,93 @@ function drawWork(host){
 }
 async function startWork(id,recordId,title,description){
  if(workBusy)return;
- const label=archiveMarker(id,recordId);
- workBusy=label;workError='';workNotice='';
- const original=source?.name;
+ const row=source?.records?.find(x=>x.id===recordId);
+ if(!row)return;
+ const existing=taskFor(id,recordId);
+ if(existing&&['in_progress','release'].includes(existing.status)){workNotice='Задача уже находится в работе';paintArchive(document.getElementById('ow-workspace'),id);return;}
+ const accepted=await confirmWork(row);
+ if(!accepted)return;
+ workBusy=archiveMarker(id,recordId);workError='';workNotice='';const original=id;
  try{
-  // Refresh before create: historical archives are read-only; linked jobs live on the server.
-  await refreshWork();
-  let item=taskFor(id,recordId);
-  if(!item){
-   const kind=id==='remarks'?'fix':'development';
-   const text=title+'\n'+description+'\n\nИсточник реестра: '+label;
-   const created=await feedbackRequest({action:'create',category:kind,description:text.slice(0,4900)});
-   item=created.item;if(!item?.id)throw Error('TASK_CREATE_NO_ID');
-  }
-  // Respect backend transitions: a single conscious Owner decision advances the
-  // item through its audited states; each response is checked before the next write.
-  for(const [current,next] of [['sent','read'],['read','evaluated'],['evaluated','in_progress']]){
-   if(item.status!==current)continue;
-   const res=await feedbackRequest({action:'set_status',id:item.id,expectedStatus:current,status:next,note:'Решение владельца: взять в разработку из '+names[id][0]+' ('+recordId+')'});
-   if(res.item?.status!==next)throw Error('STATUS_READBACK_MISMATCH');
-   item=res.item;
-  }
+  const result=await feedbackRequest({action:'start_register',register:id,recordId});
   await refreshWork();
   const readback=taskFor(id,recordId);
-  if(!readback||readback.status!=='in_progress'&&readback.status!=='release')throw Error('TASK_NOT_IN_PROGRESS');
-  workNotice=workWords[locale()].claimed;
- }catch(e){workError=String(e.message||e);try{await refreshWork(true);}catch{}}
- finally{
-  workBusy='';
-  const currentHost=document.getElementById('ow-workspace');
-  if(currentHost&&original===selected()&&source?.name===original)paintArchive(currentHost,original);
- }
+  if(!readback||!['in_progress','release'].includes(readback.status))throw Error('TASK_NOT_IN_PROGRESS');
+  workNotice=result.message||'Задача взята в работу';
+ }catch(e){workError=String(e.message||e);await refreshWork(true);}
+ finally{workBusy='';const host=document.getElementById('ow-workspace');if(host&&selected()===original)paintArchive(host,id);}
+}
+function confirmWork(row){
+ return new Promise(resolve=>{
+  const dialog=el('dialog',null,{class:'ow-work-confirm','aria-label':'Подтвердить выбор задачи'});
+  dialog.append(el('h2','Взять в работу: '+row.title),el('p',row.description),el('p','Последствия: '+row.impact));
+  const actions=el('div',null,{class:'ow-human-actions'}),yes=el('button','Подтвердить',{type:'button'}),no=el('button','Отмена',{type:'button'});
+  const done=value=>{dialog.close();dialog.remove();resolve(value);};yes.onclick=()=>done(true);no.onclick=()=>done(false);dialog.oncancel=e=>{e.preventDefault();done(false);};actions.append(yes,no);dialog.append(actions);document.body.append(dialog);dialog.showModal();yes.focus();
+ });
 }
 
 const selected=()=>new URL(location.href).searchParams.get('ownerView')||'';
-function navigate(id){const u=new URL(location.href);if(id)u.searchParams.set('ownerView',id);else u.searchParams.delete('ownerView');history.pushState({},'',u);key='';source=null;query='';filters={version:'',role:'',status:'',from:'',to:''};request++;loading=false;schedule();window.dispatchEvent(new Event('ow-workspace-changed'));}
+function navigate(id){const u=new URL(location.href);if(id)u.searchParams.set('ownerView',id);else u.searchParams.delete('ownerView');history.pushState({},'',u);key='';source=null;query='';filters={version:'',role:'',status:'',priority:'',area:'',from:'',to:'',view:'all'};request++;loading=false;schedule();window.dispatchEvent(new Event('ow-workspace-changed'));}
 function sections(){if(!source)return[];return (source.legacyEntries||source.markdown.split(/(?=^## )/m).map((text,i)=>({id:'archive-'+i,markdown:text}))).map(x=>({id:x.id,text:x.markdown}));}
+const humanStatuses={new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
+const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
+const roleNames={owner:'Владелец',carrier:'Перевозчик',ved:'ВЭД',logistic:'ВЭД / логист',supplier:'Поставщик',visitor:'Посетитель',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
+const recordState=(row,job)=>job?({sent:'new',read:'awaiting_decision',evaluated:'awaiting_decision',in_progress:'in_progress',release:'ready',completed:'fixed_review',denied:'rejected'}[job.status]||row.status):row.status;
+const finished=s=>['published','production_verified','rejected'].includes(s);
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);
- const l=locale(),w=words[l];host.replaceChildren(el('h2',names[id][l]));
- const tabs=el('div',null,{class:'ow-tabs'}),archive=el('button',w.archive,{type:'button','aria-pressed':'true'}),op=el('button',w.operational,{type:'button'});archive.onclick=()=>{query='';sort='recent';filters={version:'',role:'',status:'',from:'',to:''};paintArchive(host,id);};op.onclick=()=>{navigate('');location.hash='#portal-feedback';};tabs.append(archive,op);host.append(tabs);
- const toolbar=el('div',null,{class:'ow-toolbar'}),search=el('input',null,{type:'search',placeholder:w.search,'aria-label':w.search}),order=el('select',null,{'aria-label':w.recent});
- for(const[v,t]of [['recent',w.recent],['old',w.old]])order.append(el('option',t,{value:v}));order.value=sort;search.value=query;
- const refresh=el('button',w.refresh,{type:'button'});refresh.onclick=async()=>{await refreshWork(true);void load(id,host,source?.sha256);};search.oninput=()=>{query=search.value;drawRecords(records);};order.onchange=()=>{sort=order.value;drawRecords(records);};toolbar.append(search,order,refresh);host.append(toolbar);
- const filterbar=el('div',null,{class:'ow-toolbar','aria-label':['Фильтры архива','Archive filters','档案筛选'][l]});
- const allText=JSON.stringify(source?.entries||[])+'\n'+(source?.markdown||'');
- const roles={owner:['Владелец','Owner','所有者'],carrier:['Перевозчик','Carrier','承运人'],logistic:['ВЭД / логист','VED / Logistic','外贸 / 物流'],supplier:['Поставщик','Supplier','供应商'],designer:['Дизайнер','Designer','设计'],content:['Контент','Content','内容'],purchasing:['Закупки','Purchasing','采购'],certification:['Сертификация','Certification','认证']};
- for(const [key,label,values]of [['version',['Бизнес-версия','Business version','业务版本'],[...new Set(allText.match(/(?:OW|CR|VD|LG|SU|DS|CM|PU|CE|SH)-\d{2}\.\d{2}\.\d{2} v/g)||[])]],['role',['Роль','Role','角色'],Object.keys(roles)],['status',['Статус','Status','状态'],[...new Set([...allText.matchAll(/\b(?:PASS|FAIL|PARTIAL|BLOCKED|PLANNED|OPEN|DONE|FIXED|RELEASE_BLOCKED|HISTORICAL|NOT_VERIFIED)\b/g)].map(x=>x[0]))]]]){
-  const wrap=el('label',label[l]),select=el('select',null,{'data-archive-filter':key});select.append(el('option',w.all,{value:''}));for(const value of values.sort())select.append(el('option',key==='role'?roles[value][l]:key==='status'?statusLabel(value):value,{value}));select.value=filters[key];select.onchange=()=>{filters[key]=select.value;drawRecords(records);};wrap.append(select);filterbar.append(wrap);
+ host.replaceChildren(el('h2',names[id][locale()]));
+ const toolbar=el('div',null,{class:'ow-toolbar ow-stable-toolbar'}),search=el('input',null,{type:'search',placeholder:'Поиск по названию и описанию','aria-label':'Поиск по названию и описанию'});
+ search.value=query;const refresh=el('button','Обновить',{type:'button'});refresh.onclick=()=>void load(id,host);
+ const sortControl=el('select',null,{'aria-label':'Порядок записей'});for(const [v,t]of [['recent','Сначала новые'],['old','Сначала старые']])sortControl.append(el('option',t,{value:v}));sortControl.value=sort;
+ toolbar.append(search,sortControl,refresh);host.append(toolbar);
+ const rows=source?.records||[],views=el('div',null,{class:'ow-tabs','aria-label':'Показать записи'});
+ for(const [value,title]of [['all','Все'],['new','Новые'],['working','В работе'],['done','Выполненные'],['selected','Выбранные владельцем'],['archive','Архив']]){
+  const button=el('button',title,{type:'button','aria-pressed':String(filters.view===value),'data-register-view':value});button.onclick=()=>{filters.view=value;paintArchive(host,id);};views.append(button);
  }
- for(const [key,label]of [['from',['С даты','From date','起始日期']],['to',['По дату','To date','结束日期']]]){const wrap=el('label',label[l]),f=el('input',null,{type:'date','data-archive-filter':key});f.value=filters[key];f.oninput=()=>{filters[key]=f.value;drawRecords(records);};wrap.append(f);filterbar.append(wrap);}const extra=el('details',null,{class:'ow-extra-filters'});extra.append(el('summary',['Дополнительные фильтры','More filters','更多筛选'][l]),filterbar);host.append(extra);
- drawWork(host);
- const info=el('details',null,{class:'ow-extra-filters ow-source'}),infoTitle=el('summary',['Источник и дата обновления','Source and updated date','来源和更新日期'][l]);info.append(infoTitle);const detail=el('p',loading?w.loading:source?`${w.source}: ${source.sourcePath} · ${source.updatedAt} · ${source.sourceCommit} · SHA-256 ${source.sha256}`:w.empty);if(source&&!loading){detail.append(document.createTextNode(' · '),el('a',source.sourceCommit.slice(0,12),{href:'https://github.com/hakaru4i-afk/freight-quotes/commit/'+source.sourceCommit,target:'_blank',rel:'noopener'}));}info.append(detail);host.append(info);
- const records=el('div',null,{id:'ow-archive-records'});host.append(records);drawRecords(records);
- function drawRecords(target){
-  target.replaceChildren();const term=query.toLocaleLowerCase();
-  const matches=text=>{const lower=text.toLocaleLowerCase();if(!lower.includes(term)||filters.version&&!text.includes(filters.version)||filters.status&&!text.includes(filters.status))return false;if(filters.role&&!([filters.role,...roles[filters.role]].some(x=>lower.includes(x.toLocaleLowerCase()))))return false;const dates=text.match(/20\d{2}-\d{2}-\d{2}/g)||[];if((filters.from||filters.to)&&!dates.some(d=>(!filters.from||d>=filters.from)&&(!filters.to||d<=filters.to)))return false;return true;};
-  const current=(source?.entries||[]).filter(x=>matches(JSON.stringify(x)));if(sort==='old')current.reverse();
-  function card(recordId,title,description,code,raw,release,workType){
-   const card=el('article',null,{class:'ow-work-card','data-record-id':recordId}),heading=el('div',null,{class:'ow-work-card-top'});
-   heading.append(el('h3',title));
-   const job=taskFor(id,recordId);
-   const humanStatus=job?workStatus(job):statusLabel(code,release);
-   const state=el('span',humanStatus,{class:'ow-human-status'});
-   if((job?.status==='in_progress'||job?.status==='release'))state.dataset.state='working';
-   else if(String(release||'').toUpperCase()==='RELEASE_BLOCKED')state.dataset.state='blocked';
-   heading.append(state);card.append(heading,el('p',description,{class:'ow-human-description'}));
-   const meta=el('div',null,{class:'ow-human-meta'});
-   const parts=[names[id][l],job?'Задание '+job.code:'',String(code||'').toUpperCase()==='QA_VERIFIED'?'Проверено в QA; выпуск отдельно':''].filter(Boolean);
-   meta.textContent=parts.join(' · ');card.append(meta);
-   const controls=el('div',null,{class:'ow-human-actions'});
-   const status=String(release||'').toUpperCase();
-   const released=/^(RELEASED|PRODUCTION_RELEASED|DEPLOYED_PRODUCTION|PUBLISHED_PRODUCTION)$/.test(status);
-   if(!released&&(!job||['sent','read','evaluated'].includes(job.status))){
-    const start=el('button',workWords[l].start,{type:'button'});start.disabled=!!workBusy||!workReady||!!workError;
-    start.onclick=()=>startWork(id,recordId,title,description);controls.append(start);
-   }else if(job){
-    const open=el('button',workWords[l].open,{type:'button'});open.onclick=()=>{navigate('');location.hash='#portal-feedback';};controls.append(open);
-   }
-   const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary',workWords[l].details));
-   history.append(el('pre',raw));controls.append(history);
-   card.append(controls);target.append(card);
+ host.append(views);
+ const filterbar=el('div',null,{class:'ow-toolbar ow-register-filters'});
+ const values={status:Object.keys(humanStatuses),priority:Object.keys(priorityNames),role:[...new Set(rows.flatMap(x=>x.roles||[]))],area:[...new Set(rows.map(x=>x.area))],version:[...new Set(rows.map(x=>x.version))]};
+ for(const [key,title]of [['status','Статус'],['priority','Приоритет'],['role','Кабинет'],['area','Раздел портала'],['version','Версия']]){
+  const wrap=el('label',title),select=el('select',null,{'data-archive-filter':key});select.append(el('option','Все',{value:''}));
+  for(const v of values[key])select.append(el('option',key==='status'?humanStatuses[v]:key==='priority'?priorityNames[v]:key==='role'?roleNames[v]||v:v,{value:v}));select.value=filters[key]||'';select.onchange=()=>{filters[key]=select.value;draw();};wrap.append(select);filterbar.append(wrap);
+ }
+ for(const [key,title]of [['from','С даты'],['to','По дату']]){const wrap=el('label',title),input=el('input',null,{type:'date','data-archive-filter':key});input.value=filters[key];input.oninput=()=>{filters[key]=input.value;draw();};wrap.append(input);filterbar.append(wrap);}
+ const extra=el('details',null,{class:'ow-extra-filters'});extra.append(el('summary','Фильтры'),filterbar);host.append(extra);
+ const count=el('p',null,{class:'ow-register-count',role:'status'}),notice=el('p',workNotice||workError,{role:workError?'alert':'status'}),target=el('div',null,{id:'ow-archive-records'});host.append(count,notice,target);
+ search.oninput=()=>{query=search.value;draw();};sortControl.onchange=()=>{sort=sortControl.value;draw();};
+ function draw(){
+  target.replaceChildren();const term=query.toLocaleLowerCase(),view=filters.view;
+  const unfinished=rows.filter(row=>!finished(recordState(row,taskFor(id,row.id)))).length;
+  count.textContent='Незавершённых записей: '+unfinished;
+  if(view==='archive'){
+   const archive=el('details',null,{class:'ow-technical-history'});archive.append(el('summary','Полный исходный архив и техническая история'),el('pre',source?.markdown||'Архив загружается…'));target.append(archive);return;
   }
-  for(const row of current)card(row.id,recordTitle(id,row),recordDescription(row),row.status,row.id+' · '+row.businessVersion+'\n'+JSON.stringify(row,null,2),row.releaseStatus||row.release_status,'structured');
-  const blocks=sections().filter(x=>matches(x.text));if(sort==='old')blocks.reverse();
-  for(const b of blocks){const title=markdownTitle(b.text)||names[id][l];card(b.id,title,markdownSummary(b.text)||title,'OPEN',b.text,'','markdown');}
-  if(!target.childElementCount)target.append(el('p',loading?w.loading:w.empty));
+  const visible=rows.filter(row=>{
+   const job=taskFor(id,row.id),status=recordState(row,job),date=String(row.detectedAt||'').slice(0,10);
+   return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
+    (view==='all'||view==='new'&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status)||view==='selected'&&!!job);
+  }).sort((a,b)=>String(a.detectedAt).localeCompare(String(b.detectedAt))*(sort==='old'?1:-1));
+  for(const row of visible){
+   const job=taskFor(id,row.id),state=recordState(row,job),card=el('article',null,{class:'ow-work-card','data-record-id':row.id}),heading=el('div',null,{class:'ow-work-card-top'});
+   const badge=el('span',humanStatuses[state]||'Ожидает решения',{class:'ow-human-status'});if(state==='in_progress')badge.dataset.state='working';heading.append(el('h3',row.title),badge);card.append(heading);
+   const facts=el('dl',null,{class:'ow-register-facts'}),fact=(label,value)=>{if(!value)return;facts.append(el('dt',label),el('dd',value));};
+   fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
+   card.append(facts,el('p',row.description,{class:'ow-human-description'}));
+   const more=el('details',null,{class:'ow-record-details'});more.append(el('summary','Подробнее'));
+   const details=el('dl',null,{class:'ow-register-facts'}),detail=(label,value)=>{if(value)details.append(el('dt',label),el('dd',value));};
+   detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
+   const actions=el('div',null,{class:'ow-human-actions'}),released=['published','production_verified'].includes(state);
+   if(!released&&(!job||['sent','read','evaluated'].includes(job.status))){const start=el('button','Взять в работу',{type:'button'});start.disabled=!!workBusy||!workReady||!!workError;start.onclick=()=>void startWork(id,row.id,row.title,row.description);actions.append(start);}
+   else if(job){const open=el('button','Открыть задачу',{type:'button'});open.onclick=()=>{navigate('');location.hash='#portal-feedback';};actions.append(open);if(['in_progress','release'].includes(job.status))actions.append(el('span','Задача уже находится в работе'));}
+   const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary','История изменений'));const events=workEvents.filter(x=>x.request_id===job?.id);for(const event of events)history.append(el('p',new Date(event.created_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'})+' · '+event.description+' · '+event.actor_login));if(!events.length)history.append(el('p','Решение владельца ещё не зафиксировано. Источник и прежние проверки — в технической информации.'));actions.append(history);card.append(actions);
+   const technical=el('details',null,{class:'ow-technical-history'});technical.append(el('summary','Техническая информация'),el('pre',JSON.stringify({id:row.id,sourceTaskKey:row.sourceTaskKey,...row.technical},null,2)));card.append(technical);target.append(card);
+  }
+  if(!visible.length)target.append(el('p',loading?'Загрузка…':'Подходящих записей нет'));
  }
+ draw();
 }
+
 async function load(id,host,expected){
  if(loading)return;loading=true;let failed=false;const n=++request;paintArchive(host,id);
  try{const r=await fetch('/api/engineering-registers?name='+encodeURIComponent(id)+(expected?'&expectedSha='+encodeURIComponent(expected):''),{cache:'no-store'});const data=await r.json();if(n!==request||selected()!==id)return;
@@ -200,7 +209,7 @@ function render(){
  if(!Object.hasOwn(names,id)){host?.remove();key='';return;}
  if(!host){host=el('section',null,{id:'ow-workspace','aria-live':'polite'});content.append(host);}
  const next=id+'|'+l;if(key===next&&host.hasChildNodes())return;key=next;
- if(id==='cooperation'){host.replaceChildren(el('h2',names[id][l]));drawWork(host);host.append(el('div',null,{id:'ow-cooperation-screen'}));window.dispatchEvent(new Event('ow-workspace-changed'));void refreshWork(true).then(()=>{if(selected()==='cooperation'){const board=host.querySelector('.ow-live-board');board?.remove();const insert=el('div',null);drawWork(insert);host.querySelector('#ow-cooperation-screen')?.before(insert.firstChild);}});}
+ if(id==='cooperation'){host.replaceChildren(el('h2',names[id][l]),el('div',null,{id:'ow-cooperation-screen'}));window.dispatchEvent(new Event('ow-workspace-changed'));}
  else if(id==='process'){host.replaceChildren(el('h2',names[id][l]));host.append(el('p',['Действующая схема и черновики изменений. Сохранение черновика не меняет работу сайта.','Approved process map and drafts. Saving a draft does not change the running site.','已批准的流程图和草稿。保存草稿不会改变运行中的系统。'][l],{class:'ow-board-help'}),el('div',null,{id:'ow-process-editor'}));window.dispatchEvent(new Event('ow-process-editor-open'));}
  else{if(source?.name!==id)source=null;paintArchive(host,id);if(!source&&!loading)void load(id,host);}
 }
