@@ -19,7 +19,11 @@ export async function cabinetMatrix({page,actor,rec}){
  }catch(e){failures.push({lang,screen:'help',error:e.message});}}
  if(actor==='owner')for(const [lang,label]of languages)for(const screen of ['updates','remarks','developments','cooperation','process']){try{
   await language(lang,label);await page.locator('[data-ow-register="'+screen+'"]').click();
-  if(['updates','remarks','developments'].includes(screen))await page.locator('#ow-workspace[data-archive-ready="true"] .ow-record').first().waitFor({timeout:45000});else if(screen==='process')await page.locator('#ow-process-editor [data-editor-node]').first().waitFor({timeout:30000});else await page.locator('#ow-cooperation-screen .lw-owner-head').waitFor({timeout:30000});
+  if(['updates','remarks','developments'].includes(screen)){
+   const cards=page.locator('#ow-workspace .ow-work-card[data-record-id]');
+   await cards.first().waitFor({timeout:45000});
+   assert.ok(await cards.count()>0,'The actual archive must contain source records');
+  }else if(screen==='process')await page.locator('#ow-process-editor [data-editor-node]').first().waitFor({timeout:30000});else await page.locator('#ow-cooperation-screen .lw-owner-head').waitFor({timeout:30000});
   for(const size of sizes)await capture(lang,size,screen);
  }catch(e){failures.push({lang,screen,error:e.message});}}
  rec.cabinetMatrixFailures=failures;assert.deepEqual(failures,[],'Actual cabinet locale/accessibility matrix failed');
