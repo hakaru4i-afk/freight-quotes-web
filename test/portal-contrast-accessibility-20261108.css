@@ -365,3 +365,86 @@
 #task2-root .t2-weekly-tracking>.t2-muted{margin:0 0 4px!important}
 @media(min-width:761px){#task2-root form.t2-weekly-row{grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important}}
 @media(max-width:760px){#task2-root form.t2-weekly-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#task2-root form.t2-weekly-row>strong{grid-column:1/-1}#task2-root form.t2-weekly-row>button{grid-column:1/-1}}
+
+
+/* QA-009 / TRACK-PLAN-ALIGN-01: all four reschedule rows use the same
+   shared grid, equal-height inputs and a right-aligned Save action.
+   A conditional aria-live feedback slot must not reserve an empty grid row.
+   Scope to Task2 only, without changing form submission or save history. */
+#task2-root .t2-plan-four {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+}
+#task2-root :is(form,div).t2-plan-four-row {
+  box-sizing:border-box!important;
+  width:100%!important;
+  grid-template-columns:minmax(90px,96px) minmax(180px,1fr) minmax(180px,1fr) minmax(112px,120px)!important;
+  gap:10px!important;
+  min-height:70px!important;
+  align-items:center!important;
+}
+#task2-root form.t2-plan-four-row {
+  align-items:end!important;
+}
+#task2-root form.t2-plan-four-row > span:first-child {
+  align-self:center!important;
+}
+#task2-root form.t2-plan-four-row > label {
+  display:grid!important;
+  grid-template-rows:17px 40px!important;
+  align-items:end!important;
+  gap:4px!important;
+  margin:0!important;
+  min-width:0!important;
+}
+#task2-root form.t2-plan-four-row > label > span {
+  min-height:17px!important;
+  line-height:17px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row input,
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  box-sizing:border-box!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  align-self:end!important;
+  width:100%!important;
+  white-space:nowrap!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:empty {
+  display:none!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {
+  display:block!important;
+  grid-column:1/-1!important;
+  min-height:0!important;
+  margin:0!important;
+}
+@media(max-width:840px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(80px,92px) minmax(0,1fr) minmax(0,1fr)!important;
+  }
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:2/-1!important;
+    justify-self:end!important;
+    width:min(100%,160px)!important;
+  }
+}
+@media(max-width:560px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(0,1fr)!important;
+    min-height:0!important;
+  }
+  #task2-root form.t2-plan-four-row > span:first-child,
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:1!important;
+    justify-self:stretch!important;
+    width:100%!important;
+  }
+  #task2-root form.t2-plan-four-row > label {width:100%!important}
+  #task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {grid-column:1!important}
+}

@@ -4,11 +4,13 @@
     "OW-01.30.48 v",
     "SH-01.30.49 v",
     "SH-01.30.50 v",
+    "SH-01.30.52 v",
     "SH-01.30.51 v"
   ],
   "roles": {
     "owner": {
       "ru": [
+        "Фактическое отправление не может быть в будущем. Старую ошибочную дату исправляют с причиной и аудитом. ВЭД подтверждает полный комплект либо направляет замечания в существующий чат: та же задача остаётся открытой. Переписка доступна в «Чаты по заявкам». На одной карте — план и датированные точки; для ЖД автомобильный OSRM не используется. В реестрах Владельца работа «В проекте» берётся в разработку явной кнопкой; две вкладки сохраняют одну задачу и историю.",
         "Маршрут сохраняется из заявки и выбранной ставки. Датированные еженедельные сообщения показаны отдельно от плана в 3D/2D; это не GPS. Неоднозначное место требует подтверждения и причины. Центр города и ориентировочный дорожный километраж не запускают проверку ВЭД.",
         "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
         "Откройте нужный реестр в левом меню. «Полный канонический архив» содержит всю историю; «Оперативные записи» — другой источник. Ищите ID, версию, роль, статус или дату; при конфликте обновите источник.",
@@ -18,6 +20,7 @@
         "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
       ],
       "en": [
+        "Actual departure cannot be in the future. Correct an invalid historical date with a reason and audit. Foreign trade either confirms a complete package or sends remarks to the existing shipment chat; the same task stays open. Use Shipment chats for messages and attachments. One map shows planned and dated reported points; road OSRM is not used for rail. In Owner registers, planned work starts through the explicit action; two tabs retain one task and its history.",
         "The saved route uses the request and selected bid. Dated weekly reports appear separately from the plan in 3D/2D; this is not live GPS. Ambiguous locations require confirmation and a reason. City centers and estimated road distances do not trigger foreign-trade review.",
         "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
         "Open a register from the sidebar. Full canonical archive contains the complete history; Operational records is a different source. Search ID, version, role, status or date; refresh if the source changed.",
@@ -27,6 +30,7 @@
         "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
       ],
       "zh": [
+        "实际发运时间不得晚于当前时间。修正历史错误日期必须填写原因并记录审计。外贸人员确认完整文件，或在原运输聊天中发送意见，原任务保持未完成。消息和附件保留在运输聊天中。统一地图显示计划和带日期的报告点，铁路不使用公路OSRM里程。货主登记册中计划工作通过明确操作开始；两个标签页保留同一任务和历史。",
         "保存的路线来自申请和中选报价。带日期的每周报告在3D/2D中与计划分开显示，并非实时GPS。歧义地点需要确认和原因。城市中心及估算公路里程不会触发外贸审核。",
         "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
         "从左侧菜单打开登记册。完整权威档案包含全部历史，运营记录是另一来源。按编号、版本、角色、状态或日期搜索；来源冲突时刷新。",
@@ -38,6 +42,7 @@
     },
     "carrier": {
       "ru": [
+        "Фактическое отправление не может быть в будущем. Старую ошибочную дату исправляют с причиной и аудитом. ВЭД подтверждает полный комплект либо направляет замечания в существующий чат: та же задача остаётся открытой. Переписка доступна в «Чаты по заявкам». На одной карте — план и датированные точки; для ЖД автомобильный OSRM не используется. В реестрах Владельца работа «В проекте» берётся в разработку явной кнопкой; две вкладки сохраняют одну задачу и историю.",
         "Маршрут сохраняется из заявки и выбранной ставки. Датированные еженедельные сообщения показаны отдельно от плана в 3D/2D; это не GPS. Неоднозначное место требует подтверждения и причины. Центр города и ориентировочный дорожный километраж не запускают проверку ВЭД.",
         "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
         "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
@@ -45,6 +50,7 @@
         "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
       ],
       "en": [
+        "Actual departure cannot be in the future. Correct an invalid historical date with a reason and audit. Foreign trade either confirms a complete package or sends remarks to the existing shipment chat; the same task stays open. Use Shipment chats for messages and attachments. One map shows planned and dated reported points; road OSRM is not used for rail. In Owner registers, planned work starts through the explicit action; two tabs retain one task and its history.",
         "The saved route uses the request and selected bid. Dated weekly reports appear separately from the plan in 3D/2D; this is not live GPS. Ambiguous locations require confirmation and a reason. City centers and estimated road distances do not trigger foreign-trade review.",
         "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
         "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
@@ -52,6 +58,7 @@
         "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
       ],
       "zh": [
+        "实际发运时间不得晚于当前时间。修正历史错误日期必须填写原因并记录审计。外贸人员确认完整文件，或在原运输聊天中发送意见，原任务保持未完成。消息和附件保留在运输聊天中。统一地图显示计划和带日期的报告点，铁路不使用公路OSRM里程。货主登记册中计划工作通过明确操作开始；两个标签页保留同一任务和历史。",
         "保存的路线来自申请和中选报价。带日期的每周报告在3D/2D中与计划分开显示，并非实时GPS。歧义地点需要确认和原因。城市中心及估算公路里程不会触发外贸审核。",
         "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
         "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
@@ -61,18 +68,21 @@
     },
     "logistic": {
       "ru": [
+        "Фактическое отправление не может быть в будущем. Старую ошибочную дату исправляют с причиной и аудитом. ВЭД подтверждает полный комплект либо направляет замечания в существующий чат: та же задача остаётся открытой. Переписка доступна в «Чаты по заявкам». На одной карте — план и датированные точки; для ЖД автомобильный OSRM не используется. В реестрах Владельца работа «В проекте» берётся в разработку явной кнопкой; две вкладки сохраняют одну задачу и историю.",
         "Маршрут сохраняется из заявки и выбранной ставки. Датированные еженедельные сообщения показаны отдельно от плана в 3D/2D; это не GPS. Неоднозначное место требует подтверждения и причины. Центр города и ориентировочный дорожный километраж не запускают проверку ВЭД.",
         "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
         "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
         "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
       ],
       "en": [
+        "Actual departure cannot be in the future. Correct an invalid historical date with a reason and audit. Foreign trade either confirms a complete package or sends remarks to the existing shipment chat; the same task stays open. Use Shipment chats for messages and attachments. One map shows planned and dated reported points; road OSRM is not used for rail. In Owner registers, planned work starts through the explicit action; two tabs retain one task and its history.",
         "The saved route uses the request and selected bid. Dated weekly reports appear separately from the plan in 3D/2D; this is not live GPS. Ambiguous locations require confirmation and a reason. City centers and estimated road distances do not trigger foreign-trade review.",
         "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
         "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
         "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
       ],
       "zh": [
+        "实际发运时间不得晚于当前时间。修正历史错误日期必须填写原因并记录审计。外贸人员确认完整文件，或在原运输聊天中发送意见，原任务保持未完成。消息和附件保留在运输聊天中。统一地图显示计划和带日期的报告点，铁路不使用公路OSRM里程。货主登记册中计划工作通过明确操作开始；两个标签页保留同一任务和历史。",
         "保存的路线来自申请和中选报价。带日期的每周报告在3D/2D中与计划分开显示，并非实时GPS。歧义地点需要确认和原因。城市中心及估算公路里程不会触发外贸审核。",
         "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
         "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",

@@ -9,11 +9,21 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"
 let latest=null,busy=false,refreshPending=false;
 window.freightLateDraftActive=false;
 function orderCode(){return String(query.get("order")||document.querySelector('input[aria-label="Номер заказа"]')?.value||"").trim().toUpperCase();}
+function ownerOfferPanel(){
+ if(location.hash.split("?")[0]!=="#offers")return null;
+ return document.querySelector('.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="offers"]');
+}
 function locate(){
  if(quotePage){const host=document.querySelector("main .form-shell");if(!host)return null;
  let node=host.querySelector("#late-bid-controls");if(!node){node=document.createElement("section");node.id="late-bid-controls";node.className="section";const heading=host.querySelector(".form-heading");(heading||host).insertAdjacentElement(heading?"afterend":"afterbegin",node);}return node;}
- const host=document.querySelector("main");if(!host)return null;
- let node=host.querySelector("#late-bid-controls-owner");if(!node){node=document.createElement("section");node.id="late-bid-controls-owner";node.className="section";host.prepend(node);}return node;
+ // The Owner's late-draft lock belongs ONLY to the offer review section.
+ // Do not mount it in <main>: that node is shared by every cabinet tab.
+ const host=ownerOfferPanel();
+ document.querySelectorAll("#late-bid-controls-owner").forEach(n=>{if(!host||!host.contains(n))n.remove();});
+ if(!host)return null;
+ let node=host.querySelector("#late-bid-controls-owner");
+ if(!node){node=document.createElement("section");node.id="late-bid-controls-owner";node.className="section";host.prepend(node);}
+ return node;
 }
 function status(text,error=false){const root=locate();if(!root)return;let el=root.querySelector("[data-late-status]");if(!el){el=document.createElement("p");el.dataset.lateStatus="";el.setAttribute("role","status");root.append(el);}el.textContent=text;el.style.color=error?"#bd3535":"";}
 async function api(path,body){
@@ -67,8 +77,10 @@ function ownerView(data){
  lockWinnerButtons(active);
 }
 function lockWinnerButtons(active){
+ const scope=ownerOfferPanel();
+ if(!scope)return;
  const orders=new Set(active.map(i=>i.order_code));
- document.querySelectorAll(".offer-selection-control button").forEach(btn=>{
+ scope.querySelectorAll(".offer-selection-control button").forEach(btn=>{
    if(!btn.textContent.includes("Выбрать этот вариант"))return;
    const row=btn.closest("tr,article,.offer-row");
    const isBlocked=!!row&&[...orders].some(o=>row.textContent.includes(o));
@@ -80,6 +92,10 @@ async function refresh(){
  // or show diagnostic status in VED, Supplier, Designer or other cabinets.
  const cabinet=document.querySelector('.cabinet-app[data-cabinet-role]');
  const role=cabinet?.getAttribute('data-cabinet-role');
+ if(!quotePage && role==='owner' && !ownerOfferPanel()){
+   document.querySelector("#late-bid-controls-owner")?.remove();
+   return;
+ }
  if(!quotePage && role!=='owner' && role!=='carrier'){
    document.querySelector('#late-bid-controls-owner')?.remove();
    return;
@@ -108,7 +124,7 @@ document.addEventListener("click",async ev=>{
  finally{busy=false;}
 });
 document.addEventListener("click",ev=>{
- if(quotePage||!latest||latest.role!=="owner")return;
+ if(quotePage||!latest||latest.role!=="owner"||!ownerOfferPanel())return;
  const btn=ev.target.closest(".offer-selection-control button");
  if(!btn||!btn.textContent.includes("Выбрать этот вариант"))return;
  const row=btn.closest("tr,article,.offer-row");
@@ -119,9 +135,19 @@ document.addEventListener("click",ev=>{
  }
 },true);
 if(quotePage){document.addEventListener("change",ev=>{if(ev.target.matches('input[name="order"]'))refresh();});}
-const observer=new MutationObserver(()=>{if(quotePage&&latest){const root=document.querySelector("#late-bid-controls");if(!root)quoteView(latest);}});
+const observer=new MutationObserver(()=>{
+ if(!latest)return;
+ if(quotePage){const root=document.querySelector("#late-bid-controls");if(!root)quoteView(latest);return;}
+ if(latest.role==="owner"){
+   const scope=ownerOfferPanel();
+   if(!scope){document.querySelector("#late-bid-controls-owner")?.remove();return;}
+   if(!scope.querySelector("#late-bid-controls-owner"))ownerView(latest);
+   else lockWinnerButtons((latest.items||[]).filter(i=>i.status==="active"&&!i.winner_count));
+ }
+});
 observer.observe(document.documentElement,{childList:true,subtree:true});
 document.addEventListener("DOMContentLoaded",refresh);
+window.addEventListener("hashchange",refresh);
 setInterval(()=>{if(!document.hidden)refresh();},20000);
 refresh();
 })();

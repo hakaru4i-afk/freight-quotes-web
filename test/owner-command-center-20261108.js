@@ -8,9 +8,9 @@ const isNumber=v=>typeof v==="number"&&Number.isFinite(v)||typeof v==="string"&&
 const fmt=v=>isNumber(v)?Number(v).toLocaleString("ru-RU"):"—";
 const short=v=>String(v??"").trim().slice(0,90);
 const localDate=v=>{if(!v)return "—";const d=new Date(v);return Number.isNaN(+d)?"—":d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Minsk"})};
-const statusText=v=>({new:"Новая",open:"Открыта",accepted:"В работе",approved:"Допущена",selected:"Победитель выбран",awarded:"Победитель выбран",completed:"Завершено",archived:"Архив",annulled:"Аннулирована",pending:"Ожидает решения",active:"Активна",in_progress:"В работе",rejected:"Отклонена",no_response:"Нет ответа"})[String(v||"").toLowerCase()]||short(v)||"—";
+const statusText=v=>({new:"Новая",open:"Открыта",accepted:"В работе",approved:"Допущена",selected:"Победитель выбран",awarded:"Победитель выбран",completed:"Завершено",archived:"Архив",annulled:"Аннулирована",pending:"Ожидает решения",active:"Активна",in_progress:"В работе",waiting_container:"Ожидается номер контейнера",claim:"Претензия",rejected:"Отклонена",no_response:"Нет ответа"})[String(v||"").toLowerCase()]||short(v)||"—";
 const icon=s=>'<span class="lw-cc-icon" aria-hidden="true">'+s+'</span>';
-let state={workload:null,registry:null,shipments:null,sl:null,errors:[],loading:false,tab:"requests",updated:null};
+let state={workload:null,registry:null,shipments:null,sl:null,development:null,errors:[],loading:false,tab:"requests",updated:null};
 let queued=false,hasLoaded=false,inFlight=false;
 function owner(){return document.querySelector('.cabinet-app[data-cabinet-role="owner"]')}
 function overview(){return owner()?.querySelector('.cabinet-panel[data-section="overview"]')}
@@ -26,19 +26,21 @@ function normalize(obj){
   workload:obj[0]?.status==="fulfilled"&&obj[0].value&&typeof obj[0].value==="object"?obj[0].value:null,
   registry:obj[1]?.status==="fulfilled"&&Array.isArray(obj[1].value?.items)?obj[1].value.items:null,
   shipments:obj[2]?.status==="fulfilled"&&Array.isArray(obj[2].value?.items)?obj[2].value.items:null,
-  sl:obj[3]?.status==="fulfilled"&&Array.isArray(obj[3].value?.policies)?obj[3].value.policies:null
+  sl:obj[3]?.status==="fulfilled"&&Array.isArray(obj[3].value?.policies)?obj[3].value.policies:null,
+  development:obj[4]?.status==="fulfilled"&&obj[4].value?.owner===true&&Array.isArray(obj[4].value?.items)?obj[4].value.items:null
  };
 }
 async function load(){
  if(inFlight||!visible())return;
  inFlight=true;state.loading=true;render();
- const names=["Нагрузка","Заявки","Перевозки","Service Level"];
+ const names=["Нагрузка","Заявки","Перевозки","Service Level","Центр доработок"];
  try{
   const outcomes=await Promise.allSettled([
    request("/api/workload"),
    request("/api/registry"),
    request("/api/shipments"),
-   request("/api/service-level?overview=1")
+   request("/api/service-level?overview=1"),
+   request("/api/portal-feedback")
   ]);
   const data=normalize(outcomes);
   state={...state,...data,errors:outcomes.flatMap((x,i)=>x.status==="rejected"?[names[i]+": "+(x.reason?.message||"недоступно")]:[]),updated:new Date(),loading:false};
@@ -106,6 +108,17 @@ function urgentMarkup(){
  const w=state.workload;const arr=Array.isArray(w?.items)?w.items.slice(0,5):null;
  return '<section class="lw-cc-panel lw-cc-urgent"><div class="lw-cc-heading"><h2>Требует решения</h2><span class="lw-cc-pill">'+fmt(w?.total)+'</span></div><div class="lw-cc-urgent-list">'+(arr?arr.length?arr.map((item,i)=>link(item.section||"overview",'<span class="lw-cc-urgent-ico">'+["◷","▤","!","✉","⚑"][i]+'</span><div><strong>'+escapeHTML(short(item.label)||"Требуется действие")+'</strong><small>'+escapeHTML(short(item.order_code)||"Открыть соответствующий раздел")+' · '+localDate(item.created)+'</small></div><span>›</span>','lw-cc-urgent-link')).join(""):'<p class="lw-cc-empty">Сейчас нет действий в очереди</p>':'<p class="lw-cc-empty">Очередь пока недоступна</p>')+'</div></section>';
 }
+function developmentMarkup(){
+ const items=Array.isArray(state.development)?state.development.filter(x=>x.status==='in_progress'||x.status==='release'):null;
+ const n=items?.length;
+ const title='Сейчас разрабатывается';
+ const cards=items?items.slice(0,4).map(item=>{
+  const text=short(String(item.description||'').split('Источник реестра:')[0])||short(item.code)||'Без описания';
+  const label=item.status==='release'?'Готовится к выпуску':'В работе';
+  return link('portal-feedback','<strong>'+escapeHTML(text)+'</strong><span>'+escapeHTML(label)+'</span>','lw-cc-development-item');
+ }).join(''):'<p class="lw-cc-empty">Очередь разработок недоступна. Данные не подставляются вручную.</p>';
+ return '<section class="lw-cc-panel lw-cc-development"><div class="lw-cc-heading"><h2>'+title+'</h2><span class="lw-cc-pill">'+(n??'—')+'</span></div><p class="lw-cc-sub">Только реальные задания из Центра доработок, без повторного ручного учёта.</p><div class="lw-cc-development-list">'+(cards||'<p class="lw-cc-empty">Активных разработок сейчас нет</p>')+'</div>'+link('portal-feedback','Открыть все доработки ↗','lw-cc-fine-link')+'</section>';
+}
 const tabs=[["requests","Мои заявки"],["shipments","В пути"],["tenders","Тендеры"],["closed","Завершённые"]];
 function rows(){
  if(state.tab==="shipments"){
@@ -141,7 +154,7 @@ function render(){
  host.innerHTML=
  '<header class="lw-cc-hero"><div class="lw-cc-hero-image" aria-hidden="true"><span class="lw-cc-ship">▰▰▰</span><span class="lw-cc-train">▰▰</span><span class="lw-cc-plane">✈</span></div><div class="lw-cc-hero-content"><span class="lw-cc-brow">ЛОГИСТИКА · ЦЕНТР УПРАВЛЕНИЯ</span><h1>Кабинет владельца</h1><p>Заявки, ставки, исполнение и качество перевозчиков — в одном месте.</p><div class="lw-cc-hero-links">'+link("request-registry","Реестр заявок ↗","")+'<span>Обновлено: '+stamp+' · Минск</span></div></div></header>'+
  (state.errors.length?'<p class="lw-cc-warning" role="status">Часть данных недоступна: '+escapeHTML(state.errors.join("; "))+'</p>':"")+
- kpis()+'<div class="lw-cc-triad">'+transportMarkup()+routeMarkup()+slMarkup()+'</div><div class="lw-cc-work">'+tableMarkup()+urgentMarkup()+'</div>'+actionsMarkup();
+ kpis()+'<div class="lw-cc-triad">'+transportMarkup()+routeMarkup()+slMarkup()+'</div><div class="lw-cc-work">'+tableMarkup()+urgentMarkup()+'</div>'+developmentMarkup()+actionsMarkup();
  const button=host.querySelector('[data-lw-cc-tab="'+state.tab+'"]');
  if(button)button.setAttribute("aria-current","true");
 }

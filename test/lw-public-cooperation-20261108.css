@@ -38,3 +38,12 @@ body:has(.cycle-landing) .language-control > span[aria-hidden="true"]{display:no
 .lw-inquiry-files .lw-file-download{max-width:100%;padding:7px 11px;border:1px solid #bdd3e5;background:#fff;border-radius:8px;color:#21517b;text-align:left;overflow-wrap:anywhere;cursor:pointer}
 .lw-inquiry-files .lw-file-download:hover{background:#e7f0f9}
 .lw-inquiry-files .lw-file-download:disabled{opacity:.6;cursor:wait}
+
+/* QA-019: one-click action visible on each open partner proposal */
+#lw-owner-inquiries .lw-inquiry .lw-take-cooperation{display:inline-flex;align-items:center;justify-content:center;margin:10px 12px 13px;padding:10px 15px;min-height:40px;background:#13684f;color:#fff;border:1px solid #0c5b42;border-radius:8px;font-weight:700;cursor:pointer}
+#lw-owner-inquiries .lw-inquiry .lw-take-cooperation:hover{background:#12583f}
+#lw-owner-inquiries .lw-inquiry .lw-take-cooperation:focus-visible{outline:3px solid #79cfe2;outline-offset:2px}
+#lw-owner-inquiries .lw-inquiry .lw-take-cooperation:disabled{cursor:wait;opacity:.65}
+
+/* QA-019: the dedicated registry supplies its single shared heading. */
+#ow-cooperation-screen #lw-owner-inquiries .lw-owner-head-actions{justify-content:flex-end}

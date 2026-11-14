@@ -28,3 +28,63 @@
  #carrier-awarded-workflow .carrier-flow-grid{grid-template-columns:minmax(0,1fr);}
  #carrier-awarded-workflow .carrier-flow-actions button{width:100%;}
 }
+
+
+/* QA-011: scope action filters to the carrier's awarded request list.
+   New / In progress / Archive are separate views, never mixed in the same grid. */
+#carrier-awarded-workflow .carrier-flow-filters {
+  display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+  gap:9px!important;margin:0 0 18px!important;max-width:100%;
+}
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter {
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:8px!important;min-width:110px!important;min-height:42px!important;
+  padding:8px 13px!important;border:1px solid #8aaca0!important;
+  border-radius:9px!important;background:#f2f8f5!important;
+  background-image:none!important;color:#24483a!important;
+  -webkit-text-fill-color:#24483a!important;font-weight:700!important;
+  filter:none!important;box-shadow:none!important;
+  text-shadow:none!important;transform:none!important;
+  transition:none!important;
+}
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter > span {
+  display:inline-grid!important;place-items:center!important;
+  min-width:23px!important;min-height:23px!important;
+  padding:0 5px!important;border-radius:6px!important;
+  color:#1b4834!important;-webkit-text-fill-color:#1b4834!important;
+  background:#dbece4!important;
+}
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter.is-active,
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter.is-active:hover {
+  background:#175e47!important;color:#fff!important;
+  -webkit-text-fill-color:#fff!important;border-color:#175e47!important;
+}
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter.is-active > span {
+  background:#e9f5ee!important;color:#1b4834!important;-webkit-text-fill-color:#1b4834!important;
+}
+#carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter:hover:not(:disabled):not(.is-active) {
+  background:#e2f0e9!important;color:#194e3a!important;
+  -webkit-text-fill-color:#194e3a!important;border-color:#327e62!important;
+  box-shadow:0 1px 4px rgba(9,46,28,.13)!important;
+}
+#carrier-awarded-workflow .carrier-flow-actions button,
+#carrier-awarded-workflow .carrier-flow-head button {
+  min-height:42px!important;line-height:1.35!important;
+  max-width:100%!important;overflow-wrap:normal!important;
+  box-shadow:none!important;filter:none!important;transform:none!important;
+}
+#carrier-awarded-workflow .carrier-flow-actions button:hover:not(:disabled) {
+  background:#124c3a!important;color:#fff!important;
+  -webkit-text-fill-color:#fff!important;box-shadow:0 1px 5px rgba(7,37,26,.18)!important;
+}
+#carrier-awarded-workflow .carrier-flow-head button:hover:not(:disabled) {
+  background:#e8f2ed!important;color:#14503b!important;
+  -webkit-text-fill-color:#14503b!important;box-shadow:0 1px 5px rgba(7,37,26,.12)!important;
+}
+@media(max-width:480px) {
+  #carrier-awarded-workflow .carrier-flow-filters {display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+  #carrier-awarded-workflow .carrier-flow-filters button.carrier-flow-filter {
+    min-width:0!important;padding:8px 5px!important;gap:4px!important;
+    font-size:12px!important;white-space:normal!important;
+  }
+}

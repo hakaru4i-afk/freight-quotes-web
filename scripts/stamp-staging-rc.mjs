@@ -5,11 +5,25 @@ let html=read('index.html'),app=read('app.js');const meta=JSON.parse(read('build
 for(const [name,dependencies]of [['process-model-diff.mjs',['process-model-graph.mjs']],['process-editor-20261111.mjs',['process-model-graph.mjs','process-model-diff.mjs']]]){let content=read(name);for(const dependency of dependencies){const exact="from './"+dependency+"?v="+blob(dependency).slice(0,12)+"'",re=new RegExp("from '\\./"+dependency.replaceAll('.', '\\.')+"(?:\\?v=[a-f0-9]+)?'");if(process.argv.includes('--write'))content=content.replace(re,exact);else if(!content.includes(exact))throw Error('STALE_MODULE_CACHE:'+name+':'+dependency);}if(process.argv.includes('--write'))write(name,content);}
 const primaryVersion=meta.primaryBusinessVersion;
 if(!/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(primaryVersion||''))throw Error('INVALID_PRIMARY_BUSINESS_VERSION');
+// Alias files are generated from reviewed canonical sources. A normal stamp
+// must refuse divergent code; explicit synchronization follows reconciliation.
+for(const [canonical,served] of [['late-bid-staging.js',meta.lateBidUiScript],['task2-guidance.js',meta.task2.guidanceScript],['task2-panel.js',meta.task2.frontendScript]]){
+ const source=read(canonical),active=read(served);
+ if(source!==active){
+  if(process.argv.includes('--write')&&process.argv.includes('--sync-artifacts'))write(served,source);
+  else throw Error('DIVERGENT_CANONICAL_ARTIFACT:'+canonical+':'+served+'; reconcile source before --write --sync-artifacts');
+ }
+}
 for(const [name,deps]of [['global-view/globe.mjs',['route-model.mjs']],['global-view/map.mjs',['route-model.mjs']],['global-view/view.mjs',['distance.mjs','route-model.mjs','globe.mjs','map.mjs']]]){
  let content=read(name);for(const dependency of deps){const version=blob('global-view/'+dependency).slice(0,12),re=new RegExp("((?:from\\s*|import\\s*\\()\\s*['\"]\\./"+dependency.replaceAll('.', '\\.')+")(?:\\?v=[^'\"]+)?(['\"])",'g');
  if(process.argv.includes('--write'))content=content.replace(re,'$1?v='+version+'$2');else if(!content.includes('./'+dependency+'?v='+version))throw Error('STALE_MODULE_CACHE:'+name+':'+dependency);
  }if(process.argv.includes('--write'))write(name,content);
 }
+// Human release notes and the QA journal must be reviewed with the business version.
+// Never silently relabel older release notes as a new release.
+if(status.release?.version!==primaryVersion||status.releases?.[0]?.version!==primaryVersion+' · тестовая')throw Error('STALE_VISIBLE_RELEASE_NOTES');
+const observer=JSON.parse(read('qa-observer.json'));
+if(observer.primaryBusinessVersion!==primaryVersion||observer.versionPair?.ref!=='staging-manifest.json')throw Error('STALE_QA_OBSERVER_VERSION_PAIR');
 const files=[...new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"\s]*)?"/g)].map(x=>x[1]).filter(x=>/\.(?:js|mjs|css)$/.test(x)).concat('staging-api-region.mjs','process-model-graph.mjs','process-model-diff.mjs','alignment-role-help.json','global-view/route-model.mjs','global-view/distance.mjs','global-view/globe.mjs','global-view/map.mjs'))].sort();
 const pattern=/currentVersion:"[a-f0-9]{20}"/g;if([...app.matchAll(pattern)].length!==1)throw Error('APP_BUILD_ID_NOT_UNIQUE');
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));

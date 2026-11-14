@@ -60,12 +60,12 @@ function countOwner(){
 function drawOwner(){
  countOwner();const el=ownerHost();if(!el)return;const c=tr(),w=labels[lang()];
  if(el.dataset.language!==lang()||!el.querySelector('.lw-owner-head')){
-  el.dataset.language=lang();el.innerHTML='<div class="lw-owner-head"><h2>'+esc(c.owner)+'</h2><button type="button" data-lw-refresh>'+esc(c.refresh)+'</button></div><div class="ow-toolbar"><input type="search" data-partner-search aria-label="'+esc(w.search)+'" placeholder="'+esc(w.search)+'"><select data-partner-status aria-label="'+esc(w.all)+'"><option value="">'+esc(w.all)+'</option>'+['new','read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'">'+esc(w[x])+'</option>').join('')+'</select><select data-partner-kind aria-label="'+esc(w.kind)+'"><option value="">'+esc(w.kind)+'</option><option value="supplier">'+esc(c.supplier)+'</option><option value="carrier">'+esc(c.carrier)+'</option></select><select data-partner-sort aria-label="'+esc(w.sort)+'"><option value="recent">'+esc(w.sort)+'</option><option value="old">'+esc(lang()==='ru'?'Сначала старые':lang()==='zh'?'旧记录优先':'Oldest first')+'</option></select></div><p class="lw-error" role="status"></p><div class="lw-owner-list"></div>';
+  el.dataset.language=lang();el.setAttribute('aria-label',c.owner);el.innerHTML='<div class="lw-owner-head lw-owner-head-actions"><button type="button" data-lw-refresh>'+esc(c.refresh)+'</button></div><div class="ow-toolbar"><input type="search" data-partner-search aria-label="'+esc(w.search)+'" placeholder="'+esc(w.search)+'"><select data-partner-status aria-label="'+esc(w.all)+'"><option value="">'+esc(w.all)+'</option>'+['new','read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'">'+esc(w[x])+'</option>').join('')+'</select><select data-partner-kind aria-label="'+esc(w.kind)+'"><option value="">'+esc(w.kind)+'</option><option value="supplier">'+esc(c.supplier)+'</option><option value="carrier">'+esc(c.carrier)+'</option></select><select data-partner-sort aria-label="'+esc(w.sort)+'"><option value="recent">'+esc(w.sort)+'</option><option value="old">'+esc(lang()==='ru'?'Сначала старые':lang()==='zh'?'旧记录优先':'Oldest first')+'</option></select></div><p class="lw-error" role="status"></p><div class="lw-owner-list"></div>';
   el.querySelector('[data-partner-search]').value=ownerQuery;el.querySelector('[data-partner-status]').value=ownerStatus;el.querySelector('[data-partner-kind]').value=ownerKind;el.querySelector('[data-partner-sort]').value=ownerSort;
  }
  el.querySelector('.lw-error').textContent=ownerError;
  let items=ownerItems.filter(i=>(!ownerStatus||i.status===ownerStatus)&&(!ownerKind||i.partner_kind===ownerKind)&&JSON.stringify(i).toLocaleLowerCase().includes(ownerQuery.toLocaleLowerCase()));if(ownerSort==='old')items=[...items].reverse();
- el.querySelector('.lw-owner-list').innerHTML=!items.length?'<p>'+esc(ownerLoading?'…':c.empty)+'</p>':items.map(i=>'<article class="lw-inquiry" data-inquiry-id="'+esc(i.id)+'"><details><summary><strong>'+esc(i.company_name)+'</strong> · '+esc(w[i.status]||i.status)+' · '+esc(new Date(i.created_at).toLocaleString(lang()==='zh'?'zh-CN':lang()==='en'?'en-GB':'ru-RU',{timeZone:'Europe/Minsk'}))+'</summary><p>'+esc(i.id)+' · '+esc(i.partner_kind==='carrier'?c.carrier:c.supplier)+'</p><p>'+esc(i.contact_name)+' · '+esc(i.contact_details)+'</p><p class="lw-inquiry-text">'+esc(i.message)+'</p>'+((i.attachments||[]).length?'<div class="lw-inquiry-files"><b>'+esc(c.attached)+'</b>'+(i.attachments||[]).map(f=>'<button type="button" class="lw-file-download" data-lw-file="'+esc(f.id)+'" data-lw-filename="'+esc(f.name)+'">'+esc(c.download)+': '+esc(f.name)+'</button>').join('')+'</div>':'')+'<label>'+esc(w.all)+'<select data-inquiry-status><option value="new" disabled'+(i.status==='new'?' selected':'')+'>'+esc(w.new)+'</option>'+['read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'"'+(i.status===x?' selected':'')+'>'+esc(w[x])+'</option>').join('')+'</select></label><button type="button" data-lw-status data-lw-id="'+esc(i.id)+'">'+esc(w.save)+'</button><h3>'+esc(w.history)+'</h3><ul>'+(i.history||[]).map(h=>'<li>'+esc(w[h.status]||h.status)+' · '+esc(h.actor)+' · '+esc(new Date(h.at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}))+'</li>').join('')+'</ul></details></article>').join('');
+ el.querySelector('.lw-owner-list').innerHTML=!items.length?'<p>'+esc(ownerLoading?'…':c.empty)+'</p>':items.map(i=>'<article class="lw-inquiry" data-inquiry-id="'+esc(i.id)+'"><details><summary><strong>'+esc(i.company_name)+'</strong> · '+esc(w[i.status]||i.status)+' · '+esc(new Date(i.created_at).toLocaleString(lang()==='zh'?'zh-CN':lang()==='en'?'en-GB':'ru-RU',{timeZone:'Europe/Minsk'}))+'</summary><p>'+esc(i.id)+' · '+esc(i.partner_kind==='carrier'?c.carrier:c.supplier)+'</p><p>'+esc(i.contact_name)+' · '+esc(i.contact_details)+'</p><p class="lw-inquiry-text">'+esc(i.message)+'</p>'+((i.attachments||[]).length?'<div class="lw-inquiry-files"><b>'+esc(c.attached)+'</b>'+(i.attachments||[]).map(f=>'<button type="button" class="lw-file-download" data-lw-file="'+esc(f.id)+'" data-lw-filename="'+esc(f.name)+'">'+esc(c.download)+': '+esc(f.name)+'</button>').join('')+'</div>':'')+'<label>'+esc(w.all)+'<select data-inquiry-status><option value="new" disabled'+(i.status==='new'?' selected':'')+'>'+esc(w.new)+'</option>'+['read','in_progress','closed','rejected'].map(x=>'<option value="'+x+'"'+(i.status===x?' selected':'')+'>'+esc(w[x])+'</option>').join('')+'</select></label>'+'<button type="button" data-lw-status data-lw-id="'+esc(i.id)+'">'+esc(w.save)+'</button><h3>'+esc(w.history)+'</h3><ul>'+(i.history||[]).map(h=>'<li>'+esc(w[h.status]||h.status)+' · '+esc(h.actor)+' · '+esc(new Date(h.at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}))+'</li>').join('')+'</ul></details>'+(i.status==='new'||i.status==='read'?'<button type="button" class="lw-take-cooperation" data-lw-take-work data-lw-id="'+esc(i.id)+'">'+esc(w.in_progress)+'</button>':'')+'</article>').join('');
 }
 async function loadOwner(){
  if(!document.querySelector('.cabinet-app[data-cabinet-role="owner"]')||ownerLoading||ownerBusy)return;ownerLoading=true;
@@ -78,6 +78,23 @@ async function ownerAction(e){
  const status=b.closest('[data-inquiry-id]').querySelector('[data-inquiry-status]').value;ownerBusy=true;b.disabled=true;
  try{const r=await fetch('/api/partner-inquiries',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,status,expectedStatus:item.status})}),j=await r.json();if(!r.ok||!j.ok)throw Error('HTTP '+r.status);ownerBusy=false;await loadOwner();}
  catch(x){ownerError=x.message;drawOwner();}finally{ownerBusy=false;b.disabled=false;}
+}
+// Take a partner proposal into work using its existing audit-backed API.
+async function takeCooperation(e){
+ const button=e.target.closest('[data-lw-take-work]');
+ if(!button||ownerBusy)return;
+ const item=ownerItems.find(x=>x.id===button.dataset.lwId);
+ if(!item||!['new','read'].includes(item.status))return;
+ ownerBusy=true;button.disabled=true;
+ try{
+  const res=await fetch('/api/partner-inquiries',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:item.id,status:'in_progress',expectedStatus:item.status}),cache:'no-store'});
+  const out=await res.json().catch(()=>({}));
+  if(!res.ok||!out.ok)throw Error(out.error||'HTTP '+res.status);
+  ownerBusy=false;
+  await loadOwner();
+  if(ownerItems.find(x=>x.id===item.id)?.status!=='in_progress')throw Error('STATUS_READBACK_MISMATCH');
+ }catch(err){ownerError=tr().err+' '+String(err.message||err);drawOwner();}
+ finally{ownerBusy=false;button.disabled=false;}
 }
 async function ownerFile(e){
 const b=e.target.closest("[data-lw-file]");if(!b||b.disabled)return;
@@ -100,7 +117,7 @@ lastLang=lang();
 }
 function schedule(){if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;mount()})}
 document.addEventListener("submit",submit);
-document.addEventListener("click",e=>{if(e.target.closest("[data-lw-refresh]"))void loadOwner();if(e.target.closest("[data-lw-status]"))void ownerAction(e);if(e.target.closest("[data-lw-file]"))void ownerFile(e)});
+document.addEventListener("click",e=>{if(e.target.closest("[data-lw-refresh]"))void loadOwner();if(e.target.closest("[data-lw-status]"))void ownerAction(e);if(e.target.closest("[data-lw-take-work]"))void takeCooperation(e);if(e.target.closest("[data-lw-file]"))void ownerFile(e)});
 window.addEventListener("ow-workspace-changed",()=>{drawOwner();schedule();});
 document.addEventListener("input",e=>{if(e.target.matches("[data-partner-search]")){ownerQuery=e.target.value;drawOwner();}});
 document.addEventListener("change",e=>{if(e.target.matches("[data-partner-status]"))ownerStatus=e.target.value;else if(e.target.matches("[data-partner-kind]"))ownerKind=e.target.value;else if(e.target.matches("[data-partner-sort]"))ownerSort=e.target.value;else return;drawOwner();});

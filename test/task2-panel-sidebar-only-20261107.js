@@ -7,7 +7,7 @@
  const eid="task2-root";
  const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
  window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
- const state={items:[],role:"",selected:"",detail:null,tab:"stages",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",listView:"active",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
  const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
  const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
  const tips={
@@ -96,7 +96,18 @@
      return;
    }
    const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":"В работе";
-   html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+state.items.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
+   const activeItems=state.items.filter(i=>i.process_status!=="completed");
+   const archivedItems=state.items.filter(i=>i.process_status==="completed");
+   const visibleItems=state.listView==="archive"?archivedItems:activeItems;
+   html+='<nav class="t2-list-filters" aria-label="Фильтр перевозок">'+
+     [['active','Новые и в работе',activeItems.length],['archive','Архив',archivedItems.length]].map(([key,label,count])=>
+       '<button type="button" class="t2-list-filter'+(state.listView===key?' is-active':'')+'" data-t2-filter="'+key+'" aria-pressed="'+(state.listView===key?'true':'false')+'">'+label+' <span>'+count+'</span></button>'
+     ).join('')+'</nav>';
+   if(!visibleItems.length){
+     root.innerHTML=html+'<div class="t2-empty"><p>В выбранной категории перевозок нет.</p></div>';
+     return;
+   }
+   html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+visibleItems.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
     esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+workflowLabel(i))+'</option>').join("")+'</select></label></div>';
    if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
    const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
@@ -118,11 +129,15 @@
      for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key],n=typeof v==="number"?v:parseInt(String(v??"").trim(),10);if(Number.isFinite(n)&&n>0&&n<=3650){days=n;break;}}if(Number.isFinite(days))break;}
      const total=Number.isFinite(days)?Math.ceil(days/7):0;
      const completed=(d.points||[]).filter(p=>p.location_text&&p.observed_at).length;
-     const start=new Date(d.state.actual_departure||d.state.original_departure||d.shipment.pickup||"");
-     const deadline=Number.isFinite(start.getTime())?new Date(start.getTime()+7*(completed+1)*86400000):null;
-     const overdue=deadline&&Date.now()>deadline.getTime();
+     // Плановая дата и будущая «фактическая» дата не подтверждают, что груз вышел.
+     const actual=d.state.actual_departure?new Date(d.state.actual_departure):null;
+     const departed=!!(actual&&Number.isFinite(actual.getTime())&&actual.getTime()<=Date.now());
+     const deadline=departed?new Date(actual.getTime()+7*(completed+1)*86400000):null;
+     const overdue=!!(deadline&&Date.now()>deadline.getTime());
      const remaining=Math.max(0,total-completed);
-     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border:1px solid #d5a544;border-left:4px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>'+(overdue?'Просрочен еженедельный трекинг':'Требуется обновить местоположение груза')+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Заполнить трекинг</button></div>';
+     const message=overdue?'Просрочен еженедельный трекинг':departed?'Следующий отчёт о местоположении':'План трекинга — ожидается фактическое отправление';
+     const noticeStyle=overdue?'border:1px solid #d5a544;border-left:4px solid #d5a544;background:#fff8e9;color:#533d13':'border:1px solid #b8ccdc;border-left:4px solid #5f879f;background:#eef5fd;color:#173650';
+     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border-radius:9px;'+noticeStyle+'"><strong>'+message+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Открыть трекинг</button></div>';
      else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
    }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
@@ -180,18 +195,14 @@
           "Направить задачу логисту"));
      }
      if(x.status!=="completed"){
-       html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, каждый файл будет виден в задаче и общем чате.</small></label>'+
+       html+='<h3>Прикрепить документы</h3><form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Документы (несколько файлов)</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото, архивы; до 10 МБ на файл, файлы сохраняются в документах перевозки; для отправки в переписке прикрепите их в разделе «Чаты по заявкам».</small></label>'+
        (staff?'<label class="t2-field"><span>Задача ВЭД</span><select name="taskId"><option value="">Общие документы заявки</option>'+tasks.filter(t=>["missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)&&
         (t.task_type!=="ved_request_logistic"||state.role==="owner"||String(t.assigned_login||"").toLowerCase()===state.login)).map(t=>
         '<option value="'+esc(t.id)+'">'+esc(t.description.slice(0,80))+'</option>').join("")+'</select></label>':"")+
        '<button type="submit" class="t2-btn">Загрузить документы</button></form>';
      }
-     if(state.role==="ved"||state.role==="logistic"){
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><div class="lw-ved-chat-mount" data-lw-ved-chat-order="'+esc(state.selected)+'"><p class="t2-muted">Открываем общую переписку перевозки…</p></div>';
-      }else{
-        html+='<h3>Общий чат: ВЭД · перевозчик · Владелец</h3><p class="t2-muted">Открывайте полный чат перевозки в разделе переписки кабинета.</p>';
-      }
-     // Свободный чат — через единый /api/chats, без шаблонов и дублирующих форм.
+     // Отдельное меню «Чаты по заявкам» — единственная точка переписки.
+     // Здесь только документы, запросы и вложения; чат API и сообщения сохраняются.
      return html;
    }
    if(state.tab==="stages"){
@@ -206,7 +217,8 @@
        ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
        ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
      ];
-     return '<h3>Этапы перевозки</h3><p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
+     // The outer t2-stage already renders the tab title: keep a single heading.
+     return '<p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
        '<div class="t2-milestones">'+milestones.map(([n,label,done,detail])=>
          '<div class="t2-milestone '+(done?"is-done":"is-pending")+'"><span class="t2-milestone-number">'+n+'</span><div><strong>'+esc(label)+'</strong><p>'+detail+'</p></div><span class="t2-milestone-status">'+(done?"Зафиксировано":"Ожидается")+'</span></div>'
        ).join("")+'</div>'+
@@ -228,22 +240,9 @@
        },d.plannedGeocodes||{owner:[],offer:[]}
      ];
      html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
+     // Заполнение недельных точек находится под единственной картой Global View.
      if(carrier&&x.status!=="completed"){
-       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
-       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
-         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
-         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
-           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
-           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
-           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
-           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
-         }).join("")+'</div>';
-       html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
-        '<span class="t2-actual-label">Фактическое отправление</span>'+
-        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
-         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label><span class="t2-actual-note">Указывается один раз</span><button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
-         '</div>';
-       html+='<div class="t2-block-title">2. Еженедельный трекинг груза</div>'+
+       html+='<div class="t2-block-title">Еженедельный трекинг — контрольные точки Global View</div>'+
 
          '<div class="t2-weekly-tracking">'+
          (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
@@ -265,6 +264,24 @@
              }).join('')+
              '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
          })()+'</div>';
+     }
+
+     if(carrier&&x.status!=="completed"){
+       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
+       html+=(x.untrusted_actual_departure?'<p role="status">Ранее сохранена ошибочная будущая дата '+fmt(x.untrusted_actual_departure)+'. Она сохранена в истории, но не считается фактическим отправлением. Переносы плановой даты доступны.</p>':"");
+       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+fmt(x.original_departure||o.pickup)+'</strong><span>Максимум 4 переноса</span></div>'+
+         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
+           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
+           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
+           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
+           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
+         }).join("")+'</div>';
+       html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
+        '<span class="t2-actual-label">Фактическое отправление</span>'+
+        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
+         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label>'+(x.untrusted_actual_departure?'<label>Причина исправления<textarea name="actual_departure_reason" required minlength="10" maxlength="700"></textarea></label>':'<span class="t2-actual-note">Указывается один раз</span>')+'<button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '</div>';
        html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
          '<form data-t2-form="save" class="t2-pto-compact">'+
          (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
@@ -289,11 +306,7 @@
      }
      /* History of dates is shown directly above the new transfer fields. */
      html+='<h3>Контейнеры</h3><div class="t2-stack">'+(cs.length?cs.map(c=>readonly("№",c.container_no)).join(""):'<p class="t2-muted">Номер не указан; продолжение работы разрешено.</p>')+'</div>';
-     html+='<h3>Движение груза</h3><div class="t2-stack">'+(pts.length?pts.map(p=>'<div class="t2-item"><div><strong>'+esc(p.location_text)+'</strong><br><small>'+fmt(p.observed_at)+' · '+esc(p.comment||"")+'</small></div><small>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</small></div>').join(""):'<p class="t2-muted">Контрольных точек пока нет.</p>')+'</div>';
-     if(pts.length){
-       const place=pts[pts.length-1].location_text;
-       html+='<h3>Карта местоположения</h3><iframe class="t2-map" loading="lazy" title="Карта груза" src="https://yandex.ru/map-widget/v1/?text='+encodeURIComponent(place)+'"></iframe><p><a target="_blank" rel="noopener noreferrer" href="https://yandex.ru/maps/?text='+encodeURIComponent(place)+'">Открыть карту</a></p>';
-     }
+     // Движение груза отображает только Global View вместе с историей контрольных точек.
      html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
      return html;
    }
@@ -342,7 +355,7 @@
    return '<article class="t2-item"><div><strong>'+esc(labels[t.task_type]||t.task_type)+'</strong> '+badge(t.status)+
     '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
     '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
-    (canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
+    (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
      (isReverse?"Подтвердить передачу документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
  async function loadList(){
@@ -362,17 +375,13 @@
      // Defense in depth: VED must not display shipments pending carrier acceptance.
      // The backend MUST enforce the same rule for list, detail and file endpoints.
      const accepted=incoming.filter(item=>item.process_status!=="awaiting_take" &&
-       ["in_progress","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
-     const checked=[];
-     for(const item of accepted){
-       try{
-         const detail=await get("?order="+encodeURIComponent(item.order_code));
-         if(detail?.state && detail?.shipment?.carrier_login && detail.state.status!=="awaiting_take")checked.push(item);
-       }catch(_){/* inaccessible: do not display */ }
-     }
-     state.items=checked;
+       ["in_progress","waiting_container","claim","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
+     // The authenticated list already enforces acceptance and shipment scope.
+     // Do not silently discard every shipment after a failed N+1 detail request.
+     state.items=accepted;
    }else state.items=incoming;
-   if(!state.items.some(o=>o.order_code===state.selected))state.selected=state.items[0]?.order_code||"";
+   const visible=state.items.filter(i=>state.listView==="archive"?i.process_status==="completed":i.process_status!=="completed");
+   if(!visible.some(o=>o.order_code===state.selected))state.selected=visible[0]?.order_code||"";
    await loadDetail();
  }
  let detailRequest=0;
@@ -585,6 +594,14 @@
        if(!saved?.ok)return;
      }return;
    }
+   if(kind==="pto-review"){
+     const decision=ev.submitter?.value;
+     if(decision==="approve"&&!f.elements.packageComplete.checked){alertText("Подтвердите полноту комплекта документов.",true);return;}
+     if(decision==="remarks"&&String(data.remarks||"").trim().length<10){alertText("Опишите замечания: от 10 символов.",true);return;}
+     const signature=JSON.stringify({decision,remarks:data.remarks});
+     if(f.dataset.reviewSignature!==signature){f.dataset.reviewSignature=signature;f.dataset.reviewRequest=crypto.randomUUID();}
+     await update("complete_task",{taskId:data.taskId,reviewDecision:decision,packageComplete:f.elements.packageComplete.checked,remarks:data.remarks,requestId:f.dataset.reviewRequest});return;
+   }
    if(kind==="weekly-point"){
      if(!String(data.location||"").trim()||!data.location_date){alertText("Укажите местонахождение и дату.",true);return;}
      const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="Сохраняем…";}
@@ -599,7 +616,7 @@
      if(btn){btn.disabled=true;btn.textContent="Сохраняем…";}
      if(feedback)feedback.textContent="Проверяем сохранение…";
      try{
-       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure)}});
+       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure),actual_departure_reason:data.actual_departure_reason||""}});
        if(!result?.ok){if(feedback)feedback.textContent="Ошибка сохранения. Дата не подтверждена.";return;}
        await loadDetail();
        const stored=state.detail?.state?.actual_departure;
@@ -700,10 +717,27 @@
    return update(kind,{...data,...(csvMeta?{csv:csvMeta}:{})});
  }
  async function onClick(ev){
-   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download]");
+   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download],[data-t2-filter]");
    if(!hit)return;
+   if(hit.hasAttribute("data-t2-filter")){
+     const next=hit.getAttribute("data-t2-filter");
+     if(!["active","archive"].includes(next))return;
+     state.listView=next;
+     const visible=state.items.filter(i=>next==="archive"?i.process_status==="completed":i.process_status!=="completed");
+     const order=visible.some(i=>i.order_code===state.selected)?state.selected:(visible[0]?.order_code||"");
+     if(order!==state.selected){await selectShipment(order,{force:true});}
+     else show();
+     return;
+   }
    if(hit.hasAttribute("data-t2-csv-download"))return csv.download(hit.closest("form"));
-   if(hit.hasAttribute("data-t2-refresh")){try{await loadList();}catch(e){alertText(e.message,true);}return;}
+   if(hit.hasAttribute("data-t2-refresh")){
+     if(state.busy||state.refreshing)return;
+     state.refreshing=true;hit.disabled=true;
+     const root=document.getElementById(eid);if(root)root.dataset.refreshing="true";
+     try{await loadList();}catch(e){alertText(e.message,true);}
+     finally{state.refreshing=false;if(root)root.dataset.refreshing="false";const button=root?.querySelector("[data-t2-refresh]");if(button)button.disabled=false;}
+     return;
+   }
    if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
    if(hit.hasAttribute("data-t2-open-transport")){
      location.hash="#transport-applications";return;
@@ -774,6 +808,7 @@
    try{
      if(!state.items.some(item=>item.order_code===order))await loadList();
      if(!state.items.some(item=>item.order_code===order))return;
+     state.listView=state.items.find(item=>item.order_code===order)?.process_status==="completed"?"archive":"active";
      await selectShipment(order,{force:true});
    }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
  });
