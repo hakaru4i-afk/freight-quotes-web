@@ -1,20 +1,35 @@
 <!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://ibclzdkxiozbzmniiygv.supabase.co https://cdn.jsdelivr.net https://unpkg.com https://router.project-osrm.org; frame-src 'self' https://yandex.ru https://yandex.com; img-src 'self' data: blob: https://cdn.jsdelivr.net https://unpkg.com; object-src 'none'; base-uri 'self'; form-action 'self'"><title>Тестовая среда · Логистический портал</title><link rel="stylesheet" href="./style.css?v=57001b594fd9"><link rel="stylesheet" href="./task2.css?v=20efd3431a32"><link rel="stylesheet" href="./task2-process-split-20261107.css?v=547f6efd12f5"><link rel="stylesheet" href="./action-layout-hotfix.css?v=9f6cece23e88"><link rel="stylesheet" href="./transport-application.css?v=0a5957a81f5d"><link rel="stylesheet" href="./task2-contrast-hotfix.css?v=a5b2641578f3"><link rel="stylesheet" href="./transport-readability-20261107.css?v=d0080ae58aa2"><link rel="stylesheet" href="./carrier-acceptance-workflow-20261107.css?v=3202606b7ecf"><link rel="stylesheet" href="./portal-feedback-center-20261107.css?v=14a00979ff4c"><link rel="stylesheet" href="./carrier-dashboard-compact-20261107.css?v=ae47fb53b195"><link rel="stylesheet" href="./lw2-staging-20261107.css?v=878955c481b6"><link rel="stylesheet" href="./carrier-defer-transport-application-20261107.css?v=1c60b52f58b0"><link rel="stylesheet" href="./lw-premium-landing-20261108.css?v=f844e358e1f2"><link rel="stylesheet" href="./lw-approved-dark-20261108.css?v=1d5281d4df7b"><link rel="stylesheet" href="./lw-public-cooperation-20261108.css?v=fd67b416dbd4"><link rel="stylesheet" href="./current-workspace-help-20261108.css?v=472cbc6ab692"><link rel="stylesheet" href="./owner-workspace-compact-20261108.css?v=91dfd0c42daf"><link rel="stylesheet" href="./owner-command-center-20261108.css?v=d5b494ebc7da"><link rel="stylesheet" href="./owner-registers-20261111.css?v=e92bddda11f6"><link rel="stylesheet" href="./role-help-20261111.css?v=afb0a8cb02c6"><link rel="stylesheet" href="./portal-contrast-accessibility-20261108.css?v=0ea5bc79466f">
 <link rel="stylesheet" href="./offer-edit-modal-readability-20261108.css?v=a780a27e6d50"><link rel="stylesheet" href="./global-view/leaflet.css?v=9ade8dc49bc5"><link rel="stylesheet" href="./global-view/view.css?v=55a1a2617097"><link rel="stylesheet" href="./ved-single-workspace-20261108.css?v=e2ea64735771"><link rel="stylesheet" href="./lw-pending-tasks-all-roles-20261109.css?v=80549ff57980"><link rel="stylesheet" href="./lw-ved-shared-chat-20261109.css?v=52427676b010"><link rel="stylesheet" href="./lw-contrast-canonical-20261111.css?v=db7833cb3d77"><link rel="stylesheet" href="./lw-hover-safe-20261108.css?v=cdd9dc099d78"><script src="./staging-transport-20261111.js?v=e01e01ca2a49"></script>
+
 <style id="qa011-owner-winner-actions">
 /* QA-011 / 14.11.2026 — Owner: separate carrier identity from its three actions.
    Presentation only: existing React buttons, handlers, permissions and API remain untouched. */
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row):has(> button:nth-of-type(3)),
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row) :is(div,section,article):has(> button:nth-of-type(3)) {
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) {
   display:flex!important;flex-wrap:wrap!important;align-items:stretch!important;
   justify-content:flex-start!important;gap:9px!important;max-width:100%!important;min-width:0!important;
   box-sizing:border-box!important;
 }
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row):has(> button:nth-of-type(3)) > :not(button),
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row) :is(div,section,article):has(> button:nth-of-type(3)) > :not(button) {
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button) {
   flex:1 1 100%!important;min-width:0!important;max-width:100%!important;
 }
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row):has(> button:nth-of-type(3)) > button,
-:is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row) :is(div,section,article):has(> button:nth-of-type(3)) > button {
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
   display:inline-flex!important;flex:1 1 220px!important;align-items:center!important;justify-content:center!important;
   min-width:0!important;max-width:100%!important;min-height:44px!important;height:auto!important;
   margin:0!important;padding:10px 13px!important;box-sizing:border-box!important;
@@ -22,8 +37,14 @@
   overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:middle!important;
 }
 @media(max-width:720px){
-  :is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row):has(> button:nth-of-type(3)) > button,
-  :is(.cabinet-app,.staff-portal)[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] :is(.notice,.winner-card,.offer-row) :is(div,section,article):has(> button:nth-of-type(3)) > button {
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
     flex:1 1 100%!important;width:100%!important;
   }
 }
