@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "eda881ac60cf09d54f31a472a4621732ab642a2f",
+  "frontendCommit": "7401c3256ecf591144a3d686923a1d1c42127478",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
@@ -122,7 +122,7 @@
     "test/global-view/view.mjs": "69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "32b2439c42c09541076c1a93365eadfa5dd2ee439d7d58ffd6adb6d3279375d5",
+    "test/index.html": "73874d33e34a1d2997d9599ba319563dccdfe6674decceb9a030cb31bc9be574",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
     "test/late-bid-staging.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
@@ -299,7 +299,7 @@
     "tests/qa-anonymous-roles.test.mjs": "196f2b786010208e81208023933a458a7d7605b09c0212e8ddc137f667f077a3",
     "tests/qa-public-served.test.mjs": "118550e77b3c7e1376e851b9d53269958e453c4e8a5a658cc2b4a3e427219247",
     "tests/qa-publication-gate.test.mjs": "efd31f23b11c1e8a3ee59ebe02c2933a711e08e32c6264dcc8c7fd04b5a7daf7",
-    "tests/qa011-role-ui.test.mjs": "841fed42208965cb09f6afe7a482c4478f80304c8eb11861f99ce5db662b86bf",
+    "tests/qa011-role-ui.test.mjs": "cea5320ed471af06626adf6f2005344e72fe60e3756d42ecf31c274a8a74bd68",
     "tests/qa014-017-behavior.test.mjs": "c8109061ebb9ff3915e536bee08d015ba92143015c06b71145c4441631802402",
     "tests/qa014-017-faq-coherence.test.mjs": "1feca380fef08e95e88e44ece34d8d83dd969cd8065caf2af08ab082f7a045d8",
     "tests/qa015-016-018-consolidated.test.mjs": "ab7f64f3e17cdb4e580b21ec81e432ca7290e4afcaef328e797d2c738da977be",
