@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "d86a03d9c76e6d0d480f30b9a557c99265343130",
+  "frontendCommit": "0c530bf12f7be479bf193777e6aa4c5c3cde7ab4",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
@@ -238,7 +238,7 @@
     "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
     "tests/ISSUE47_CANDIDATE.md": "cbcff74442cc032324b2b97755702301b7a35a5a7d23632a2d0c3e0e3c299ea2",
     "tests/addressed-logistic-real-scenario.mjs": "a51e98b7f48730f77ce75539beda4082e45a51b36ad21ac59abf9a6c3296fc8c",
-    "tests/alignment-cabinet-matrix.mjs": "ae7d6c513c2f137d797f39f3b9577818ba1eecabaed5ec1fc8d022e53297a687",
+    "tests/alignment-cabinet-matrix.mjs": "b5cf1a243f30e72af17b714b0140e408c6b8364cbb9f7bfadbbfbbc87a7152e1",
     "tests/alignment-real-scenarios.mjs": "b919a41d0cbe1541ec28828ed6e49d89cc2f17166af1b123bc555beef13d4ed3",
     "tests/business-process-maps.test.mjs": "cf5e4e4d1ec793d8ad1d80e651513db600bb2e81a817f9e886052d795af7b192",
     "tests/carrier-acceptance-singleton-browser.test.mjs": "2730045444fd7aeb008e11f8cca625ba6d6b8ac62b846c12627204feb8543bdd",
