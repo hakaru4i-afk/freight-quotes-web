@@ -229,8 +229,8 @@
        ["1","Заявка принята в работу",true,"После выбора победителя и принятия перевозчиком начинается исполнение"],
        ["2","Фактический выход груза",!!x.actual_departure,x.actual_departure?fmt(x.actual_departure):"Ожидается отметка перевозчика"],
        ["3","Движение груза",pts.length>0,latestPoint?esc(latestPoint.location_text)+" · "+fmt(latestPoint.observed_at):"Ожидается первая контрольная точка"],
-       ["4","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"Не зафиксировано"],
-       ["5","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка"],
+       ["4","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка до ПТО"],
+       ["5","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"После подтверждения документов ВЭД"],
        ["6","Таможенное оформление",!!x.customs_at,x.customs_at?fmt(x.customs_at):"Не завершено"],
        ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
        ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
