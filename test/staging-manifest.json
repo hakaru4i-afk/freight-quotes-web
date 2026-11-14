@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "8c27ff0cb1b3652d1f0f23f68c596fbd8a56c733",
+  "frontendCommit": "99dbcb3d680d2b2fe76747cf6f8a9fda291ce6bf",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
@@ -299,7 +299,7 @@
     "tests/qa-anonymous-roles.test.mjs": "196f2b786010208e81208023933a458a7d7605b09c0212e8ddc137f667f077a3",
     "tests/qa-public-served.test.mjs": "118550e77b3c7e1376e851b9d53269958e453c4e8a5a658cc2b4a3e427219247",
     "tests/qa-publication-gate.test.mjs": "efd31f23b11c1e8a3ee59ebe02c2933a711e08e32c6264dcc8c7fd04b5a7daf7",
-    "tests/qa011-role-ui.test.mjs": "cea5320ed471af06626adf6f2005344e72fe60e3756d42ecf31c274a8a74bd68",
+    "tests/qa011-role-ui.test.mjs": "eddf7a5d167838a5c0d76b5c3aab84feb715590bf92471d1fee3ec3b22a08012",
     "tests/qa014-017-behavior.test.mjs": "c8109061ebb9ff3915e536bee08d015ba92143015c06b71145c4441631802402",
     "tests/qa014-017-faq-coherence.test.mjs": "1feca380fef08e95e88e44ece34d8d83dd969cd8065caf2af08ab082f7a045d8",
     "tests/qa015-016-018-consolidated.test.mjs": "ab7f64f3e17cdb4e580b21ec81e432ca7290e4afcaef328e797d2c738da977be",
