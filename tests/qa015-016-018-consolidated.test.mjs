@@ -34,8 +34,8 @@ test("QA-018 embedded chat removed but documents and API remain",()=>{
   for(const p of [panel,canonical]){
     assert.doesNotMatch(p,/class="lw-ved-chat-mount"/);
     assert.doesNotMatch(p,/Общий чат: ВЭД · перевозчик · Владелец/);
-    assert.match(p,/Документы и задачи ВЭД/);
-    assert.match(p,/Загрузить документы/);
+    for(const label of ["Документы владельца","Документы ВЭД","Документы перевозчика"])assert.ok(p.includes(label));
+    assert.match(p,/data-t2-form="upload"/);
   }
   assert.match(html,/lw-ved-shared-chat-20261109\.js/);
 });

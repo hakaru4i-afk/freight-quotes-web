@@ -77,3 +77,13 @@ test("field help explains bid amount, feedback category, and checkboxes",()=>{
   assert.equal(rate.title,rate.nextElementSibling.textContent);
   v.refresh();assert.equal(rate.nextElementSibling.className,"lw-field-help");
 });
+
+
+test("carrier FAQ does not give Owner deletion, registry or manual review instructions",()=>{
+ const v=mock();
+ assert.doesNotMatch(v.host.element.innerHTML,/Что означает «Удалить навсегда»|Где посмотреть изменения и структуру процессов|Что делать, если остаток километров определить невозможно/);
+ v.setRole('owner');v.refresh();
+ assert.match(v.host.element.innerHTML,/Что означает «Удалить навсегда»/);
+ v.document.documentElement.lang='en';v.setRole('carrier');v.refresh();
+ assert.doesNotMatch(v.host.element.innerHTML,/What does Delete permanently mean|Where can I find change registers/);
+});

@@ -180,6 +180,21 @@ sections:[
 };
 const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
 let queued=false,hintId=0;
+function faqFor(role,faq){
+ if(role==='owner')return faq;
+ const rules=[
+  [/километр.*невозмож|остаток.*невозмож|calculate remaining|剩余里程/i,['ved']],
+  [/Удалить навсегда|Delete permanently|永久删除/i,[]],
+  [/структур.*процесс|change registers|版本登记册/i,[]],
+  [/новому партнёру|new partners|成为合作伙伴/i,[]],
+  [/кто выбирает|who chooses|谁选/i,['carrier','ved','logistic']],
+  [/после дедлайна|late quotes|逾期报价/i,['carrier']],
+  [/чем заявка|request versus|询价和运输/i,['carrier','ved','logistic']],
+  [/Транспортная заявка и ВЭД|Transport application and foreign|运输申请和外贸/i,['carrier','ved','logistic']],
+  [/Excel|模板/i,['carrier']]
+ ];
+ return faq.filter(([question])=>{const rule=rules.find(([pattern])=>pattern.test(question));return !rule||rule[1].includes(role);});
+}
 function update(){
 const l=lang(),data=DATA[l],r=role(),host=document.querySelector('.cabinet-panel[data-section="help"]');
 if(host){let box=host.querySelector("#lw-current-help"),key=l+"-"+r;
@@ -187,11 +202,11 @@ if(!box){box=document.createElement("section");box.id="lw-current-help";host.pre
 if(box.dataset.version!==key){box.dataset.version=key;
 box.innerHTML="<h2>"+escapeHtml(data.title)+"</h2><p>"+escapeHtml(data.flow)+"</p>"+
 (data.roles[r]?"<h3>"+escapeHtml((roleTitles[r]||[r,r,r])[l==="ru"?0:l==="en"?1:2])+" · "+escapeHtml(l==="ru"?"Инструкция по кабинету":l==="en"?"Role guide":"岗位操作指南")+"</h3><ol>"+data.roles[r].map(a=>"<li>"+escapeHtml(a)+"</li>").join("")+"</ol>":"")+(roleQuestions[r]?.[l]?"<h3>"+escapeHtml(l==="ru"?"FAQ по кабинету":l==="en"?"Role FAQ":"岗位常见问题")+"</h3>"+roleQuestions[r][l].map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join(""):"")+
-(r==="owner"?"<section class=\"lw-owner-guide\"><h3>"+escapeHtml(ownerNavigationGuide[l].title)+"</h3><dl>"+ownerNavigationGuide[l].sections.map(([section,body])=>"<dt>"+escapeHtml(section)+"</dt><dd>"+escapeHtml(body)+"</dd>").join("")+"</dl></section>":"")+"<h3>FAQ</h3>"+data.faq.map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
+(r==="owner"?"<section class=\"lw-owner-guide\"><h3>"+escapeHtml(ownerNavigationGuide[l].title)+"</h3><dl>"+ownerNavigationGuide[l].sections.map(([section,body])=>"<dt>"+escapeHtml(section)+"</dt><dd>"+escapeHtml(body)+"</dd>").join("")+"</dl></section>":"")+"<h3>FAQ</h3>"+faqFor(r,data.faq).map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
 const root=document.querySelector(".cabinet-app");if(!root)return;
 let n=0;for(const field of root.querySelectorAll("input,textarea,select")){
 if(n++>800)break;
-if(["hidden","password","submit","button","reset"].includes(field.type)||field.closest("#lw-current-help,#lw-owner-inquiries,.cabinet-sidebar,.language-control"))continue;
+if(["hidden","password","submit","button","reset"].includes(field.type)||field.closest("#ow-workspace,#lw-current-help,#lw-owner-inquiries,.cabinet-sidebar,.language-control"))continue;
 if(!field.getClientRects().length)continue;
 const label=field.closest("label")||field.labels?.[0]||field.closest(".field,.form-field,.t2-field");
 const named=field.getAttribute?.("aria-label")||field.getAttribute?.("data-label")||field.placeholder||field.name||"";if(!label&&!named)continue;
