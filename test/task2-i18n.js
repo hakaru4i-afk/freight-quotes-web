@@ -2,6 +2,26 @@
 (function(){
 "use strict";
 const dict={
+"Документы владельца":["Owner documents","货主文件"],
+"Документы ВЭД":["Foreign-trade documents","外贸文件"],
+"Документы перевозчика":["Carrier documents","承运商文件"],
+"Запросить документ у ВЭД":["Request from foreign trade","向外贸部门索取文件"],
+"Запросить документ у перевозчика":["Request from carrier","向承运商索取文件"],
+"Запросить документ у логиста":["Request from logistician","向物流专员索取文件"],
+"Загрузить документ":["Upload document","上传文件"],
+"Загрузить в этот раздел":["Upload to this section","上传到此区域"],
+"Направить перевозчику":["Send to carrier","发送给承运商"],
+"Направить логисту":["Send to logistician","发送给物流专员"],
+"Какой документ нужен?":["Which document is required?","需要哪种文件？"],
+"Выберите документ":["Select a document","选择文件"],
+"Ответ на запрос":["Response to request","回应文件请求"],
+"Пока нет документов":["No documents yet","尚无文件"],
+"Запросы и проверка документов":["Document requests and review","文件请求与审核"],
+"Уточнение (необязательно)":["Details (optional)","说明（可选）"],
+"Общие документы перевозки":["General shipment files","运输通用文件"],
+"Не относится к запросу":["Not linked to a request","不关联请求"],
+"Исполнитель":["Assignee","执行人"],
+"Загрузить документы":["Upload documents","上传文件"],
 "Исполнение перевозок":["Shipment execution","运输执行"],
 "3D-глобус":["3D globe","3D地球"],"2D-карта":["2D map","2D地图"],"Режим карты":["Map mode","地图模式"],"Приблизить":["Zoom in","放大"],"Отдалить":["Zoom out","缩小"],"К маршруту":["Fit route","显示路线"],"Маршрут заявки":["Request route","申请路线"],"Маршрут перевозки":["Shipment route","运输路线"],"Контроль перевозки":["Shipment overview","运输概况"],"Объект":["Facility","设施"],"Пунктов с координатами":["Stops with coordinates","有坐标的地点"],"На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.":["The map shows the shipment plan. The exact path and GPS position are not verified.","地图显示运输计划。精确路径和GPS位置尚未确认。"],"Определить координаты маршрута":["Resolve route locations","确定路线坐标"],
 
