@@ -396,7 +396,7 @@
     '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
     '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
     (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
-     (isReverse?"Подтвердить передачу документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
+     (isReverse?"Подтвердить передачу документов":t.task_type==="ved_request_carrier"?"Подтвердить получение документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
  async function loadList(){
    const list=await get("");
@@ -797,7 +797,7 @@
      if(kind==="warehouse_acceptance"){
        const answer=window.prompt("Дата фактической приёмки на складе (YYYY-MM-DDTHH:mm)",new Date().toISOString().slice(0,16));
        if(!answer)return;payload.date=minskISO(answer);
-     }else if(!window.confirm("Завершить задачу ВЭД после проверки документов?"))return;
+     }else if(!window.confirm(kind==="ved_request_carrier"?"Подтвердить, что документы перевозчика получены и проверены?":"Завершить задачу ВЭД после проверки документов?"))return;
      await update("complete_task",payload);return;
    }
    if(hit.dataset.t2ActResponse){
