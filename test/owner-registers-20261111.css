@@ -8,6 +8,7 @@
 #ow-workspace :is(button,input,select,textarea,a):focus-visible{outline:3px solid #9adbef;outline-offset:3px}
 #ow-workspace button:disabled{background:#38536c;color:#fff;cursor:wait}
 .ow-toolbar input[type="search"]{flex:1;min-width:180px}.ow-source{font-size:12px;word-break:break-all}
+#ow-workspace>.ow-extra-filters>summary{color:var(--portal-dark-ink,#edf6ff)}
 .ow-record{background:#fff;color:#18344f;border:1px solid #aebfcd;border-radius:9px;padding:12px;margin:10px 0}
 .ow-record pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:13px/1.6 ui-monospace,monospace;color:inherit;max-width:100%}
 .ow-record summary{cursor:pointer;font-weight:650}.ow-editor-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 240px;gap:12px}
