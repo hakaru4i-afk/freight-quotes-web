@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "338556f118c586983d1b9d761e828841a9de5eba12e6934647336081ef1c77c4",
+  "modelSha256": "2c90f9fc243c773381893c9259974a0f23ac29fc184093ba8b959311f340d38a",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -622,7 +622,7 @@
       "test/lw-contrast-canonical-20261111.css": "77abc66ba992acd1c86d953a5f3e52e96f89612dc463121fa08c82cbd849b38b",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "c48aed958ffb3ada973174895ca4334f1bcf7f352129fb825b117b8b141f49f1",
+      "test/app.js": "0879f042a58b7e8766cc21d3295e502ebb1ecb2fbef47cebce99fce35ec0cc0e",
       "test/late-bid-staging-3ff2c9ab03f5.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
       "test/task2-panel-sidebar-only-20261107.js": "8295d09be1c041755ceb55bc47ff1b851e0a31142ccdfc2857f934fb56fb70c6",
       "test/task2-i18n.js": "ed71e17929532cdf5f1ef83d22463abc0cab258d08edb4800f7792a7a2f56113",
@@ -659,7 +659,7 @@
       "test/global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
       "test/global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283"
     },
-    "reviewedBackendSourceCommit": "7571fb07dcca7abb400792c1c7a0ba707a6231f4",
+    "reviewedBackendSourceCommit": "73b9de8dc3ce917790a6d5bca7c006d268cce6cf",
     "previousVersion": "20261113-logic-10",
     "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c."
   },

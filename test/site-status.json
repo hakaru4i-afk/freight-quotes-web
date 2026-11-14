@@ -1,5 +1,5 @@
 {
-  "version": "cbc349d7e0ec1641adba",
+  "version": "fe6a3e8e7c1c5ce43540",
   "maintenance": false,
   "environment": "staging",
   "release": {
@@ -560,7 +560,9 @@
       "productionTouched": false,
       "servedEvidence": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/42479181350",
       "roleLocaleFieldSmoke": "PASS"
-    }
+    },
+    "verificationScope": "HISTORICAL_FEATURE_EVIDENCE",
+    "currentRuntimeRef": "build-info.json#/stabilizationQa20261110"
   },
   "task2Complete": false,
   "candidateStatus": "STAGING_PUBLISHED_MY_APPLICATIONS_ISSUE47_PARTIAL",
