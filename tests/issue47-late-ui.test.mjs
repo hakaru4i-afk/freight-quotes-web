@@ -41,7 +41,7 @@ test("staging build and source SHA are version matched",()=>{
 
 test("annulled/hidden requests do not offer late rate preparation in carrier view",()=>{
  assert.match(panel,/String\(i\.workflow_status\|\|""\)\.toLowerCase\(\)!=="annulled"/);
- assert.match(panel,/Подготовить позднюю ставку/);
+ assert.match(panel,/Подать позднюю ставку/);
  assert.doesNotMatch(panel,/>Взять в работу<\/a>/);
  assert.ok(info.task2.backendVersion>=84);
  assert.equal(info.stagingAnnulledLateBidFix.order,"76");
