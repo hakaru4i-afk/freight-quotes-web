@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "0b41b1a42b398653ecfb",
+  "version": "cbc349d7e0ec1641adba",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "df9d6063b2fb4d622bab597227ef0d6e871ffd1c",
+  "servedAppBlobSha": "451d492afa605f929a76d36494a96876840d4732",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -54,8 +54,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "df9d6063b2fb4d622bab597227ef0d6e871ffd1c",
-        "sha256": "7a2f63fec97553038b675b5c8494b4c737ee58cdf1ff59af3c112e4660752590"
+        "gitBlob": "451d492afa605f929a76d36494a96876840d4732",
+        "sha256": "c48aed958ffb3ada973174895ca4334f1bcf7f352129fb825b117b8b141f49f1"
       },
       "task2-panel.js": {
         "gitBlob": "494213de2aea391fb68e6b855c67757af28ce5a4",
@@ -556,12 +556,12 @@
     "blobSha": "dae8afc0e6a4fba7c3af1c21c93c0964b76f17cb",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "0b41b1a42b398653ecfb",
+  "stagingAssetBuildId": "cbc349d7e0ec1641adba",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
-    "alignment-role-help.json": "f05d6624a745176b38b75e2c71eee2cd5f48cd4b1ae3aa58cef58aec54748400",
-    "app.js": "7a2f63fec97553038b675b5c8494b4c737ee58cdf1ff59af3c112e4660752590",
+    "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
+    "app.js": "c48aed958ffb3ada973174895ca4334f1bcf7f352129fb825b117b8b141f49f1",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "395874b4060edf9e6abbe9031c5e63c398b3160b7de0c13731fd0f1776f43736",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -655,7 +655,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-14T00:05:57.985Z",
+  "assetBuildRecordedAt": "2026-11-14T00:06:00.039Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,

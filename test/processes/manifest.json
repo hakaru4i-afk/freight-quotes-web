@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "696e7b47917f01b377db80ea2a5009c154ed5c2b761f63dea9b2d8cff3f91497",
+  "modelSha256": "338556f118c586983d1b9d761e828841a9de5eba12e6934647336081ef1c77c4",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -622,7 +622,7 @@
       "test/lw-contrast-canonical-20261111.css": "77abc66ba992acd1c86d953a5f3e52e96f89612dc463121fa08c82cbd849b38b",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "7a2f63fec97553038b675b5c8494b4c737ee58cdf1ff59af3c112e4660752590",
+      "test/app.js": "c48aed958ffb3ada973174895ca4334f1bcf7f352129fb825b117b8b141f49f1",
       "test/late-bid-staging-3ff2c9ab03f5.js": "bcb9761d372c24f80b206dfba802b2ed08bd852b13aa824be9fd994b8995826b",
       "test/task2-panel-sidebar-only-20261107.js": "8295d09be1c041755ceb55bc47ff1b851e0a31142ccdfc2857f934fb56fb70c6",
       "test/task2-i18n.js": "ed71e17929532cdf5f1ef83d22463abc0cab258d08edb4800f7792a7a2f56113",
