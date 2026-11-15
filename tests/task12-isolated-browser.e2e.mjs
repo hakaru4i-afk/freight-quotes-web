@@ -90,6 +90,12 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const panel=page.locator('.cabinet-panel[data-section="create-request"]');await panel.waitFor({state:'visible'});
    await panel.locator('input[aria-label="Номер заказа *"]').fill(order);
    const fields=panel.locator('fieldset.request-owner-fields');
+   const incompletePublish=panel.getByRole('button',{name:/Опубликовать и уведомить/});
+   assert.equal(await incompletePublish.isEnabled(),false,'Number alone cannot enable publication');
+   await fields.locator('input[type="datetime-local"]').fill('2026-12-15T12:00');
+   assert.equal(await incompletePublish.isEnabled(),false,'Number and deadline cannot publish without mandatory shipment fields');
+   await panel.locator('textarea[placeholder^="Например, 5324"]').fill('910001, 910002');
+   rec.requiredFieldUiValidation={numberOnlyDisabled:true,numberAndDeadlineDisabled:true,publishedUi:true};
    for(const [selector,value] of [['input[placeholder^="Что перевозим"]','Synthetic browser shipment'],['input[placeholder^="Имя, телефон"]','Synthetic QA sender'],['input[placeholder^="Страна, город, адрес склада"]',process.env.QA_NOV14_RAIL==='true'?'Китай, Нинбо':map50?'Китай, Шеньчжэнь':'Brest, Belarus'],['input[placeholder^="Например, 1250"]','1250'],['input[placeholder^="Страна, город, адрес доставки"]',map50?'Беларусь, Минск, Колядичи':'Minsk, Belarus'],['input[placeholder^="Например, 8,4"]','12.5'],['input[placeholder^="Наименование, упаковка"]','Synthetic QA cargo']])await fields.locator(selector).fill(value);
    await fields.locator('select').first().selectOption('EXW');await fields.locator('select').nth(1).selectOption('no');
    await fields.locator('input[type="date"]').fill(map50?'2026-11-01':'2026-12-05');await fields.locator('input[type="datetime-local"]').fill('2026-12-15T12:00');
@@ -101,6 +107,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const publish=panel.getByRole('button',{name:/Опубликовать и уведомить/});
    const saved=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST',{timeout:60000});await publish.click({timeout:60000});
    const r=await saved;assert.equal(r.status(),200);const result=await r.json();assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
+   const readback=await fetch(base+'/api/requests?order='+order+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions.owner}});assert.equal(readback.status,200);const stored=(await readback.json()).request;assert.match(stored.registration_no,/TR-/);assert.deepEqual(stored.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910001','910002']);rec.publication.registrationNumber=stored.registration_no;rec.publication.bitrixNumbers=2;
   }
   if(process.env.QA_BROWSER_BID==='true'&&['carrierA','carrierB'].includes(actor)){
    const previous=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;

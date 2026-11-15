@@ -1,0 +1,76 @@
+name: Remove private register images from completed synthetic QA evidence
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed isolated OIDC QA run in this repository
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: write
+jobs:
+  sanitize:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+      QA_RUN_ID: ${{ inputs.run_id }}
+    steps:
+      - name: Validate source workflow and select its evidence artifact
+        id: source
+        run: |
+          python3 - <<'PY'
+          import json,os,re,subprocess
+          run=os.environ['QA_RUN_ID'];assert re.fullmatch(r'[0-9]{1,18}',run)
+          def api(path):return json.loads(subprocess.check_output(['gh','api','repos/'+os.environ['GITHUB_REPOSITORY']+'/'+path]))
+          meta=api('actions/runs/'+run)
+          assert meta['status']=='completed' and meta['event']=='workflow_dispatch' and meta['head_branch']=='main'
+          assert meta['path']=='.github/workflows/isolated-qa-oidc-browser.yml'
+          artifacts=api('actions/runs/'+run+'/artifacts')['artifacts']
+          matches=[x for x in artifacts if x['name']=='isolated-qa-redacted-evidence' and not x['expired']]
+          assert len(matches)==1
+          with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('artifact_id='+str(matches[0]['id'])+'\n')
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ steps.source.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.run_id }}
+          path: original
+          merge-multiple: true
+      - name: Preserve synthetic evidence and hashes, excluding private register images
+        run: |
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,shutil
+          source=pathlib.Path('original');target=pathlib.Path('sanitized');target.mkdir()
+          excluded=[]
+          for p in sorted(source.rglob('*')):
+              if not p.is_file():continue
+              assert not p.is_symlink()
+              rel=p.relative_to(source)
+              if p.suffix=='.png' and (p.name.startswith('owner-register-') or p.name.startswith('owner-cabinet-read')):
+                  excluded.append({'file':str(rel),'sha256':hashlib.sha256(p.read_bytes()).hexdigest()});continue
+              out=target/rel;out.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(p,out)
+          assert excluded,'No private-register image found; refuse unnecessary replacement'
+          receipt={'sourceRun':os.environ['QA_RUN_ID'],'excludedPrivateImages':excluded,'otherEvidencePreserved':True}
+          (target/'sanitization-receipt.json').write_text(json.dumps(receipt,indent=2)+'\n')
+          print('PRIVATE_REGISTER_IMAGES_EXCLUDED',len(excluded))
+          PY
+      - uses: actions/upload-artifact@v4
+        id: preserved
+        with:
+          name: isolated-qa-safe-evidence-${{ inputs.run_id }}
+          path: sanitized/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Remove original artifact only after replacement upload succeeded
+        if: success() && steps.preserved.outputs.artifact-id != ''
+        env:
+          ORIGINAL_ARTIFACT_ID: ${{ steps.source.outputs.artifact_id }}
+        run: gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ARTIFACT_ID"
+      - name: Remove runner copies
+        if: always()
+        run: rm -rf original sanitized

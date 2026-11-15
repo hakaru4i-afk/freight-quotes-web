@@ -40,6 +40,7 @@ jobs:
       - name: Full published railway and VED review lifecycle for 14 November
         env:
           QA_MAP_ORDER: QA-NOV14-${{ github.run_id }}
+          QA_NOV14_INCLUDE_ORDINARY: 'true'
         run: node tests/nov14-published-chain.e2e.mjs
       - name: Owner creates an isolated request through published UI
         env:
@@ -141,6 +142,10 @@ jobs:
           QA_BROWSER_MODE_MATRIX: 'true'
           QA_MAP50: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify previous production UI against candidate API using read-only QA sessions
+        id: previous_ui_compatibility
+        continue-on-error: true
+        run: node tests/production-previous-ui-compatibility.e2e.mjs
       - name: Verify final tender protocol PDF through published Owner UI
         id: tender_pdf
         continue-on-error: true
@@ -158,6 +163,7 @@ jobs:
           QA_RESULT_MAP50: ${{ steps.map50.outcome }}
           QA_RESULT_BUSINESS_API: ${{ steps.business_api.outcome }}
           QA_RESULT_MODE_MATRIX: ${{ steps.mode_matrix.outcome }}
+          QA_RESULT_PREVIOUS_UI_COMPATIBILITY: ${{ steps.previous_ui_compatibility.outcome }}
           QA_RESULT_TENDER_PDF: ${{ steps.tender_pdf.outcome }}
         run: |
           node --input-type=module <<'JS'
@@ -172,13 +178,21 @@ jobs:
           path: |
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
+            reports/isolated-rc/previous-production-ui-compatibility.json
+            reports/isolated-rc/*-previous-production-compatibility.png
             reports/isolated-rc/SEA-*.png
             reports/isolated-rc/AIR-*.png
             reports/isolated-rc/MULTI-*.png
             reports/map50-published/*.json
             reports/map50-published/*.png
+            reports/nov14-ordinary/*.json
+            reports/nov14-ordinary/*.png
             reports/nov14-published/*.json
             reports/nov14-published/*.png
+            !reports/nov14-published/owner-register-*.png
+            !reports/nov14-published/owner-cabinet-read*.png
+            !reports/nov14-ordinary/owner-register-*.png
+            !reports/nov14-ordinary/owner-cabinet-read*.png
             reports/ci-qa-auth.json
             reports/ci-qa-environment-policy.json
             reports/isolated-rc/browser-results-*.json

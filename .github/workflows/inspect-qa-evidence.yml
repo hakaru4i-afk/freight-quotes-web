@@ -6,6 +6,11 @@ on:
         description: Completed isolated QA run
         required: true
         type: string
+      artifact_name:
+        description: Evidence artifact name (safe replacement may belong to its sanitization run)
+        required: false
+        default: isolated-qa-redacted-evidence
+        type: string
 permissions:
   contents: read
   actions: read
@@ -18,18 +23,41 @@ jobs:
       - name: Validate run identity
         env:
           QA_RUN_ID: ${{ inputs.run_id }}
+          QA_ARTIFACT_NAME: ${{ inputs.artifact_name }}
         run: |
           python3 - <<'PY'
           import os,re
           assert re.fullmatch(r'[0-9]{1,18}',os.environ['QA_RUN_ID'])
+          assert re.fullmatch(r'isolated-qa-(?:redacted-evidence|safe-evidence-[0-9]{1,18})',os.environ['QA_ARTIFACT_NAME'])
           PY
       - uses: actions/download-artifact@v4
         with:
-          name: isolated-qa-redacted-evidence
+          name: ${{ inputs.artifact_name }}
           github-token: ${{ github.token }}
           repository: ${{ github.repository }}
           run-id: ${{ inputs.run_id }}
           path: qa-evidence
+      - name: Print bounded synthetic evidence inventory
+        run: |
+          python3 - <<'PY_SUMMARY'
+          import hashlib,json,pathlib,re
+          def safe(v,key=''):
+              if isinstance(v,bool) or v is None or isinstance(v,(int,float)):return v
+              if isinstance(v,list):return [safe(x,key) for x in v[:300]]
+              if isinstance(v,dict):return {k:safe(x,k) for k,x in v.items() if k not in {'dom','surfaceDiagnostics','errorStack','consoleErrors','pageErrors','error','summary','note','contact','body','messages','headers','sourceAssets','servedAssetHashes','calls'}}
+              if isinstance(v,str):
+                  if key in {'environment','mode','status','result','scenario','actor','winnerActor','lang','screen','sourceSite','backendFunction','transport','tag','currency'}:return v[:180]
+                  if re.fullmatch(r'[a-f0-9]{40}|[a-f0-9]{64}|[a-f0-9-]{36}|QA-[A-Z0-9-]+|TR-[A-Z0-9-]+',v):return v
+                  if v.startswith('reports/') and re.fullmatch(r'[A-Za-z0-9_./-]+',v):return v
+              return None
+          for p in sorted(pathlib.Path('qa-evidence').rglob('*.json')):
+              b=p.read_bytes();data=json.loads(b)
+              if not isinstance(data,dict):continue
+              report={'file':str(p.relative_to('qa-evidence')),'sha256':hashlib.sha256(b).hexdigest(),'evidence':safe(data)}
+              if isinstance(data.get('calls'),list):
+                  report['http']=[{'actor':c.get('actor'),'path':str(c.get('path','')).split('?')[0],'method':c.get('method'),'status':c.get('status')} for c in data['calls'] if c.get('path','').startswith('/api/')][:2500]
+              print('QA_EVIDENCE_SUMMARY',json.dumps(report,separators=(',',':'),ensure_ascii=True))
+          PY_SUMMARY
       - name: Print only accessibility rule IDs and selectors
         run: |
           python3 - <<'PY'
