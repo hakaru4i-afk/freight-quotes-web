@@ -28,10 +28,10 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "677fb7f71b9f539813c4ccc61cb5b3d224c38d01",
+  "frontendCommit": "6459347d30ad68e8ac583afa2990e8a85ca6f18c",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
-    ".github/workflows/isolated-qa-oidc-browser.yml": "7da78074b4ad4d8a3a073571a03c1d5d381452ca919b38fc3e2642569fb0ab51",
+    ".github/workflows/isolated-qa-oidc-browser.yml": "cbea2751e0b751724fdf129f5c8202fb9bf5079cb10caf918851dc4f6fa12633",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
     ".github/workflows/issue17-document.yml": "fce6b9971ad16236a52a51b789e25881fb69934851c5f09cda1fc22c106683aa",
     ".github/workflows/issue17-formal-document.yml": "633a1e0e8614d5489399c3e835f4bb20ba696c5866da339a92e32ea79ee866ab",
@@ -243,7 +243,7 @@
     "tests/ISSUE47_CANDIDATE.md": "cbcff74442cc032324b2b97755702301b7a35a5a7d23632a2d0c3e0e3c299ea2",
     "tests/addressed-logistic-real-scenario.mjs": "a51e98b7f48730f77ce75539beda4082e45a51b36ad21ac59abf9a6c3296fc8c",
     "tests/alignment-cabinet-matrix.mjs": "a950102d98663068f3c88bf0668640fe9ba5b54bf806df9fca691f983ac5309d",
-    "tests/alignment-real-scenarios.mjs": "847d5d1cb9c02d0b052672c9f4f8b884302a2ee361b0a6aa9bf4ecd240bff5d5",
+    "tests/alignment-real-scenarios.mjs": "2dccdeccc405988030e96b916e5dae9d16a77311c7b84d10ef65fe25ce9903a4",
     "tests/business-process-maps.test.mjs": "cf5e4e4d1ec793d8ad1d80e651513db600bb2e81a817f9e886052d795af7b192",
     "tests/carrier-acceptance-singleton-browser.test.mjs": "b9ccd7f8514f1905ad4a578a7d1b571822c996b2300f16fa14c034c60074c806",
     "tests/current-workspace-help.test.mjs": "43ea31dd6f600b43d3b2c90b78796582042e98e8e31041b08193b0e3bfd61a82",
@@ -305,6 +305,7 @@
     "tests/public-support-browser.test.mjs": "673e0ab99aab6a73b2153651e8d03dc275a5a39a9a6190eba8e29a0aa3097f8d",
     "tests/qa-addressed-logistic-profile.mjs": "e6c728fcb5ccb06a56d3e7652fa0f872a5e77b0ac1be79f1e6178907166e377d",
     "tests/qa-anonymous-roles.test.mjs": "196f2b786010208e81208023933a458a7d7605b09c0212e8ddc137f667f077a3",
+    "tests/qa-independent-results.test.mjs": "d425b0f6cc3719914034e3335d4df0029f2b7b06449dba5d197c2a371becb0d6",
     "tests/qa-public-served.test.mjs": "118550e77b3c7e1376e851b9d53269958e453c4e8a5a658cc2b4a3e427219247",
     "tests/qa-publication-gate.test.mjs": "efd31f23b11c1e8a3ee59ebe02c2933a711e08e32c6264dcc8c7fd04b5a7daf7",
     "tests/qa011-role-ui.test.mjs": "4e20fae02636c221b4abf124eba878f0cfe5cc78329a340b0d77c6759b1290e4",
@@ -326,7 +327,7 @@
     "tests/task12-ci-environment-policy.mjs": "308caba5c8ce9833b6e44bef1ecc4e5ec06e1a378298f59eff2e1e90d67fd29b",
     "tests/task12-ci-environment-policy.test.mjs": "3e461b13578d8196ba5d2ecb3f35749f24685135d23f242b794e349a851e2b7b",
     "tests/task12-ci-oidc-bindings.mjs": "5cb2108e4d060188d988ec01cc283ca2cd450a29baecad3083d27ad020336349",
-    "tests/task12-isolated-browser.e2e.mjs": "9b5cf75b8921858251b3fe8712b78987770814f7607bb51a758a4088630c3ffe",
+    "tests/task12-isolated-browser.e2e.mjs": "4aa76bb7fb559fae7ad998f970f91b126c18318bb67a097f1db59eff274e1619",
     "tests/task12-live-journey.e2e.mjs": "4b4342a3a8a471167e8a8ca4c55f72ae0480b347d001217f4efbcbd9c2d3eb6d",
     "tests/task12-observer-smoke.test.mjs": "f04b6f7a7698dd10c5270a4bfe40a5debf7098e7f7bece58567583409b119dd2",
     "tests/task12-real-api-security-negative.test.mjs": "d9137532f837b92ef72f9b56d69ea715dd0840bb5e439e63937a0809c4e7282c",
