@@ -42,6 +42,9 @@ jobs:
           QA_MAP_ORDER: QA-NOV14-${{ github.run_id }}
           QA_NOV14_INCLUDE_ORDINARY: 'true'
         run: node tests/nov14-published-chain.e2e.mjs
+      - name: Verify parallel shipment, VED document and chat reads after the full lifecycle
+        id: api_performance
+        run: node tests/issue99-real-performance.mjs
       - name: Owner creates an isolated request through published UI
         env:
           QA_BROWSER_ACTORS: owner
@@ -165,6 +168,7 @@ jobs:
           QA_RESULT_MODE_MATRIX: ${{ steps.mode_matrix.outcome }}
           QA_RESULT_PREVIOUS_UI_COMPATIBILITY: ${{ steps.previous_ui_compatibility.outcome }}
           QA_RESULT_TENDER_PDF: ${{ steps.tender_pdf.outcome }}
+          QA_RESULT_API_PERFORMANCE: ${{ steps.api_performance.outcome }}
         run: |
           node --input-type=module <<'JS'
           const failed=Object.entries(process.env).filter(([k,v])=>k.startsWith('QA_RESULT_')&&v!=='success').map(([k,v])=>({check:k,outcome:v}));
@@ -179,6 +183,7 @@ jobs:
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
             reports/isolated-rc/previous-production-ui-compatibility.json
+            reports/isolated-rc/issue99-real-performance.json
             reports/isolated-rc/*-previous-production-compatibility.png
             reports/isolated-rc/SEA-*.png
             reports/isolated-rc/AIR-*.png
