@@ -13,7 +13,8 @@ test('QA-019 readable owner archives: no raw JSON as primary entry',()=>{
  assert.match(source,/function statusLabel\(/);
  assert.match(source,/class:'ow-work-card'/);
  assert.match(source,/ow-technical-history/);
- assert.match(source,/history\.append\(el\('pre',raw\)\)/);
+ assert.match(source,/Техническая информация/);
+ assert.match(source,/row\.technical/);
  assert.doesNotMatch(source,/d\.append\(links,body\)/);
  assert.match(css,/\.ow-work-card/);
 });
@@ -22,9 +23,9 @@ test('QA-019 take work persists in existing Owner workflow and readbacks',()=>{
  assert.match(source,/const archiveMarker=/);
  assert.match(source,/\[ARCHIVE:/);
  assert.match(source,/\/api\/portal-feedback/);
- assert.match(source,/action:'create'/);
- assert.match(source,/action:'set_status'/);
- assert.match(source,/expectedStatus:current/);
+ assert.match(source,/action:'start_register'/);
+ assert.match(source,/await confirmWork\(row\)/);
+ assert.match(source,/sourceTaskKey/);
  assert.match(source,/await refreshWork\(\)/);
  assert.match(source,/TASK_NOT_IN_PROGRESS/);
  assert.match(source,/OWNER_ACCESS_REQUIRED/);

@@ -66,3 +66,20 @@
  #ow-workspace .ow-work-count{font-size:16px;right:12px}
  #ow-workspace .ow-technical-history{flex-basis:100%}
 }
+/* Stable controls and readable compact facts for the release register. */
+#ow-workspace .ow-stable-toolbar{display:grid;grid-template-columns:minmax(160px,1fr) 170px 120px;gap:10px;align-items:center}
+#ow-workspace .ow-register-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+#ow-workspace .ow-register-facts{display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:6px 12px;margin:10px 0;font-size:14px;line-height:1.5}
+#ow-workspace .ow-register-facts dt{font-weight:650;color:#3b5871}
+#ow-workspace .ow-register-facts dd{margin:0;overflow-wrap:anywhere;color:#16364d}
+#ow-workspace .ow-record-details summary{cursor:pointer;padding:10px 0;color:#285379}
+#ow-workspace .ow-human-actions>button{min-width:145px;min-height:40px;flex:0 0 auto}
+.ow-work-confirm{width:min(560px,calc(100vw - 32px));max-height:85vh;overflow:auto;box-sizing:border-box;border:1px solid #a8bed0;border-radius:14px;background:#fff;color:#16364d;padding:24px}
+.ow-work-confirm::backdrop{background:rgba(8,24,40,.65)}
+.ow-work-confirm h2{font:650 20px/1.4 system-ui;color:#13314a}
+.ow-work-confirm p{font:15px/1.6 system-ui;color:#244257}
+.ow-work-confirm button{min-height:44px;min-width:120px;border:1px solid #506a7c;border-radius:8px;padding:10px 16px;background:#e9f2f8;color:#16364d;cursor:pointer}
+.ow-work-confirm button:focus-visible{outline:3px solid #007ba7;outline-offset:2px}
+@media(max-width:600px){#ow-workspace .ow-stable-toolbar{grid-template-columns:minmax(0,1fr) 120px}#ow-workspace .ow-stable-toolbar input{grid-column:1/-1}#ow-workspace .ow-register-facts{grid-template-columns:1fr;gap:2px}#ow-workspace .ow-register-facts dd{margin-bottom:7px}#ow-workspace .ow-human-actions>button{width:100%}}
+
+#ow-workspace input::placeholder{color:#506a7c;opacity:1}

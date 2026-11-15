@@ -10,12 +10,29 @@ export async function alignmentScenarios({page,actor,base,sessions,rec,report,cr
   assert.equal((await api('/api/process-models',{method:'POST',body:{action:'activate'}})).status,403);rec.alignment={privateArchivesDenied:true,cooperationDenied:true,attachmentDenied:true,editorDenied:true};return;
  }
  for(const name of ['updates','remarks','developments']){
-  await page.locator('[data-ow-register="'+name+'"]').click();await page.locator('#ow-workspace[data-archive-name="'+name+'"][data-archive-ready="true"] #ow-archive-records .ow-record').first().waitFor({timeout:45000});
-  const response=await api('/api/engineering-registers?name='+name);assert.equal(response.status,200);const data=await response.json();assert.equal(digest(Buffer.from(data.markdown)),data.sha256);assert.ok(data.markdown.length>5000);assert.ok(data.entries.length>=4);
-  const search=page.locator('#ow-workspace input[type=search]');await search.fill(data.entries[0].id);assert.match(await page.locator('#ow-archive-records').innerText(),new RegExp(data.entries[0].id));await search.fill('');
-  await page.locator('[data-archive-filter=role]').selectOption('owner');assert.ok(await page.locator('#ow-archive-records .ow-record').count());await page.locator('[data-archive-filter=role]').selectOption('');await page.locator('[data-archive-filter=version]').selectOption(data.entries[0].businessVersion);assert.ok(await page.locator('#ow-archive-records .ow-record').count());await page.locator('[data-archive-filter=version]').selectOption('');
+  await page.locator('[data-ow-register="'+name+'"]').click();await page.locator('#ow-workspace[data-archive-name="'+name+'"][data-archive-ready="true"] #ow-archive-records .ow-work-card').first().waitFor({timeout:45000});
+  const response=await api('/api/engineering-registers?name='+name);assert.equal(response.status,200);const data=await response.json();assert.equal(digest(Buffer.from(data.markdown)),data.sha256);assert.ok(data.markdown.length>5000);assert.ok(data.records.length>=4);assert.ok(data.records.every(row=>row.register===name&&row.title&&row.description));const first=data.records.find(row=>!row.historyOnly)||data.records[0];
+  const search=page.locator('#ow-workspace input[type=search]');await search.fill(first.title);assert.ok((await page.locator('#ow-archive-records').innerText()).includes(first.title));await search.fill('');
+  await page.locator('[data-archive-filter=role]').selectOption('owner');assert.ok(await page.locator('#ow-archive-records .ow-work-card').count());await page.locator('[data-archive-filter=role]').selectOption('');await page.locator('[data-archive-filter=version]').selectOption(first.version);assert.ok(await page.locator('#ow-archive-records .ow-work-card').count());await page.locator('[data-archive-filter=version]').selectOption('');
   assert.equal((await api('/api/engineering-registers?name='+name+'&expectedSha=obsolete')).status,409);
  }
+ // Public Support is independent of the FAQ and cooperation register.
+ const supportNonce=Date.now(),supportSubject='QA_ONLY_SUPPORT_'+supportNonce;
+ const supportPublic=await createPublicPage(),supportPage=supportPublic.page;
+ await supportPage.locator('[data-lw-support]').click();const supportForm=supportPage.locator('#public-support-form');await supportForm.waitFor();
+ for(const[name,value]of Object.entries({name:'Synthetic QA contact',contact:'qa@example.invalid',subject:supportSubject,message:'Синтетическая проверка отдельного обращения поддержки и приватной обработки владельцем.'}))await supportForm.locator('[name='+name+']').fill(value);
+ await supportForm.locator('[name=consent]').check();const supportSent=supportPage.waitForResponse(r=>r.url().includes('/api/support-requests')&&r.request().method()==='POST');await supportForm.locator('button[type=submit]').click();const supportResponse=await supportSent;assert.equal(supportResponse.status(),201);const supportBody=supportResponse.request().postDataJSON(),supportId=(await supportResponse.json()).reference;
+ const supportReplay=await api('/api/support-requests',{method:'POST',body:supportBody,as:null});assert.equal(supportReplay.status,200);assert.equal((await supportReplay.json()).reference,supportId);
+ assert.equal((await api('/api/support-requests',{method:'POST',body:{...supportBody,message:supportBody.message+' changed'},as:null})).status,409);
+ for(const as of [null,'carrierA'])assert.equal((await api('/api/support-requests',{as})).status,403);await supportPublic.close();
+ await page.locator('#owner-support-inbox').click();const supportDialog=page.locator('dialog.public-support'),supportCard=supportDialog.locator('article').filter({hasText:supportSubject});await supportCard.waitFor();
+ for(const label of ['Прочитано','В работе','Завершено']){
+  await supportCard.locator('details > summary').first().click();await supportCard.locator('textarea').fill('Синтетическая QA-проверка: '+label);
+  const changed=page.waitForResponse(r=>r.url().includes('/api/support-requests')&&r.request().method()==='POST');await supportCard.getByRole('button',{name:label,exact:true}).click();assert.equal((await changed).status(),200);await page.waitForFunction(({subject,label})=>[...document.querySelectorAll('.support-inbox article > details > summary')].some(n=>n.textContent.includes(subject)&&n.textContent.includes(label)),{subject:supportSubject,label});
+ }
+ const supportRecord=(await(await api('/api/support-requests')).json()).items.find(row=>row.id===supportId);assert.equal(supportRecord.status,'closed');assert.equal(supportRecord.history.length,3);assert.equal((await api('/api/support-requests',{method:'POST',body:{action:'set_status',id:supportId,status:'in_progress',expectedStatus:'new'}})).status,409);
+ assert.equal((await api('/api/support-requests',{method:'POST',body:{action:'set_status',id:supportId,status:'read',expectedStatus:'closed'},as:'carrierA'})).status,403);
+ await supportDialog.locator('.support-close').click();rec.publicSupport={reference:supportId,publicFormSubmitted:true,retrySameReference:true,payloadConflictDenied:true,foreignReadsAndWritesDenied:true,ownerHistoryLength:3,status:'closed',mocks:false};
  let checkpoint={};try{checkpoint=JSON.parse(await readFile(privateState,'utf8'));}catch{}
  const nonce=checkpoint.proposalsVerified?checkpoint.nonce:Date.now(),bytes=Buffer.from('QA SH50 private commercial proposal '+nonce+'\n'),company='QA_ONLY_SH50_'+nonce;
  let reference=checkpoint.reference,item;

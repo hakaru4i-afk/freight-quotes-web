@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 
 const code=readFileSync('test/task2-panel-sidebar-only-20261107.js','utf8');
 const html=readFileSync('test/index.html','utf8');
@@ -16,13 +17,13 @@ test('canonical container editor is displayed once',()=>{
 test('shared shipment documents have origin sections without duplicate rows',()=>{
   assert.match(code,/t2-docs-overview/);
   for(const name of ['Документы владельца','Документы ВЭД','Документы перевозчика'])assert.ok(code.includes(name));
-  assert.match(code,/allDocs\.forEach\(f=>groupedDocs\[sourceOf\(f\)\]\.push\(f\)\)/);
+  assert.match(code,/files\.forEach\(f=>docs\[sourceOf\(f\)\]\.push\(f\)\)/);
   assert.match(code,/data-t2-doc/);
   assert.match(code,/data-t2-form="upload"/);
 });
 test('staging loads aligned forms and current script version',()=>{
   assert.match(html,/task2-execution-layout-20261114\.css/);
-  assert.match(html,/task2-panel-sidebar-only-20261107\.js\?v=35a90afe5716/);
+  assert.ok(html.includes(runtimeAssetUrl('task2-panel-sidebar-only-20261107.js')));
   assert.match(css,/t2-actual-row/);
   assert.match(css,/t2-document-item/);
 });

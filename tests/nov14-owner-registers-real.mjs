@@ -9,7 +9,7 @@ export async function ownerRegistersScenario({page,actor,base,sessions,rec,repor
   await second.goto(page.url(),{waitUntil:'domcontentloaded'});await second.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});
   for(const p of [page,second]){await p.locator('[data-ow-register="updates"]').click();await p.locator('[data-record-id="QA-20261114"]').waitFor({timeout:60000});}
   const marker='[ARCHIVE:updates:QA-20261114]';let before=(await api('/api/portal-feedback')).data.items.filter(x=>x.description.includes(marker));
-  if(!before.length)await Promise.all([page,second].map(p=>p.locator('[data-record-id="QA-20261114"]').getByRole('button',{name:'Взять в работу',exact:true}).click()));
+  if(!before.length){await Promise.all([page,second].map(p=>p.locator('[data-record-id="QA-20261114"]').getByRole('button',{name:'Взять в работу',exact:true}).click()));await Promise.all([page,second].map(p=>p.getByRole('dialog').getByRole('button',{name:'Подтвердить',exact:true}).click()));}
   let tasks;for(let i=0;i<30;i++){tasks=(await api('/api/portal-feedback')).data.items.filter(x=>x.description.includes(marker));if(tasks.length===1&&tasks[0].status==='in_progress')break;await page.waitForTimeout(500);}
   assert.equal(tasks.length,1,'Two Owner tabs must create exactly one work item');assert.equal(tasks[0].status,'in_progress');
   for(const p of [page,second]){await p.reload();await p.locator('[data-ow-register="updates"]').waitFor({timeout:60000});await p.locator('[data-ow-register="updates"]').click();await p.locator('[data-record-id="QA-20261114"] .ow-human-status[data-state="working"]').waitFor({timeout:60000});}
