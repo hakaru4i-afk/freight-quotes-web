@@ -20,7 +20,7 @@ export async function alignmentScenarios({page,actor,base,sessions,rec,report,cr
  // Public Support is independent of the FAQ and cooperation register.
  const supportNonce=Date.now(),supportSubject='QA_ONLY_SUPPORT_'+supportNonce;
  const supportPublic=await createPublicPage(),supportPage=supportPublic.page;
- await supportPage.locator('[data-lw-support]').click();const supportForm=supportPage.locator('#public-support-form');await supportForm.waitFor();
+ await supportPage.locator('#public-support-entry').click();const supportForm=supportPage.locator('#public-support-form');await supportForm.waitFor();
  for(const[name,value]of Object.entries({name:'Synthetic QA contact',contact:'qa@example.invalid',subject:supportSubject,message:'Синтетическая проверка отдельного обращения поддержки и приватной обработки владельцем.'}))await supportForm.locator('[name='+name+']').fill(value);
  await supportForm.locator('[name=consent]').check();const supportSent=supportPage.waitForResponse(r=>r.url().includes('/api/support-requests')&&r.request().method()==='POST');await supportForm.locator('button[type=submit]').click();const supportResponse=await supportSent;assert.equal(supportResponse.status(),201);const supportBody=supportResponse.request().postDataJSON(),supportId=(await supportResponse.json()).reference;
  const supportReplay=await api('/api/support-requests',{method:'POST',body:supportBody,as:null});assert.equal(supportReplay.status,200);assert.equal((await supportReplay.json()).reference,supportId);
