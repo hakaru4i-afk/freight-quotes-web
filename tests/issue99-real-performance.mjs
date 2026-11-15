@@ -5,6 +5,8 @@ import assert from'node:assert/strict';
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE,'utf8'));
 const info=JSON.parse(await readFile('test/build-info.json','utf8')).stabilizationQa20261110;
+const completed=JSON.parse(await readFile('reports/nov14-published/browser-results-owner.json','utf8')).roles[0];
+const winner=completed.selection.winnerActor;assert.ok(['carrierA','carrierB'].includes(winner));
 const report={status:'RUNNING',mocks:false,environment:'isolated-qa-rc20261110',frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendSourceCommit:info.backendSourceCommit,backendVersion:info.isolatedQaVersion,backendBundle:info.isolatedQaBundleSha256,startedAt:new Date().toISOString(),roles:[]};
 const read=async(actor,path)=>{
  const start=performance.now(),r=await fetch(base+path,{headers:{Authorization:'Bearer '+sessions[actor],Origin:'https://hakaru4i-afk.github.io','Cache-Control':'no-store'},signal:AbortSignal.timeout(15000)});
@@ -13,9 +15,9 @@ const read=async(actor,path)=>{
 };
 await mkdir('reports/isolated-rc',{recursive:true});
 try{
- for(const actor of ['owner','carrierA','carrierB','ved']){
+ for(const actor of ['owner',winner,'ved']){
   const list=await read(actor,'/api/task2');assert.ok(Array.isArray(list.body.items));
-  const item=list.body.items.find(x=>String(x.order_code).startsWith('QA-NOV14-'))||list.body.items[0];assert.ok(item,'Synthetic accepted shipment is required for '+actor);
+  const item=list.body.items.find(x=>x.order_code===completed.createdOrder);assert.ok(item,'The current full-chain shipment is required for '+actor);
   const rec={actor,samples:[]};report.roles.push(rec);
   for(let wave=0;wave<5;wave++){
    const values=await Promise.all(['/api/shipments','/api/chats','/api/task2?order='+encodeURIComponent(item.order_code)].map(path=>read(actor,path)));
