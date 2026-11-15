@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "3d091316e008a3527866",
+  "version": "4b4a87dcfa3c113cd8fe",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,29 +10,29 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "eee419a4582578a33043d5460bf8441ad39745b2",
+  "servedAppBlobSha": "ab739ff3e1d5dde851ac4db4e55f61e791de7736",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 104,
+    "backendVersion": 105,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "7281af9c35c6f872d2cd9ad96d46ee411b464aaa",
     "tablesApplied": true,
-    "qaStatus": "ISSUE99_SNAPSHOT_FIX_FOCUSED_API_PASS_FULL_QA_PENDING",
+    "qaStatus": "ISSUE99_COMPACT_INBOX_FINAL_AUTHENTICATED_QA_PENDING",
     "manualAcceptance": "PENDING_AUTOMATED_AUTHENTICATED_FINAL_QA",
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "21772f36572a7af7c6495e8ae7bf2af1044531ca",
-    "backendSourceSha": "5d7c145c311e23903b16fcabc70600d69bd24b5d",
+    "backendSourceCommit": "d98b033d25e373c9f306b468abe4e2d4658dc501",
+    "backendSourceSha": "f7fc13ebb94dec217bf22b491809d902f638afad",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "Staging API104 / isolated QA39: direct ESM, lazy private archives, batched lists and one-statement VED document snapshot. Data and access preserved; 45 EU reads and 9 US reads passed the unchanged 5-second budget. Full published authenticated QA remains mandatory. Production unchanged.",
+    "stagingBuildNote": "Staging API105 / isolated QA40: direct ESM, batched lists and VED card, compact scoped pending assignments instead of background card fan-out. No timeout increase. Full authenticated published QA remains mandatory; production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "7fb40d45fee46447d4262f9b08f07f566bfbdb30",
@@ -45,17 +45,17 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 104,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V104_ACTIVE",
+    "lastObservedBackendVersion": 105,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V105_ACTIVE",
     "backendCandidate": {
-      "sourceCommit": "21772f36572a7af7c6495e8ae7bf2af1044531ca",
-      "gitBlob": "5d7c145c311e23903b16fcabc70600d69bd24b5d",
-      "sha256": "8a7faf928abcb3541f2bb916d488c5f36fe9c394dc3ae063231d376ac2e116e5"
+      "sourceCommit": "d98b033d25e373c9f306b468abe4e2d4658dc501",
+      "gitBlob": "f7fc13ebb94dec217bf22b491809d902f638afad",
+      "sha256": "f4a5729426b25868528bd2137b49e0411812710c4b356c5123405fb54f6c43da"
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "eee419a4582578a33043d5460bf8441ad39745b2",
-        "sha256": "005922672688629892eb1c86ee43e25a3fa086e91304b8ab4945b3dd0b3aa929"
+        "gitBlob": "ab739ff3e1d5dde851ac4db4e55f61e791de7736",
+        "sha256": "2390291bab62c25820fc8dd8010c06c01650061b029a3b5fc2af725ba1dd0ff3"
       },
       "task2-panel.js": {
         "gitBlob": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
@@ -70,8 +70,8 @@
         "sha256": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2"
       },
       "lw-pending-tasks-all-roles-20261109.js": {
-        "gitBlob": "f02240caf9b03cce63de93bdde9aece4971d2bb4",
-        "sha256": "118e9c4e6337be48975f8bafd6d07fbfc3fbf67f7719884b124e6089274d7fa8"
+        "gitBlob": "006ead6d0c6e248df1766967eac8ff0a980fb530",
+        "sha256": "aacb915e66ce6616dfd0499f70ace6aa78183987f43e7e93dc7f76a28bbb85a8"
       }
     },
     "helpLocales": {
@@ -90,10 +90,10 @@
     "uploadRetriesAndCompensation": "local PostgreSQL/browser verified; real Storage pending",
     "actRevisionGuard": true,
     "lifecycleGuard": true,
-    "isolatedQaBundleSha256": "238a7d16be660696f4f417f8a4db48d6b03aeadcc864dffe40d59712b405e051",
+    "isolatedQaBundleSha256": "9175e7bea3430b9e061ab933b7c6478ef04eb3b9bda6885aa6f17adfc0df8f49",
     "backendBuild": "SH-01.30.52 v",
-    "backendBundleSHA256": "38781aee48ecd4dbaf4673dacc8487669f3322c9440d2c11495843e8fec84500",
-    "backendActiveBundleSha256": "38781aee48ecd4dbaf4673dacc8487669f3322c9440d2c11495843e8fec84500",
+    "backendBundleSHA256": "93122465092a668897c3ca1b46d8552bfd39b159d55be2f0955b588a482a0da6",
+    "backendActiveBundleSha256": "93122465092a668897c3ca1b46d8552bfd39b159d55be2f0955b588a482a0da6",
     "slPenaltyRetention": {
       "fixed": true,
       "rule": "no-response deadline penalty -3 persists after late bid",
@@ -544,16 +544,16 @@
     "currentRuntimeRef": "stabilizationQa20261110"
   },
   "stabilizationQa20261110": {
-    "backendSourceCommit": "21772f36572a7af7c6495e8ae7bf2af1044531ca",
+    "backendSourceCommit": "d98b033d25e373c9f306b468abe4e2d4658dc501",
     "isolatedQaFunction": "freight-api-qa-rc20261110",
-    "isolatedQaVersion": 39,
-    "isolatedQaBundleSha256": "238a7d16be660696f4f417f8a4db48d6b03aeadcc864dffe40d59712b405e051",
+    "isolatedQaVersion": 40,
+    "isolatedQaBundleSha256": "9175e7bea3430b9e061ab933b7c6478ef04eb3b9bda6885aa6f17adfc0df8f49",
     "releaseStatus": "RELEASE_BLOCKED",
     "coldCacheRouting": "PASS Photon / OpenStreetMap -> OSRM / OpenStreetMap; no seeded coordinates",
     "ptoStageGuard": "PASS real QA: no PTO arrival -> customs 409; after arrival -> 200",
-    "isolatedQaSourceCommit": "21772f36572a7af7c6495e8ae7bf2af1044531ca",
-    "sharedBackendVersion": 104,
-    "sharedBackendBundleSha256": "38781aee48ecd4dbaf4673dacc8487669f3322c9440d2c11495843e8fec84500"
+    "isolatedQaSourceCommit": "d98b033d25e373c9f306b468abe4e2d4658dc501",
+    "sharedBackendVersion": 105,
+    "sharedBackendBundleSha256": "93122465092a668897c3ca1b46d8552bfd39b159d55be2f0955b588a482a0da6"
   },
   "businessProcessReview": {
     "modelVersion": "20261111-logic-7",
@@ -574,12 +574,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "3d091316e008a3527866",
+  "stagingAssetBuildId": "4b4a87dcfa3c113cd8fe",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "005922672688629892eb1c86ee43e25a3fa086e91304b8ab4945b3dd0b3aa929",
+    "app.js": "2390291bab62c25820fc8dd8010c06c01650061b029a3b5fc2af725ba1dd0ff3",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -605,7 +605,7 @@
     "lw-contrast-canonical-20261111.css": "d74259a8f31013d9721508f6509553c53a57504d3a10f3f3e33eb52b3c98ac4d",
     "lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
-    "lw-pending-tasks-all-roles-20261109.js": "118e9c4e6337be48975f8bafd6d07fbfc3fbf67f7719884b124e6089274d7fa8",
+    "lw-pending-tasks-all-roles-20261109.js": "aacb915e66ce6616dfd0499f70ace6aa78183987f43e7e93dc7f76a28bbb85a8",
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
     "lw-public-cooperation-20261108.css": "3d84bda6b1cbb3ccbff46ed8113cd627a91b01a39bb16332f3b6184253c3dc1a",
@@ -676,7 +676,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-15T20:05:01.026Z",
+  "assetBuildRecordedAt": "2026-11-15T20:44:55.371Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,
