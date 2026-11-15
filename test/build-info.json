@@ -45,12 +45,12 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 101,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V101_ACTIVE",
+    "lastObservedBackendVersion": 102,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V102_ACTIVE",
     "backendCandidate": {
-      "sourceCommit": "1c04ec7348f22ccc10b3572d13a2f95f1df44d7d",
-      "gitBlob": "97f956be3994e8591969b0332b9e5acc1e96c025",
-      "sha256": "87a5cfd5c07a4161c2d0b03f221034cdc9b9df81e4f640bea68305cfe0234624"
+      "sourceCommit": "cf1ec5b7f0b42dd7327b73307ee474cbc35a53a1",
+      "gitBlob": "8e0c6f12e1a101e5146ce853b7ebf238737ab5f1",
+      "sha256": "9eb0fac994a956fe6d8f5910bc3d3e15bfa24a4da53fe5a8026292be3f9f4db2"
     },
     "frontendCandidateComponents": {
       "app.js": {
