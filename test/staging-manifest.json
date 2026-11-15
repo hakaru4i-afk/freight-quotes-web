@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "8f79c5e4e9997d45b36f2d9147be6e0e2eb53d8f",
+  "frontendCommit": "d555be11f8a451283d98f1a9798a1c753203f19d",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "afd6225f5b6aae650e53847ae765d49835c707dfcba0a0c504c01bb87638558f",
@@ -327,7 +327,7 @@
     "tests/staging-asset-contract.test.mjs": "5741da8ef541b93325ba6863ac93a33eebb561636a1cda73e9bb541cd7202a7e",
     "tests/task1-create-form-browser.test.mjs": "97b617db10c0cf7d5eae4c8401aa3eb3d966fd2f7e59e1ab95e04cd4380e6271",
     "tests/task12-authenticated-readonly.e2e.mjs": "c48e2609827b9c547f1aff456eeac984ae1508a4560f998db812fd90a86af996",
-    "tests/task12-business-api.e2e.mjs": "8c7e29e17e4db5692e824a021f88440de8ecc5d6b21bee0c3db5af093321eef4",
+    "tests/task12-business-api.e2e.mjs": "51d78ebdb0de4d22b0186c6243e5710eeefc41ba34f880bef41224dee29ca6b7",
     "tests/task12-ci-auth.mjs": "9127239df6b045e63ac0ddeb3352ac048912228eb3ba3b13547d000072a1360d",
     "tests/task12-ci-auth.test.mjs": "68f4d311728cfda9732853d4690cde90e1603f1f9cfd8c0ccc8f0f667370ee1c",
     "tests/task12-ci-environment-policy.mjs": "308caba5c8ce9833b6e44bef1ecc4e5ec06e1a378298f59eff2e1e90d67fd29b",
