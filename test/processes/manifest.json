@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "c1c19c4540909de7bf2a735bb32b9bca74dd70458f47334e57894afcbda0b45e",
+  "modelSha256": "947cc466f404026c60814ba1dfc90e88ef56e79bb09032be39c1be40cd439574",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -610,7 +610,7 @@
       "test/current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
       "test/owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
       "test/owner-command-center-20261108.css": "8fa40a358b77c5bd55186eb1c39281fdfd95bc4d43f5bc8da565dbf0147908a0",
-      "test/owner-registers-20261111.css": "c5475e0302eba66e12a3fd8e1c6620e726792bf292a73ae1738730bf829ba796",
+      "test/owner-registers-20261111.css": "45ba26e21f398e4bcb1715b915b7f0ad6b307b519e15312dbc514994ff5ad111",
       "test/role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
       "test/portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
       "test/offer-edit-modal-readability-20261108.css": "ac402655682dfe32bca0b35b39a55a5dc3b391b16b44b9a226644c0c7369fd65",
@@ -624,7 +624,7 @@
       "test/public-support-20261115.css": "bab5b910f267c74dd0516b5bf9e4d1addddfb228433b2b6a85a2047b24c92bfc",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "07989181a7ba4821043b8ac7b2b7f8ebcfb7a667b642fd38e19744c2608da191",
+      "test/app.js": "9d6f412f3f5302717df37f7502816b2659b53dc844ac89be508d5e01a2663ec2",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "286366acd93e26928dd85a83830fb4c719caead7aee9553f5b9b53d75385a214",
       "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",

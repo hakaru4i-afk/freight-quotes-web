@@ -55,7 +55,7 @@
 #ow-workspace .ow-technical-history summary{color:#285379;font-size:13px;cursor:pointer;padding:10px 5px}
 #ow-workspace .ow-technical-history pre{border-radius:7px;background:#eef4f8;color:#2e4456;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace;padding:10px;max-height:340px;overflow:auto}
 #ow-workspace .ow-source{font-size:11px;color:#b1c6d8;overflow-wrap:anywhere}
-#ow-workspace .ow-record{display:none}
+#ow-archive-records > .ow-record{display:none}
 #ow-workspace .ow-board-link{margin-top:8px}
 @media(max-width:750px){
  #ow-workspace .ow-live-board{padding:12px}

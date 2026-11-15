@@ -14,8 +14,8 @@ async function call(actor,path,body,method){
  report.calls.push({actor,path:path.split('?')[0],method:method||(body?'POST':'GET'),status:r.status});return {status:r.status,data:await r.json()};
 }
 const ok=r=>{assert.equal(r.status,200);return r.data;};
-async function check(id,run){const entry={id,status:'FAIL',mode:'AUTHENTICATED_QA_API'};report.checks.push(entry);try{entry.evidence=await run();entry.status='PASS';console.log('QA_BUSINESS_API_PASS',id);}catch(e){console.log('QA_BUSINESS_API_FAIL',id);throw e;}}
-const makeOrder=kind=>'QA-CI-'+process.env.GITHUB_RUN_ID+'-'+kind+'-'+randomUUID().slice(0,8);
+async function check(id,run){const entry={id,status:'FAIL',mode:'AUTHENTICATED_QA_API'};report.checks.push(entry);try{entry.evidence=await run();entry.status='PASS';console.log('QA_BUSINESS_API_PASS',id);}catch(e){entry.errorType=e.code||e.name;for(const key of ['actual','expected'])if(['number','boolean'].includes(typeof e[key]))entry[key]=e[key];console.log('QA_BUSINESS_API_FAIL',id,JSON.stringify({errorType:entry.errorType,actual:entry.actual,expected:entry.expected}));process.exitCode=1;}}
+const makeOrder=kind=>'QA-CI-'+process.env.GITHUB_RUN_ID+'-'+kind+'-'+randomUUID().slice(0,8).toUpperCase();
 const logistics={sender_contact:'Synthetic QA sender',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'Synthetic QA pallets',volume:'12.5',weight:'1250',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Brest warehouse',dangerous_goods:'no'};
 async function upload(order,name,bytes){const f=new FormData();f.set('order',order);f.append('files',new Blob([bytes]),name);return ok(await call('owner','/api/documents',f));}
 async function create(order){await upload(order,'qa-required.txt','Synthetic QA attachment');const data=ok(await call('owner','/api/requests',{order,summary:'Synthetic API business acceptance',deadline:'2099-12-15T12:00',bitrixTask:'910001,910002',logistics}));assert.equal(data.recipients,2);return data;}
@@ -40,5 +40,5 @@ try{
   const actor='certification',old=sessions[actor],created=[];for(let i=0;i<2;i++){const r=ok(await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:process.env.QA_CERTIFICATION_PASSWORD}));assert.match(r.sessionToken||'',/^[a-f0-9]{64}$/);created.push(r.sessionToken);}
   sessions[actor]=old;assert.equal((await call(actor,'/api/session')).data.authenticated,false);for(const token of created){sessions[actor]=token;assert.equal((await call(actor,'/api/session')).data.authenticated,true);}let r;for(let i=0;i<3;i++){r=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});assert.equal(r.status,401);}assert.equal(r.data.recoveryRequested,true);for(const token of created){sessions[actor]=token;ok(await call(actor,'/api/auth',{action:'logout'}));}sessions[actor]=old;return{oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true};
  });
- report.result='PASS';
+ report.result=report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';
 }finally{await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/business-api-real.json',JSON.stringify(report,null,2)+'\n');}
