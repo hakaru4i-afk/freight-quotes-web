@@ -28,11 +28,11 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "9e4ed8641f25adb9e1e7937bb4de2e61d98145e8",
+  "frontendCommit": "5891af134bb3abaa4c9b0678934aac2935a86e05",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "b844d429b701c1d42673a80719ec6f827420602b9d9bb8ab45c047eea99fa042",
-    ".github/workflows/isolated-qa-oidc-browser.yml": "49b3dfde76dce1536d0a1d42dff77ab845629c7b89f25151c43cd85d6c38a6bd",
+    ".github/workflows/isolated-qa-oidc-browser.yml": "466f26822a933f2723160b32d452b4839452560fc55150223a40ef078c4e8280",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
     ".github/workflows/issue17-document.yml": "fce6b9971ad16236a52a51b789e25881fb69934851c5f09cda1fc22c106683aa",
     ".github/workflows/issue17-formal-document.yml": "633a1e0e8614d5489399c3e835f4bb20ba696c5866da339a92e32ea79ee866ab",
@@ -67,6 +67,7 @@
     ".github/workflows/qa-publication-security.yml": "91e664c63cc17124a965e3edacd91a094c7895db2e5a7c90bb51789d04695c2e",
     ".github/workflows/qa-status-served.yml": "b4d3ae197c892d08f82db1ed25a1f36cd14f06a594188a4f981efe2dc939771f",
     ".github/workflows/release-stabilization.yml": "ff99071ee5f1ef3d0e84f2074ef309ab0d6a754e90a47db80909b567f522a787",
+    ".github/workflows/sanitize-completed-qa-artifact.yml": "48564907a086c29f1f32860540d496e22b9ff584bd609f65a7397e78d381e135",
     ".github/workflows/staging-alignment.yml": "a43aa64d31052348f9caab5d71cd4d12f04f9b33b18f0ac5a0fc1d723787527b",
     ".github/workflows/staging-faq-check.yml": "08adc7bf1159f3df667d24ef16a6dcd82b026bd4efdc25f611fc8a3b633e34eb",
     ".github/workflows/task12-observer.yml": "7bf82872adfe0bdab2d50f47e5408e3db0f99c74d01aed38edc6d76dd87c2c0f",
@@ -309,6 +310,7 @@
     "tests/public-support-browser.test.mjs": "8b3d88becb75ce35e9ee48320baff49a6e43d3fe844ef9a884b659691b15a1ee",
     "tests/qa-addressed-logistic-profile.mjs": "e6c728fcb5ccb06a56d3e7652fa0f872a5e77b0ac1be79f1e6178907166e377d",
     "tests/qa-anonymous-roles.test.mjs": "196f2b786010208e81208023933a458a7d7605b09c0212e8ddc137f667f077a3",
+    "tests/qa-artifact-privacy.test.mjs": "1dd0da818839a3e815a2185df35e1255ce6e11787ccd589cec391d6e8ecc1cc0",
     "tests/qa-independent-results.test.mjs": "f79b1ea2f66689835744c394147921d24c8533761f34c0e1f2f7e6acd72209d6",
     "tests/qa-public-served.test.mjs": "118550e77b3c7e1376e851b9d53269958e453c4e8a5a658cc2b4a3e427219247",
     "tests/qa-publication-gate.test.mjs": "efd31f23b11c1e8a3ee59ebe02c2933a711e08e32c6264dcc8c7fd04b5a7daf7",
