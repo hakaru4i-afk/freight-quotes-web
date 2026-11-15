@@ -100,30 +100,60 @@ jobs:
           QA_BROWSER_LOGISTIC_SECURITY: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Run real Carrier A B and Supplier A B privacy gate
+        id: security
+        continue-on-error: true
         run: node tests/security-gate-real.e2e.mjs
       - name: Verify private registers, proposals and draft editor as Owner
+        id: owner_alignment
+        continue-on-error: true
         env:
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_ALIGNMENT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify all other roles cannot read private engineering archives
+        id: private_denials
+        continue-on-error: true
         env:
           QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification
           QA_BROWSER_ALIGNMENT: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify eleven cabinets in RU EN ZH on desktop and mobile
+        id: cabinet_matrix
+        continue-on-error: true
         env:
           QA_BROWSER_MATRIX: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: MAP50 published Owner two carriers winner and two weekly reports
+        id: map50
+        continue-on-error: true
         run: node tests/map50-published-chain.e2e.mjs
       - name: Verify additional required fields, variants, late preparation, tender and session policy
+        id: business_api
+        continue-on-error: true
         run: node tests/task12-business-api.e2e.mjs
       - name: Verify final tender protocol PDF through published Owner UI
+        id: tender_pdf
+        continue-on-error: true
         env:
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_TENDER: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Require every independent acceptance result before declaring success
+        if: always()
+        env:
+          QA_RESULT_SECURITY: ${{ steps.security.outcome }}
+          QA_RESULT_OWNER_ALIGNMENT: ${{ steps.owner_alignment.outcome }}
+          QA_RESULT_PRIVATE_DENIALS: ${{ steps.private_denials.outcome }}
+          QA_RESULT_CABINET_MATRIX: ${{ steps.cabinet_matrix.outcome }}
+          QA_RESULT_MAP50: ${{ steps.map50.outcome }}
+          QA_RESULT_BUSINESS_API: ${{ steps.business_api.outcome }}
+          QA_RESULT_TENDER_PDF: ${{ steps.tender_pdf.outcome }}
+        run: |
+          node --input-type=module <<'JS'
+          const failed=Object.entries(process.env).filter(([k,v])=>k.startsWith('QA_RESULT_')&&v!=='success').map(([k,v])=>({check:k,outcome:v}));
+          if(failed.length){console.log('QA_ACCEPTANCE_BLOCKED',JSON.stringify(failed));process.exit(1);}
+          console.log('QA_INDEPENDENT_ACCEPTANCE_ALL_PASS');
+          JS
       - uses: actions/upload-artifact@v4
         if: always()
         with:
