@@ -1,0 +1,45 @@
+name: Inspect scoped QA diagnostics
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Completed isolated QA run
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  diagnostics:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Validate run identity
+        env:
+          QA_RUN_ID: ${{ inputs.run_id }}
+        run: |
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[0-9]{1,18}',os.environ['QA_RUN_ID'])
+          PY
+      - uses: actions/download-artifact@v4
+        with:
+          name: isolated-qa-redacted-evidence
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.run_id }}
+          path: qa-evidence
+      - name: Print only accessibility rule IDs and selectors
+        run: |
+          python3 - <<'PY'
+          import json,pathlib
+          for p in pathlib.Path('qa-evidence').rglob('browser-results-*.json'):
+              data=json.loads(p.read_text())
+              for role in data.get('roles',[]):
+                  for failure in role.get('cabinetMatrixFailures',[]):
+                      safe={'actor':role.get('actor'),'lang':failure.get('lang'),'screen':failure.get('screen'),'width':failure.get('width')}
+                      safe['rules']=[{'id':v.get('id'),'impact':v.get('impact'),'selectors':[n.get('target') for n in v.get('nodes',[])]} for v in failure.get('violations',[])]
+                      if failure.get('error'):safe['errorCategory']='BROWSER_ACTION_FAILED'
+                      print('QA_A11Y_DIAGNOSTIC',json.dumps(safe,ensure_ascii=True))
+          PY
