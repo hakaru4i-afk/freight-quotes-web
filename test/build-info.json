@@ -672,7 +672,7 @@
     ],
     "interpretation": "Legacy original bundle metadata remains historical. Current reviewed FE/API/SQL/assets and publication are recorded in staging-manifest.json and the publication receipt."
   },
-  "sqlMigrationVersion": "20261115072910",
+  "sqlMigrationVersion": "20261115101617",
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
