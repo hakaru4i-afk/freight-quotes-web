@@ -46,6 +46,7 @@ jobs:
               if isinstance(v,list):return [safe(x,key) for x in v[:300]]
               if isinstance(v,dict):return {k:safe(x,k) for k,x in v.items() if k not in {'dom','surfaceDiagnostics','errorStack','consoleErrors','pageErrors','error','summary','note','contact','body','messages','headers','sourceAssets','servedAssetHashes','calls'}}
               if isinstance(v,str):
+                  if key in {'id','runId'} and re.fullmatch(r'[A-Za-z0-9_-]{1,120}',v):return v
                   if key in {'environment','mode','status','result','scenario','actor','winnerActor','lang','screen','sourceSite','backendFunction','transport','tag','currency'}:return v[:180]
                   if re.fullmatch(r'[a-f0-9]{40}|[a-f0-9]{64}|[a-f0-9-]{36}|QA-[A-Z0-9-]+|TR-[A-Z0-9-]+',v):return v
                   if v.startswith('reports/') and re.fullmatch(r'[A-Za-z0-9_./-]+',v):return v

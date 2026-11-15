@@ -6,6 +6,11 @@ on:
         description: Completed isolated OIDC QA run in this repository
         required: true
         type: string
+      artifact_id:
+        description: Exact artifact ID when a completed run has multiple attempts
+        required: false
+        default: ''
+        type: string
 permissions:
   contents: read
   actions: write
@@ -17,6 +22,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}
       QA_RUN_ID: ${{ inputs.run_id }}
+      QA_ARTIFACT_ID: ${{ inputs.artifact_id }}
     steps:
       - name: Validate source workflow and select its evidence artifact
         id: source
@@ -30,6 +36,10 @@ jobs:
           assert meta['path']=='.github/workflows/isolated-qa-oidc-browser.yml'
           artifacts=api('actions/runs/'+run+'/artifacts')['artifacts']
           matches=[x for x in artifacts if x['name']=='isolated-qa-redacted-evidence' and not x['expired']]
+          chosen=os.environ.get('QA_ARTIFACT_ID','')
+          if chosen:
+              assert re.fullmatch(r'[0-9]{1,18}',chosen)
+              matches=[x for x in matches if str(x['id'])==chosen]
           assert len(matches)==1
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('artifact_id='+str(matches[0]['id'])+'\n')
           PY
