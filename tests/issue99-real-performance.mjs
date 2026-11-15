@@ -11,7 +11,7 @@ const report={status:'RUNNING',mocks:false,environment:'isolated-qa-rc20261110',
 const read=async(actor,path)=>{
  const start=performance.now(),r=await fetch(base+path,{headers:{Authorization:'Bearer '+sessions[actor],Origin:'https://hakaru4i-afk.github.io','Cache-Control':'no-store'},signal:AbortSignal.timeout(15000)});
  const body=await r.json();assert.equal(r.status,200,actor+' '+path.split('?')[0]+' HTTP '+r.status);
- return{body,metrics:{path:path.split('?')[0],status:r.status,durationMs:Math.round(performance.now()-start)}};
+ return{body,metrics:{path:path.split('?')[0],status:r.status,durationMs:Math.round(performance.now()-start),region:r.headers.get('x-sb-edge-region')}};
 };
 await mkdir('reports/isolated-rc',{recursive:true});
 try{
