@@ -117,12 +117,20 @@ jobs:
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: MAP50 published Owner two carriers winner and two weekly reports
         run: node tests/map50-published-chain.e2e.mjs
+      - name: Verify additional required fields, variants, late preparation, tender and session policy
+        run: node tests/task12-business-api.e2e.mjs
+      - name: Verify final tender protocol PDF through published Owner UI
+        env:
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_TENDER: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: isolated-qa-redacted-evidence
           path: |
             reports/isolated-rc/security-gate-real.json
+            reports/isolated-rc/business-api-real.json
             reports/map50-published/*.json
             reports/map50-published/*.png
             reports/nov14-published/*.json
