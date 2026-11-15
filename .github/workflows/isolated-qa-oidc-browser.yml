@@ -133,6 +133,14 @@ jobs:
         id: business_api
         continue-on-error: true
         run: node tests/task12-business-api.e2e.mjs
+      - name: Verify sea air and multimodal tracking through published Carrier UI
+        id: mode_matrix
+        continue-on-error: true
+        env:
+          QA_BROWSER_ACTORS: carrierA
+          QA_BROWSER_MODE_MATRIX: 'true'
+          QA_MAP50: 'true'
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify final tender protocol PDF through published Owner UI
         id: tender_pdf
         continue-on-error: true
@@ -149,6 +157,7 @@ jobs:
           QA_RESULT_CABINET_MATRIX: ${{ steps.cabinet_matrix.outcome }}
           QA_RESULT_MAP50: ${{ steps.map50.outcome }}
           QA_RESULT_BUSINESS_API: ${{ steps.business_api.outcome }}
+          QA_RESULT_MODE_MATRIX: ${{ steps.mode_matrix.outcome }}
           QA_RESULT_TENDER_PDF: ${{ steps.tender_pdf.outcome }}
         run: |
           node --input-type=module <<'JS'
@@ -163,6 +172,9 @@ jobs:
           path: |
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
+            reports/isolated-rc/SEA-*.png
+            reports/isolated-rc/AIR-*.png
+            reports/isolated-rc/MULTI-*.png
             reports/map50-published/*.json
             reports/map50-published/*.png
             reports/nov14-published/*.json
