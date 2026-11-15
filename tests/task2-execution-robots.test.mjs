@@ -4,8 +4,8 @@ import {chromium} from "playwright";
 import {createServer} from "node:http";
 import {readFile} from "node:fs/promises";
 
-const appJs=await readFile("test/task2-panel-sidebar-only-20261107.js");
-const HTML='<!doctype html><html lang="ru"><meta charset="utf-8"><div class="cabinet-panel" data-section="approved-shipments"></div><script src="/task2.js"></script></html>';
+const appJs=await readFile("test/task2-panel-sidebar-only-20261107.js"),appCss=Buffer.concat([await readFile("test/task2.css"),await readFile("test/task2-execution-layout-20261114.css")]);
+const HTML='<!doctype html><html lang="ru"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/task2.css"><div class="cabinet-panel" data-section="approved-shipments"></div><script src="/task2.js"></script></html>';
 async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDays,baseline=false}={}){
  const order="QA-ROBOT-ROUTE-001",posts=[];
  const shipment={order_code:order,registration_no:"TR-26-000101",bitrix_task:"5316,5324",carrier_login:"carrier-qa",delivery_days:deliveryDays,mode,route:"Yiwu → Minsk",origin:"Yiwu",destination:"Minsk",weight:1250,volume:12.5,cargo:"Mock cargo",amount:700,currency:"USD",pickup:"2026-11-07T10:00:00Z"};
@@ -15,6 +15,7 @@ async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDa
  const server=createServer(async(req,res)=>{
   const url=new URL(req.url,"http://localhost");
   if(url.pathname==="/fixture"){res.writeHead(200,{"content-type":"text/html; charset=utf-8"});res.end(HTML);return}
+  if(url.pathname==="/task2.css"){res.writeHead(200,{"content-type":"text/css; charset=utf-8"});res.end(appCss);return}
   if(url.pathname==="/task2.js"){res.writeHead(200,{"content-type":"text/javascript; charset=utf-8"});res.end(appJs);return}
   if(url.pathname!=="/api/task2"){send(res,{error:"Not found"},404);return}
   if(req.method==="GET"){
@@ -34,6 +35,10 @@ async function fixture(t,{role="carrier",mode="Авто",container="",deliveryDa
     if(fields.location)detail.points.push({location_text:fields.location,observed_at:fields.location_date,comment:fields.location_comment||""});
     return send(res,{ok:true});
   }
+  if(payload.action==='final_cost_submit'){
+    state.final_cost_amount=Number(payload.amount).toFixed(2);state.final_cost_currency=payload.currency;state.final_cost_revision=Number(state.final_cost_revision||0)+1;state.final_cost_confirmed_at=null;state.final_cost_confirmed_by=null;return send(res,{ok:true});
+  }
+  if(payload.action==='final_cost_confirm'){state.final_cost_confirmed_at='2026-11-15T00:00:00Z';state.final_cost_confirmed_by='owner';return send(res,{ok:true});}
   if(payload.action==="finish"){
     if(!payload.answer&&!detail.containers.length)return send(res,{ok:true,needsContainerDecision:true});
     if(payload.answer==="yes")return send(res,{ok:true,waitingContainer:true});
@@ -152,4 +157,22 @@ test("original plan baseline is preserved and does not consume a reschedule row"
  assert.equal(detail.plans[0].is_baseline,true);
  assert.equal(await page.locator('.t2-plan-four-row.is-saved').count(),1);
  assert.match(await page.locator('form[data-t2-form="plan"]').innerText(),/Перенос 2/);
+});
+
+
+test('final settlement UI: Carrier sends numeric revision and original currency; Owner controls stay absent',async t=>{
+ const{page,posts,state}=await fixture(t,{role:'carrier'});Object.assign(state,{warehouse_at:'2026-11-14T00:00:00Z',actual_departure:'2026-11-01T00:00:00Z',pto_at:'2026-11-12T00:00:00Z',pto_checked_at:'2026-11-11T00:00:00Z',customs_at:'2026-11-13T00:00:00Z'});await page.locator('[data-t2-refresh]').click();const form=page.locator('[data-t2-form="final_cost_submit"]');await form.waitFor();assert.equal(await page.locator('[data-t2-form="final_cost_confirm"]').count(),0);assert.equal(await form.locator('[name="currency"]').isEditable(),false);await form.locator('[name="amount"]').fill('7950.50');await form.getByRole('button',{name:'Отправить итоговую сумму владельцу',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.t2-final-cost')?.textContent.includes('7950.50 USD'));const command=posts.find(x=>x.action==='final_cost_submit');assert.equal(command.expectedRevision,0);assert.equal(command.amount,'7950.50');assert.equal(command.currency,'USD');assert.equal(command.confirmedBy,undefined);assert.match(await page.locator('.t2-final-cost').innerText(),/Ожидает подтверждения/);await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
+});
+test('final settlement UI: Owner approves the displayed exact amount without a Carrier editor',async t=>{
+ const{page,posts,state}=await fixture(t,{role:'owner'});Object.assign(state,{warehouse_at:'2026-11-14T00:00:00Z',final_cost_amount:'7950.50',final_cost_currency:'USD',final_cost_revision:1,final_cost_submitted_at:'2026-11-14T01:00:00Z',final_cost_submitted_by:'carrier-qa'});await page.locator('[data-t2-refresh]').click();const form=page.locator('[data-t2-form="final_cost_confirm"]');await form.waitFor();assert.equal(await page.locator('[data-t2-form="final_cost_submit"]').count(),0);assert.match(await page.locator('.t2-final-cost').innerText(),/7950.50 USD/);await form.getByRole('button',{name:'Подтвердить итоговую сумму',exact:true}).click();await page.waitForFunction(()=>document.querySelector('.t2-final-cost')?.textContent.includes('Подтверждено'));const command=posts.find(x=>x.action==='final_cost_confirm');assert.equal(command.expectedRevision,1);assert.equal(command.amount,'7950.50');assert.equal(command.currency,'USD');assert.equal(command.confirmedAt,undefined);
+});
+
+test('claim UI sends revision-bound decisions and preserves readable proposal details',async t=>{
+ const{page,posts,detail,state}=await fixture(t,{role:'owner'});
+ state.warehouse_at='2026-11-14T00:00:00Z';detail.hasClaim=true;
+ detail.claim={id:'claim-ui',revision:4,state:'negotiation',data:{circumstances:'Synthetic existing shipment discrepancy',settlementStatus:'proposed',proposal:{revision:2,method:'compensation',plan:'Synthetic agreed compensation in the shipment currency',deadline:'2027-01-10'}}};
+ await page.locator('[data-t2-refresh]').click();const form=page.locator('[data-t2-form="claim_command"]');await form.waitFor();assert.match(await page.locator('.t2-claim-notice').innerText(),/Synthetic agreed compensation/);assert.match(await page.locator('.t2-claim-notice').innerText(),/2027-01-10/);assert.equal(await page.locator('[data-t2-form="claim_close"]').count(),0);await form.locator('[name="note"]').fill('Synthetic Owner review of the exact Carrier proposal');await form.locator('button[type="submit"]').click();await page.waitForFunction(()=>document.querySelector('#task2-root')?.getAttribute('aria-busy')==='false');const p=posts.find(x=>x.action==='claim_approve');assert.ok(p);assert.equal(p.claimRevision,4);assert.equal(p.proposalRevision,2);assert.equal(p.actor,undefined);await page.setViewportSize({width:390,height:844});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
+});
+test('claim UI only offers the Carrier own evidence uploaded after approval',async t=>{
+ const{page,posts,detail,state}=await fixture(t,{role:'carrier'});state.warehouse_at='2026-11-14T00:00:00Z';detail.hasClaim=true;detail.claim={id:'claim-ui',revision:5,state:'negotiation',data:{settlementStatus:'approved',review:{at:'2026-11-15T08:00:00Z'},proposal:{revision:2,plan:'Synthetic existing resolution',deadline:'2027-01-10'}}};detail.docs=[{id:'owner-file',name:'Owner evidence',actor:'owner',created:'2026-11-15T08:01:00Z'},{id:'old-file',name:'Earlier carrier file',actor:'carrier-qa',created:'2026-11-14T08:00:00Z'},{id:'fresh-file',name:'Carrier fulfilment',actor:'carrier-qa',created:'2026-11-15T08:01:00Z'}];await page.locator('[data-t2-refresh]').click();const form=page.locator('[data-t2-form="claim_command"]');await form.waitFor();assert.deepEqual(await form.locator('[name="proofId"] option').evaluateAll(xs=>xs.map(x=>x.value)),['','fresh-file']);await form.locator('[name="proofId"]').selectOption('fresh-file');await form.locator('[name="note"]').fill('Synthetic Carrier evidence of the approved resolution');await form.locator('button[type="submit"]').click();await page.waitForFunction(()=>document.querySelector('#task2-root')?.getAttribute('aria-busy')==='false');const p=posts.find(x=>x.action==='claim_fulfill');assert.equal(p.proofId,'fresh-file');assert.equal(p.proposalRevision,2);assert.equal(p.claimRevision,5);assert.equal(await page.locator('[data-t2-form="claim_close"]').count(),0);
 });

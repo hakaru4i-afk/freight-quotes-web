@@ -48,9 +48,38 @@
    '<small>'+esc(tip||tips[name]||"")+'</small></label>';
  const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
  const form=(kind,body,button="Сохранить изменения",hidden=false)=>
-  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","request_carrier_docs","ved_logistic_docs"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
+  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","request_carrier_docs","ved_logistic_docs","final_cost_submit","final_cost_confirm","claim_open","claim_send","claim_command"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
   (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+
   (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':kind==="ved_logistic_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.vedRequestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.vedRequestStatus?.order===state.selected?state.vedRequestStatus.message:"")+'</div>':"")+'</form>';
+ function claimPanel(d,staff,carrier){
+  const x=d.state||{},c=d.claim,data=c?.data||{};
+  if(!x.warehouse_at&&!c)return '';
+  let html='<section class="t2-claim-notice"><h3>Претензия по перевозке</h3>';
+  if(!c){return html+(staff&&x.status!=='completed'?form('claim_open',field('note','Обстоятельства претензии','textarea','','required minlength="20" maxlength="4000"'),'Открыть претензию'):'<p>Претензию оформляет владелец или ВЭД при приёмке груза.</p>')+'</section>';}
+  const status=c.state==='negotiation'?({proposed:'Предложение ожидает решения',approved:'Согласованное решение исполняется',execution_review:'Исполнение ожидает проверки',settled:'Урегулирована'}[data.settlementStatus]||'Ожидается предложение перевозчика'):({draft:'Подготавливается',pending_staff:'Владелец оформляет обращение',sent:'Ожидается ответ перевозчика',accepted:'Перевозчик согласился',disputed:'Есть возражения',settled:'Урегулирована'}[c.state]||'Проверяется');
+  html+=readonly('Состояние претензии',status);
+  if(c.state==='pending_staff')return html+'</section>';
+  html+=readonly('Обстоятельства претензии',data.circumstances||'Сохранены в исходной претензии');
+  if(data.carrierResponse)html+=readonly('Ответ перевозчика',data.carrierResponse);
+  if(data.proposal)html+=readonly('Предложение перевозчика',data.proposal.plan||data.proposal.method)+readonly('Срок исполнения',data.proposal.deadline);
+  const hidden='<input type="hidden" name="claimRevision" value="'+Number(c.revision)+'">'+(data.proposal?'<input type="hidden" name="proposalRevision" value="'+Number(data.proposal.revision)+'">':'');
+  const actions=rows=>'<label class="t2-field"><span>Действие</span><select name="action">'+rows.map(([value,title])=>'<option value="'+value+'">'+title+'</option>').join('')+'</select></label>';
+  const proof=(required=false,own=false,onlyId=null)=>'<label class="t2-field"><span>Подтверждающий файл из документов перевозки</span><select name="proofId" '+(required?'required':'')+'><option value="">Выберите файл</option>'+(d.docs||[]).filter(f=>(!onlyId||f.id===onlyId)&&(!own||f.actor===d.shipment?.carrier_login&&Date.parse(f.created)>=Date.parse(data.review?.at||0))).map(f=>'<option value="'+esc(f.id)+'">'+esc(f.name)+'</option>').join('')+'</select></label>';
+  const note=field('note','Комментарий к решению','textarea','','required minlength="20" maxlength="4000"');
+  if(x.status!=='completed'){
+   if(staff&&c.state==='draft')html+=data.source==='task2_notice'?form('claim_send',hidden+proof(true),'Направить претензию перевозчику'):'<p>Прежний формальный акт сохраняется в исходном процессе.</p>';
+   if(carrier&&c.state==='sent')html+=form('claim_command',hidden+actions([['claim_accept','Согласиться с претензией'],['claim_partial','Согласиться частично'],['claim_dispute','Подать возражения']])+note+proof(false)+'<p>При возражениях выберите подтверждающий файл.</p>','Отправить ответ по претензии');
+   const proposalAllowed=['accepted','disputed','negotiation','insurer','expertise','legal'].includes(c.state)&&!['proposed','approved','execution_review','settled'].includes(data.settlementStatus);
+   if(carrier&&proposalAllowed)html+=form('claim_command',hidden+'<input type="hidden" name="action" value="claim_propose"><label class="t2-field"><span>Способ урегулирования</span><select name="method">'+[['compensation','Компенсация'],['replacement','Замена'],['additional_delivery','Допоставка'],['repair','Ремонт'],['credit_note','Корректировка стоимости'],['other','Иное согласованное решение']].map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('')+'</select></label>'+field('deadline','Срок исполнения','date','','required')+note,'Предложить урегулирование');
+   if(staff&&c.state==='negotiation'&&data.settlementStatus==='proposed')html+=form('claim_command',hidden+actions([['claim_approve','Согласовать предложение'],['claim_return','Вернуть на доработку'],['claim_reject','Отклонить предложение']])+note,'Сохранить решение по предложению');
+   if(carrier&&data.settlementStatus==='approved')html+='<p>Загрузите собственное подтверждение исполнения в карточку документов перевозчика после согласования решения.</p>'+form('claim_command',hidden+'<input type="hidden" name="action" value="claim_fulfill">'+proof(true,true)+note,'Подтвердить исполнение урегулирования');
+   if(staff&&data.settlementStatus==='execution_review'){
+    if(data.fulfillment?.proofId)html+='<button type="button" class="t2-btn ghost" data-t2-doc="'+esc(data.fulfillment.proofId)+'">Скачать подтверждение исполнения</button>';
+    html+=form('claim_command',hidden+actions([['claim_resolve','Подтвердить урегулирование'],['claim_return','Вернуть исполнение на доработку']])+proof(true,false,data.fulfillment?.proofId)+note,'Проверить исполнение урегулирования');
+   }
+  }
+  return html+'<p>Согласование претензии не завершает перевозку автоматически. Итоговую сумму подтверждает владелец.</p></section>';
+ }
  const call=async(params,files)=>{
    const options={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)};
    if(files){delete options.headers;options.body=files;}
@@ -353,10 +382,20 @@
    if(state.tab==="completion"||state.tab==="arrival"){
      let html='<h3>Завершение перевозки</h3><div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
      html+='<p class="t2-muted">Перевозчик регистрирует фактические события во вкладке «Трекинг». Здесь ВЭД и Владелец проверяют обязательные этапы и принимают решение о закрытии перевозки.</p>';
+     html+=claimPanel(d,staff,carrier);
+     if(x.warehouse_at||x.final_cost_amount!=null){
+       const cost=x.final_cost_amount==null?'Не указана':String(x.final_cost_amount)+' '+(x.final_cost_currency||o.currency||'');
+       const confirmed=!!(x.final_cost_confirmed_at&&x.final_cost_confirmed_by);
+       html+='<section class="t2-final-cost"><h3>Итоговая сумма перевозки</h3>'+readonly('Сумма к завершению',cost)+readonly('Подтверждение владельца',confirmed?'Подтверждено':'Ожидает подтверждения');
+       if(confirmed)html+=readonly('Дата подтверждения',fmt(x.final_cost_confirmed_at));
+       if(carrier&&x.status!=='completed')html+='<p>Изменение суммы отменяет прежнее подтверждение владельца.</p>'+form('final_cost_submit','<input type="hidden" name="expectedRevision" value="'+Number(x.final_cost_revision||0)+'"><label class="t2-field"><span>Итоговая сумма</span><input name="amount" type="text" inputmode="decimal" required pattern="[0-9]+([.,][0-9]{1,2})?" value="'+esc(x.final_cost_amount??'')+'"></label><label class="t2-field"><span>Валюта</span><input name="currency" readonly value="'+esc(o.currency||'')+'"></label>','Отправить итоговую сумму владельцу');
+       if(state.role==='owner'&&x.final_cost_amount!=null&&!confirmed&&x.status!=='completed')html+=form('final_cost_confirm','<input type="hidden" name="expectedRevision" value="'+Number(x.final_cost_revision||0)+'"><input type="hidden" name="amount" value="'+esc(x.final_cost_amount)+'"><input type="hidden" name="currency" value="'+esc(x.final_cost_currency)+'"><p>Проверьте итоговую сумму выше. Подтверждение записывается с вашим именем и временем.</p>','Подтвердить итоговую сумму');
+       html+='</section>';
+     }
      // ВЭД выполняет единственную автоматическую задачу проверки документов во вкладке «Документы»; дополнительных задач при закрытии нет.
-     if(state.role==="owner"&&x.status!=="completed"){
-       html+='<p>Владелец проверяет фактические события и завершает перевозку. Это не создаёт задач ВЭД.</p>';
-       html+='<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
+     if(staff&&x.status!=="completed"){
+       html+='<p>Владелец или ВЭД проверяет фактические события и завершает перевозку после подтверждения итоговой суммы владельцем.</p>';
+       html+=d.hasClaim?(d.claim?.state==='settled'?form('claim_close',field('reason','Комментарий к завершению','textarea'),'Завершить перевозку с урегулированной претензией'):'<p>Для завершения сначала урегулируйте претензию.</p>'):'<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
        
      }
      return html;
@@ -619,6 +658,18 @@
    const f=ev.target.closest("form[data-t2-form]");if(!f)return;ev.preventDefault();
    const data=Object.fromEntries(new FormData(f).entries());const kind=f.dataset.t2Form;
    const csvMeta=f.dataset.t2CsvFields?{form:kind,changedFields:JSON.parse(f.dataset.t2CsvFields)}:undefined;
+   if(['claim_open','claim_send','claim_command'].includes(kind)){
+     if(!f.reportValidity())return;const action=kind==='claim_command'?data.action:kind;delete data.action;
+     for(const key of ['claimRevision','proposalRevision'])if(data[key]!==undefined)data[key]=Number(data[key]);
+     const button=f.querySelector('button[type="submit"]');if(button)button.disabled=true;
+     try{await update(action,data);}finally{if(button?.isConnected)button.disabled=false;}
+     return;
+   }
+   if(kind==='final_cost_submit'||kind==='final_cost_confirm'){
+     if(!f.reportValidity())return;const button=f.querySelector('button[type="submit"]');if(button)button.disabled=true;
+     try{await update(kind,{amount:data.amount,currency:data.currency,expectedRevision:Number(data.expectedRevision)});}finally{if(button?.isConnected)button.disabled=false;}
+     return;
+   }
    if(kind==="manual_pto_review"){
      const button=f.querySelector('button[type="submit"]');button.disabled=true;
      try{await update("manual_pto_review",{reason:data.reason,evidence:data.evidence});}finally{if(button.isConnected)button.disabled=false;}
