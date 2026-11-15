@@ -40,6 +40,7 @@ jobs:
       - name: Full published railway and VED review lifecycle for 14 November
         env:
           QA_MAP_ORDER: QA-NOV14-${{ github.run_id }}
+          QA_NOV14_INCLUDE_ORDINARY: 'true'
         run: node tests/nov14-published-chain.e2e.mjs
       - name: Owner creates an isolated request through published UI
         env:
@@ -177,6 +178,8 @@ jobs:
             reports/isolated-rc/MULTI-*.png
             reports/map50-published/*.json
             reports/map50-published/*.png
+            reports/nov14-ordinary/*.json
+            reports/nov14-ordinary/*.png
             reports/nov14-published/*.json
             reports/nov14-published/*.png
             reports/ci-qa-auth.json

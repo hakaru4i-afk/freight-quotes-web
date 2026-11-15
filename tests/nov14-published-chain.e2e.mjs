@@ -1,7 +1,8 @@
 // Full real workflow; callable from protected CI or the existing local QA session.
 import{spawnSync}from'node:child_process';import{readFileSync}from'node:fs';
 process.env.QA_MAP_ORDER||='QA-NOV14-'+Date.now();
-const evidence=process.env.QA_NOV14_EVIDENCE_DIR||'reports/nov14-published';
+const ordinary=process.env.QA_NOV14_ORDINARY==='true';
+const evidence=process.env.QA_NOV14_EVIDENCE_DIR||(ordinary?'reports/nov14-ordinary':'reports/nov14-published');
 function run(actors,flag,value='true'){
  const env={...process.env,QA_MAP50:'true',QA_NOV14_RAIL:'true',QA_BROWSER_EVIDENCE_DIR:evidence,QA_BROWSER_ACTORS:actors};
  for(const key of ['QA_BROWSER_CREATE','QA_BROWSER_BID','QA_BROWSER_SELECT','QA_BROWSER_ACCEPT','QA_MAP_GEOCODES','QA_NOV14_PHASE','QA_BROWSER_VED_WORK','QA_BROWSER_LOGISTIC_DOCUMENT','QA_BROWSER_VED_VERIFY','QA_OWNER_REGISTERS'])delete env[key];
@@ -13,6 +14,10 @@ const winner=JSON.parse(readFileSync(evidence+'/browser-results-owner.json')).ro
 if(!['carrierA','carrierB'].includes(winner))throw Error('Invalid winner');
 run(winner,'QA_BROWSER_ACCEPT');run('owner','QA_MAP_GEOCODES');run(winner,'QA_NOV14_PHASE','carrier');
 run('ved','QA_BROWSER_VED_WORK');run('logistic','QA_BROWSER_LOGISTIC_DOCUMENT');run('ved','QA_BROWSER_VED_VERIFY');
-run('owner','QA_NOV14_PHASE','start-review');run('ved','QA_NOV14_PHASE','remarks');run(winner,'QA_NOV14_PHASE','correct-documents');run('ved','QA_NOV14_PHASE','approve');run(winner,'QA_NOV14_PHASE','stages');run(winner,'QA_NOV14_PHASE','final-cost');run('owner','QA_NOV14_PHASE','approve-cost');run(winner,'QA_NOV14_PHASE','revise-cost');run('owner','QA_NOV14_PHASE','approve-cost-revision');run('owner','QA_NOV14_PHASE','claim-open');run(winner,'QA_NOV14_PHASE','claim-propose');run('owner','QA_NOV14_PHASE','claim-approve');run(winner,'QA_NOV14_PHASE','claim-fulfill');run('owner','QA_NOV14_PHASE','claim-resolve');run('owner','QA_NOV14_PHASE','finish');
+run('owner','QA_NOV14_PHASE','start-review');run('ved','QA_NOV14_PHASE','remarks');run(winner,'QA_NOV14_PHASE','correct-documents');run('ved','QA_NOV14_PHASE','approve');run(winner,'QA_NOV14_PHASE','stages');run(winner,'QA_NOV14_PHASE','final-cost');run('owner','QA_NOV14_PHASE','approve-cost');run(winner,'QA_NOV14_PHASE','revise-cost');run('owner','QA_NOV14_PHASE','approve-cost-revision');if(!ordinary){run('owner','QA_NOV14_PHASE','claim-open');run(winner,'QA_NOV14_PHASE','claim-propose');run('owner','QA_NOV14_PHASE','claim-approve');run(winner,'QA_NOV14_PHASE','claim-fulfill');run('owner','QA_NOV14_PHASE','claim-resolve');}run('owner','QA_NOV14_PHASE','finish');
 run('owner','QA_OWNER_REGISTERS');
-console.log('NOV14_REAL_FULL_CHAIN_PASS');
+console.log(ordinary?'NOV14_REAL_ORDINARY_NO_CONTAINER_CHAIN_PASS':'NOV14_REAL_FULL_CHAIN_PASS');
+if(!ordinary&&process.env.QA_NOV14_INCLUDE_ORDINARY==='true'){
+ const r=spawnSync(process.execPath,['tests/nov14-published-chain.e2e.mjs'],{env:{...process.env,QA_NOV14_ORDINARY:'true',QA_MAP_ORDER:'QA-NOV14-ORDINARY-'+process.env.GITHUB_RUN_ID,QA_NOV14_EVIDENCE_DIR:'reports/nov14-ordinary'},stdio:'inherit',timeout:900000});
+ if(r.error)throw r.error;if(r.status!==0)throw Error('Ordinary no-claim no-container lifecycle failed');
+}
