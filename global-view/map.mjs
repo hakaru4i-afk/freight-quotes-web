@@ -1,6 +1,6 @@
 import './leaflet.js';
 import './topojson.js';
-import { modes, shortestLongitude } from './route-model.mjs?v=76d7fa8ca185a5ba9780';
+import { modes, shortestLongitude } from './route-model.mjs?v=652b57cc8c083bef06f6';
 
 let geography;
 const topology = () => geography ??= fetch(new URL('./countries.json', import.meta.url))
