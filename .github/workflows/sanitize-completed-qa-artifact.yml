@@ -43,14 +43,23 @@ jobs:
           assert len(matches)==1
           with open(os.environ['GITHUB_OUTPUT'],'a') as f:f.write('artifact_id='+str(matches[0]['id'])+'\n')
           PY
-      - uses: actions/download-artifact@v4
-        with:
-          artifact-ids: ${{ steps.source.outputs.artifact_id }}
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ inputs.run_id }}
-          path: original
-          merge-multiple: true
+      - name: Download the validated exact artifact, including prior run attempts
+        env:
+          ORIGINAL_ARTIFACT_ID: ${{ steps.source.outputs.artifact_id }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ARTIFACT_ID/zip" > original.zip
+          python3 - <<'PY_ZIP'
+          import pathlib,stat,zipfile
+          root=pathlib.Path('original');root.mkdir()
+          with zipfile.ZipFile('original.zip') as z:
+              entries=z.infolist()
+              assert len(entries)<2000 and sum(x.file_size for x in entries)<200*1024*1024
+              for x in entries:
+                  p=pathlib.PurePosixPath(x.filename)
+                  assert not p.is_absolute() and '..' not in p.parts and not stat.S_ISLNK(x.external_attr>>16)
+              z.extractall(root)
+          pathlib.Path('original.zip').unlink()
+          PY_ZIP
       - name: Preserve synthetic evidence and hashes, excluding private register images
         run: |
           python3 - <<'PY'
@@ -83,4 +92,4 @@ jobs:
         run: gh api --method DELETE "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ARTIFACT_ID"
       - name: Remove runner copies
         if: always()
-        run: rm -rf original sanitized
+        run: rm -rf original sanitized original.zip
