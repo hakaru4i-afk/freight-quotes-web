@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "0f8ab52d2c746b1744e03797161284ef2d4cdf2e",
+  "frontendCommit": "e913be04578f80df45717e8253f317402a3bf7ad",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -305,7 +305,7 @@
     "tests/owner-workspace-compact.test.mjs": "8b1503ad033123e4b5bfaac50f4ec992fd127222e07979396f26056f03dc6afa",
     "tests/portal-contrast-accessibility-browser.test.mjs": "a414866c5f7caae1944981eb6d0480402c98123eda61a5d8c044faf18edadb4a",
     "tests/process-model-diff.test.mjs": "6188db56e56a5a19d22d4f53c63221cf31f55e83619e41d6b1d2aec95fd641b6",
-    "tests/production-previous-ui-compatibility.e2e.mjs": "00404d8ad98c16d35381586c037d64cc1c8d5cfb2f02d23c5e308451bc709e43",
+    "tests/production-previous-ui-compatibility.e2e.mjs": "2ba72829565edc79836ee73395db248c5335bd302a7ee524eb776bd3c08d0bc7",
     "tests/public-entry-browser.test.mjs": "9876c60740caf757cd674a7b0fb584b3af25b902ada70cf298bb3bad96a122f9",
     "tests/public-support-browser.test.mjs": "8b3d88becb75ce35e9ee48320baff49a6e43d3fe844ef9a884b659691b15a1ee",
     "tests/qa-addressed-logistic-profile.mjs": "e6c728fcb5ccb06a56d3e7652fa0f872a5e77b0ac1be79f1e6178907166e377d",
