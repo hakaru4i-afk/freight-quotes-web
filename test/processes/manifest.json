@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "de55b52f795ee4eca2423c80d213abeb3d93db973d07cceddca212d56fb81121",
+  "modelSha256": "fd360cfe10a2b15439644362f92e34967b956da3020029a282e8a7c6db48feb8",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -624,7 +624,7 @@
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
       "test/public-support-20261115.css": "de9954f87e8662508df50c41cc57c41956a26c92c8658d2670222276f770f23c",
-      "test/app.js": "a70061d344c12d6994bfe2207a829a557882f667ece4fa38969025d006069240",
+      "test/app.js": "1505422d298f113b9ea65205d64a4dd8250fe9348ef60ae69e6f687a5810c477",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "f66ce7b944df67e258fcddeb474b70ca8f55c995dd1e4ea99d34dce0a1d067e6",
       "test/task2-i18n.js": "0b09e5a12ce70998eab682bf587115e3fe0e1628ad55f25deb3012161610dfd0",
@@ -662,7 +662,7 @@
       "test/global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
       "test/global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283"
     },
-    "reviewedBackendSourceCommit": "73b9de8dc3ce917790a6d5bca7c006d268cce6cf",
+    "reviewedBackendSourceCommit": "1c04ec7348f22ccc10b3572d13a2f95f1df44d7d",
     "previousVersion": "20261113-logic-10",
     "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c. Кандидат PROD-GO-LIVE-20261114 проверяется отдельно от опубликованного staging v100. Согласованные правила и оценки готовности сохранены."
   },
