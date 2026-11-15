@@ -28,11 +28,11 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "3d7c700aa35efbd5220b76e6f12fa1c5ac1cff38",
+  "frontendCommit": "14306972ad9b4493e83ec1c45947ab71b63eb211",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
-    ".github/workflows/inspect-qa-evidence.yml": "34cceecc9d147bb4b045c9ce3703fb9e48826d7f2bf6fa1cd96d6cf1c85c3dc2",
-    ".github/workflows/isolated-qa-oidc-browser.yml": "c5c85abe9de7ceb8a50df783d2bce6cae1657ba9a161a6490075204757dfef89",
+    ".github/workflows/inspect-qa-evidence.yml": "b844d429b701c1d42673a80719ec6f827420602b9d9bb8ab45c047eea99fa042",
+    ".github/workflows/isolated-qa-oidc-browser.yml": "0d06e81ee53388d94d3d91750b4d5917c464b5e27902ba5669dc52fd1735218a",
     ".github/workflows/isolated-qa-published-browser.yml": "2648e42cd1add907d657305fb280dd672e505ff70cb133f66e2de6d6fb96cd47",
     ".github/workflows/issue17-document.yml": "fce6b9971ad16236a52a51b789e25881fb69934851c5f09cda1fc22c106683aa",
     ".github/workflows/issue17-formal-document.yml": "633a1e0e8614d5489399c3e835f4bb20ba696c5866da339a92e32ea79ee866ab",
@@ -290,8 +290,8 @@
     "tests/map50-real-edits.e2e.mjs": "0fcba51ee227e826bd4e0aed8a3d12639341f6ade5236732b1912c349f5bd838",
     "tests/map50-real-scenario.mjs": "0d71be578033ce6a927be4d56312839ff1e57fc58559715b0258812a622bf681",
     "tests/nov14-owner-registers-real.mjs": "558ac5c5e1d06fb2a77af2ed6002c22c0dcd2015862892b123c0e9139c5adeb0",
-    "tests/nov14-published-chain.e2e.mjs": "98094a17a9f74c2dcd4180f438531bfe91c30fb8ec15eeb9403158bb200a5aea",
-    "tests/nov14-real-scenario.mjs": "bd7d41f7049a1ab1e948dc2749593bd3a9b5d8784bf9d0726f7e784c53c3ba71",
+    "tests/nov14-published-chain.e2e.mjs": "92e3e75fe73a245512e2ae2eaa5146b714c058e0fa6de4fd0831a733ef78088d",
+    "tests/nov14-real-scenario.mjs": "36aa8bae290a46eb5c7a99f93a6f62f6bcc456c17ccfafd88f8ae8682eab590d",
     "tests/owner-command-center-browser.test.mjs": "aee0b13707f614977aa8093b94d72d927eb2c22cd035278d9e54c331cbbe1e1a",
     "tests/owner-command-center.test.mjs": "f33545c3282d7a719ed6ae366e78da17853d15d5e083cfcce0fff4fbd10193b0",
     "tests/owner-history-browser.test.mjs": "2b61926bcb607ec1c6655eba23b4aba44435d49f8ef150be24f6e65a4514feaa",
