@@ -158,32 +158,30 @@ function paintArchive(host,id){
  search.oninput=()=>{query=search.value;draw();};sortControl.onchange=()=>{sort=sortControl.value;draw();};
  function draw(){
   target.replaceChildren();const term=query.toLocaleLowerCase(),view=filters.view;
-  const unfinished=rows.filter(row=>!finished(recordState(row,taskFor(id,row.id)))).length;
+  const unfinished=rows.filter(row=>!row.archived&&!finished(recordState(row,taskFor(id,row.id)))).length;
   count.textContent='Незавершённых записей: '+unfinished;
-  if(view==='archive'){
-   const archive=el('details',null,{class:'ow-technical-history'});archive.append(el('summary','Полный исходный архив и техническая история'),el('pre',source?.markdown||'Архив загружается…'));target.append(archive);return;
-  }
   const visible=rows.filter(row=>{
-   const job=taskFor(id,row.id),status=recordState(row,job),date=String(row.detectedAt||'').slice(0,10);
+   const job=taskFor(id,row.id),status=recordState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
    return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
-    (view==='all'||view==='new'&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status)||view==='selected'&&!!job);
-  }).sort((a,b)=>String(a.detectedAt).localeCompare(String(b.detectedAt))*(sort==='old'?1:-1));
+    (view==='all'||view==='archive'&&(row.archived||finished(status))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&!row.historyOnly&&finished(status)||view==='selected'&&!!job);
+  }).sort((a,b)=>String(/^\d{4}-/.test(a.detectedAt)?a.detectedAt:'').localeCompare(String(/^\d{4}-/.test(b.detectedAt)?b.detectedAt:''))*(sort==='old'?1:-1));
   for(const row of visible){
    const job=taskFor(id,row.id),state=recordState(row,job),card=el('article',null,{class:'ow-work-card','data-record-id':row.id}),heading=el('div',null,{class:'ow-work-card-top'});
-   const badge=el('span',humanStatuses[state]||'Ожидает решения',{class:'ow-human-status'});if(state==='in_progress')badge.dataset.state='working';heading.append(el('h3',row.title),badge);card.append(heading);
+   const badge=el('span',humanStatuses[state]||'Ожидает решения',{class:'ow-human-status'});if(state==='in_progress')badge.dataset.state='working';heading.append(el('h3',row.title),badge);card.append(heading);if(row.historyOnly)card.append(el('p','Историческая запись. Текущий статус не подтверждён; активная работа не создаётся.',{class:'ow-board-help'}));
    const facts=el('dl',null,{class:'ow-register-facts'}),fact=(label,value)=>{if(!value)return;facts.append(el('dt',label),el('dd',value));};
    fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
    card.append(facts,el('p',row.description,{class:'ow-human-description'}));
    const more=el('details',null,{class:'ow-record-details'});more.append(el('summary','Подробнее'));
    const details=el('dl',null,{class:'ow-register-facts'}),detail=(label,value)=>{if(value)details.append(el('dt',label),el('dd',value));};
-   detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
+   detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.technical?.datePrecision==='unknown'?'В исходной записи не указана':row.technical?.datePrecision==='day'?new Date(row.detectedAt).toLocaleDateString('ru-RU'):row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
    const actions=el('div',null,{class:'ow-human-actions'}),released=['published','production_verified'].includes(state);
-   if(!released&&(!job||['sent','read','evaluated'].includes(job.status))){const start=el('button','Взять в работу',{type:'button'});start.disabled=!!workBusy||!workReady||!!workError;start.onclick=()=>void startWork(id,row.id,row.title,row.description);actions.append(start);}
+   if(!row.historyOnly&&!released&&(!job||['sent','read','evaluated'].includes(job.status))){const start=el('button','Взять в работу',{type:'button'});start.disabled=!!workBusy||!workReady||!!workError;start.onclick=()=>void startWork(id,row.id,row.title,row.description);actions.append(start);}
    else if(job){const open=el('button','Открыть задачу',{type:'button'});open.onclick=()=>{navigate('');location.hash='#portal-feedback';};actions.append(open);if(['in_progress','release'].includes(job.status))actions.append(el('span','Задача уже находится в работе'));}
    const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary','История изменений'));const events=workEvents.filter(x=>x.request_id===job?.id);for(const event of events)history.append(el('p',new Date(event.created_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'})+' · '+event.description+' · '+event.actor_login));if(!events.length)history.append(el('p','Решение владельца ещё не зафиксировано. Источник и прежние проверки — в технической информации.'));actions.append(history);card.append(actions);
    const technical=el('details',null,{class:'ow-technical-history'});technical.append(el('summary','Техническая информация'),el('pre',JSON.stringify({id:row.id,sourceTaskKey:row.sourceTaskKey,...row.technical},null,2)));card.append(technical);target.append(card);
   }
   if(!visible.length)target.append(el('p',loading?'Загрузка…':'Подходящих записей нет'));
+  if(view==='archive'){const original=el('details',null,{class:'ow-technical-history'});original.append(el('summary','Полный исходный архив и техническая история'),el('pre',source?.markdown||'Архив загружается…'));target.append(original);}
  }
  draw();
 }
