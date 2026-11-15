@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "e913be04578f80df45717e8253f317402a3bf7ad",
+  "frontendCommit": "1d28065f8fc1ad71976f8038d44d401225dee12e",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -245,7 +245,7 @@
     "tests/ISSUE47_CANDIDATE.md": "cbcff74442cc032324b2b97755702301b7a35a5a7d23632a2d0c3e0e3c299ea2",
     "tests/addressed-logistic-real-scenario.mjs": "a51e98b7f48730f77ce75539beda4082e45a51b36ad21ac59abf9a6c3296fc8c",
     "tests/alignment-cabinet-matrix.mjs": "a950102d98663068f3c88bf0668640fe9ba5b54bf806df9fca691f983ac5309d",
-    "tests/alignment-real-scenarios.mjs": "0b1bca7477ac0ba640e854a8cd802a7f0c014a9be5ede8c0c38ae141f2f9a8c6",
+    "tests/alignment-real-scenarios.mjs": "e907949a59b45b7f935aa57b61b363bb9029eb28cd4083832c3a871479bb9c97",
     "tests/business-process-maps.test.mjs": "cf5e4e4d1ec793d8ad1d80e651513db600bb2e81a817f9e886052d795af7b192",
     "tests/carrier-acceptance-singleton-browser.test.mjs": "b9ccd7f8514f1905ad4a578a7d1b571822c996b2300f16fa14c034c60074c806",
     "tests/chat-unread-contrast.test.mjs": "1ff45915393ed3d9f32fa6a02832146d7cf41bd56ee643b98380bcf04cde8da0",
@@ -305,7 +305,7 @@
     "tests/owner-workspace-compact.test.mjs": "8b1503ad033123e4b5bfaac50f4ec992fd127222e07979396f26056f03dc6afa",
     "tests/portal-contrast-accessibility-browser.test.mjs": "a414866c5f7caae1944981eb6d0480402c98123eda61a5d8c044faf18edadb4a",
     "tests/process-model-diff.test.mjs": "6188db56e56a5a19d22d4f53c63221cf31f55e83619e41d6b1d2aec95fd641b6",
-    "tests/production-previous-ui-compatibility.e2e.mjs": "2ba72829565edc79836ee73395db248c5335bd302a7ee524eb776bd3c08d0bc7",
+    "tests/production-previous-ui-compatibility.e2e.mjs": "492aa42ceec66a9b64f8baaa81c678ce432fbb024ad4e53191d8b475437214b6",
     "tests/public-entry-browser.test.mjs": "9876c60740caf757cd674a7b0fb584b3af25b902ada70cf298bb3bad96a122f9",
     "tests/public-support-browser.test.mjs": "8b3d88becb75ce35e9ee48320baff49a6e43d3fe844ef9a884b659691b15a1ee",
     "tests/qa-addressed-logistic-profile.mjs": "e6c728fcb5ccb06a56d3e7652fa0f872a5e77b0ac1be79f1e6178907166e377d",
