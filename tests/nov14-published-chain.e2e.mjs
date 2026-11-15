@@ -13,6 +13,6 @@ const winner=JSON.parse(readFileSync(evidence+'/browser-results-owner.json')).ro
 if(!['carrierA','carrierB'].includes(winner))throw Error('Invalid winner');
 run(winner,'QA_BROWSER_ACCEPT');run('owner','QA_MAP_GEOCODES');run(winner,'QA_NOV14_PHASE','carrier');
 run('ved','QA_BROWSER_VED_WORK');run('logistic','QA_BROWSER_LOGISTIC_DOCUMENT');run('ved','QA_BROWSER_VED_VERIFY');
-run('owner','QA_NOV14_PHASE','start-review');run('ved','QA_NOV14_PHASE','remarks');run(winner,'QA_NOV14_PHASE','correct-documents');run('ved','QA_NOV14_PHASE','approve');run(winner,'QA_NOV14_PHASE','stages');run('owner','QA_NOV14_PHASE','finish');
+run('owner','QA_NOV14_PHASE','start-review');run('ved','QA_NOV14_PHASE','remarks');run(winner,'QA_NOV14_PHASE','correct-documents');run('ved','QA_NOV14_PHASE','approve');run(winner,'QA_NOV14_PHASE','stages');run(winner,'QA_NOV14_PHASE','final-cost');run('owner','QA_NOV14_PHASE','approve-cost');run(winner,'QA_NOV14_PHASE','revise-cost');run('owner','QA_NOV14_PHASE','approve-cost-revision');run('owner','QA_NOV14_PHASE','claim-open');run(winner,'QA_NOV14_PHASE','claim-propose');run('owner','QA_NOV14_PHASE','claim-approve');run(winner,'QA_NOV14_PHASE','claim-fulfill');run('owner','QA_NOV14_PHASE','claim-resolve');run('owner','QA_NOV14_PHASE','finish');
 run('owner','QA_OWNER_REGISTERS');
 console.log('NOV14_REAL_FULL_CHAIN_PASS');
