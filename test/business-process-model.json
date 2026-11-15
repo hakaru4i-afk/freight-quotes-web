@@ -621,7 +621,7 @@
     "test/public-support-20261115.css": "de9954f87e8662508df50c41cc57c41956a26c92c8658d2670222276f770f23c",
     "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-    "test/app.js": "9e9e32a974d5f10afe1515f0ab74cef4d271bd71da68a34072d195127d615833",
+    "test/app.js": "730ac0c1757895d4321131dcadf3faf55b035378412e7c3cab117e33826479ed",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
     "test/task2-panel-sidebar-only-20261107.js": "286366acd93e26928dd85a83830fb4c719caead7aee9553f5b9b53d75385a214",
     "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
@@ -659,7 +659,7 @@
     "test/global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
     "test/global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283"
   },
-  "reviewedBackendSourceCommit": "1c04ec7348f22ccc10b3572d13a2f95f1df44d7d",
+  "reviewedBackendSourceCommit": "cf1ec5b7f0b42dd7327b73307ee474cbc35a53a1",
   "previousVersion": "20261113-logic-10",
   "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c. Кандидат PROD-GO-LIVE-20261114 проверяется отдельно от опубликованного staging v100. Согласованные правила и оценки готовности сохранены."
 }
