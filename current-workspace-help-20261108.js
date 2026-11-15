@@ -1,0 +1,226 @@
+/* LW-GUIDE-02: current role FAQ and inline visible field help, staging only. */
+(()=>{"use strict";
+const DATA={
+ru:{
+title:"Инструкции и FAQ · Logistics Workspace",
+flow:"Действующий цикл: заявка владельца → ставки перевозчиков → выбор одной ставки → исполнение победителем → завершение.",
+faq:[
+["Что делать, если остаток километров определить невозможно?", "Только Владелец может вручную запустить ту же единственную проверку ВЭД после подтверждения недоступности расчёта. Укажите причину и документированное основание. Пользователь и дата фиксируются сервером; повтор или последующий автоматический расчёт не создаёт новую проверку. До выполнения ВЭД таможня остаётся заблокированной."],
+["Что означает «Удалить навсегда»?","Только Владелец может удалить заявку целиком из тестового портала. Удаляются связанные раунды, ставки, тендеры, документы, чаты и файлы; корзины и восстановления нет. Архив завершённых перевозок — отдельный раздел, это не корзина."],
+["Как начать работу?","Войдите с данными администратора. Слева доступны только разделы вашей роли. Начните с «Главная» и назначенных задач."],
+["Чем заявка отличается от перевозки?","Заявка собирает ставки. Исполнение начинается отдельно после выбора победителя. Это разные меню и статусы."],
+["Кто выбирает победителя?","Только Владелец выбирает одну конкретную ставку; участие и допуск не означают победу."],
+["Что происходит после дедлайна?","До выбора победителя можно подать позднюю ставку; Владелец решает учитывать её. Просрочка и Service Level учитываются отдельно."],
+["Как работать с документами?","Загружайте файлы в конкретный заказ/заявку, проверяйте их сохранение и скачивание. Чужие файлы недоступны."],
+["Чем отличаются номера?","TR — неизменный регистрационный номер. Номер заказа компании, номер заказа поставщика и номера Bitrix — разные поля."],
+["Где транспортная заявка и ВЭД?","Создание транспортной заявки отложено. После принятия перевозки победителем ВЭД видит её документы, общий чат и свои задания. При подтверждённом остатке менее 1000 км до ПТО создаётся одна задача проверки документов."],
+["Как сообщить об ошибке?","Откройте «Предложения», выберите «Исправление», «Доработка» или «Разработка», опишите экран и ожидаемый результат. Владелец изменит статус в «Центре доработок»."],
+["Как заполнить Excel-шаблон ставки?","Только в расчёте транспортных ставок перевозчиком: скачайте шаблон, заполните отдельные колонки в Excel или WPS, импортируйте данные и затем отдельно отправьте ставку. В публичном разделе сотрудничества шаблонов НЕТ — прикладываются готовые документы."],
+["Что означают статусы предложений?","Отправлено → Прочитано → Оценено → В работе → Выпуск (с датой) → Завершено. Возможен «Отказано в разработке». Завершение отмечают после проверки."],
+["Как новому партнёру связаться с компанией?","На публичной странице «Предложить сотрудничество» партнёр прикладывает до 3 готовых коммерческих предложений по 5 МБ (общий предел 12 МБ) без Excel-шаблонов. Владелец видит их в своём реестре и отдельно решает вопрос о доступе."],["Где посмотреть изменения и структуру процессов?","В кабинете владельца откройте реестры обновлений, замечаний и разработок: Выберите запись, прочитайте последствия и подтвердите «Взять в работу». Задача и история сохраняются на сервере; связанные записи не создают повторную работу. Полная исходная история доступна во вкладке «Архив». «Структура бизнес-процессов» показывает модель от 11.11.2026; это просмотр, не конструктор изменения правил."]
+],
+roles:{
+owner:["В исполнении все документы сгруппированы в трёх компактных карточках: Владелец, ВЭД, Перевозчик. Запросы и загрузка открываются внутри соответствующей карточки; все файлы остаются привязаны к одной перевозке.","Если сервер подтвердил невозможность расчёта километража до ПТО, на главной появится задача «Запустить проверку документов ВЭД». Откройте перевозку, укажите причину и документированное основание. После сохранения ВЭД получает одну проверку документов; задача владельца закрывается.","Удаление заявки доступно только Владельцу: «Реестр заявок» → карточка → «Удалить навсегда». Подтвердите необратимое удаление. Архив и аннулирование — другие операции.","Создайте перевозку: заполните номера заказа/Bitrix, сроки, груз, вес/объём, Incoterms и вложения.","Опубликуйте запрос и проверьте журнал адресатов.","Сравните предложения по маршрутам, срокам, суммам и валютам; поздние ставки рассматривайте отдельно.","Выберите ровно одну ставку и проверьте корректный архив проигравших.","Контролируйте документы, ход перевозки, итоговые суммы и закрытие.","В «Реестре предложений по сотрудничеству» просматривайте сообщения, файлы коммерческих предложений и управляйте статусами; скачивание доступно только владельцу."],
+carrier:["В «Исполнении перевозок» откройте «Документы»: в карточке ВЭД можно запросить документ, в карточке Перевозчика — прикрепить файлы, в том числе ответ на запрос ВЭД. После загрузки убедитесь, что файл появился в этой карточке.","Проверка документов ВЭД должна быть завершена до фиксации прибытия на ПТО. При достоверном остатке менее 1000 км задача возникает автоматически; при подтверждённой недоступности километража владельцу назначается задача резервного запуска.","Откройте «Мои заявки», условия и вложения.","Укажите маршрут, станции, транспорт (авто/ЖД/море/авиа), цену, валюту, сроки; отказ — только с причиной.","Для нескольких ставок добавьте отдельные варианты; после Excel/CSV проверьте каждое поле.","До выбора победителя поздняя ставка доступна с отметкой о просрочке.","После победы «Взять в работу» в «Мои заявки», затем «Мои перевозки» для исполнения, трекинга и файлов. Транспортная заявка сейчас отложена.","Проигравшие не исполняют перевозку.","Для обращения по сайту откройте «Предложения», выберите тип и напишите описание."],
+ved:["В принятой перевозке откройте «Документы»: три компактные карточки. В карточке Перевозчика выберите «Запросить документ у перевозчика»; он загрузит ответ там же. В карточке ВЭД прикрепляйте свои файлы и при необходимости направляйте запрос логисту. После проверки ответа завершите соответствующий запрос.","Проверка комплекта документов ВЭД — этап 4, до прибытия на ПТО (этап 5). При подтверждённом остатке менее 1000 км или резервном запуске владельца завершите единственную проверку, подтвердив комплект либо направив замечания.","Откройте раздел «Документы»: здесь одна автоматическая задача проверки документов до ПТО при подтверждённом остатке менее 1000 км.","Для запроса недостающих документов выберите конкретного логиста; завершение задания возможно только после загрузки файла.","Для общения с владельцем и перевозчиком используйте «Чаты по заявкам» без шаблонов и CSV."],
+logistic:["Работайте с доступными реестрами и ставками.","Сверяйте маршрут, сроки, статусы и вложения.","Не выбирайте победителя вместо Владельца. Выполняйте только назначенные вам документальные задания; запрос ВЭД логисту адресуется конкретному сотруднику."],
+supplier:["Откройте назначенный заказ поставщика.","Загрузите запрошенные документы, укажите фактическую готовность, если поле доступно.","При запросе добавьте фото погрузки и проверьте сохранение.","Не используйте чужие заявки; о недоступных полях сообщите Владельцу."],
+designer:["Откройте назначенные задания, если раздел доступен.","Проверьте материалы товара и требования.","Прикрепите результат и отметьте выполнение через доступные элементы."],
+content:["Откройте доступные задания по контенту.","Проверьте карточку товара, изображения и документы.","Укажите результат и запросите недостающие материалы там, где разрешено."],
+purchasing:["Откройте доступные заказы.","Проверьте готовность и документы поставщика.","Сообщайте о недостающей функции Владельцу."],
+certification:["Проверьте назначенные документы по товару.","Загрузите результат только в доступной форме.","ВЭД обрабатывает документы принятых перевозок отдельно от задач сертификации."]
+}},
+en:{
+title:"Instructions & FAQ · Logistics Workspace",flow:"Current workflow: Owner request → carrier quotes → one winning offer → execution → closure.",
+faq:[
+["What if remaining distance cannot be calculated?", "Only the Owner may start the same single foreign-trade review after server-confirmed calculation unavailability. A reason and documented evidence are required. The server records user and date. Retries and later automatic calculations reuse the review. Customs stays blocked until the review is completed."],
+["What does Delete permanently mean?","Only the Owner may permanently delete a request and its linked quotes, tenders, messages, documents and stored files in staging. There is no trash or restore. Completed-shipment archives are separate."],
+["How do I start?","Sign in with administrator-issued credentials. Use the left menu for your assigned role."],
+["Request versus shipment?","The request collects rates. Shipment execution starts separately once the Owner selects a winner."],
+["Who chooses the winner?","Only the Owner selects a specific winning offer."],
+["Late quotes?","A late quote may be sent before the winner is chosen; the Owner decides if it is considered. Service Level still applies."],
+["How do files work?","Upload files to their request/order and verify saving and downloads. Other users' private files are restricted."],
+["Which numbers matter?","TR registration, company order, supplier order and Bitrix tasks are separate references."],
+["Transport application and foreign trade?","Transport-application drafting is deferred. Once the winning carrier accepts a shipment, foreign-trade staff can review its documents and shared chat; one document-check task is created when confirmed remaining distance falls below 1,000 km before PTO."],
+["Found a bug?","Open Suggestions, select Fix, Improvement or Development, and describe the screen and expected result. The Owner processes it in Improvement Center."],
+["How do I use a quote Excel template?","Only for carrier freight quotes: fill the columns, import from Excel/WPS, then explicitly submit the offer. The public cooperation form requires ready proposal documents and no template."],
+["What are suggestion statuses?","Submitted → Read → Evaluated → In progress → Release (with a date) → Completed, or Rejected. Completion requires verification."],
+["How do new partners join?","The public Partnership form accepts up to three ready proposal files (max 5 MB each; 12 MB total), with no row templates. The Owner reviews them in the Cooperation Proposals Register and separately grants access."],["Where can I find change registers and process maps?","The Owner menu contains Updates, Remarks and Development registers with live Improvement Center entries and links to complete GitHub archives. The Business Process Structure shows the current 11 Nov 2026 model; editing workflow rules requires a separate approved change."]
+],
+roles:{
+owner:["Shipment execution shows three compact document cards: Owner, Foreign Trade and Carrier. Open requests and uploads within the relevant card; files remain attached to one shipment.","When remaining distance cannot be verified by the server, an Owner task to start foreign-trade document review appears on the homepage. Open the shipment, provide a reason and documented evidence, and submit. One VED review is assigned and the Owner task is completed.","Only the Owner can permanently delete a request in Registry → request card → Delete permanently. Confirm irreversible deletion. Archiving and annulment are different actions.","Create a request with order, Bitrix, dates, cargo, Incoterms and files.","Publish and review carrier notification log.","Compare routes, timings, prices and currencies.","Select one offer and verify losing statuses.","Monitor execution, tracking and closure.","Review partner messages and attached commercial proposal files in the Cooperation Proposals Register; only the Owner may download them."],
+carrier:["In Shipment execution → Documents, request a file inside the Foreign Trade card and upload your own files or responses to foreign-trade requests inside the Carrier card. Verify the file appears there after saving.","Foreign-trade document review must be completed before recording arrival at the customs terminal (PTO). Verified remaining distance below 1,000 km triggers the review; otherwise a documented Owner fallback is required if distance cannot be calculated.","Open assigned requests and attachments.","Enter stations, route, road/rail/sea/air, amount, currency and dates; give a reason to decline.","For variants use separate offers and check Excel/CSV import.","Late offers are possible until winner selection.","If awarded, accept in My Requests, then use My Shipments for execution, tracking and files. Transport-application drafting is deferred.","Unselected carriers cannot execute.","Report portal issues using the Suggestions form."],
+ved:["For an accepted shipment, Documents has three compact cards. Request carrier files within the Carrier card; the winning carrier uploads responses there. Upload your documents in the Foreign Trade card, and review the submitted file before completing its request.","Foreign-trade document review is stage 4, before actual PTO arrival (stage 5). Verify the complete package, or send detailed remarks within the single assigned task; no duplicate checks.","Open Documents for your assigned pre-PTO document check; only one task is generated below 1,000 km confirmed remaining distance.","Request missing documents from a named logistician and track the file attached to that task.","Use Chats by request for the shared conversation with the Owner and awarded carrier, without message templates or CSV."],
+logistic:["Review permitted requests and offers.","Check route, timing and files.","Only the Owner selects the winner. Complete document requests assigned to you by foreign-trade staff; do not access other employees’ tasks."],
+supplier:["Open assigned orders.","Enter readiness and attach documents where enabled.","Attach loading photos if requested.","Report unavailable fields to the Owner."],
+designer:["Open assigned tasks.","Check materials and instructions.","Upload output and mark completed where enabled."],
+content:["Review assigned product content.","Check files and photos.","Request missing materials through authorized controls."],
+purchasing:["Review permitted supplier orders.","Check readiness and documents.","Escalate missing features."],
+certification:["Review assigned documents.","Upload evidence in permitted fields.","Foreign-trade shipment tasks and certification tasks are separate and access-controlled."]
+}},
+zh:{
+title:"操作说明与常见问题 · Logistics Workspace",flow:"当前流程：负责人询价 → 承运商报价 → 选择唯一报价 → 执行运输 → 完成。",
+faq:[
+["无法计算剩余里程时怎么办？", "仅所有者可在服务器确认无法计算后手动发起同一项外贸文件审核。必须填写原因和证明依据。服务器记录操作人及日期；重复操作或后续自动计算不会创建第二项审核。审核完成前仍禁止清关。"],
+["永久删除是什么意思？","只有负责人可在测试环境中永久删除询价及关联报价、招标、聊天、文件和存储对象。没有回收站或恢复功能。已完成运输的归档是独立业务。"],
+["如何开始？","使用管理员提供的账号登录，从左侧菜单查看允许的任务。"],
+["询价和运输的区别？","询价收集报价，选出唯一中标报价后进入独立的运输执行流程。"],
+["谁选中标报价？","只有负责人有权选择具体的中标报价。"],
+["可以逾期报价吗？","选定中标报价前可以逾期提交，由负责人决定是否考虑，服务水平规则仍有效。"],
+["如何上传文件？","上传到对应订单并确认保存，不得查看他人的受限文件。"],
+["编号有什么区别？","TR 登记号、公司订单号、供应商订单号和 Bitrix 任务编号各不相同。"],
+["运输申请和外贸任务呢？","运输申请文件流程暂缓。中标承运商接单后，外贸人员可查看运输文件与共享聊天；到达海关前，经确认剩余里程小于 1000 公里时只生成一项文件审核任务。"],
+["发现问题怎么办？","在“建议”中选择修复、改进或开发，描述页面和期望结果。所有者在改进中心处理。"],
+["如何使用 Excel 模板？","仅用于承运商运价：填写 Excel/WPS 列、导入并单独提交报价。公开合作申请无模板，只需上传现成商业方案文件。"],
+["建议状态如何变化？","已提交 → 已阅读 → 已评估 → 处理中 → 发布（附日期）→ 已完成；也可能被拒绝。验证后才能标记完成。"],
+["如何成为合作伙伴？","通过公开合作表单上传最多3份现成方案文件（每份5MB，合计12MB），无需填写表格模板。所有者在合作登记册审核并单独决定是否开通账号。"],["在哪里查看版本登记册及流程图？","所有者菜单提供更新、问题及开发事项的实时记录和 GitHub 完整档案；流程图显示2026年11月11日现行模型，规则修改须另行审批。"]
+],
+roles:{
+owner:["运输执行中的文件按货主、外贸和承运商分为三个紧凑区域。请求与上传在对应区域内展开；所有文件仍关联同一运输任务。","当服务器确认无法计算剩余里程时，货主首页会出现“启动外贸文件审核”任务。打开对应运输，填写原因和证据并提交，系统只创建一项外贸审核，随后关闭货主任务。","只有负责人可在登记表的询价详情中执行永久删除，且不可恢复。归档及作废是独立操作。","创建询价并填写订单、Bitrix、货物、时间和附件。","发布并查看承运商通知。","比较路线、时效、报价和币种。","选择唯一中标报价。","跟踪运输和结案。","在合作申请登记册查看申请与附件，文件仅供所有者下载。"],
+carrier:["在运输执行的文件栏目中，可在外贸文件区域申请文件；在承运商文件区域上传自己的文件或回复外贸请求，保存后核实文件已显示。","必须先完成外贸文件检查，才能登记到达PTO。经确认剩余距离少于1000公里时自动分派审核；里程确实无法计算时由货主提交有依据的备用申请。","打开指定询价及附件。","填写路线、运输方式、报价、币种和时效。","核对 Excel/CSV 导入及多个方案。","中选前可逾期报价。","中标后在“我的申请”接单，在“我的运输”处理追踪和文件；运输申请目前暂缓。","未中选不能执行运输。","通过“建议”提交网站修复或改进要求。"],
+ved:["已接单运输的文件分为三个区域。在承运商文件区域向中标承运商索取文件；承运商在同一区域上传答复。在外贸文件区域上传自己的文件，并在审核后完成对应请求。","外贸文件检查是第4阶段，必须先于第5阶段到达PTO。剩余距离确认少于1000公里或货主提交经核实的备用申请时，只分派一项审核；确认文件齐全或发送具体意见。","在文件栏目查看海关前审核任务：经确认剩余路程少于 1000 公里时仅生成一项。","可指定物流人员提交缺失文件，并在任务中查看附件。","在按询价分类的聊天中与负责人及中标承运商交流，无消息模板或 CSV。"],
+logistic:["查看权限内的报价和申请。","核对路线、时效和文件。","不可代替负责人选择报价。"],
+supplier:["打开分配的订单。","在可用字段填写备货时间和文件。","按要求上传装货照片。","向负责人反馈缺失功能。"],
+designer:["查看指定设计任务。","核对产品资料。","提交材料和结果。"],
+content:["检查分配的内容任务。","核对图片和资料。","通过已授权的功能申请补齐材料。"],
+purchasing:["查看允许的供应商订单。","核对备货和文件。","向负责人反馈缺失功能。"],
+certification:["查看分配的商品文件。","按权限上传证明。","外贸运输文件任务与认证任务分开，并按权限显示。"]
+}}
+};
+const H=[
+[/service.?level|уровень сервиса|оценка sl|服务水平/,["SL перевозчика: штрафы учитываются по событиям, не меняйте их через текстовое поле.","Carrier SL: penalties are event based, not edited via this field.","承运商服务等级按事件扣分，不在此字段更改。"]],
+[/итогов.*сумм|final.?amount|final.?cost|最终运费/,["Подтверждённая итоговая стоимость и валюта; не подменяйте исходную ставку.","Confirmed final cost and currency, separate from the original offer.","最终确认的运费及币种，不能覆盖原报价。"]],
+[/страхован|insurance|保险/,["Уточните страховку: включена ли в ставку, каковы лимит и условия.","Specify insurance cover and whether it is included in this quote.","说明保险范围及是否包含在报价中。"]],
+[/действительн.*ставк|valid.?until|quote.?validity|报价有效期/,["Дата окончания действия предложения перевозчика.","Expiry date of the carrier quotation.","承运商报价有效期截止日。"]],
+[/пто|таможн|customs|海关/,["Укажите подтверждённые место, дату и этап ПТО/таможни. Если до прибытия на ПТО подтверждённый остаток маршрута менее 1000 км, ВЭД получает одну задачу проверки документов.","Enter confirmed PTO/customs location, date and status. One foreign-trade document check is triggered before arrival only when verified remaining distance is below 1,000 km.","填写已确认的海关地点、日期和状态；到达前经确认剩余路程少于 1000 公里时，仅生成一项外贸文件审核任务。"]],
+
+[/bitrix|битрикс|任务/,["Номер задачи Bitrix, например 5316; несколько номеров внесите отдельно.","Bitrix task number, e.g. 5316; list others separately.","Bitrix 任务号，例如 5316。"]],
+[/номер заказа поставщика|supplier.?order|供应商订单/,["Номер заказа поставщика из проформы, отдельно от заказа компании.","Supplier's order number from the proforma.","供应商文件中的订单号。"]],
+[/номер заказа|order.?code|订单号/,["Внутренний номер заказа компании, как в исходных документах.","Company order number from documents.","公司内部订单号。"]],
+[/готовност|ready|备货/,["Дата готовности товара, плановая либо фактическая по названию поля.","Planned or actual cargo readiness as specified.","按字段填写计划或实际备货日期。"]],
+[/дедлайн|ставки принимаются|deadline|截止/,["Конец обычного приёма ставок по времени Минска.","Standard quote deadline, Minsk time.","明斯克时间的报价截止日期。"]],
+[/incoterm|инкотерм|贸易条款/,["Условие Incoterms 2020 и конкретное место поставки.","Incoterms 2020 rule and named place.","Incoterms 2020 和约定地点。"]],
+[/вес|weight|重量/,["Вес всей партии в кг вместе с упаковкой.","Total gross weight including packing, kg.","含包装的总毛重（kg）。"]],
+[/объ.?м|volume|体积/,["Общий объём партии в м³.","Total consignment volume in m³.","货物总体积（m³）。"]],
+[/груз|cargo|货物/,["Название товара и описание партии по спецификации.","Goods description matching the specification.","按规格书填写货物说明。"]],
+[/опасн|hazard|危险/,["Отметьте опасность согласно документам; не угадывайте.","Use actual hazardous goods documents.","根据真实文件判断危险品。"]],
+[/погруз|origin|起运/,["Адрес фактического забора, город и страна.","Real pickup location, city and country.","真实装货地址、城市和国家。"]],
+[/назначен|destination|目的/,["Конечная станция/порт или адрес доставки.","Final station, port or delivery address.","目的站、港口或地址。"]],
+[/промежут|waypoint|途经/,["Порты, станции и переходы по маршруту по порядку.","Intermediate ports/stations in order.","按顺序填写中转点。"]],
+[/маршрут|route|路线/,["Последовательность станций, портов и пунктов движения.","Ordered route points.","按顺序填写运输路线。"]],
+[/валют|currency|币种/,["Реальная валюта предложения, не обязательно USD.","Quote currency, not necessarily USD.","报价币种，不一定是美元。"]],
+[/ставк|сумм|amount|rate|报价/,["Цена именно этого варианта ставки; дополнительные расходы отдельно.","Price for this quote variant; extras separately.","该方案报价，附加费另填。"]],
+[/вид транспорт|transport.?mode|运输方式/,["Выберите авто, ЖД, море или авиа.","Choose road, rail, sea or air.","选择公路、铁路、海运或空运。"]],
+[/eta|прибыт|arrival|到达/,["Плановая дата прибытия, не факт.","Estimated arrival, not actual arrival.","预计到达，不是实际到达。"]],
+[/фактическ.*выход|actual.?departure|实际发运/,["Фактическое время отправления по подтверждению.","Actual confirmed departure.","实际确认的发运时间。"]],
+[/контейнер|container|集装箱/,["Реальный номер контейнера, если известен. Пустое поле не останавливает исполнение; при закрытии может понадобиться решение владельца.","Actual container number if known. Missing data does not block execution; closure may require Owner decision.","如已知填写真实箱号；缺失不阻碍执行，结案可能需要所有者确认。"]],
+[/местополож|location|位置/,["Текущее место груза и дата сведений.","Cargo location and observation date.","货物位置及更新时间。"]],
+[/причин|reason|原因/,["Конкретная причина отказа или переноса.","Specific decline or reschedule reason.","拒绝或延期的具体原因。"]],
+[/претензи|claim|索赔/,["Событие, доказательства и сумма требования.","Incident, evidence and claimed amount.","事件、证据及金额。"]],
+[/вложени|файл|документ|upload|file|附件|文件/,["Загрузите документ именно этого заказа; проверьте результат.","Upload this order's document and verify saving.","上传对应订单文件并确认保存。"]],
+[/фото|photo|图片/,["Чёткое фото фактической погрузки или товара.","Clear actual loading/product photo.","清晰的实际装货照片。"]],
+[/контакт|contact|联系人/,["Имя и рабочий телефон/email ответственного.","Contact name and reachable email/phone.","联系人及可用电话或邮箱。"]],
+[/тип обращения|request.?type|category|类别/,["Выберите «Доработка», «Исправление» или «Разработка».","Choose Improvement, Fix or Development.","选择改进、修复或开发类型。"]],
+[/описани|description|说明/,["Опишите экран, действие, ошибку и ожидаемый результат без паролей.","Describe the screen, action, problem and expected result; no passwords.","描述页面、操作、问题和期望结果，不要提供密码。"]],
+[/статус|status|状态/,["Укажите фактический статус; «Завершено» — только после проверки.","Select actual status; mark Completed only after verification.","选择实际状态；仅验证后标记完成。"]],
+[/дата выпуска|release.?date|发布日期/,["Укажите назначенную дату публикации обновления.","Enter the scheduled release date.","填写已安排的发布日期。"]],
+[/срок|date|日期/,["Проверьте дату, часовой пояс и является ли срок плановым или фактическим.","Check date, time zone, and whether planned or actual.","核对日期、时区及计划/实际类型。"]],
+[/коммент|примечан|note|备注/,["Только фактическое пояснение, без паролей.","Relevant factual note, no passwords.","实际说明，不要填写密码。"]]
+];
+const lang=()=>{let l=(document.documentElement.lang||"ru").toLowerCase();return l.startsWith("en")?"en":l.startsWith("zh")?"zh":"ru"};
+const escapeHtml=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const role=()=>{const raw=String(document.querySelector(".cabinet-app")?.getAttribute("data-cabinet-role")||window.freightAccess?.role||"").toLowerCase();if(/purchase|procure|закуп/.test(raw))return "purchasing";if(/content|контент/.test(raw))return "content";if(/designer|дизайн/.test(raw))return "designer";if(/^(ved|вэд)$/.test(raw)||/ВЭД/i.test(document.querySelector(".cabinet-app .cabinet-role")?.textContent||""))return "ved";if(/certificate|certification/.test(raw))return "certification";if(/owner|владел/.test(raw))return "owner";if(/carrier|перевоз/.test(raw))return "carrier";if(/supplier|постав/.test(raw))return "supplier";if(/logistic|логист/.test(raw))return "logistic";return raw;};
+const roleTitles={
+owner:["Владелец","Owner","所有者"],carrier:["Перевозчик","Carrier","承运商"],logistic:["Логист","Logistician","物流专员"],ved:["ВЭД","Foreign trade","外贸"],supplier:["Поставщик","Supplier","供应商"],designer:["Дизайнер","Designer","设计师"],content:["Контент-менеджер","Content manager","内容经理"],purchasing:["Менеджер по закупкам","Purchasing manager","采购经理"],certification:["Сертификация","Certification","认证"]};
+const roleQuestions={
+owner:{ru:[["Как допустить позднюю ставку?","Отдельно решите, учитывать ли предложение с просрочкой. Допуск не означает победу."],["Что происходит после выбора?","Только одна ставка становится победителем, остальные закрывают раунд и уходят в архив."]],en:[["Late offer?","Decide separately whether to consider it; admission does not award a winner."],["After awarding?","Only one offer wins; the others close and archive."]],zh:[["逾期报价怎么办？","单独决定是否审核，准入不代表中标。"],["选择中标方后？","仅一份报价中标，其余报价关闭并归档。"]]},
+carrier:{ru:[["Импорт Excel отправляет ставку?","Нет. Проверьте сумму, валюту, маршрут и даты, затем нажмите «Отправить»."],["После победы что делать?","Нажмите «Взять в работу» в «Мои заявки», далее исполнение в «Мои перевозки». Отдельная транспортная заявка отложена."],["После дедлайна можно ответить?","До выбора победителя можно подать позднюю ставку. Владелец отдельно решает, учитывать ли её."]],en:[["Does Excel import submit?","No. Check price, currency, route and dates, then submit."],["After winning?","Start Work in My Requests, then execution in My Shipments; the transport application is deferred."],["Late quotes?","Allowed before winner selection; the Owner decides whether to consider them."]],zh:[["导入 Excel 就提交了吗？","不会。核对金额、币种、路线和日期，然后点击提交。"],["中标后怎么办？","在我的申请中开始处理，再到我的运输执行；运输申请暂缓。"],["逾期报价？","选定中标方前可提交，由所有者决定是否采纳。"]]},
+supplier:{ru:[["Какую готовность указывать?","Подтверждённую фактическую готовность товара; не заменяйте её плановой без пояснения."]],en:[["What readiness date?","Enter confirmed actual readiness, not an unverified forecast."]],zh:[["备货日期？","填写实际确认的备货日期，不要直接使用未确认的计划日期。"]]},
+purchasing:{ru:[["Какие номера заказа?","Номер поставщика — из проформы; номер компании и Bitrix заполняются отдельно."]],en:[["Which order numbers?","Supplier number is from the proforma; company and Bitrix numbers are separate."]],zh:[["订单号如何填写？","供应商订单号来自形式发票，公司编号及 Bitrix 分别填写。"]]},
+content:{ru:[["Когда отмечать выполнение?","После фактической проверки и передачи материалов по назначенному заданию."]],en:[["When to complete?","After checking and delivering assigned materials."]],zh:[["何时完成？","核实并交付分配的材料后。"]]},
+designer:{ru:[["Куда прикреплять результат?","В назначенное задание, в доступном вам разделе документов."]],en:[["Where to upload?","Use the documents section of your assigned task."]],zh:[["成果上传到哪里？","上传至所分配任务的文件部分。"]]},
+ved:{ru:[["Когда проверять документы?","До ПТО: одна задача при подтверждённом остатке менее 1000 км либо документированном резервном запуске Владельцем. Подтвердите полный комплект или направьте замечания в существующий чат; при замечаниях та же задача остаётся открытой."],["Где общий чат?","В разделе «Чаты по заявкам» вместе с Владельцем и перевозчиком; запрос документов не создаёт шаблонное сообщение."]],en:[["When is the check due?","Before PTO: one task for verified remaining distance below 1,000 km or the documented Owner fallback. Approve the complete package or send remarks to the existing chat; the same task stays open on remarks."],["Where is the shared chat?","Chats by request contains the Owner, awarded carrier and foreign-trade staff; no canned templates."]],zh:[["何时检查文件？","到达PTO前只有一次审核：确认剩余距离少于1000公里，或货主记录无法计算原因后启动。确认完整文件，或在原聊天中发送意见；有意见时原任务保持未完成。"],["共享聊天在哪里？","在按询价分类的聊天中与负责人和中标承运商交流，不使用预制消息模板。"]]},
+logistic:{ru:[["Можно выбирать победителя?","Нет. Победителя выбирает только Владелец; адресные запросы документов ВЭД поступают логисту как отдельные задания."]],en:[["Can I award a carrier?","No. Only the Owner selects a winner; foreign-trade document requests appear as assigned tasks."]],zh:[["可以选中标方吗？","不可以，只有负责人可选定中标方；外贸人员发来的文件请求会以指定任务显示。"]]},
+certification:{ru:[["Какие документы доступны?","Только материалы назначенных вам задач в рамках предоставленных прав."]],en:[["Which files can I see?","Only files associated with assigned and authorized tasks."]],zh:[["可以访问哪些文件？","仅可访问已分配且已授权任务的文件。"]]}
+};
+const ownerNavigationGuide={
+ru:{
+title:"Карта разделов кабинета владельца · 11.11.2026",
+sections:[
+["Рабочий стол","Новый тёмный рабочий стол: показатели заявок, решений, тендеров, перевозок, распределение транспорта, маршруты, таблица и срочные действия. Цифры поступают из тестовой базы; «—» означает отсутствие доступных данных, а не ноль. Кнопка «Просмотр кабинетов» доступна в верхней строке любого раздела владельца; постоянной большой панели или пустой полосы слева нет. Кнопка «Новая заявка» открывает существующую форму, а не второй процесс."],
+["01 · Заявки и ставки","Новая заявка → Реестр заявок → Рассмотрение ставок → Сроки и ответы → Тендеры. «Рассмотрение» выбирает ставку; «Сроки и ответы» контролирует дедлайны и ответы."],
+["02 · Исполнение","Исполнение перевозок → Чаты по заявкам → Претензии и акты → Инциденты. Претензия относится к конкретной перевозке, журнал инцидентов — к учёту случаев."],
+["03 · Контрагенты","Поставщики и документы; Дизайн и контент. Это разные задания и документы, их не объединяем."],
+["04 · Контроль и аналитика","На главной блок Service Level показывает средний балл перевозчиков и количество в группах 76–100%, 51–75%, 0–50%. «Журнал и оценки SL» открывает подробности, основания штрафов и разблокировку. Аналитика, SLA и работа сайта остаются отдельными функциями; SLA не заменяет сроки в заявке."],
+["05 · Управление","Пользователи и доступ; Уровни доступа; Центр доработок. Первый раздел — учётные записи, второй — права, третий — замечания/разработки."],
+["06 · Реестры и процессы","Реестры обновлений, замечаний и разработок: оперативные записи Центра доработок с фильтрами и полный архив GitHub. Реестр сотрудничества: готовые коммерческие предложения с файлами. Структура бизнес-процессов: актуальная модель 11.11.2026, 10 процессов."],["Справка","FAQ и инструкции по кабинетам на RU/EN/ZH. Транспортная заявка отложена, её нельзя считать действующим обязательным этапом."]
+]},
+en:{
+title:"Owner workspace navigation · 11 Nov 2026",
+sections:[
+["Workspace","The dark Owner dashboard shows live requests, decisions, tenders, shipments, transport types, routes and actions. A dash means unavailable data, not zero. The View Cabinets button remains in the header on every Owner page; no permanently displayed role panel. New Request opens the existing workflow."],
+["01 · Requests & quotes","New Request → Request Register → Offer Review → Deadlines & Replies → Tenders. Review selects rates; deadlines track responses."],
+["02 · Execution","Shipment Execution → Request Chats → Claims & Acts → Incidents. Claims belong to a shipment; incidents have a separate log."],
+["03 · Partners","Suppliers & Documents; Design & Content are separate authorized workflows."],
+["04 · Oversight & analytics","The home Service Level panel shows average carrier score and carrier counts across 76–100%, 51–75% and 0–50%. Open the SL journal for penalties, detailed scores and Owner unlock controls. Analytics, SLA and site monitoring remain separate."],
+["05 · Administration","Users & Access; Access Levels; Improvement Center. Accounts, permissions and improvement reports are separate."],
+["06 · Registers & processes","Live filtered Improvement Center entries plus full GitHub archives, private partner proposals, and the current 11 Nov 2026 business process map."],["Help","FAQ and role instructions in RU/EN/ZH. The independent transport application remains deferred."]
+]},
+zh:{
+title:"所有者工作台导航 · 2026年11月11日",
+sections:[
+["工作台","深色所有者主页展示真实的询价、待办、招标、运输、路线及紧急事项；“—”表示无法读取数据，不代表零。“查看工作台”按钮在所有者的每个页面顶部均可使用，不再显示固定的大型角色面板；新询价按钮仍打开原有流程。"],
+["01 · 询价与报价","新询价 → 询价登记 → 报价评审 → 截止及答复 → 招标。报价评审用于选价，截止及答复用于监控响应。"],
+["02 · 运输执行","运输执行 → 询价聊天 → 索赔与凭证 → 事件登记。索赔针对具体运输，事件登记是独立日志。"],
+["03 · 合作伙伴","供应商及文件；设计及内容属于不同的授权流程。"],
+["04 · 分析与监控","首页 Service Level 显示承运商平均得分及 76–100%、51–75%、0–50% 三档人数。进入 SL 日志查看扣分、详情和所有者解锁功能；SLA 与截止日期监控仍为独立模块。"],
+["05 · 管理","用户及访问；权限级别；改进中心。账户、权限和改进建议各自独立。"],
+["06 · 登记册与流程","查看更新、问题和开发事项及其 GitHub 档案，合作申请附件和 2026年11月11日的流程图。"],["帮助","岗位常见问题与操作说明支持三种语言。独立运输申请暂缓。"]
+]}
+};
+const generic={ru:"Укажите достоверное значение и проверьте его перед сохранением.",en:"Enter accurate information and verify before saving.",zh:"填写真实信息并在保存前核对。"};
+let queued=false,hintId=0;
+function faqFor(role,faq){
+ if(role==='owner')return faq;
+ const rules=[
+  [/километр.*невозмож|остаток.*невозмож|calculate remaining|剩余里程/i,['ved']],
+  [/Удалить навсегда|Delete permanently|永久删除/i,[]],
+  [/структур.*процесс|change registers|版本登记册/i,[]],
+  [/новому партнёру|new partners|成为合作伙伴/i,[]],
+  [/кто выбирает|who chooses|谁选/i,['carrier','ved','logistic']],
+  [/после дедлайна|late quotes|逾期报价/i,['carrier']],
+  [/чем заявка|request versus|询价和运输/i,['carrier','ved','logistic']],
+  [/Транспортная заявка и ВЭД|Transport application and foreign|运输申请和外贸/i,['carrier','ved','logistic']],
+  [/Excel|模板/i,['carrier']]
+ ];
+ return faq.filter(([question])=>{const rule=rules.find(([pattern])=>pattern.test(question));return !rule||rule[1].includes(role);});
+}
+function update(){
+const l=lang(),data=DATA[l],r=role(),host=document.querySelector('.cabinet-panel[data-section="help"]');
+if(host){let box=host.querySelector("#lw-current-help"),key=l+"-"+r;
+if(!box){box=document.createElement("section");box.id="lw-current-help";host.prepend(box)}
+if(box.dataset.version!==key){box.dataset.version=key;
+box.innerHTML="<h2>"+escapeHtml(data.title)+"</h2><p>"+escapeHtml(data.flow)+"</p>"+
+(data.roles[r]?"<h3>"+escapeHtml((roleTitles[r]||[r,r,r])[l==="ru"?0:l==="en"?1:2])+" · "+escapeHtml(l==="ru"?"Инструкция по кабинету":l==="en"?"Role guide":"岗位操作指南")+"</h3><ol>"+data.roles[r].map(a=>"<li>"+escapeHtml(a)+"</li>").join("")+"</ol>":"")+(roleQuestions[r]?.[l]?"<h3>"+escapeHtml(l==="ru"?"FAQ по кабинету":l==="en"?"Role FAQ":"岗位常见问题")+"</h3>"+roleQuestions[r][l].map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join(""):"")+
+(r==="owner"?"<section class=\"lw-owner-guide\"><h3>"+escapeHtml(ownerNavigationGuide[l].title)+"</h3><dl>"+ownerNavigationGuide[l].sections.map(([section,body])=>"<dt>"+escapeHtml(section)+"</dt><dd>"+escapeHtml(body)+"</dd>").join("")+"</dl></section>":"")+"<h3>FAQ</h3>"+faqFor(r,data.faq).map(([q,a])=>"<details><summary>"+escapeHtml(q)+"</summary><p>"+escapeHtml(a)+"</p></details>").join("");}}
+const root=document.querySelector(".cabinet-app");if(!root)return;
+let n=0;for(const field of root.querySelectorAll("input,textarea,select")){
+if(n++>800)break;
+if(["hidden","password","submit","button","reset"].includes(field.type)||field.closest("#ow-workspace,#lw-current-help,#lw-owner-inquiries,.cabinet-sidebar,.language-control"))continue;
+if(!field.getClientRects().length)continue;
+const label=field.closest("label")||field.labels?.[0]||field.closest(".field,.form-field,.t2-field");
+const named=field.getAttribute?.("aria-label")||field.getAttribute?.("data-label")||field.placeholder||field.name||"";if(!label&&!named)continue;
+let helper=field.nextElementSibling;if(!helper?.classList.contains("lw-field-help")){
+helper=document.createElement("small");helper.className="lw-field-help";field.insertAdjacentElement("afterend",helper);}
+const info=((label?.textContent||named).replace(helper.textContent,"")+" "+(field.name||"")+" "+(field.placeholder||"")).slice(0,260);
+const rule=H.find(row=>row[0].test(info));const hint=field.type==="checkbox"?(l==="ru"?"Отметьте после выполнения указанного условия.":l==="en"?"Check only when the stated condition is met.":"仅满足条件后勾选。"):field.type==="radio"?(l==="ru"?"Выберите соответствующий фактам вариант.":l==="en"?"Choose the correct option.":"选择符合实际情况的选项。"):(rule?rule[1][l==="ru"?0:l==="en"?1:2]:generic[l]);field.title=hint;
+if(helper.textContent!==hint)helper.textContent=hint; if(!helper.id)helper.id="lw-field-help-"+(++hintId);const described=(field.getAttribute?.("aria-describedby")||"").split(/\s+/).filter(Boolean);if(!described.includes(helper.id))field.setAttribute?.("aria-describedby",[...described,helper.id].join(" "));
+}}
+function tick(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;update()})}
+window.lwCurrentHelpEnabled=true;
+new MutationObserver(tick).observe(document.getElementById("root")||document.body,{subtree:true,childList:true});
+new MutationObserver(tick).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
+window.addEventListener("hashchange",tick);
+window.addEventListener("freight-access-updated",tick);
+tick();
+})();

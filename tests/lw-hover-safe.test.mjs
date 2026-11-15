@@ -1,3 +1,4 @@
+import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
@@ -30,7 +31,7 @@ test("shimmer and high-brightness hover are suppressed across all cabinets",()=>
  assert.ok(!/filter:\s*brightness\((1\.[1-9]|[2-9])/i.test(css));
 });
 
-test("production stylesheet is not modified or included in the staging patch",()=>{
+test("hover changes enter production only through the verified release manifest",()=>{
  const production=readFileSync("index.html","utf8");
- assert.ok(!production.includes("lw-hover-safe-20261108.css"),"production must remain unchanged");
+ assertProductionFeatureBoundary(production,'lw-hover-safe-20261108.css');
 });

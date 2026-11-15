@@ -1,0 +1,30 @@
+/* SH staging · Task 2 layout: one canonical container editor and shared documents. */
+#task2-root .t2-container-existing{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+#task2-root .t2-container-pill{display:inline-flex;padding:7px 11px;border-radius:7px;background:#e7f4ef;border:1px solid #96c7b1;color:#164c38;font-weight:700}
+#task2-root .t2-docs-overview{display:grid;grid-template-columns:1fr;gap:12px;margin:14px 0 22px}
+#task2-root .t2-docs-group{min-width:0;border:1px solid #d1e1db;border-radius:10px;background:#f9fcfa;padding:14px}
+#task2-root .t2-docs-group h4{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:16px;color:#183a34}
+#task2-root .t2-docs-group h4 span{background:#d9ece5;color:#15533e;border-radius:20px;padding:3px 9px;font-size:12px}
+#task2-root .t2-docs-group .t2-stack{margin:0}
+#task2-root .t2-document-item>div{flex:1;min-width:0}
+#task2-root .t2-document-item strong{display:block;color:#17352e;overflow-wrap:anywhere}
+#task2-root .t2-document-item small{display:block;margin-top:5px;color:#52645d}
+#task2-root .t2-document-item .t2-btn{flex:none;min-width:100px}
+#task2-root .t2-doc-upload .t2-field{min-width:0}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact) :is(label,.t2-pto-cell){min-width:0}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact) :is(input,select,textarea){width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:42px}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact)>.t2-btn{min-height:42px;height:42px;align-self:end;margin-top:0}
+#task2-root .t2-actual-row{grid-template-columns:150px minmax(0,1fr)!important}
+#task2-root .t2-actual-row .t2-actual-form{grid-template-columns:minmax(180px,1fr) minmax(140px,1fr) 116px!important}
+#task2-root .t2-actual-label{overflow-wrap:anywhere}
+@media(max-width:900px){
+ #task2-root .t2-actual-row{grid-template-columns:minmax(0,1fr)!important}
+ #task2-root .t2-actual-row .t2-actual-form{grid-template-columns:minmax(0,1fr)!important}
+ #task2-root .t2-pto-compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #task2-root :is(.t2-plan-four-row,.t2-pto-compact,.t2-container-compact)>.t2-btn{width:100%}
+}
+@media(max-width:600px){
+ #task2-root .t2-pto-compact{grid-template-columns:minmax(0,1fr)}
+ #task2-root .t2-document-item{align-items:flex-start;flex-direction:column}
+ #task2-root .t2-document-item .t2-btn{width:100%}
+}

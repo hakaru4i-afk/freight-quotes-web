@@ -8,6 +8,13 @@ on:
       - build-info.json
       - site-status.json
       - .github/workflows/issue43-production-smoke.yml
+  pull_request:
+    paths:
+      - app.js
+      - index.html
+      - build-info.json
+      - site-status.json
+      - .github/workflows/issue43-production-smoke.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,22 +34,28 @@ jobs:
           const status = JSON.parse(fs.readFileSync('site-status.json', 'utf8'));
           const page = fs.readFileSync('index.html','utf8');
           const app = fs.readFileSync('app.js','utf8');
-          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== '1.19.3') throw Error('wrong production identity');
-          if (x.version !== status.version || status.release.version !== '1.19.3') throw Error('release metadata mismatch');
+          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== 'SH-01.30.52 v') throw Error('wrong production identity');
+          if (x.version !== status.version || status.release.version !== 'SH-01.30.52 v') throw Error('release metadata mismatch');
           if (!page.includes('app.js?v=' + x.build)) throw Error('stale app cache key');
           if (!app.includes('sender_contact:S.target.value') || !app.includes('g.sender_contact||""')) throw Error('Owner field missing');
           if (!app.includes('Object.fromEntries(["sender_contact","origin","weight"')) throw Error('Owner hydrate missing');
           if (app.includes('freight-documents-qa-20261101a')) throw Error('QA storage in production');
           console.log('LOCAL_PRODUCTION_STATIC_PASS');
           NODE
+          node --input-type=module <<'NODE_MANIFEST'
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          assertProductionReleaseIntegrity();
+          console.log('PRODUCTION_RELEASE_MANIFEST_PASS');
+          NODE_MANIFEST
       - name: Verify served GitHub Pages bytes
+        if: github.event_name != 'pull_request'
         run: |
           set -euo pipefail
           base="https://hakaru4i-afk.github.io/freight-quotes-web"
           matched=0
           for attempt in $(seq 1 12); do
             valid=1
-            for file in app.js index.html build-info.json site-status.json; do
+            for file in app.js index.html build-info.json site-status.json production-release-manifest.json; do
               curl --fail --silent --show-error --location --max-time 25 \
                 -H "Cache-Control: no-cache" "$base/$file?issue43=$GITHUB_SHA" -o "/tmp/issue43-$file" || { valid=0; break; }
               cmp -s "$file" "/tmp/issue43-$file" || { valid=0; break; }
@@ -53,6 +66,8 @@ jobs:
           [ "$matched" -eq 1 ] || { echo "PRODUCTION_SERVE_MISMATCH"; exit 1; }
           echo "PRODUCTION_SERVED_BYTES_PASS"
       - name: Check production API unauthenticated health only
+        env:
+          REQUIRE_DEPLOYED_RELEASE: ${{ github.event_name != 'pull_request' }}
         run: |
           set -euo pipefail
           curl --fail --silent --show-error --location --max-time 25 \
@@ -61,5 +76,6 @@ jobs:
           const fs=require('node:fs');
           const h=JSON.parse(fs.readFileSync('/tmp/issue43-health.json','utf8'));
           if (!h || typeof h !== 'object') throw Error('no health payload');
+          if(process.env.REQUIRE_DEPLOYED_RELEASE==='true'&&(h.environment!=='production'||h.projectRef!=='ooclsrndeygojtofuyte'||h.release!==JSON.parse(fs.readFileSync('build-info.json','utf8')).releaseVersion))throw Error('production API release pair mismatch');
           console.log('PRODUCTION_API_HEALTH_PASS');
           NODE

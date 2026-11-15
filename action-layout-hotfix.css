@@ -1,0 +1,15 @@
+/* Staging compact action controls: avoid overlap while preserving semantics. */
+.cabinet-panel :is(.btn,.t2-btn,button):not(.sidebar-toggle):not(.nav-item){
+  max-width:100%;min-width:0;box-sizing:border-box;white-space:normal;
+  overflow-wrap:anywhere;line-height:1.3;vertical-align:middle;
+}
+.cabinet-panel .btn,.cabinet-panel .t2-btn{padding:9px 13px;min-height:38px;font-size:13px}
+.cabinet-panel :is(.bar,.actions,.action-row,.button-group,.winner-actions,.card-actions){
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;max-width:100%;min-width:0;
+}
+.cabinet-panel :is(.card,.notice,.offer-row,.winner-card){min-width:0;height:auto}
+.cabinet-panel :is(.card,.notice,.offer-row,.winner-card) :is(button,.btn){margin:3px 0}
+@media(max-width:640px){
+  .cabinet-panel :is(.bar,.actions,.action-row,.button-group,.winner-actions,.card-actions){align-items:stretch}
+  .cabinet-panel :is(.btn,.t2-btn){font-size:12px;padding:8px 11px}
+}

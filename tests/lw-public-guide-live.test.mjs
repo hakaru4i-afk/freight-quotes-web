@@ -48,8 +48,10 @@ test("staging public form, no language circle, role help and inline field descri
    await page.evaluate(()=>{
     const fixture=document.createElement("section");
     fixture.className="cabinet-app";fixture.setAttribute("data-cabinet-role","owner");
-    fixture.innerHTML='<section class="cabinet-panel" data-section="help"><h1>Помощь / FAQ</h1></section><form><label>Номер заказа<input name="orderCode"></label><label>Ставка<input name="amount"></label></form>';
-    document.querySelector("#root")?.appendChild(fixture);
+    fixture.innerHTML='<section class="cabinet-panel active" data-section="help"><h1>Помощь / FAQ</h1></section><form><label>Номер заказа<input name="orderCode"></label><label>Ставка<input name="amount"></label></form>';
+    // The test owns this fixture; React may replace children of #root.
+    document.body.appendChild(fixture);
+    window.dispatchEvent(new Event("freight-access-updated"));
    });
    await page.locator("#lw-current-help").waitFor({timeout:10000});
    await page.locator(".lw-field-help").first().waitFor({timeout:10000});

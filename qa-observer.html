@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self' https://api.github.com; base-uri 'self'; form-action 'none'">
+<meta name="robots" content="noindex,nofollow">
+<title>QA Наблюдение · Задачи №1 и №2 · Staging</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#091522;color:#eaf3fc}
+*{box-sizing:border-box}body{margin:0;min-width:0;background:radial-gradient(circle at 80% 2%,#143a55 0,transparent 34%),#091522}
+a{color:#8fd5ff}a:hover{color:#fff}.shell{max-width:1200px;margin:0 auto;padding:25px 22px 65px}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand{font-size:13px;color:#83e0c9;letter-spacing:.13em;font-weight:800;text-transform:uppercase}
+header nav{display:flex;gap:14px;flex-wrap:wrap;font-size:13px}
+h1{margin:28px 0 11px;font-size:clamp(29px,5vw,47px);line-height:1.09;letter-spacing:-.035em}
+.intro{max-width:770px;color:#a6bfd2;font-size:16px;line-height:1.65}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:26px 0}
+.metric,.panel{border:1px solid #294154;background:linear-gradient(150deg,rgba(32,60,78,.74),rgba(13,31,47,.94));border-radius:17px;padding:20px}
+.metric small{display:block;color:#acc2d3;margin-bottom:12px;font-size:13px}.metric strong{font-size:32px;letter-spacing:-.04em}
+.notice{border-left:3px solid #f5ba65;background:#242b36;padding:16px 18px;border-radius:10px;line-height:1.55}
+.notice strong{display:block;color:#ffe2ad}.notice span{color:#bacbd7}
+.toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin:25px 0 16px}
+.pill{background:#192d3f;border:1px solid #37536a;border-radius:999px;padding:10px 15px;color:#d6eaf7;font:inherit;font-size:13px;cursor:pointer}
+.pill[aria-pressed=true]{background:#b1eadf;color:#092b32;border-color:#b1eadf;font-weight:700}
+.meta{color:#9cb5c9;font-size:13px}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+.panel h2{font-size:20px;letter-spacing:-.02em;margin:0 0 9px}.panel p{color:#a0b8cb;font-size:13px}
+.progress{height:8px;background:#253f52;border-radius:9px;overflow:hidden;margin:16px 0}
+.progress span{display:block;background:#49c6a8;height:100%;width:0;transition:width .3s}
+ul{list-style:none;padding:0;margin:0}.case{display:grid;grid-template-columns:auto 1fr;gap:10px;padding:12px 0;border-top:1px solid #2a4357;align-items:start}
+.case .id{font:700 11px ui-monospace,SFMono-Regular,Consolas,monospace;color:#7ad4df;min-width:46px;padding-top:3px}
+.case b{display:block;font-size:13.5px;font-weight:600;line-height:1.45}.case small{color:#bdcdd9;font-size:11px}.status{font-size:11px;margin-top:5px;display:inline-block;border-radius:5px;padding:4px 7px;background:#233c52;color:#d3e4ef}
+.case[data-status=PASS] .status{background:#123e35;color:#9be6c8}.case[data-status=FAIL] .status{background:#512a2a;color:#ffc4bc}
+.case[data-status=BLOCKED] .status{background:#493718;color:#ffdaa1}.case .qa-substatus{display:inline-block;margin:6px 0 5px;background:#532e2d;color:#ffc4bc;border-radius:6px;padding:5px 8px;font-size:12px;font-weight:700}.qa-evidence{display:block;margin-top:8px;font-size:12px}
+.live{margin-top:19px}.live h2{font-size:18px;margin:0 0 10px}.live p{color:#aac3d4;line-height:1.5}.live-jobs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0 20px}.live-job{background:#0e283a;border:1px solid #365569;border-radius:12px;padding:14px}.live-job strong{display:block;font-size:13px;line-height:1.5;margin-bottom:8px}.live-job small{display:block;color:#a9c4d8;line-height:1.45}.live-job span{font-size:12px;display:block;font-weight:700;margin-top:10px}.live-job[data-result=success] span{color:#80e5ba}.live-job[data-result=failure] span{color:#ffc0ae}.live-job[data-result=in_progress] span{color:#f4d196}.qa-blockers li{padding:9px 0;border-top:1px solid #294154;font-size:13px;line-height:1.5}.qa-blockers li strong{color:#ffbdb6}.release-ready{color:#9be6c8}.release-blocked{color:#ffd6ac}button.action{background:transparent;cursor:pointer;font:inherit;font-weight:700}button.action:hover{background:#23465a}
+.actions{display:flex;gap:10px;flex-wrap:wrap}.action{display:inline-flex;align-items:center;border:1px solid #5287a0;text-decoration:none;border-radius:9px;padding:11px 15px;color:#e3f3ff;font-size:13px;font-weight:700}.action.primary{background:#73d8c9;color:#072e38;border-color:#73d8c9}
+footer{font-size:12px;color:#8aa4b7;line-height:1.6;margin-top:25px}
+@media(max-width:760px){.grid{grid-template-columns:1fr 1fr}.panels{grid-template-columns:1fr}.live-jobs{grid-template-columns:1fr}.shell{padding:19px 14px 40px}.metric{padding:15px}.metric strong{font-size:27px}}
+@media(max-width:375px){.grid{grid-template-columns:1fr 1fr}.metric strong{font-size:23px}.case .id{min-width:39px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header><span class="brand">Logistics Workspace / QA Control</span><nav><a href="./">Тестовый сайт</a><a href="./process-map.html">Бизнес-схема</a><a href="https://github.com/hakaru4i-afk/freight-quotes/issues/43" target="_blank" rel="noopener noreferrer">Задача №1</a><a href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Задача №2</a></nav></header>
+<main>
+<h1>Наблюдение за тестированием</h1>
+<p class="intro">Единая матрица приёмки задач №1 и №2. Каждый пункт считается выполненным только после проверки <b>в опубликованной тестовой среде под соответствующей ролью</b> с результатом и доказательством. Никаких условных PASS.</p>
+<section class="grid" aria-label="Сводка QA">
+<div class="metric"><small>Задача №1 · E2E PASS</small><strong id="count1">—</strong></div>
+<div class="metric"><small>Задача №2 · E2E PASS</small><strong id="count2">—</strong></div>
+<div class="metric"><small>Неподтверждено</small><strong id="pending">—</strong></div>
+<div class="metric"><small>Ошибки / блокеры</small><strong id="failed">—</strong></div>
+</section>
+<div class="notice"><strong>Полная приёмка пока не подтверждена</strong><span>Зелёный GitHub Actions подтверждает техническую доступность и проверки интерфейса <b>без авторизации</b>. Полный цикл Owner → 3 перевозчика → ВЭД → закрытие ещё не был запущен. Создание и согласование транспортной заявки отложено, требования сохранены.</span></div>
+<section class="live panel" aria-label="Решение о выпуске"><h2>Готовность к выпуску в рабочую среду</h2><p id="release-state" role="status"><strong>Выпуск заблокирован до полной автоматической приёмки</strong></p><p id="release-checks" class="meta">Загружаем подтверждённые критерии выпуска…</p><ul id="release-blockers" class="qa-blockers"></ul><p class="meta">Роботы проверяют задачи №1 и №2 автоматически. Даже успешная приёмка не публикует production без отдельного разрешения Владельца.</p></section>
+<section class="live panel" aria-label="Автоматические прогоны">
+<h2>Последний запуск · технические проверки</h2>
+<p id="live-state" role="status">Получаем сведения о последнем запуске GitHub Actions…</p><div id="live-jobs" class="live-jobs" aria-label="Фактический результат каждого задания"><p class="meta">Загружаем результаты заданий…</p></div>
+<div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Запустить / повторить технические проверки</a><button class="action" id="refresh-qa" type="button">Обновить результаты сейчас</button><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes/issues/47" target="_blank" rel="noopener noreferrer">Требования и ошибки</a><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/28" target="_blank" rel="noopener noreferrer">Отложенная транспортная заявка</a></div>
+<p class="meta">Кнопка запуска открывает GitHub Actions: выберите <b>Run workflow</b>. Этот workflow пока не выполняет авторизованные E2E — это отдельный этап разработки и настройки защищённой изолированной QA-среды.</p>
+</section>
+<section class="live panel" aria-label="Сводка роботов"><h2>Роботы · 37 групп задач №1 и №2</h2><p id="robot-state" role="status">Загружаем последние результаты роботов…</p><div class="grid"><div class="metric"><small>Частично проверено</small><strong id="robot-partial">—</strong></div><div class="metric"><small>Обнаружены ошибки</small><strong id="robot-fail">—</strong></div><div class="metric"><small>Заблокировано</small><strong id="robot-blocked">—</strong></div><div class="metric"><small>Полный E2E PASS</small><strong id="robot-e2e">0</strong></div></div><p>Роботы проверяют доступные функции реального интерфейса с изолированным API, а также кодовые контракты. <b>Частично проверено</b> означает, что проверка прошла, но вход под настоящей тестовой ролью и вся цепочка не подтверждены.</p><div class="actions"><a class="action primary" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Запустить роботов · Run workflow</a><a class="action" id="robot-report-link" href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/task12-observer.yml" target="_blank" rel="noopener noreferrer">Журнал последнего запуска</a></div></section>
+<section class="live panel" aria-label="Что ещё не запущено"><h2>Следующий этап · автоматическая проверка бизнес-процессов</h2><p>Роботы для изолированных проверок теперь существуют. <strong>Полный авторизованный E2E по настоящей QA-базе ещё не включён</strong>: для него требуется независимая изоляция и защищённые учётные записи ролей. Это остаётся открытым пунктом.</p><div class="actions"><a class="action" href="https://github.com/hakaru4i-afk/freight-quotes-web/issues/29" target="_blank" rel="noopener noreferrer">Открыть задачу на полный E2E и список блокеров</a></div></section>
+<section class="live panel" aria-label="Проверки тестовой базы"><h2>Фактическая инвентаризация staging · без изменения данных</h2><p>Это отдельная проверка целостности в базе. Она не заменяет авторизованные E2E-сценарии и не добавляет PASS в счётчики.</p><ul id="inspection"></ul></section>
+<div class="toolbar">
+<div><button class="pill" id="all" aria-pressed="true">Все проверки</button> <button class="pill" id="todo" aria-pressed="false">Неподтверждённые</button> <button class="pill" id="errors" aria-pressed="false">Ошибки</button></div>
+<span class="meta" id="updated">Загрузка матрицы…</span>
+</div>
+<div class="panels"><section class="panel"><h2>Задача №1 · Новая перевозка</h2><p>Создание, публикация, передача данных и файлов, безопасность.</p><div class="progress"><span id="progress1"></span></div><ul id="list1"></ul></section><section class="panel"><h2>Задача №2 · Полный процесс</h2><p>Ставки, дедлайны, победитель, исполнение, трекинг, претензии.</p><div class="progress"><span id="progress2"></span></div><ul id="list2"></ul></section></div>
+<footer><p id="deferred"></p><p>Без реальных номеров заказов, персональных данных и секретов. Данные статусов: qa-observer.json. Обновление экрана — каждые 90 секунд; отчётные записи изменяются только после получения проверенных доказательств. Production не участвует в тестах.</p></footer>
+</main>
+</div>
+<script>
+"use strict";
+const labels={PASS:"PASS · подтверждено",FAIL:"FAIL · ошибка",BLOCKED:"BLOCKED · препятствие",PENDING_E2E:"Ожидает полного E2E",DEFERRED:"Отложено"};
+let current=null,robotReport=null,filter="all";
+function el(tag,text,css){const n=document.createElement(tag);if(text!==undefined)n.textContent=text;if(css)n.className=css;return n}
+function formatCount(g){const total=g.cases.length,pass=g.cases.filter(x=>x.status==="PASS").length;return pass+"/"+total}
+function view(){
+ if(!current)return;
+ const a=current.task1,b=current.task2,items=[...a.cases,...b.cases];
+ const inspected=document.getElementById("inspection");inspected.replaceChildren();for(const v of current.inspections||[]){const li=el("li",undefined,"case");li.append(el("span",v.id,"id"));const d=el("div");d.append(el("b",v.name));d.append(el("small",v.facts.join(" · ")+" — "+v.note));li.append(d);inspected.append(li)}
+ document.getElementById("count1").textContent=formatCount(a);
+ document.getElementById("count2").textContent=formatCount(b);
+ document.getElementById("pending").textContent=String(items.filter(x=>x.status==="PENDING_E2E").length);
+ document.getElementById("failed").textContent=String(items.filter(x=>["FAIL","BLOCKED"].includes(x.status)||x.automation?.status==="FAIL"||robotReport?.scenarios?.some(r=>r.id===x.id&&r.status==="FAIL")).length);
+ document.getElementById("updated").textContent="Статусы от "+(current.updatedAt||"не указано");
+ document.getElementById("progress1").style.width=(100*a.cases.filter(x=>x.status==="PASS").length/a.cases.length)+"%";
+ document.getElementById("progress2").style.width=(100*b.cases.filter(x=>x.status==="PASS").length/b.cases.length)+"%";
+ const deferred=current.deferred||[];document.getElementById("deferred").textContent=deferred.map(x=>x.id+": "+x.title+" — ОТЛОЖЕНО, требования и исходный код сохраняются.").join(" ");
+ for(const [id,group] of [["list1",a],["list2",b]]){
+  const root=document.getElementById(id);root.replaceChildren();
+  for(const x of group.cases){
+   if(filter==="todo"&&x.status==="PASS")continue;
+   const rs=robotReport?.scenarios?.find(r=>r.id===x.id);
+   if(filter==="errors"&&!["FAIL","BLOCKED"].includes(x.status)&&x.automation?.status!=="FAIL"&&rs?.status!=="FAIL")continue;
+   const li=el("li",undefined,"case");li.dataset.status=x.status;
+   li.append(el("span",x.id,"id"));
+   const detail=el("div");detail.append(el("b",x.title));detail.append(el("span",labels[x.status]||x.status,"status"));
+   if(x.automation?.status==="FAIL"){
+    li.dataset.automated="FAIL";
+    detail.append(el("span","FAIL · браузерная проверка интерфейса (не полный E2E)","qa-substatus"));
+    detail.append(el("small",x.automation.summary||"Ошибка проверки интерфейса"));
+    const evidence=x.automation.evidenceUrl||"";
+    if(evidence.startsWith("https://github.com/hakaru4i-afk/freight-quotes-web/actions/")){
+      const a=el("a","Посмотреть автоматический тест и журнал","qa-evidence");
+      a.href=evidence;a.target="_blank";a.rel="noopener noreferrer";detail.append(a);
+    }
+  }
+   if(rs){
+    detail.append(el("span","Робот: "+(rs.status==="PARTIAL"?"частичная проверка пройдена":rs.status==="FAIL"?"ошибка обнаружена":rs.status==="BLOCKED"?"нет полного сценария":rs.status),"status"));
+    detail.append(el("small",rs.note));
+  }
+   if(x.evidence?.length) detail.append(el("small","Доказательства: "+x.evidence.length));
+   li.append(detail);root.append(li);
+  }
+  if(!root.children.length)root.append(el("li",filter==="errors"?"Ошибки пока не подтверждены в матрице.":"Нет элементов для выбранного фильтра.","meta"));
+ }
+}
+for(const f of ["all","todo","errors"]){document.getElementById(f).addEventListener("click",()=>{filter=f;for(const q of ["all","todo","errors"])document.getElementById(q).setAttribute("aria-pressed",String(q===f));view()})}
+async function load(){
+ try{const r=await fetch("./qa-observer.json?nocache="+Date.now(),{cache:"no-store"});if(!r.ok)throw Error("HTTP "+r.status);const j=await r.json();if(!j.task1?.cases||!j.task2?.cases)throw Error("Некорректная матрица");current=j;view()}
+ catch(e){document.getElementById("updated").textContent="Матрица недоступна: "+e.message}
+}
+const jobDescriptions={
+ "Staging: public availability & QA evidence contract":["Публикация и контроль матрицы","Проверка доступности опубликованных ресурсов и наличия контрольной матрицы. Не входит под пользователем."],
+ "Staging: real desktop/mobile browser smoke (not authenticated E2E)":["Браузер · мобильный и компьютер","Проверка страницы входа, языков и ошибок JavaScript без входа в роли."],
+ "T1-01 / Owner create shipment / isolated browser validation":["T1-01 · Форма Владельца (изолированный браузер)","Проверяется реальная форма, но API заменён изолированными тестовыми ответами. Статус не равен полному авторизованному E2E."],
+ "Robots: execute 37 mapped checks, report PASS/PARTIAL/FAIL/BLOCKED":["Роботы: 37 групп","Контрактные и браузерные проверки, отдельные FAIL и PARTIAL; это не 37 полных E2E."],
+ "Protected QA: real Owner/Carrier/Logistic authentication and denial checks":["Настоящая авторизация · изолированная QA","Проверка входа и отказов по реальным сессиям; строго без production, блокируется при отсутствии защищённых доступов."],
+ "Release decision: 37 authenticated E2E + security + restore (fail closed)":["Допуск к production","При отсутствии доказательств хотя бы одного обязательного критерия выпуск блокируется."],
+ "Scope safeguard":["Защита рабочей среды","Проверка, что автоматические сценарии не изменяют production."]
+};
+function renderJobs(jobs,runUrl){
+ const root=document.getElementById("live-jobs");root.replaceChildren();
+ const known=Array.isArray(jobs)?jobs.filter(x=>jobDescriptions[x.name]):[];
+ for(const j of known){
+  const [title,description]=jobDescriptions[j.name];
+  const card=el("article",undefined,"live-job");
+  const result=j.status==="completed"?(j.conclusion||"unknown"):(j.status||"queued");
+  card.dataset.result=result;
+  card.append(el("strong",title));
+  card.append(el("small",description));
+  const isGate=j.name.startsWith("Release decision:"),isReal=j.name.startsWith("Protected QA:");
+  card.append(el("span",result==="success"?(isGate?"✓ Критерии допуска пройдены":isReal?"✓ Авторизация QA пройдена":"✓ Технический PASS / частичная проверка"):result==="in_progress"?"Выполняется":result==="failure"?(isGate?"✕ ВЫПУСК ЗАПРЕЩЁН":isReal?"✕ Авторизованная проверка заблокирована":"✕ Тесты сообщили об ошибке"):result==="queued"?"Ожидает запуска":result.toUpperCase()));
+  root.append(card);
+ }
+ if(!known.length)root.append(el("p","Детали заданий пока недоступны. Посмотрите журнал GitHub Actions.","meta"));
+}
+async function live(){
+ const target=document.getElementById("live-state");
+ try{
+  const endpoint="https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/actions/";
+  const config={headers:{"Accept":"application/vnd.github+json"},cache:"no-store"};
+  const res=await fetch(endpoint+"workflows/task12-observer.yml/runs?per_page=1",config);
+  if(!res.ok)throw Error("GitHub API: "+res.status);
+  const data=await res.json();
+  const run=data.workflow_runs?.[0];
+  if(!run){target.textContent="Запусков пока нет. Для проверки откройте GitHub Actions.";renderJobs([]);return}
+  target.replaceChildren();
+  const status=run.status==="completed"?(run.conclusion==="success"?"Технические проверки: успешно": "Технические проверки: "+run.conclusion):"Технические проверки: "+run.status;
+  target.append(el("strong",status));
+  target.append(el("span"," · Запуск #"+run.run_number+" · "+new Date(run.created_at).toLocaleString("ru-RU")+" · "));
+  const link=el("a","Смотреть подробный журнал");link.href=run.html_url;link.target="_blank";link.rel="noopener noreferrer";target.append(link);
+  const jobsResp=await fetch(endpoint+"runs/"+encodeURIComponent(run.id)+"/jobs?per_page=100",config);
+  if(!jobsResp.ok)throw Error("Результаты заданий: "+jobsResp.status);
+  const j=await jobsResp.json();
+  renderJobs(j.jobs,run.html_url);
+ }catch(e){
+  target.textContent="Сведения о запуске временно недоступны: "+e.message+". Проверьте GitHub Actions по ссылке.";
+  document.getElementById("live-jobs").replaceChildren(el("p","Автопроверки не получают статус полного E2E.","meta"));
+ }
+}
+document.getElementById("refresh-qa").addEventListener("click",()=>{load();live()});
+async function loadRobots(){
+ const state=document.getElementById("robot-state");
+ try{
+  const r=await fetch("./qa-robot-latest.json?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("HTTP "+r.status);
+  const j=await r.json();
+  if(j.fullAuthorizedE2e!==false||!Array.isArray(j.scenarios))throw Error("Недопустимый отчёт");
+  robotReport=j;view();
+  document.getElementById("robot-partial").textContent=String(j.checks?.PARTIAL??0);
+  document.getElementById("robot-fail").textContent=String(j.checks?.FAIL??0);
+  document.getElementById("robot-blocked").textContent=String(j.checks?.BLOCKED??37);
+  document.getElementById("robot-e2e").textContent=String(j.checks?.PASS_E2E??0);
+  state.textContent=j.generatedAt
+   ?"Последний запуск частичных автоматических проверок: "+new Date(j.generatedAt).toLocaleString("ru-RU")+". Файлы, роли и причины — в журнале GitHub Actions."
+   :"Первый запуск автоматических роботов ещё не завершён. В GitHub Actions нажмите Run workflow.";
+  if(j.workflowUrl?.startsWith("https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/"))
+   document.getElementById("robot-report-link").href=j.workflowUrl;
+ }catch(e){state.textContent="Не удалось загрузить опубликованный отчёт роботов: "+e.message+". Откройте GitHub Actions."}
+}
+async function loadRelease(){
+ const state=document.getElementById("release-state");
+ try{
+  const r=await fetch("./qa-release-readiness.json?t="+Date.now(),{cache:"no-store"});
+  if(!r.ok)throw Error("HTTP "+r.status);
+  const j=await r.json();
+  if(j.environment!=="staging"||!["RELEASE_BLOCKED","READY_FOR_OWNER_RELEASE_APPROVAL"].includes(j.status))throw Error("Недостоверный статус");
+  const ready=j.status==="READY_FOR_OWNER_RELEASE_APPROVAL";
+  state.replaceChildren();
+  state.append(el("strong",ready?"Приёмка пройдена · требуется согласование выпуска":"Выпуск запрещён · проверка не завершена"));
+  state.className=ready?"release-ready":"release-blocked";
+  const count=j.authenticatedE2ePassed??0,need=j.authenticatedE2eRequired??37;
+  document.getElementById("release-checks").textContent="Подтверждённых авторизованных E2E: "+count+" / "+need+" · Блокирующих критериев: "+(j.blockers?.length||0)+(j.generatedAt?" · Проверено "+new Date(j.generatedAt).toLocaleString("ru-RU"):" · Первый запуск release gate ожидается");
+  const list=document.getElementById("release-blockers");list.replaceChildren();
+  for(const b of (j.blockers||[]).slice(0,12)){const li=el("li");li.append(el("strong",b.id+": "));li.append(el("span",b.reason||"Без доказательства"));list.append(li)}
+ }catch(e){state.textContent="Данные проверки допуска временно недоступны; по умолчанию выпуск заблокирован. "+e.message}
+}
+load();live();loadRobots();loadRelease();setInterval(()=>{if(!document.hidden){load();live();loadRobots();loadRelease()}},90000);
+</script>
+</body></html>

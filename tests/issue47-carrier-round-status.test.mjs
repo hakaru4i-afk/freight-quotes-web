@@ -1,3 +1,4 @@
+import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -18,7 +19,7 @@ test("carrier offer status prioritizes final round outcome over bid admission", 
   assert.match(src, /"Допущена к рассмотрению"/);
   assert.equal(src.split("issue47CarrierBidStatus(x)").length - 1, 3);
   assert.match(src, /x\.round_result==="lost"\?"Архив · не выбран"/);
-  assert.ok(!prod.includes("issue47CarrierBidStatus"), "production must stay unchanged");
+ assertProductionFeatureBoundary(prod,'issue47CarrierBidStatus');
 });
 
 test("staging script cache bust matches recorded artifact", () => {

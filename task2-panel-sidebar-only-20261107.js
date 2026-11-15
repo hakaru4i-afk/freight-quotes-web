@@ -1,0 +1,916 @@
+/* Issue #47 integrated staging UI; canonical place: Исполнение перевозок. */
+/* CONTAINER-STYLE-02: match the PТО input style; scoped against global dark-input rules. */
+(function(){
+ "use strict";
+ const uploadIds=new WeakMap();
+ const pendingRequests=new Map();
+ const eid="task2-root";
+ const canonicalNavigation=()=>{if(location.hash==="#shipment-fulfillment")location.replace("#approved-shipments");};
+ window.addEventListener("hashchange",canonicalNavigation);canonicalNavigation();
+ const state={items:[],role:"",selected:"",detail:null,tab:"stages",listView:"active",busy:false,notice:"",extraTrackingRows:0,requestStatus:null,vedRequestStatus:null,logistics:[],login:"",addressedOnly:false};
+ const docTypes=["Инвойс","Упаковочный лист","CMR","СМГС / ЦИМ-СМГС","Коносамент B/L","AWB","Экспортная декларация","Транзитная декларация","Сертификат","Фото погрузки","Страховой полис","Инструкция","MSDS / UN38.3","Другое"];
+ const tabs=[["overview","1. Общая информация"],["track","2. Трекинг"],["documents","3. Документы"],["stages","Этапы перевозки"],["completion","Завершение"],["history","История"]];
+ const tips={
+  number:"Номер контейнера. Необязателен до завершения; после запроса ВЭД укажите действительный номер.",
+  actual:"Фактическая дата и время выхода груза. После сохранения первоначальная дата и все переносы остаются в истории.",
+  plan:"Новая плановая дата выхода. Добавляйте любое количество раз, пока не указана фактическая дата.",
+  reason:"Обязательно опишите объективную причину переноса; запись сохранится в истории.",
+  location:"Место нахождения груза: город, терминал, станция, порт или адрес. Добавляется отдельной записью.",
+  date:"Дата и время события; укажите время Минска или локальное время с пояснением.",
+  description:"Опишите какие документы требуются, зачем и какие именно отсутствуют. Каждая отправка — отдельная задача ВЭД.",
+  types:"Выберите несколько видов документов, если требуется. Вариант «Другое» позволяет уточнить запрос в описании.",
+  task:"Связанная задача ВЭД, наследует все номера Bitrix исходного заказа. Не заменяет заказ.",
+  comment:"Дополнительное пояснение, видимое ВЭД, перевозчику и Владельцу.",
+  data:"Описание нарушения, недостачи или повреждения, основание и требование к перевозчику.",
+  costs:"Сумма требований в валюте утверждённой ставки, если применимо.",
+  doc:"Документ/фото доказательство. Загруженные файлы отображаются в документах и чате заявки.",
+  message:"Общий чат именно этой выигранной перевозки: ВЭД, перевозчик и Владелец."
+ };
+ const stagingReg=n=>n?String(n):"";
+ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const fmt=s=>{
+   if(s===null||s===undefined||s==="")return "—";
+   const raw=String(s).trim();
+   const ru=raw.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:[,\s]+(\d{2}):(\d{2}))?/);
+   if(ru)return ru[1]+"."+ru[2]+"."+ru[3]+(ru[4]?", "+ru[4]+":"+ru[5]:"");
+   const iso=raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s](\d{2}):(\d{2}))?/);
+   if(iso&&!/[zZ]|[+-]\d{2}:\d{2}$/.test(raw))return iso[3]+"."+iso[2]+"."+iso[1]+(iso[4]?", "+iso[4]+":"+iso[5]:"");
+   const d=new Date(raw);
+   if(!Number.isNaN(d.getTime()))return d.toLocaleString("ru-RU",{timeZone:"Europe/Minsk"});
+   return "Уточните исходную дату";
+ };
+ const minskISO=value=>{if(!value)throw Error("Укажите дату и время Минска");const str=String(value);const normalized=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(str)?str+":00+03:00":str;const d=new Date(normalized);if(Number.isNaN(d.getTime()))throw Error("Некорректная дата/время");return d.toISOString();};
+ const badge=s=>'<span class="t2-badge">'+esc(s||"—")+"</span>";
+ const field=(name,label,type,tip,extra="")=>'<label class="t2-field"><span>'+esc(label)+' <span class="t2-help" title="'+esc(tip||tips[name]||label)+'" aria-label="Подсказка: '+esc(label)+'">?</span></span>'+
+   (type==="textarea"?'<textarea rows="3" name="'+esc(name)+'" '+extra+'></textarea>':
+    type==="select"?'<select name="'+esc(name)+'" '+extra+'><option value="">Выберите…</option>'+docTypes.map(x=>'<option>'+esc(x)+'</option>').join("")+'</select>':
+    '<input name="'+esc(name)+'" type="'+(type||"text")+'" '+extra+'>')+
+   '<small>'+esc(tip||tips[name]||"")+'</small></label>';
+ const readonly=(label,val)=>'<div class="t2-readonly"><small>'+esc(label)+'</small><strong>'+esc(val??"—")+'</strong></div>';
+ const form=(kind,body,button="Сохранить изменения",hidden=false)=>
+  '<form data-t2-form="'+kind+'" class="t2-form"><div class="t2-fields">'+body+'</div>'+(["request_docs","request_carrier_docs","ved_logistic_docs","final_cost_submit","final_cost_confirm","claim_open","claim_send","claim_command"].includes(kind)?"":'<div class="t2-csv"><button type="button" class="t2-btn ghost" data-t2-csv-download>Скачать CSV шаблон</button><label class="t2-btn ghost">Загрузить CSV<input data-t2-csv-upload type="file" accept=".csv,text/csv" hidden></label><span class="t2-csv-info"></span></div>')+
+  (hidden?"":'<button class="t2-btn" type="submit">'+esc(button)+'</button>')+
+  (kind==="request_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.requestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.requestStatus?.order===state.selected?state.requestStatus.message:"")+'</div>':kind==="ved_logistic_docs"?'<div class="t2-request-feedback" role="status" aria-live="polite" style="margin-top:10px;min-height:22px;font-weight:600;color:'+(state.vedRequestStatus?.error?"#a12626":"#176c44")+'">'+esc(state.vedRequestStatus?.order===state.selected?state.vedRequestStatus.message:"")+'</div>':"")+'</form>';
+ function claimPanel(d,staff,carrier){
+  const x=d.state||{},c=d.claim,data=c?.data||{};
+  if(!x.warehouse_at&&!c)return '';
+  let html='<section class="t2-claim-notice"><h3>Претензия по перевозке</h3>';
+  if(!c){return html+(staff&&x.status!=='completed'?form('claim_open',field('note','Обстоятельства претензии','textarea','','required minlength="20" maxlength="4000"'),'Открыть претензию'):'<p>Претензию оформляет владелец или ВЭД при приёмке груза.</p>')+'</section>';}
+  const status=c.state==='negotiation'?({proposed:'Предложение ожидает решения',approved:'Согласованное решение исполняется',execution_review:'Исполнение ожидает проверки',settled:'Урегулирована'}[data.settlementStatus]||'Ожидается предложение перевозчика'):({draft:'Подготавливается',pending_staff:'Владелец оформляет обращение',sent:'Ожидается ответ перевозчика',accepted:'Перевозчик согласился',disputed:'Есть возражения',settled:'Урегулирована'}[c.state]||'Проверяется');
+  html+=readonly('Состояние претензии',status);
+  if(c.state==='pending_staff')return html+'</section>';
+  html+=readonly('Обстоятельства претензии',data.circumstances||'Сохранены в исходной претензии');
+  if(data.carrierResponse)html+=readonly('Ответ перевозчика',data.carrierResponse);
+  if(data.proposal)html+=readonly('Предложение перевозчика',data.proposal.plan||data.proposal.method)+readonly('Срок исполнения',data.proposal.deadline);
+  const hidden='<input type="hidden" name="claimRevision" value="'+Number(c.revision)+'">'+(data.proposal?'<input type="hidden" name="proposalRevision" value="'+Number(data.proposal.revision)+'">':'');
+  const actions=rows=>'<label class="t2-field"><span>Действие</span><select name="action">'+rows.map(([value,title])=>'<option value="'+value+'">'+title+'</option>').join('')+'</select></label>';
+  const proof=(required=false,own=false,onlyId=null)=>'<label class="t2-field"><span>Подтверждающий файл из документов перевозки</span><select name="proofId" '+(required?'required':'')+'><option value="">Выберите файл</option>'+(d.docs||[]).filter(f=>(!onlyId||f.id===onlyId)&&(!own||f.actor===d.shipment?.carrier_login&&Date.parse(f.created)>=Date.parse(data.review?.at||0))).map(f=>'<option value="'+esc(f.id)+'">'+esc(f.name)+'</option>').join('')+'</select></label>';
+  const note=field('note','Комментарий к решению','textarea','','required minlength="20" maxlength="4000"');
+  if(x.status!=='completed'){
+   if(staff&&c.state==='draft')html+=data.source==='task2_notice'?form('claim_send',hidden+proof(true),'Направить претензию перевозчику'):'<p>Прежний формальный акт сохраняется в исходном процессе.</p>';
+   if(carrier&&c.state==='sent')html+=form('claim_command',hidden+actions([['claim_accept','Согласиться с претензией'],['claim_partial','Согласиться частично'],['claim_dispute','Подать возражения']])+note+proof(false)+'<p>При возражениях выберите подтверждающий файл.</p>','Отправить ответ по претензии');
+   const proposalAllowed=['accepted','disputed','negotiation','insurer','expertise','legal'].includes(c.state)&&!['proposed','approved','execution_review','settled'].includes(data.settlementStatus);
+   if(carrier&&proposalAllowed)html+=form('claim_command',hidden+'<input type="hidden" name="action" value="claim_propose"><label class="t2-field"><span>Способ урегулирования</span><select name="method">'+[['compensation','Компенсация'],['replacement','Замена'],['additional_delivery','Допоставка'],['repair','Ремонт'],['credit_note','Корректировка стоимости'],['other','Иное согласованное решение']].map(([v,t])=>'<option value="'+v+'">'+t+'</option>').join('')+'</select></label>'+field('deadline','Срок исполнения','date','','required')+note,'Предложить урегулирование');
+   if(staff&&c.state==='negotiation'&&data.settlementStatus==='proposed')html+=form('claim_command',hidden+actions([['claim_approve','Согласовать предложение'],['claim_return','Вернуть на доработку'],['claim_reject','Отклонить предложение']])+note,'Сохранить решение по предложению');
+   if(carrier&&data.settlementStatus==='approved')html+='<p>Загрузите собственное подтверждение исполнения в карточку документов перевозчика после согласования решения.</p>'+form('claim_command',hidden+'<input type="hidden" name="action" value="claim_fulfill">'+proof(true,true)+note,'Подтвердить исполнение урегулирования');
+   if(staff&&data.settlementStatus==='execution_review'){
+    if(data.fulfillment?.proofId)html+='<button type="button" class="t2-btn ghost" data-t2-doc="'+esc(data.fulfillment.proofId)+'">Скачать подтверждение исполнения</button>';
+    html+=form('claim_command',hidden+actions([['claim_resolve','Подтвердить урегулирование'],['claim_return','Вернуть исполнение на доработку']])+proof(true,false,data.fulfillment?.proofId)+note,'Проверить исполнение урегулирования');
+   }
+  }
+  return html+'<p>Согласование претензии не завершает перевозку автоматически. Итоговую сумму подтверждает владелец.</p></section>';
+ }
+ const call=async(params,files)=>{
+   const options={method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(params)};
+   if(files){delete options.headers;options.body=files;}
+   const res=await fetch("/api/task2",options);
+   const body=await res.json().catch(()=>({error:"Неверный ответ API"}));
+   if(!res.ok)throw Error(body.error||"Ошибка сервера");
+   return body;
+ };
+ const get=async query=>{
+   const res=await fetch("/api/task2"+query,{cache:"no-store"});
+   const body=await res.json().catch(()=>({error:"Нет ответа API"}));
+   if(!res.ok)throw Error(body.error||"Нет доступа");
+   return body;
+ };
+ function alertText(msg,error=false){
+   state.notice=(error?"Ошибка: ":"")+msg;
+   const node=document.querySelector("#t2-alert");if(node){node.textContent=state.notice;node.className=error?"t2-alert error":"t2-alert";}
+ }
+ function requestFeedback(message,error=false){
+   state.requestStatus={order:state.selected,message,error};
+   const node=document.querySelector('#task2-root form[data-t2-form="request_docs"] .t2-request-feedback');
+   if(node){node.textContent=message;node.style.color=error?"#a12626":"#176c44";}
+ }
+ function vedRequestFeedback(message,error=false){
+   state.vedRequestStatus={order:state.selected,message,error};
+   const node=document.querySelector('#task2-root form[data-t2-form="ved_logistic_docs"] .t2-request-feedback');
+   if(node){node.textContent=message;node.style.color=error?"#a12626":"#176c44";}
+ }
+ function getTarget(){return document.querySelector('.cabinet-panel[data-section="approved-shipments"]')}
+ function show(){
+   const pane=getTarget();if(!pane)return;
+   if(!pane.querySelector("#"+eid)){
+     const node=document.createElement("section");node.id=eid;node.className="t2-panel";pane.prepend(node);
+   }
+   const root=pane.querySelector("#"+eid);
+   if(!root)return;
+   const chosen=state.items.find(i=>i.order_code===state.selected),d=state.detail;
+   const heading='<header class="t2-heading"><div><h2>'+(state.role==="ved"?"Активные перевозки":"Исполнение перевозок")+'</h2><p>Этапы перевозки, документы, трекинг, прибытие и завершение. Работа начинается после принятия выбранной заявки перевозчиком.</p></div><button data-t2-refresh class="t2-btn ghost" type="button">Обновить</button></header>';
+   // No secondary menu: the cabinet's left navigation is the only navigation.
+   let html=heading+'<div id="t2-alert" class="t2-alert">'+esc(state.notice)+'</div>';
+   if(!state.items.length){
+     root.innerHTML=html+'<div class="t2-empty"><h3>Нет перевозок на этапе исполнения</h3><p>После выбора победителя и нажатия «Взять в работу» здесь появятся этапы перевозки.</p></div>';
+     return;
+   }
+   const workflowLabel=i=>i.process_status==="completed"?"Завершена":i.process_status==="awaiting_take"?"Ожидает принятия":"В работе";
+   const activeItems=state.items.filter(i=>i.process_status!=="completed");
+   const archivedItems=state.items.filter(i=>i.process_status==="completed");
+   const visibleItems=state.listView==="archive"?archivedItems:activeItems;
+   html+='<nav class="t2-list-filters" aria-label="Фильтр перевозок">'+
+     [['active','Новые и в работе',activeItems.length],['archive','Архив',archivedItems.length]].map(([key,label,count])=>
+       '<button type="button" class="t2-list-filter'+(state.listView===key?' is-active':'')+'" data-t2-filter="'+key+'" aria-pressed="'+(state.listView===key?'true':'false')+'">'+label+' <span>'+count+'</span></button>'
+     ).join('')+'</nav>';
+   if(!visibleItems.length){
+     root.innerHTML=html+'<div class="t2-empty"><p>В выбранной категории перевозок нет.</p></div>';
+     return;
+   }
+   html+='<div class="t2-picker"><label>Перевозка <select id="t2-select">'+visibleItems.map(i=>'<option value="'+esc(i.order_code)+'" '+(state.selected===i.order_code?"selected":"")+'>'+
+    esc((stagingReg(i.registration_no)||"TEST-TR —")+" · "+i.order_code+" · "+workflowLabel(i))+'</option>').join("")+'</select></label></div>';
+   if(!d){root.innerHTML=html+'<p>Открываем данные заявки…</p>';return;}
+   const o=d.shipment,x=d.state||{},carrier=d.role==="carrier",staff=!carrier,started=!!d.state;
+   if(state.role==="ved" && (!started || x.status==="awaiting_take")){
+     root.innerHTML=heading+'<div class="t2-empty"><h3>Нет активных перевозок</h3><p>Перевозка появится после подтверждённого принятия победителем.</p></div>';
+     return;
+   }
+   if(d.addressedOnly){
+     html+='<section class="t2-stage"><h3>Адресные запросы документов</h3><p class="t2-muted">Здесь доступны только назначенные вам запросы ВЭД и прикреплённые к ним файлы.</p><div class="t2-stack">'+(d.tasks||[]).map(taskCard).join("")+'</div>';
+     const open=(d.tasks||[]).filter(t=>!["completed","cancelled"].includes(t.status));
+     if(open.length)html+='<form class="t2-form" data-t2-form="upload"><label class="t2-field"><span>Запрос ВЭД</span><select name="taskId" required>'+open.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description)+'</option>').join("")+'</select></label><label class="t2-field"><span>Документы</span><input type="file" name="files" multiple required></label><button type="submit" class="t2-btn">Загрузить документы</button></form>';
+     html+='<div class="t2-stack">'+(d.docs||[]).map(f=>'<button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">'+esc(f.name)+'</button>').join("")+'</div></section>';
+     root.innerHTML=html;syncBusyControls();return;
+   }
+   if(d.role==="carrier"&&d.state&&d.state.status!=="completed"){
+     const sources=[d.shipment,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
+     const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
+     let days=NaN;
+     for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key],n=typeof v==="number"?v:parseInt(String(v??"").trim(),10);if(Number.isFinite(n)&&n>0&&n<=3650){days=n;break;}}if(Number.isFinite(days))break;}
+     const total=Number.isFinite(days)?Math.ceil(days/7):0;
+     const completed=(d.points||[]).filter(p=>p.location_text&&p.observed_at).length;
+     // Плановая дата и будущая «фактическая» дата не подтверждают, что груз вышел.
+     const actual=d.state.actual_departure?new Date(d.state.actual_departure):null;
+     const departed=!!(actual&&Number.isFinite(actual.getTime())&&actual.getTime()<=Date.now());
+     const deadline=departed?new Date(actual.getTime()+7*(completed+1)*86400000):null;
+     const overdue=!!(deadline&&Date.now()>deadline.getTime());
+     const remaining=Math.max(0,total-completed);
+     const message=overdue?'Просрочен еженедельный трекинг':departed?'Следующий отчёт о местоположении':'План трекинга — ожидается фактическое отправление';
+     const noticeStyle=overdue?'border:1px solid #d5a544;border-left:4px solid #d5a544;background:#fff8e9;color:#533d13':'border:1px solid #b8ccdc;border-left:4px solid #5f879f;background:#eef5fd;color:#173650';
+     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border-radius:9px;'+noticeStyle+'"><strong>'+message+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Открыть трекинг</button></div>';
+     else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
+   }
+   html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
+     readonly("Выбранный перевозчик",o.carrier_login)+
+     readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Ожидает принятия":"В работе")+'</div>';
+   if(!started){
+     html+='<div class="t2-empty"><h3>Ожидается принятие перевозки</h3><p>Выбранный перевозчик должен сначала нажать «Взять в работу» в разделе «Мои заявки».</p>'+(carrier?'<a class="t2-btn" href="#carrier-orders">Перейти в «Мои заявки»</a>':'Ожидается действие победившего перевозчика.')+'</div>';
+   }else{
+     html+='<div class="t2-process-banner"><div><strong>Перевозка принята в работу.</strong><span>Доступны этапы, трекинг, документы, сообщения и закрытие перевозки.</span></div></div>';
+     if(state.role==="owner"&&!d.tasks?.some(t=>t.task_type==="pto_review"))html+='<details><summary>Проверка ВЭД при недоступном километраже</summary><p>Только при документированной невозможности расчёта. Дата и пользователь записываются сервером. Проверка ВЭД остаётся обязательной.</p><form data-t2-form="manual_pto_review"><label>Причина<textarea name="reason" required minlength="20" maxlength="1500"></textarea></label><label>Основание: документ или ссылка на подтверждение<textarea name="evidence" required minlength="10" maxlength="1500"></textarea></label><button class="t2-btn" type="submit">Запустить единственную проверку ВЭД</button></form></details>';
+     const savedTab=state.tab;
+     html+=tabs.filter(([key])=>key!=="completion"||!["ved","logistic"].includes(state.role)).map(([key,title])=>{
+       state.tab=key;
+       return '<section class="t2-stage" data-t2-section="'+esc(key)+'"><h3>'+esc(title)+'</h3>'+renderTab(d,carrier,staff)+'</section>';
+     }).join("");
+     state.tab=savedTab;
+   }
+   root.innerHTML=html;syncBusyControls();
+ }
+ function syncBusyControls(){
+   const root=document.getElementById("task2-root");if(!root)return;
+   root.setAttribute("aria-busy",String(state.busy));
+   for(const button of root.querySelectorAll('form input,form textarea,form select,form button[type="submit"],[data-t2-task-complete],[data-t2-act-response],[data-t2-action]')){
+     if(state.busy&&!button.disabled){button.dataset.t2BusyDisabled="true";button.disabled=true;}
+     else if(!state.busy&&button.dataset.t2BusyDisabled){button.disabled=false;delete button.dataset.t2BusyDisabled;}
+   }
+ }
+ function departurePlans(detail){return (detail?.plans||[]).filter(p=>!p.is_baseline);}
+ function renderTab(d,carrier,staff){
+   const o=d.shipment,x=d.state||{},plans=departurePlans(d),pts=d.points||[],tasks=d.tasks||[],cs=d.containers||[];
+   const readHeader='<p class="t2-muted">Ставка и валюта выбраны Владельцем и недоступны для повторного согласования. Все номера Bitrix наследуются исходным заказом.</p>';
+   if(state.tab==="overview"){
+     const price=o.amount==null?"—":o.amount+" "+(o.currency||"");
+     return readHeader+'<div class="t2-facts">'+readonly("Ставка победителя",price)+readonly("Транспорт",o.mode)+readonly("Маршрут",o.route)+readonly("Груз",o.cargo)+readonly("Вес/объём",(o.weight||"—")+" / "+(o.volume||"—"))+
+      readonly("Контакт отправителя",o.sender_contact)+readonly("Исходная плановая дата выхода",x.original_departure||o.pickup||"—")+readonly("Фактическая дата выхода",x.actual_departure?fmt(x.actual_departure):"Не указана")+'</div>'+
+      
+
+      '<p class="t2-muted">Основная кнопка «Сохранить изменения» сохраняет данные без закрытия перевозки.</p>';
+   }
+   if(state.tab==="documents"){
+     // A single compact document register: actions live inside their source card.
+     // The API is authoritative for document ownership and task assignments.
+     const files=Array.isArray(d.docs)?d.docs:[],active=x.status!=="completed";
+     const sourceOf=f=>{
+       const category=String(f.category||"").toLowerCase();
+       if(/owner_file|owner|initial|request_file/.test(category))return "owner";
+       if(category==="ved"||category==="logistic")return "ved";
+       if(category==="carrier")return "carrier";
+       const role=String(f.uploaded_role||f.actor_role||"").toLowerCase();
+       if(role==="owner")return "owner";
+       if(role==="logistic"||role==="ved")return "ved";
+       if(role==="carrier")return "carrier";
+       if(String(f.actor||"").toLowerCase()===String(o.carrier_login||"").toLowerCase())return "carrier";
+       return "other";
+     };
+     const docs={owner:[],ved:[],carrier:[],other:[]};
+     files.forEach(f=>docs[sourceOf(f)].push(f));
+     const row=f=>'<div class="t2-item t2-document-item"><span><strong>'+esc(f.name||"Документ")+'</strong><small>'+esc(f.created?fmt(f.created):"Прикреплён к перевозке")+'</small></span><button type="button" class="t2-btn ghost" data-t2-doc="'+esc(f.id)+'">Скачать</button></div>';
+     const types='<option value="" disabled selected>Выберите документ</option>'+docTypes.map(t=>'<option value="'+esc(t)+'">'+esc(t)+'</option>').join("");
+     const action=(label,inner)=>'<details class="t2-doc-action"><summary>'+esc(label)+'</summary>'+inner+'</details>';
+     const request=(kind,button,extra="")=>
+       '<form class="t2-form t2-doc-form" data-t2-form="'+kind+'">'+extra+
+       (kind==="request_docs"?'<input type="hidden" name="kind" value="missing_documents">':"")+
+       '<label class="t2-field"><span>Какой документ нужен?</span><select name="types" required>'+types+'</select></label>'+
+       '<label class="t2-field"><span>Уточнение (необязательно)</span><textarea name="description" rows="2" placeholder="Дополнительные требования к документу"></textarea></label>'+
+       '<button class="t2-btn" type="submit">'+esc(button)+'</button><div class="t2-request-feedback" role="status" aria-live="polite"></div></form>';
+     const upload=(key,choices)=>{
+       const options=choices.length?choices.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.description||"Запрос")+'</option>').join("")+'<option value="">Не относится к запросу</option>':'<option value="">Общие документы перевозки</option>';
+       return '<form class="t2-form t2-doc-form" data-t2-form="upload">'+
+         '<input type="hidden" name="category" value="'+key+'">'+
+         '<label class="t2-field"><span>Выберите файлы</span><input type="file" name="files" multiple required><small>PDF, Excel, Word, фото; до 10 МБ на файл</small></label>'+
+         (choices.length?'<label class="t2-field"><span>Ответ на запрос</span><select name="taskId">'+options+'</select></label>':"")+
+         '<button class="t2-btn" type="submit">Загрузить в этот раздел</button></form>';
+     };
+     const taskLists={
+       ved:tasks.filter(t=>["pto_review","missing_documents","transport_documents","ved_request_logistic"].includes(t.task_type)),
+       carrier:tasks.filter(t=>t.task_type==="ved_request_carrier"),
+       owner:[]
+     };
+     const group=(key,title)=>{
+       const entries=docs[key],items=taskLists[key]||[];
+       let controls="";
+       if(active&&key==="owner"&&state.role==="owner")
+         controls+=action("Загрузить документ",upload(key,[]));
+       if(active&&key==="ved"){
+         if(carrier)controls+=action("Запросить документ у ВЭД",request("request_docs","Направить запрос ВЭД"));
+         if(["ved","logistic"].includes(state.role))controls+=action("Загрузить документ",upload(key,items.filter(t=>["missing_documents","transport_documents"].includes(t.task_type)&&!["completed","cancelled"].includes(t.status))));
+         if(["ved","logistic"].includes(state.role)&&(state.logistics||[]).length)
+           controls+=action("Запросить документ у логиста",request("ved_logistic_docs","Направить логисту",
+             '<label class="t2-field"><span>Исполнитель</span><select name="assignedLogin" required><option value="">Выберите логиста</option>'+
+             state.logistics.map(u=>'<option value="'+esc(u.login)+'">'+esc(u.name||u.login)+'</option>').join("")+'</select></label>'));
+       }
+       if(active&&key==="carrier"){
+         if(["ved","logistic"].includes(state.role))controls+=action("Запросить документ у перевозчика",request("request_carrier_docs","Направить перевозчику"));
+         if(carrier)controls+=action("Загрузить документ",upload(key,items.filter(t=>!["completed","cancelled"].includes(t.status))));
+       }
+       const list=entries.length?entries.slice(0,2).map(row).join("")+(entries.length>2?'<details class="t2-doc-more"><summary>Показать ещё '+(entries.length-2)+' документ(ов)</summary><div class="t2-stack">'+entries.slice(2).map(row).join("")+'</div></details>':""):'<p class="t2-muted t2-doc-empty">Пока нет документов</p>';
+       const requests=items.length?'<details class="t2-doc-tasks"><summary>Запросы и проверка документов <span>'+items.filter(t=>!["completed","cancelled"].includes(t.status)).length+' ожидают</span></summary><div class="t2-stack">'+items.map(taskCard).join("")+'</div></details>':"";
+       return '<section class="t2-docs-group" data-doc-source="'+key+'"><div class="t2-docs-group-head"><h4>'+title+'</h4><span class="t2-doc-count">'+entries.length+' файл(ов)</span></div>'+
+         '<div class="t2-docs-list">'+list+'</div><div class="t2-doc-actions">'+controls+'</div>'+requests+'</section>';
+     };
+     let html='<p class="t2-muted t2-docs-note">Документы хранятся по источникам. Запрос и загрузка находятся прямо в карточке соответствующего участника.</p>'+
+       '<div class="t2-docs-overview">'+group("owner","Документы владельца")+group("ved","Документы ВЭД")+group("carrier","Документы перевозчика")+'</div>';
+     if(docs.other.length)html+='<details class="t2-doc-unclassified"><summary>Документы без определённого источника · '+docs.other.length+'</summary>'+
+       '<div class="t2-stack">'+docs.other.map(row).join("")+'</div></details>';
+     return html;
+   }
+   if(state.tab==="stages"){
+     const latestPoint=pts.length?pts[pts.length-1]:null;
+     const milestones=[
+       ["1","Заявка принята в работу",true,"После выбора победителя и принятия перевозчиком начинается исполнение"],
+       ["2","Фактический выход груза",!!x.actual_departure,x.actual_departure?fmt(x.actual_departure):"Ожидается отметка перевозчика"],
+       ["3","Движение груза",pts.length>0,latestPoint?esc(latestPoint.location_text)+" · "+fmt(latestPoint.observed_at):"Ожидается первая контрольная точка"],
+       ["4","Проверка документов ВЭД",!!x.pto_checked_at,x.pto_checked_at?fmt(x.pto_checked_at):"Ожидается проверка до ПТО"],
+       ["5","Прибытие на ПТО",!!x.pto_at,x.pto_at?fmt(x.pto_at):"После подтверждения документов ВЭД"],
+       ["6","Таможенное оформление",!!x.customs_at,x.customs_at?fmt(x.customs_at):"Не завершено"],
+       ["7","Приёмка на складе",!!x.warehouse_at,x.warehouse_at?fmt(x.warehouse_at):"Не подтверждена"],
+       ["8","Закрытие перевозки",x.status==="completed",x.status==="completed"?"Перевозка закрыта":"Ожидает проверки и решения Владельца/ВЭД"]
+     ];
+     // The outer t2-stage already renders the tab title: keep a single heading.
+     return '<p class="t2-muted">Это фактические этапы исполнения, а не статусы согласования транспортного документа. События подтверждаются сохранёнными отметками и не заполняются автоматически.</p>'+
+       '<div class="t2-milestones">'+milestones.map(([n,label,done,detail])=>
+         '<div class="t2-milestone '+(done?"is-done":"is-pending")+'"><span class="t2-milestone-number">'+n+'</span><div><strong>'+esc(label)+'</strong><p>'+detail+'</p></div><span class="t2-milestone-status">'+(done?"Зафиксировано":"Ожидается")+'</span></div>'
+       ).join("")+'</div>'+
+       '<p><button type="button" class="t2-btn" data-t2-tab="track">Перейти к трекингу</button>'+(state.role==="owner"?' <button type="button" class="t2-btn ghost" data-t2-tab="completion">Проверить завершение</button>':'')+'</p>';
+   }
+   if(state.tab==="track"){
+     const sourceDate=x.original_departure||o.pickup||"—";
+     let html='<div class="t2-facts">'+readonly("Исходная плановая дата (заблокирована)",sourceDate)+readonly("Фактическая дата выхода",fmt(x.actual_departure))+
+       readonly("ПТО",fmt(x.pto_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+
+       readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
+     const mapRoute=[
+       {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode,orderCode:o.order_code,viewerRole:d.role},
+       {departure_station:o.incoterm_place,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
+       pts.map(({id,location_text,observed_at,recorded_at,geocode})=>({id,location_text,observed_at,recorded_at,geocode})),
+       {
+         total:d.route?.source&&!d.route.estimated ? d.route.total_km : null,
+         remaining:!d.route?.estimated&&pts.at(-1)?.route_calculation_status==="verified" ? pts.at(-1).remaining_km : null,
+         source:d.route?.source,calculatedAt:d.route?.updated_at
+       },d.plannedGeocodes||{owner:[],offer:[]}
+     ];
+     html+='<global-route-view data-route="'+esc(JSON.stringify(mapRoute))+'"></global-route-view>';
+     // Заполнение недельных точек находится под единственной картой Global View.
+     if(carrier&&x.status!=="completed"){
+       html+='<div class="t2-block-title">Еженедельный трекинг — контрольные точки Global View</div>'+
+
+         '<div class="t2-weekly-tracking">'+
+         (()=>{const sources=[o,d.offer,d.selected_offer,d.winning_offer,d.winner_offer,d.selectedOffer,d.winningOffer,d.rate,d.bid,d.proposal,d.selected_bid,d.winner,d];
+           const keys=["delivery_days","transit_days","eta_days","delivery_term_days","duration_days","delivery_time_days","lead_time_days","transit_time_days","delivery_term","delivery_time","transit_time","duration","days","deliveryDays","transitDays"];
+           const parseDays=v=>{if(typeof v==="number")return v;if(typeof v==="string"){const m=v.trim().match(/^(\d{1,4})(?:\s*(?:дн(?:ей|я|ь)?|days?|сут(?:ок|ки)?))?$/i);return m?Number(m[1]):NaN;}return NaN;};
+           let raw;
+           for(const source of sources){if(!source||typeof source!=="object")continue;for(const key of keys){const v=source[key];if(Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}
+           if(raw===undefined){for(const source of sources){if(!source||typeof source!=="object")continue;for(const [key,v] of Object.entries(source)){if(/(?:delivery|transit|eta|duration|срок).*(?:day|дн|time|term)|(?:day|дн).*(?:delivery|transit)/i.test(key)&&Number.isFinite(parseDays(v))&&parseDays(v)>0){raw=v;break;}}if(raw!==undefined)break;}}
+           
+           const days=parseDays(raw),valid=Number.isFinite(days)&&days>0&&days<=3650;
+           const planned=valid?Math.ceil(days/7):0;
+           const count=Math.max(planned,pts.length+1)+state.extraTrackingRows;
+           return '<p class="t2-muted">'+(valid?'Плановый срок: '+days+' дн. · Контрольных недель: '+planned:'Срок доставки в днях не указан. Уточните срок в предложении перевозчика для автоматического графика.')+
+             '. Каждая запись: местонахождение и дата. Остаток км рассчитывается по подтверждённому маршруту.</p>'+
+             Array.from({length:Math.min(count,525)},(_,i)=>{const p=pts[i];
+               return p?'<div class="t2-weekly-row is-saved"><strong>Неделя '+(i+1)+'</strong><span>'+esc(p.location_text||"—")+'</span><span>'+fmt(p.observed_at)+'</span><span>Осталось км: '+esc(p.remaining_km??"не рассчитано")+'</span></div>':
+               i===pts.length?'<form data-t2-form="weekly-point" class="t2-weekly-row"><strong>Неделя '+(i+1)+'</strong><label><span>Место</span><input name="location" required placeholder="Город, станция или порт"></label><label><span>Дата (Минск)</span><input name="location_date" type="datetime-local" required></label><button class="t2-btn" type="submit">Сохранить</button></form>':
+               '<div class="t2-weekly-row is-pending"><strong>Неделя '+(i+1)+'</strong><span>—</span><span>—</span><span>Ожидает предыдущую запись</span></div>';
+             }).join('')+
+             '<button type="button" class="t2-btn ghost" data-t2-action="extra-weekly-point">+ Добавить контрольную точку при задержке</button>';
+         })()+'</div>';
+     }
+
+     if(carrier&&x.status!=="completed"){
+       html+='<h3>Обновление перевозки</h3><p class="t2-muted">Заполняйте только то, что изменилось. Пустые необязательные поля можно оставить без изменений. Сохранение не завершает перевозку.</p>';
+       html+=(x.untrusted_actual_departure?'<p role="status">Ранее сохранена ошибочная будущая дата '+fmt(x.untrusted_actual_departure)+'. Она сохранена в истории, но не считается фактическим отправлением. Переносы плановой даты доступны.</p>':"");
+       html+='<div class="t2-block-title">1. Отправление · даты и переносы</div>'+
+         '<div class="t2-plans-current"><strong>Исходная плановая дата: '+(fmt(x.original_departure||o.pickup)==="Уточните исходную дату"?fmt(o.pickup):fmt(x.original_departure||o.pickup))+'</strong><span>Максимум 4 переноса</span></div>'+
+         '<div class="t2-plan-four">'+Array.from({length:4},(_,i)=>{
+           const p=plans[i],allowed=i===plans.length&&plans.length<4&&!x.actual_departure;
+           if(p)return '<div class="t2-plan-four-row is-saved"><span>Перенос '+(i+1)+'</span><strong>'+fmt(p.planned_departure)+'</strong><span>'+esc(p.reason||"Причина не указана")+'</span><span class="t2-plan-saved">Сохранено</span></div>';
+           if(!allowed)return '<div class="t2-plan-four-row is-locked"><span>Перенос '+(i+1)+'</span><span>—</span><span>—</span><span>'+(x.actual_departure?'Недоступно после отправления':'Ожидает предыдущий перенос')+'</span></div>';
+           return '<form data-t2-form="plan" class="t2-plan-four-row"><span>Перенос '+(i+1)+'</span><label><span>Новая дата (Минск)</span><input type="datetime-local" name="new_plan_date" required></label><label><span>Причина</span><input type="text" name="new_plan_reason" required maxlength="500" placeholder="Причина переноса"></label><button class="t2-btn" type="submit">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>';
+         }).join("")+'</div>';
+       html+='<div class="t2-actual-row" style="display:grid;grid-template-columns:90px minmax(0,1fr);align-items:center;gap:10px;border:1px solid #c8d7e7;border-radius:9px;background:#eef5fd;padding:9px 12px;margin:10px 0 18px">'+
+        '<span class="t2-actual-label">Фактическое отправление</span>'+
+        (x.actual_departure?'<strong class="t2-actual-saved">'+fmt(x.actual_departure)+'</strong><span class="t2-actual-note">Дата зафиксирована</span><span class="t2-plan-saved">Сохранено</span>':
+         '<form data-t2-form="actual" class="t2-actual-form" style="display:grid!important;grid-template-columns:minmax(220px,1fr) minmax(140px,1fr) 116px;align-items:center;gap:10px;width:100%;margin:0"><label style="display:flex;flex-direction:column;gap:3px;min-width:0;margin:0"><span>Фактическая дата (Минск)</span><input type="datetime-local" name="actual_departure" required style="width:100%;min-width:0;box-sizing:border-box;height:40px;background:#fff;color:#173650;border:1px solid #9fb1c6;border-radius:7px;padding:6px 9px"></label>'+(x.untrusted_actual_departure?'<label>Причина исправления<textarea name="actual_departure_reason" required minlength="10" maxlength="700"></textarea></label>':'<span class="t2-actual-note">Указывается один раз</span>')+'<button class="t2-btn" type="submit" style="height:40px;margin:0">Сохранить</button><div class="t2-plan-feedback" role="status" aria-live="polite"></div></form>')+
+         '</div>';
+       html+='<div class="t2-block-title">3. ПТО / таможенное оформление</div>'+
+         '<form data-t2-form="save" class="t2-pto-compact">'+
+         (x.pto_at?'<div class="t2-pto-cell"><small>Прибытие на ПТО</small><strong>Да</strong></div>':
+           '<label class="t2-pto-cell"><span>Прибыл на ПТО?</span><select name="pto_yes"><option value="">Нет</option><option value="yes">Да</option></select></label>')+
+         (x.pto_at?'<div class="t2-pto-cell"><small>Дата прибытия</small><strong>'+fmt(x.pto_at)+'</strong></div>':
+           '<label class="t2-pto-cell"><span>Дата прибытия (Минск)</span><input type="datetime-local" name="pto_date"></label>')+
+         (x.customs_at?'<div class="t2-pto-cell"><small>Таможенное оформление завершено</small><strong>'+fmt(x.customs_at)+'</strong></div>':
+           '<label class="t2-pto-cell" title="Дата завершения импортного таможенного оформления (Минск)"><span>Завершение таможни (Минск)</span><input type="datetime-local" name="customs_date"></label>')+
+         '<button type="submit" class="t2-btn">Сохранить</button></form>'+
+         '<p class="t2-muted">Проверка документов ВЭД проводится до прибытия на ПТО. Даты сохраняются независимо от номера контейнера.</p>'+
+         '<div class="t2-block-title">4. Контейнеры</div><p class="t2-muted">Единый раздел: все сохранённые номера отображаются здесь и используются при закрытии перевозки.</p>'+
+         '<div class="t2-container-existing">'+(cs.length?cs.map(c=>'<span class="t2-container-pill">'+esc(c.container_no)+'</span>').join(""):'<span class="t2-muted">Номеров пока нет</span>')+'</div>'+         '<form data-t2-form="container" class="t2-container-compact">'+
+         '<label class="t2-pto-cell" style="min-width:0"><span>№ контейнера (необязательно)</span><input type="text" name="container_no" maxlength="50" placeholder="Введите номер контейнера" required style="width:100%;height:38px;min-width:0;box-sizing:border-box;background:#fff!important;color:#17243a!important;border:1px solid #cbd5e1!important;border-radius:8px!important;padding:0 12px!important;box-shadow:none!important;appearance:none!important;-webkit-text-fill-color:#17243a!important"></label>'+
+         '<button type="submit" class="t2-btn">Сохранить</button></form>';
+        // Склад — фактическое событие перевозчика после таможни, а НЕ новая задача ВЭД.
+        if(x.customs_at&&!x.warehouse_at){
+          html+='<div class="t2-block-title">5. Прибытие груза на склад</div>'+
+            '<form data-t2-form="save" class="t2-container-compact">'+
+            '<label class="t2-pto-cell"><span>Фактическая дата прибытия (Минск)</span><input type="datetime-local" name="warehouse_date" required></label>'+
+            '<button type="submit" class="t2-btn">Сохранить</button></form>';
+        }else if(x.warehouse_at)html+='<div class="t2-block-title">5. Прибытие груза на склад</div>'+readonly("Прибытие подтверждено",fmt(x.warehouse_at));
+     }
+     /* History of dates is shown directly above the new transfer fields. */
+
+     // Движение груза отображает только Global View вместе с историей контрольных точек.
+     html+='<p class="t2-muted">Автоматические километры рассчитываются только при наличии подтверждённого маршрута. Для недоступных режимов показано «не рассчитано» без фиктивного значения.</p>';
+     return html;
+   }
+   if(state.tab==="completion"||state.tab==="arrival"){
+     let html='<h3>Завершение перевозки</h3><div class="t2-facts">'+readonly("ПТО",fmt(x.pto_at))+readonly("Проверка ВЭД",fmt(x.pto_checked_at))+readonly("Дата завершения таможенного оформления",fmt(x.customs_at))+readonly("Дата приёмки груза на складе",fmt(x.warehouse_at))+'</div>';
+     html+='<p class="t2-muted">Перевозчик регистрирует фактические события во вкладке «Трекинг». Здесь ВЭД и Владелец проверяют обязательные этапы и принимают решение о закрытии перевозки.</p>';
+     html+=claimPanel(d,staff,carrier);
+     if(x.warehouse_at||x.final_cost_amount!=null){
+       const cost=x.final_cost_amount==null?'Не указана':String(x.final_cost_amount)+' '+(x.final_cost_currency||o.currency||'');
+       const confirmed=!!(x.final_cost_confirmed_at&&x.final_cost_confirmed_by);
+       html+='<section class="t2-final-cost"><h3>Итоговая сумма перевозки</h3>'+readonly('Сумма к завершению',cost)+readonly('Подтверждение владельца',confirmed?'Подтверждено':'Ожидает подтверждения');
+       if(confirmed)html+=readonly('Дата подтверждения',fmt(x.final_cost_confirmed_at));
+       if(carrier&&x.status!=='completed')html+='<p>Изменение суммы отменяет прежнее подтверждение владельца.</p>'+form('final_cost_submit','<input type="hidden" name="expectedRevision" value="'+Number(x.final_cost_revision||0)+'"><label class="t2-field"><span>Итоговая сумма</span><input name="amount" type="text" inputmode="decimal" required pattern="[0-9]+([.,][0-9]{1,2})?" value="'+esc(x.final_cost_amount??'')+'"></label><label class="t2-field"><span>Валюта</span><input name="currency" readonly value="'+esc(o.currency||'')+'"></label>','Отправить итоговую сумму владельцу');
+       if(state.role==='owner'&&x.final_cost_amount!=null&&!confirmed&&x.status!=='completed')html+=form('final_cost_confirm','<input type="hidden" name="expectedRevision" value="'+Number(x.final_cost_revision||0)+'"><input type="hidden" name="amount" value="'+esc(x.final_cost_amount)+'"><input type="hidden" name="currency" value="'+esc(x.final_cost_currency)+'"><p>Проверьте итоговую сумму выше. Подтверждение записывается с вашим именем и временем.</p>','Подтвердить итоговую сумму');
+       html+='</section>';
+     }
+     // ВЭД выполняет единственную автоматическую задачу проверки документов во вкладке «Документы»; дополнительных задач при закрытии нет.
+     if(staff&&x.status!=="completed"){
+       html+='<p>Владелец или ВЭД проверяет фактические события и завершает перевозку после подтверждения итоговой суммы владельцем.</p>';
+       html+=d.hasClaim?(d.claim?.state==='settled'?form('claim_close',field('reason','Комментарий к завершению','textarea'),'Завершить перевозку с урегулированной претензией'):'<p>Для завершения сначала урегулируйте претензию.</p>'):'<button class="t2-btn" type="button" data-t2-action="finish">Проверить и завершить</button>';
+       
+     }
+     return html;
+   }
+   if(false && state.tab==="claims"){
+     const acts=d.acts||[];
+     let html='<p class="t2-muted">Претензия может закрываться только ВЭД/Владельцем, даже после согласования акта перевозчиком или указания номера контейнера.</p>';
+     html+='<div class="t2-stack">'+acts.map(a=>'<div class="t2-item"><span><strong>Акт · '+esc(a.transport)+'</strong><br><small>Редакция '+a.revision+' · '+esc(a.state)+' · '+fmt(a.changed_at)+'</small><br>'+esc(a.data?.description||"")+'</span>'+
+       '<button class="t2-btn ghost" data-t2-act-download="'+esc(a.id)+'">Распечатать акт / PDF</button>'+
+       (carrier&&a.state==="sent"?'<button class="t2-btn" data-t2-act-response="accept" data-id="'+esc(a.id)+'">Согласовать</button><button class="t2-btn danger" data-t2-act-response="dispute" data-id="'+esc(a.id)+'">Не согласовать</button>':"")+'</div>').join("")+'</div>';
+     if(staff&&x.status!=="completed"){
+       const mode=String(o.mode||"").toLowerCase(),rail=mode.includes("rail")||mode.includes("жд"),air=mode.includes("air")||mode.includes("авиа"),sea=mode.includes("sea")||mode.includes("море");
+       const extras=rail?[["smgs","№ накладной СМГС"],["station","Станции / вагоны"],["seals","Пломбы / контейнер"]]:
+         air?[["awb","№ авианакладной AWB"],["flight","Номер рейса"],["airports","Аэропорты"]]:
+         sea?[["bill","№ коносамента B/L"],["vessel","Судно / рейс"],["ports","Порты / пломбы"]]:
+             [["cmr","№ CMR"],["vehicle","Автомобиль / прицеп"],["driver","Водитель / место разгрузки"]];
+       html+='<h3>Составить акт по виду транспорта: '+esc(rail?"ЖД":air?"Авиа":sea?"Море":"Авто")+'</h3>';
+       html+=form("act",field("description","Основание и обстоятельства","textarea")+field("costs","Сумма требований","text")+field("comment","Требования / пояснения","textarea")+
+         extras.map(([id,label])=>field(id,label,"text")).join("")+
+         '<label class="t2-field"><span>Статус</span><select name="action"><option value="act_send">Сформировать и отправить перевозчику</option><option value="act_create">Сохранить черновик</option></select></label>',
+         "Сохранить акт");
+       if(d.hasClaim)html+='<h3>Итоговое решение по претензии</h3>'+form("claim_close",field("reason","Основание завершения спорной перевозки","textarea","При спорном акте решение обязательно"),"Закрыть претензионную перевозку");
+     }
+     return html;
+   }
+   if(state.tab==="history"){
+     return '<h3>Журнал действий</h3><div class="t2-stack">'+(d.events||[]).map(e=>'<div class="t2-item"><span>'+esc(e.action)+' · '+esc(e.actor)+' <small>('+esc(e.role)+')</small></span><small>'+fmt(e.created_at)+'</small></div>').join("")+'</div>';
+   }
+   return "";
+ }
+ function taskCard(t){
+   const active=t.status!=="completed"&&t.status!=="cancelled",staff=["owner","logistic","ved"].includes(state.role);
+   const labels={pto_review:"Проверка документов перед ПТО",missing_documents:"Недостающие документы",transport_documents:"Документы на перевозку",container_number:"Заполнить номер контейнера",ved_request_logistic:"Запрос ВЭД логисту",ved_request_carrier:"Запрос ВЭД перевозчику"};
+   const canComplete=staff&&active&&(t.task_type==="ved_request_carrier"||!t.assigned_login||String(t.assigned_login).toLowerCase()===state.login||state.role==="owner");
+   const isReverse=t.task_type==="ved_request_logistic";
+   return '<article class="t2-item"><div><strong>'+esc(labels[t.task_type]||t.task_type)+'</strong> '+badge(t.status)+
+    '<p>'+esc(t.description)+'</p>'+(isReverse?'<small>Исполнитель: '+esc(t.assigned_login||"—")+' · Запросил: '+esc(t.requested_by||"—")+'</small>':"")+
+    '<small>№ Bitrix: '+esc(t.inherited_bitrix_tasks||"—")+'</small></div>'+
+    (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
+     (isReverse?"Подтвердить передачу документов":t.task_type==="ved_request_carrier"?"Подтвердить получение документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
+ }
+ async function loadList(){
+   const list=await get("");
+   state.role=list.addressedOnly?'logistic':list.role==='logistic'?'ved':list.role;
+   const cabinet=document.querySelector('.cabinet-app');if(cabinet&&list.addressedOnly&&cabinet.dataset.addressedLogistic!=='true'){cabinet.dataset.addressedLogistic='true';window.dispatchEvent(new Event('lw-addressed-logistic-ready'));}
+   state.addressedOnly=!!list.addressedOnly;state.login=String(list.viewer||"").toLowerCase();
+   if(["ved","logistic"].includes(state.role)&&!state.addressedOnly){
+     try{
+       const recipientInfo=await get("?logistic_recipients=1");
+       state.logistics=Array.isArray(recipientInfo.recipients)?recipientInfo.recipients:[];
+       state.login=String(recipientInfo.viewer||"").toLowerCase();
+     }catch(e){state.logistics=[];state.login="";alertText("Не удалось получить список сотрудников логистики: "+e.message,true);}
+   }
+   const incoming=list.items||[];
+   if(state.role==="ved"){
+     // Defense in depth: VED must not display shipments pending carrier acceptance.
+     // The backend MUST enforce the same rule for list, detail and file endpoints.
+     const accepted=incoming.filter(item=>item.process_status!=="awaiting_take" &&
+       ["in_progress","waiting_container","claim","active","completed","accepted"].includes(String(item.process_status||"").toLowerCase()));
+     // The authenticated list already enforces acceptance and shipment scope.
+     // Do not silently discard every shipment after a failed N+1 detail request.
+     state.items=accepted;
+   }else state.items=incoming;
+   const visible=state.items.filter(i=>state.listView==="archive"?i.process_status==="completed":i.process_status!=="completed");
+   if(!visible.some(o=>o.order_code===state.selected))state.selected=visible[0]?.order_code||"";
+   await loadDetail();
+ }
+ let detailRequest=0;
+ async function selectShipment(order,{force=false}={}){
+   if(!force&&state.selected===order&&state.detail?.shipment?.order_code===order)return;
+   state.selected=order;return loadDetail();
+ }
+ async function loadDetail(){
+   const order=state.selected,request=++detailRequest;
+   state.detail=null;state.notice="";show();
+   let detail;
+   try{detail=order?await get("?order="+encodeURIComponent(order)):null;}
+   catch(error){if(request!==detailRequest||order!==state.selected)return;throw error;}
+   if(request!==detailRequest||order!==state.selected)return;
+   state.detail=detail;state.notice="";show();
+ }
+ async function update(action,fields,files){
+   if(state.busy)return;
+   state.busy=true;syncBusyControls();alertText("Сохраняем…");
+   try{
+     const payload={action,order:state.selected,...fields};
+     const requestKey=JSON.stringify(payload);
+     if(action==="request_docs"){
+       if(!pendingRequests.has(requestKey))pendingRequests.set(requestKey,crypto.randomUUID());
+       payload.requestId=pendingRequests.get(requestKey);
+     }
+     const res=await call(payload,files);
+     if(action==="request_docs")pendingRequests.delete(requestKey);
+     let routeNote="";
+     if(action==="save"&&fields.fields?.location&&state.detail?.shipment){
+       const o=state.detail.shipment,mode=String(o.mode||"").toLowerCase();
+       if(/авто|auto|road/.test(mode)&&o.origin&&o.destination){
+         try{
+           const mid=String(o.waypoints||"").split(/[;,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6);
+           const addresses=[o.origin,...mid,o.destination];
+           const first=await fetch("/api/route-distance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transport:"Авто",addresses})});
+           const route=await first.json();
+           if(!first.ok)throw Error(route.error||"Не удалось рассчитать маршрут");
+           const km=await call({action:"route_metrics",order:state.selected,routeKey:route.key});
+           routeNote=" Авто: "+km.remainingKm+" км осталось из "+km.totalKm+" км ("+km.source+").";
+         }catch(e){routeNote=" Километраж пока не рассчитан: "+e.message;}
+       }
+     }
+     let result=res;
+     if(res.needsContainerDecision){
+       const yes=window.confirm("Номер контейнера не указан. Отправить перевозчику запрос на заполнение?\nОК = Да, отправить запрос.\nОтмена = Нет, завершить без номера.");
+       result=await call({...payload,answer:yes?"yes":"no"});
+     }
+     let refreshError="";
+     try{await loadList();}catch(e){
+       if(action!=="request_docs")throw e;
+       refreshError=e.message||"Ошибка обновления";
+     }
+     const message=action==="request_docs"
+       ?("Запрос отправлен ВЭД. Создана задача"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+(refreshError?". Список не обновился: "+refreshError:"")+".")
+       :(result.waitingContainer?"Создана задача перевозчику на заполнение номера контейнера.":result.finished?"Перевозка завершена.":"Изменения сохранены.")+routeNote;
+     alertText(message);
+     return {...result,refreshError};
+   }catch(e){alertText(e.message||"Ошибка",true);return {ok:false,error:e.message||"Ошибка"};}finally{state.busy=false;syncBusyControls();}
+ }
+ async function downloadDoc(id){
+   try{
+     const r=await fetch("/api/task2?order="+encodeURIComponent(state.selected)+"&download="+encodeURIComponent(id));
+     if(!r.ok){const a=await r.json().catch(()=>({}));throw Error(a.error||"Ошибка скачивания");}
+     const blob=await r.blob(),link=document.createElement("a"),url=URL.createObjectURL(blob);
+     link.href=url;link.download=(state.detail?.docs||[]).find(x=>x.id===id)?.name||"document";link.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+   }catch(e){alertText(e.message,true);}
+ }
+ function exportAct(id){
+   const d=state.detail,a=(d?.acts||[]).find(x=>x.id===id);if(!a)return;
+   const o=d.shipment,values=a.data||{},title={auto:"Акт по автомобильной перевозке",rail:"Акт по железнодорожной перевозке",air:"Акт по авиационной перевозке",sea:"Акт по морской перевозке"}[a.transport]||"Акт";
+   const rows=[["Рег. № заявки",stagingReg(o.registration_no)],["Номер заказа",o.order_code],["Номера Bitrix",o.bitrix_task],["Перевозчик",o.carrier_login],["Маршрут",o.route],["Ставка",String(o.amount??"")+" "+(o.currency||"")],["Редакция",a.revision],["Дата",fmt(a.created_at)],...Object.entries(values)];
+   const html='<!doctype html><html lang="ru"><meta charset="UTF-8"><title>'+esc(title)+'</title><style>body{font-family:Arial,sans-serif;margin:45px;color:#16212b}h1{font-size:22px}table{width:100%;border-collapse:collapse;margin:20px 0}td{border:1px solid #a9afb5;padding:9px;vertical-align:top}td:first-child{width:35%;background:#f5f7f9}footer{margin-top:60px;display:flex;justify-content:space-between}</style><h1>'+esc(title)+'</h1><p>Регистрационный номер '+esc(o.registration_no)+'</p><table>'+rows.map(([k,v])=>'<tr><td>'+esc(k)+'</td><td>'+esc(v)+'</td></tr>').join("")+'</table><footer><span>Представитель заказчика __________</span><span>Представитель перевозчика __________</span></footer><p>Статус согласования: '+esc(a.state)+'</p></html>';
+   const url=URL.createObjectURL(new Blob([html],{type:"text/html;charset=utf-8"}));
+   const link=document.createElement("a");link.href=url;link.download="Act_"+(o.registration_no||"TR")+"_rev"+a.revision+".html";link.click();
+   setTimeout(()=>URL.revokeObjectURL(url),10000);
+   alertText("Акт сформирован. Откройте файл и используйте «Печать → Сохранить как PDF».");
+ }
+ const csv={
+   quote(s){
+     s=String(s??"");
+     // Protect Excel from formula injection without corrupting negative numbers.
+     if(/^[=+@]/.test(s))s="'"+s;
+     return '"'+s.replace(/"/g,'""')+'"';
+   },
+   save(content,name){
+     const url=URL.createObjectURL(new Blob(["\uFEFF",content],{type:"text/csv;charset=utf-8"}));
+     const link=document.createElement("a");link.href=url;link.download=name;link.click();
+     setTimeout(()=>URL.revokeObjectURL(url),10000);
+   },
+   parse(content){
+     let text=String(content||"").replace(/^\uFEFF/,"").replace(/^sep=;\r?\n/i,"");
+     if(!text.trim())throw Error("CSV пустой");
+     if(text.length>1024*1024)throw Error("CSV превышает 1 МБ");
+     const counts={";":0,",":0,"\t":0};
+     let quoted=false;
+     for(let i=0;i<text.length;i++){
+       const c=text[i];
+       if(c==='"'){
+         if(quoted&&text[i+1]==='"'){i++;continue;}
+         quoted=!quoted;
+       }else if(!quoted&&(c==="\r"||c==="\n"))break;
+       else if(!quoted&&Object.prototype.hasOwnProperty.call(counts,c))counts[c]++;
+     }
+     const delimiter=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+     if(!counts[delimiter])throw Error("В CSV не обнаружены столбцы с заголовками");
+     const rows=[];let row=[],cell="";quoted=false;
+     for(let i=0;i<text.length;i++){
+       const c=text[i];
+       if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else quoted=!quoted;}
+       else if(c===delimiter&&!quoted){row.push(cell);cell="";}
+       else if((c==="\n"||c==="\r")&&!quoted){
+         if(c==="\r"&&text[i+1]==="\n")i++;
+         row.push(cell);if(row.some(x=>x!==""))rows.push(row);
+         row=[];cell="";
+       }else cell+=c;
+     }
+     if(quoted)throw Error("CSV: незакрытая кавычка");
+     row.push(cell);if(row.some(x=>x!==""))rows.push(row);
+     if(rows.length!==2)throw Error("Для одной формы нужны заголовки и одна строка данных");
+     if(rows[0].length!==rows[1].length)throw Error("В строке данных и заголовке разное количество столбцов");
+     return rows;
+   },
+   controls(form){return Array.from(form.querySelectorAll('input[name]:not([type=file]):not([type=hidden]),textarea[name],select[name]')).filter(f=>!f.disabled&&!f.readOnly&&f.name!=="action");},
+   raw(f){return f.multiple?Array.from(f.selectedOptions).map(o=>o.value).join("|"):f.type==="checkbox"?(f.checked?"true":"false"):f.value;},
+   download(form){
+     const fields=csv.controls(form);
+     csv.save("sep=;\r\n"+fields.map(f=>csv.quote(f.name)).join(";")+"\r\n"+fields.map(f=>csv.quote(csv.raw(f))).join(";")+"\r\n","task2-"+form.dataset.t2Form+".csv");
+   },
+   normalize(f,raw){
+     const value=String(raw);
+     const validDate=iso=>{
+       const parsed=new Date(iso+"T00:00:00Z");
+       return /^\d{4}-\d{2}-\d{2}$/.test(iso)&&!Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===iso;
+     };
+     if(f.type==="date"){
+       const match=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value);
+       const iso=match?match[3]+"-"+match[2]+"-"+match[1]:value;
+       if(!validDate(iso))throw Error("Дата "+f.name+": используйте действительную дату YYYY-MM-DD либо ДД.ММ.ГГГГ");
+       return iso;
+     }
+     if(f.type==="datetime-local"){
+       const match=/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})(?::\d{2})?$/.exec(value);
+       if(!match||!validDate(match[1]))throw Error("Дата/время "+f.name+": YYYY-MM-DD HH:mm");
+       const [hours,mins]=match[2].split(":").map(Number);
+       if(hours>23||mins>59)throw Error("Некорректное время: "+f.name);
+       return match[1]+"T"+match[2];
+     }
+     if(f.type==="number"&&(!value.trim()||!Number.isFinite(Number(value.replace(",",".")))))
+       throw Error("Неверное число: "+f.name);
+     if(f.type==="number")return value.replace(",",".");
+     if(f.type==="checkbox"){
+       if(/^(да|yes|true|1)$/i.test(value))return true;
+       if(/^(нет|no|false|0)$/i.test(value))return false;
+       throw Error("Для "+f.name+" укажите Да или Нет");
+     }
+     if(f.tagName==="SELECT"){
+       const options=Array.from(f.options);
+       if(f.multiple){
+         const values=value.split("|").map(x=>x.trim()).filter(Boolean);
+         for(const v of values)if(!options.some(o=>o.value===v))throw Error("Неизвестный вариант "+v+" в "+f.name);
+         return values;
+       }
+       if(!options.some(o=>o.value===value))throw Error("Неизвестный вариант "+value+" в "+f.name);
+     }
+     return value;
+   },
+   async upload(form,file){
+     if(!file)throw Error("Выберите CSV-файл");
+     const [headers,values]=csv.parse(await file.text()),fields=csv.controls(form),byName=new Map(fields.map(f=>[f.name,f]));
+     if(new Set(headers).size!==headers.length)throw Error("CSV содержит повторяющиеся названия столбцов");
+     const unknown=headers.filter(name=>!byName.has(name));
+     if(unknown.length)throw Error("Неизвестные поля CSV: "+unknown.join(", "));
+     // Validate the entire row before mutating even the first control.
+     const changes=headers.map((name,i)=>({f:byName.get(name),raw:values[i]??""}))
+       .filter(x=>x.f&&x.raw!=="")
+       .map(x=>({...x,value:csv.normalize(x.f,x.raw)}));
+     if(!changes.length)throw Error("В CSV нет заполненных значений для переноса");
+     const preview=changes.map(({f,raw})=>f.name+": "+String(csv.raw(f)||"—")+" → "+raw).join("\n");
+     if(!window.confirm("Предпросмотр переноса ("+changes.length+" полей):\n"+preview.slice(0,8000)+"\n\nПеренести в форму? Сохранение на сервере выполняется отдельно."))return;
+     for(const {f,value} of changes){
+       if(f.type==="checkbox")f.checked=value;
+       else if(f.multiple){for(const option of f.options)option.selected=value.includes(option.value);}
+       else f.value=value;
+       if(!f.multiple&&f.type!=="checkbox"&&f.value!==value)
+         throw Error("Поле "+f.name+" не приняло значение. Проверьте допустимый формат.");
+       f.dispatchEvent(new Event("input",{bubbles:true}));
+       f.dispatchEvent(new Event("change",{bubbles:true}));
+     }
+     form.dataset.t2CsvFields=JSON.stringify(changes.map(x=>x.f.name));
+     alertText("CSV перенесён в "+changes.length+" полей. Проверьте данные и нажмите штатную кнопку сохранения.");
+   }
+ };
+ async function onSubmit(ev){
+   const f=ev.target.closest("form[data-t2-form]");if(!f)return;ev.preventDefault();
+   const data=Object.fromEntries(new FormData(f).entries());const kind=f.dataset.t2Form;
+   const csvMeta=f.dataset.t2CsvFields?{form:kind,changedFields:JSON.parse(f.dataset.t2CsvFields)}:undefined;
+   if(['claim_open','claim_send','claim_command'].includes(kind)){
+     if(!f.reportValidity())return;const action=kind==='claim_command'?data.action:kind;delete data.action;
+     for(const key of ['claimRevision','proposalRevision'])if(data[key]!==undefined)data[key]=Number(data[key]);
+     const button=f.querySelector('button[type="submit"]');if(button)button.disabled=true;
+     try{await update(action,data);}finally{if(button?.isConnected)button.disabled=false;}
+     return;
+   }
+   if(kind==='final_cost_submit'||kind==='final_cost_confirm'){
+     if(!f.reportValidity())return;const button=f.querySelector('button[type="submit"]');if(button)button.disabled=true;
+     try{await update(kind,{amount:data.amount,currency:data.currency,expectedRevision:Number(data.expectedRevision)});}finally{if(button?.isConnected)button.disabled=false;}
+     return;
+   }
+   if(kind==="manual_pto_review"){
+     const button=f.querySelector('button[type="submit"]');button.disabled=true;
+     try{await update("manual_pto_review",{reason:data.reason,evidence:data.evidence});}finally{if(button.isConnected)button.disabled=false;}
+     return;
+   }
+   if(kind==="upload"){
+     const files=f.querySelector('input[type=file]')?.files||[];
+     if(!files.length){alertText("Выберите файлы",true);return;}
+     for(const file of files){const fd=new FormData();fd.append("action","upload");fd.append("order",state.selected);fd.append("file",file);fd.append("category",data.category||"task2");if(data.taskId)fd.append("taskId",data.taskId);
+       if(!uploadIds.has(file))uploadIds.set(file,crypto.randomUUID());
+       fd.append("uploadId",uploadIds.get(file));
+       const saved=await update("upload",{},fd);
+       if(!saved?.ok)return;
+     }return;
+   }
+   if(kind==="pto-review"){
+     const decision=ev.submitter?.value;
+     if(decision==="approve"&&!f.elements.packageComplete.checked){alertText("Подтвердите полноту комплекта документов.",true);return;}
+     if(decision==="remarks"&&String(data.remarks||"").trim().length<10){alertText("Опишите замечания: от 10 символов.",true);return;}
+     const signature=JSON.stringify({decision,remarks:data.remarks});
+     if(f.dataset.reviewSignature!==signature){f.dataset.reviewSignature=signature;f.dataset.reviewRequest=crypto.randomUUID();}
+     await update("complete_task",{taskId:data.taskId,reviewDecision:decision,packageComplete:f.elements.packageComplete.checked,remarks:data.remarks,requestId:f.dataset.reviewRequest});return;
+   }
+   if(kind==="weekly-point"){
+     if(!String(data.location||"").trim()||!data.location_date){alertText("Укажите местонахождение и дату.",true);return;}
+     const button=f.querySelector('button[type="submit"]');if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     try{await update("save",{fields:{location:String(data.location).trim(),location_date:minskISO(data.location_date)}});}
+     finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
+   }
+   if(kind==="actual"){
+     if(state.detail?.state?.actual_departure){alertText("Фактическая дата уже зафиксирована. Повторное сохранение запрещено.",true);return;}
+     if(!data.actual_departure){alertText("Укажите фактическую дату отправления.",true);return;}
+     const btn=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
+     if(btn){btn.disabled=true;btn.textContent="Сохраняем…";}
+     if(feedback)feedback.textContent="Проверяем сохранение…";
+     try{
+       const result=await update("save",{fields:{actual_departure:minskISO(data.actual_departure),actual_departure_reason:data.actual_departure_reason||""}});
+       if(!result?.ok){if(feedback)feedback.textContent="Ошибка сохранения. Дата не подтверждена.";return;}
+       await loadDetail();
+       const stored=state.detail?.state?.actual_departure;
+       if(!stored){alertText("Сервер не подтвердил фактическую дату. Повторно проверьте запись.",true);}
+       else alertText("Фактическая дата отправления сохранена.");
+     }finally{if(btn?.isConnected){btn.disabled=false;btn.textContent="Сохранить";}}
+     return;
+   }
+   if(kind==="plan"){
+     if(departurePlans(state.detail).length>=4){alertText("Достигнут предел: четыре переноса",true);return;}
+     if(!data.new_plan_date||!String(data.new_plan_reason||"").trim()){alertText("Укажите новую дату и причину",true);return;}
+     const button=f.querySelector('button[type="submit"]'),feedback=f.querySelector('.t2-plan-feedback');
+     if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     if(feedback)feedback.textContent="Проверяем сохранение…";
+     const before=departurePlans(state.detail).length;
+     try{
+       const result=await update("save",{fields:{new_plan_date:minskISO(data.new_plan_date),new_plan_reason:String(data.new_plan_reason).trim()}});
+       if(!result?.ok){if(feedback)feedback.textContent="Не удалось сохранить. Проверьте сообщение об ошибке.";return;}
+       await loadDetail();
+       const after=departurePlans(state.detail).length;
+       if(after<=before){alertText("Сервер не подтвердил добавление переноса. Данные не считаются сохранёнными.",true);}
+       else alertText("Перенос № "+after+" сохранён. Следующая строка доступна.");
+     }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
+   }
+   if(kind==="container"){
+     const value=String(data.container_no||"").trim();
+     if(!value){alertText("Введите номер контейнера",true);return;}
+     const button=f.querySelector('button[type="submit"]');
+     if(button){button.disabled=true;button.textContent="Сохраняем…";}
+     try{
+       const result=await update("save",{fields:{container_no:value}});
+       if(!result?.ok)return;
+       const found=(state.detail?.containers||[]).some(c=>String(c.container_no||"").trim()===value);
+       if(found)alertText("Номер контейнера сохранён: "+value);
+       else alertText("Сервер ответил, но номер контейнера не найден в обновлённых данных. Проверьте сохранение.",true);
+     }finally{if(button?.isConnected){button.disabled=false;button.textContent="Сохранить";}}
+     return;
+   }
+   if(kind==="save"){
+     const fields={};
+     for(const [key,value] of Object.entries(data)){
+       if(value===""||key==="__method")continue;
+       if(key==="pto_yes"){fields.pto_yes=value==="yes";continue;}
+       fields[key]=["new_plan_date","actual_departure","location_date","pto_date","customs_date","warehouse_date"].includes(key)?minskISO(value):value;
+     }
+     if(fields.new_plan_date&&!fields.new_plan_reason){alertText("Укажите причину переноса плановой даты",true);return;}
+     if(fields.location&&!fields.location_date){alertText("Укажите дату контрольной точки",true);return;}
+     if(fields.pto_yes&&!fields.pto_date){alertText("Укажите дату прибытия на ПТО",true);return;}
+     return update("save",{fields,...(csvMeta?{csv:csvMeta}:{})});
+   }
+   if(kind==="ved_logistic_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
+     const assignedLogin=String(data.assignedLogin||"").trim().toLowerCase(),description=String(data.description||"").trim();
+     if(!assignedLogin){vedRequestFeedback("Выберите сотрудника логистики.",true);return;}
+     if(!types.length&&!description){vedRequestFeedback("Выберите документ или укажите, что требуется.",true);return;}
+     if(state.busy){vedRequestFeedback("Запрос уже отправляется.");return;}
+     const btn=f.querySelector('button[type="submit"]');
+     if(btn){btn.disabled=true;btn.textContent="Отправляем…";}
+     vedRequestFeedback("Создаём адресную задачу логисту…");
+     try{
+       const result=await update("request_logistic_docs",{
+         assignedLogin,description:description||"Предоставить документы: "+types.join(", "),types,requestId:crypto.randomUUID()
+       });
+       if(result?.ok)vedRequestFeedback("✓ Задача направлена логисту"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+".");
+       else vedRequestFeedback("Запрос не отправлен. "+(result?.error||"Проверьте поля."),true);
+     }catch(e){vedRequestFeedback("Запрос не отправлен: "+(e.message||"Ошибка"),true);}
+     finally{const b=document.querySelector('#task2-root form[data-t2-form="ved_logistic_docs"] button[type=submit]');if(b){b.disabled=false;b.textContent="Направить задачу логисту";}}
+     return;
+   }
+   if(kind==="request_carrier_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value).filter(Boolean);
+     const description=String(data.description||"").trim();
+     if(!types.length&&!description){alertText("Выберите документ для запроса",true);return;}
+     await update("request_carrier_docs",{types,description:description||"Предоставить документ: "+types.join(", "),requestId:crypto.randomUUID()});
+     return;
+   }
+   if(kind==="request_docs"){
+     const types=Array.from(f.querySelector('select[name="types"]')?.selectedOptions||[]).map(x=>x.value);
+     const description=String(data.description||"").trim();
+     if(!types.length&&!description){
+       requestFeedback("Выберите документ или напишите, что требуется.",true);
+       f.querySelector('select[name="types"]')?.focus();
+       return;
+     }
+     data.description=description||(data.kind==="transport_documents"?"Просим предоставить документы на перевозку: ":"Просим предоставить недостающие документы: ")+types.join(", ");
+     data.types=types;
+     if(state.busy){requestFeedback("Запрос уже отправляется. Дождитесь результата.");return;}
+     const btn=f.querySelector('button[type="submit"]');
+     if(btn){btn.disabled=true;btn.textContent="Отправляем…";}
+     requestFeedback("Отправляем запрос в ВЭД…");
+     try{
+       const result=await update("request_docs",{...data,...(csvMeta?{csv:csvMeta}:{})});
+       if(result?.ok)requestFeedback("✓ Запрос отправлен ВЭД. Задача"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+" создана."+(result.refreshError?" Не удалось обновить список: "+result.refreshError:""));
+       else requestFeedback("Запрос не отправлен. "+(result?.error||"Проверьте поля и повторите."),true);
+     }catch(e){requestFeedback("Запрос не отправлен. "+(e.message||"Ошибка"),true);}
+     finally{const active=document.querySelector('#task2-root form[data-t2-form="request_docs"] button[type="submit"]');if(active){active.disabled=false;active.textContent="Направить запрос ВЭД";}}
+     return;
+   }
+   if(kind==="act"){
+     const action=data.action;delete data.action;const latest=state.detail?.acts?.[0];return update(action,{data,...(latest&&["draft","disputed","sent"].includes(latest.state)?{expectedRevision:latest.revision}:{}),...(csvMeta?{csv:csvMeta}:{})});
+   }
+   if(kind==="pto")return update("pto",{date:data.date?minskISO(data.date):"",arrived:data.arrived==="yes"});
+   if(["new_plan","actual_departure","location","customs"].includes(kind)&&data.date){try{data.date=minskISO(data.date);}catch(e){alertText(e.message,true);return;}}
+   return update(kind,{...data,...(csvMeta?{csv:csvMeta}:{})});
+ }
+ async function onClick(ev){
+   const hit=ev.target.closest("[data-t2-action],[data-t2-tab],[data-t2-doc],[data-t2-open-transport],[data-t2-task-complete],[data-t2-act-response],[data-t2-act-download],[data-t2-refresh],[data-t2-csv-download],[data-t2-filter]");
+   if(!hit)return;
+   if(hit.hasAttribute("data-t2-filter")){
+     const next=hit.getAttribute("data-t2-filter");
+     if(!["active","archive"].includes(next))return;
+     state.listView=next;
+     const visible=state.items.filter(i=>next==="archive"?i.process_status==="completed":i.process_status!=="completed");
+     const order=visible.some(i=>i.order_code===state.selected)?state.selected:(visible[0]?.order_code||"");
+     if(order!==state.selected){await selectShipment(order,{force:true});}
+     else show();
+     return;
+   }
+   if(hit.hasAttribute("data-t2-csv-download"))return csv.download(hit.closest("form"));
+   if(hit.hasAttribute("data-t2-refresh")){
+     if(state.busy||state.refreshing)return;
+     state.refreshing=true;hit.disabled=true;
+     const root=document.getElementById(eid);if(root)root.dataset.refreshing="true";
+     try{await loadList();}catch(e){alertText(e.message,true);}
+     finally{state.refreshing=false;if(root)root.dataset.refreshing="false";const button=root?.querySelector("[data-t2-refresh]");if(button)button.disabled=false;}
+     return;
+   }
+   if(hit.dataset.t2Tab){state.tab=hit.dataset.t2Tab;show();return;}
+   if(hit.hasAttribute("data-t2-open-transport")){
+     location.hash="#transport-applications";return;
+   }
+   if(hit.dataset.t2Doc){await downloadDoc(hit.dataset.t2Doc);return;}
+   if(hit.dataset.t2ActDownload){exportAct(hit.dataset.t2ActDownload);return;}
+   if(hit.dataset.t2TaskComplete){
+     const kind=hit.dataset.kind;
+     let payload={taskId:hit.dataset.t2TaskComplete};
+     if(kind==="warehouse_acceptance"){
+       const answer=window.prompt("Дата фактической приёмки на складе (YYYY-MM-DDTHH:mm)",new Date().toISOString().slice(0,16));
+       if(!answer)return;payload.date=minskISO(answer);
+     }else if(!window.confirm(kind==="ved_request_carrier"?"Подтвердить, что документы перевозчика получены и проверены?":"Завершить задачу ВЭД после проверки документов?"))return;
+     await update("complete_task",payload);return;
+   }
+   if(hit.dataset.t2ActResponse){
+     const response=hit.dataset.t2ActResponse;
+     const reason=response==="dispute"?window.prompt("Обязательная причина отказа в согласовании акта:",""):"";
+     if(response==="dispute"&&!reason)return;
+     if(response==="accept"&&!window.confirm("Согласовать текущую редакцию акта? Это не закроет перевозку с претензией."))return;
+     const act=state.detail?.acts?.find(x=>x.id===hit.dataset.id);
+     await update("act_response",{actId:hit.dataset.id,revision:act?.revision,response,reason});return;
+   }
+   if(hit.dataset.t2Action==="extra-weekly-point"){state.extraTrackingRows++;show();return;}
+   if(hit.dataset.t2Action==="finish"){await update("finish",{});return;}
+   if(hit.dataset.t2Action==="take"){await update("take",{});return;}
+ }
+ function addHints(){
+   document.querySelectorAll(".cabinet-panel label").forEach(label=>{
+     if(label.closest("#task2-root")||label.dataset.t2HintAttached||label.dataset.task2Explained)return;
+     const control=label.querySelector("input,textarea,select");if(!control)return;
+     const caption=label.textContent.trim().slice(0,90);
+     if(!caption||control.type==="hidden")return;
+     label.dataset.t2HintAttached="1";
+     if(!control.title)control.title="Поле: "+caption+". Укажите данные согласно назначению; для подробных инструкций откройте Помощь / FAQ.";
+     const q=document.createElement("span");q.className="t2-legacy-hint";q.title=control.title;q.textContent=" ⓘ";
+     label.append(q);
+   });
+ }
+ let attached=false,queue=false;
+ function mount(){
+   if(queue)return;queue=true;requestAnimationFrame(async()=>{
+     queue=false;addHints();
+     const pane=getTarget();if(!pane||pane.querySelector("#"+eid))return;
+     const node=document.createElement("section");node.id=eid;pane.prepend(node);show();
+     try{await loadList();}catch(e){alertText(e.message||"Не удалось загрузить исполнение",true);}
+   });
+ }
+ document.addEventListener("click",ev=>{onClick(ev).catch(e=>alertText(e.message,true));});
+ document.addEventListener("submit",ev=>{onSubmit(ev).catch(e=>alertText(e.message,true));});
+ document.addEventListener("change",async ev=>{
+   if(ev.target.id==="t2-select"){try{await selectShipment(ev.target.value);}catch(e){alertText(e.message,true);}}
+   if(ev.target.matches('form[data-t2-form="request_docs"] select[name="types"]')){
+     const selected=Array.from(ev.target.selectedOptions).map(o=>o.value);
+     const info=ev.target.closest("label")?.querySelector("[data-t2-selected-documents]");
+     if(info)info.textContent=selected.length?"Выбрано: "+selected.join(", ")+". Для отправки нажмите кнопку ниже.":"Выберите документ и нажмите «Направить запрос ВЭД».";
+   }
+   if(ev.target.hasAttribute("data-t2-csv-upload")){
+     try{await csv.upload(ev.target.closest("form"),ev.target.files?.[0]);}catch(e){alertText(e.message,true);}
+     ev.target.value="";
+   }
+ });
+ const observer=new MutationObserver(mount);
+ observer.observe(document.documentElement,{childList:true,subtree:true});
+ window.addEventListener("carrier-flow-open-execution",async event=>{
+   const order=String(event.detail?.order||"");
+   if(!order)return;
+   try{
+     if(!state.items.some(item=>item.order_code===order))await loadList();
+     if(!state.items.some(item=>item.order_code===order))return;
+     state.listView=state.items.find(item=>item.order_code===order)?.process_status==="completed"?"archive":"active";
+     await selectShipment(order,{force:true});
+   }catch(error){alertText(error.message||"Не удалось открыть выбранную перевозку",true);}
+ });
+ window.addEventListener("map-geocodes-changed",()=>{loadDetail().catch(e=>alertText(e.message,true));});
+ document.addEventListener("DOMContentLoaded",mount);
+ mount();
+})();

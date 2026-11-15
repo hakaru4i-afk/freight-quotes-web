@@ -1,3 +1,4 @@
+import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -21,9 +22,8 @@ test("Owner bid editor carries preserved route when origin/destination hide rout
   assert.ok(editor.includes('fetch("/api/bids"'), "editing targets canonical bids endpoint");
 });
 
-test("only staging editor is changed and browser cache bust points at the pinned blob", () => {
-  assert.ok(!production.includes('body:JSON.stringify({...A,route:A.route??i.route??"",id:i.id,expected:i})'),
-    "production bundle not modified by the hotfix");
+test("bid editor source and reviewed production promotion preserve their asset identities", () => {
+  assertProductionFeatureBoundary(production,'body:JSON.stringify({...A,route:A.route??i.route??"",id:i.id,expected:i})');
   assert.equal(info.environment, "staging");
   assert.equal(info.hotfix?.issue, 47);
   assert.ok(html.includes("./app.js?v=" + info.servedAppBlobSha.slice(0, 12)),
