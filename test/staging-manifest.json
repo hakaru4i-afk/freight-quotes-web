@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "a75067fbb29c6a0a9d7b33053f3b2f482a779a34",
+  "frontendCommit": "d417736cd7bfeed7e821eb7fde1d8760648db805",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/isolated-qa-oidc-browser.yml": "158ac841575758db7e165487737ce5468d44b9811e5361a1e5bc468d658a966f",
@@ -82,7 +82,7 @@
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "test/app.js": "730ac0c1757895d4321131dcadf3faf55b035378412e7c3cab117e33826479ed",
-    "test/build-info.json": "34a1ff9059025d6de52f17957411458e18f7ab83ca250dc22a6c268aecdd3e54",
+    "test/build-info.json": "e1a6828d477e52b15ea45ac2c1fc90ba95bcbf192e6dfaf9ba1a784b22add0fe",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "1e4e9898402df2043830d345513e4fa14758986815136844ec1e27b6124bcdb3",
     "test/business-process-model.json": "335b91e3168de2d3f71a03cbd239cb42aa1ee813ec8f7d585e2e2c9d7ae2c441",
