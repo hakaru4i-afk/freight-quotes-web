@@ -8,3 +8,6 @@
 #task2-root .t2-stage :is(h1,h2,h3,h4,label,legend,strong){-webkit-text-fill-color:currentColor}
 #task2-root .t2-stage :is(h1,h2,h3,h4){color:var(--portal-light-ink)}
 #task2-root .t2-stage :is(.t2-muted,.t2-empty){color:var(--portal-light-muted);opacity:1}
+/* Unread counts keep readable ink even when navigation icon rules recolor nested spans. */
+#root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter{background:#f5ca72!important;color:#13283e!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+#root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter > span[aria-hidden="true"]{color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
