@@ -11,3 +11,6 @@
 /* Unread counts keep readable ink even when navigation icon rules recolor nested spans. */
 #root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter{background:#f5ca72!important;color:#13283e!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
 #root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter > span[aria-hidden="true"]{color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+
+/* Production: keep multi-digit shipment counters on one line. */
+#root [data-cabinet-role] #task2-root button.t2-list-filter > span{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;flex:0 0 auto!important;min-width:2.25em!important;width:auto!important;max-width:none!important}
