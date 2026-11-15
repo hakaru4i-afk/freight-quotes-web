@@ -437,17 +437,25 @@
     (canComplete&&t.task_type==="pto_review"?'<form data-t2-form="pto-review"><input type="hidden" name="taskId" value="'+esc(t.id)+'"><label><input type="checkbox" name="packageComplete"> Комплект документов полный и корректный</label><button type="submit" class="t2-btn" name="decision" value="approve">Подтвердить комплект документов</button><label>Замечания перевозчику<textarea name="remarks" minlength="10" maxlength="2000"></textarea></label><button type="submit" class="t2-btn ghost" name="decision" value="remarks">Направить замечания в чат заявки</button><small>При замечаниях эта же задача остаётся открытой до повторной проверки.</small></form>':canComplete?'<button type="button" class="t2-btn" data-t2-task-complete="'+esc(t.id)+'" data-kind="'+esc(t.task_type)+'">'+
      (isReverse?"Подтвердить передачу документов":t.task_type==="ved_request_carrier"?"Подтвердить получение документов":"Завершить задачу ВЭД")+'</button>':"")+'</article>';
  }
- async function loadList(){
+ let listFlight=null,listRequest=0;
+ function loadList({force=false}={}){
+   if(listFlight&&!force)return listFlight;
+   const pending=fetchList(force,++listRequest).finally(()=>{if(listFlight===pending)listFlight=null;});
+   listFlight=pending;return pending;
+ }
+ async function fetchList(force=false,request=listRequest){
    const list=await get("");
+   if(request!==listRequest)return;
    state.role=list.addressedOnly?'logistic':list.role==='logistic'?'ved':list.role;
    const cabinet=document.querySelector('.cabinet-app');if(cabinet&&list.addressedOnly&&cabinet.dataset.addressedLogistic!=='true'){cabinet.dataset.addressedLogistic='true';window.dispatchEvent(new Event('lw-addressed-logistic-ready'));}
    state.addressedOnly=!!list.addressedOnly;state.login=String(list.viewer||"").toLowerCase();
    if(["ved","logistic"].includes(state.role)&&!state.addressedOnly){
      try{
        const recipientInfo=await get("?logistic_recipients=1");
+       if(request!==listRequest)return;
        state.logistics=Array.isArray(recipientInfo.recipients)?recipientInfo.recipients:[];
        state.login=String(recipientInfo.viewer||"").toLowerCase();
-     }catch(e){state.logistics=[];state.login="";alertText("Не удалось получить список сотрудников логистики: "+e.message,true);}
+     }catch(e){if(request!==listRequest)return;state.logistics=[];state.login="";alertText("Не удалось получить список сотрудников логистики: "+e.message,true);}
    }
    const incoming=list.items||[];
    if(state.role==="ved"){
@@ -461,14 +469,22 @@
    }else state.items=incoming;
    const visible=state.items.filter(i=>state.listView==="archive"?i.process_status==="completed":i.process_status!=="completed");
    if(!visible.some(o=>o.order_code===state.selected))state.selected=visible[0]?.order_code||"";
-   await loadDetail();
+   await loadDetail({force});
  }
  let detailRequest=0;
+ let detailFlight=null;
  async function selectShipment(order,{force=false}={}){
    if(!force&&state.selected===order&&state.detail?.shipment?.order_code===order)return;
-   state.selected=order;return loadDetail();
+   state.selected=order;return loadDetail({force});
  }
- async function loadDetail(){
+ function loadDetail({force=false}={}){
+   const order=state.selected;
+   if(!force&&detailFlight?.order===order)return detailFlight.pending;
+   const flight={order,pending:null};
+   flight.pending=fetchDetail().finally(()=>{if(detailFlight===flight)detailFlight=null;});
+   detailFlight=flight;return flight.pending;
+ }
+ async function fetchDetail(){
    const order=state.selected,request=++detailRequest;
    state.detail=null;state.notice="";show();
    let detail;
@@ -510,7 +526,7 @@
        result=await call({...payload,answer:yes?"yes":"no"});
      }
      let refreshError="";
-     try{await loadList();}catch(e){
+     try{await loadList({force:true});}catch(e){
        if(action!=="request_docs")throw e;
        refreshError=e.message||"Ошибка обновления";
      }
