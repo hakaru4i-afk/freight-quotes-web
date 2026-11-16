@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "2b87d0ca20b151aa4dd8b64a74203f68fc25b99a618bc7ea9e4f0c8f71f5447a",
+  "modelSha256": "be44b9f765ec3bc5f50fb90538e9cd2cf69989b8e972d64d670d8bd7fa80941c",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -618,13 +618,13 @@
       "test/global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
       "test/ved-single-workspace-20261108.css": "68837f2b8ae30c0b36f7bb2bba36186e86f7a81f13b1f007871738dbeb7211b7",
       "test/lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
-      "test/lw-ved-shared-chat-20261109.css": "773dace363b52ed4192977c97569d6a5be13c1ad2e027f177112e4e2aa7e7f4a",
+      "test/lw-ved-shared-chat-20261109.css": "2d85ea6560bfa9e93860d3a00a0d31a68b0447851027c573faeedee281122624",
       "test/lw-contrast-canonical-20261111.css": "d74259a8f31013d9721508f6509553c53a57504d3a10f3f3e33eb52b3c98ac4d",
       "test/task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
       "test/public-support-20261115.css": "bab5b910f267c74dd0516b5bf9e4d1addddfb228433b2b6a85a2047b24c92bfc",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "547b8d17eaf47572195c292811e4b80320f13b1bba0dcaa800e70757e964fd88",
+      "test/app.js": "3d08367e47e242f3f15a96e4931de9343c15da94c9ab342605c969ffb367f451",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
       "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
