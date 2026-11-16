@@ -46,32 +46,21 @@
  async function getData(){
    if(loaded)return;loaded=true;
    try{
-     const res=await fetch("/api/task2",{cache:"no-store",credentials:"same-origin"});
+     const res=await fetch("/api/task2?pending=1",{cache:"no-store",credentials:"same-origin"});
      if(!res.ok)throw Error("API "+res.status);
      const payload=await res.json();
-     if(payload.role!=="carrier"||!Array.isArray(payload.items))throw Error("Данные перевозчика недоступны");
+     if(payload.role!=="carrier"||payload.pendingProjection!==true||!Array.isArray(payload.items)||!payload.items.every(x=>typeof x.departure_required==="boolean"))throw Error("Данные перевозчика недоступны");
      records=payload.items;
      const active=records.filter(x=>x.process_status!=="completed");
      const counts={};
      for(const row of active){const k=classify(row.mode);counts[k]=(counts[k]||0)+1;}
-     let transit=0;
-     let detailsRead=0;
-     // Real departures only: a shipment under preparation is not counted as "in transit".
-     const started=active.filter(x=>x.process_status==="in_progress");
-     const completed=await Promise.all(started.slice(0,24).map(async x=>{
-       try {
-         const r=await fetch("/api/task2?order="+encodeURIComponent(x.order_code),{cache:"no-store",credentials:"same-origin"});
-         if(!r.ok)return false;
-         const d=await r.json();detailsRead++;
-         const state=d.state||{};
-         return !!state.actual_departure&&state.status!=="completed";
-       }catch{return false;}
-     }));
-     transit=completed.filter(Boolean).length;
+     // The compact authorized projection already applies the server's actual
+     // departure audit. Never open complete document cards for dashboard counts.
+     const transit=active.filter(x=>x.process_status==="in_progress"&&x.departure_required===false).length;
      info.ready=true;info.counts=counts;
      info.transit=transit;
      info.other=Math.max(0,active.length-transit);
-     info.partial=started.length>24||detailsRead<started.length;
+     info.partial=payload.limited===true;
      render();
    }catch(e){info.error="Данные перевозок пока недоступны";render();}
  }
