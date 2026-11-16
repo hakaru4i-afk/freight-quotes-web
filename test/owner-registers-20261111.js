@@ -132,7 +132,7 @@ function sections(){if(!source)return[];return (source.legacyEntries||source.mar
 const humanStatuses={new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
 const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
 const roleNames={owner:'Владелец',carrier:'Перевозчик',ved:'ВЭД',logistic:'ВЭД / логист',supplier:'Поставщик',visitor:'Посетитель',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
-const recordState=(row,job)=>job?({sent:'new',read:'awaiting_decision',evaluated:'awaiting_decision',in_progress:'in_progress',release:'checking',completed:'fixed_review',denied:'rejected'}[job.status]||row.status):row.status;
+const recordState=(row,job)=>['published','production_verified'].includes(row.status)?row.status:job?({sent:'new',read:'awaiting_decision',evaluated:'awaiting_decision',in_progress:'in_progress',release:'checking',completed:'fixed_review',denied:'rejected'}[job.status]||row.status):row.status;
 const finished=s=>['published','production_verified','rejected'].includes(s);
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);
