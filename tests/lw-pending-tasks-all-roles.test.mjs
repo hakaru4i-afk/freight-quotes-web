@@ -56,15 +56,13 @@ test("owner sees genuine active decisions, excludes deferred transport applicati
 
 test("VED sees only open document tasks assigned to shared logistic role",async()=>{
  const api=harness({...noSession,
-  "/api/access":{access:{login:"user@domain.test"}},
-  "/api/task2":{items:[{order_code:"TEST-001",process_status:"in_progress"}]},
-  "/api/task2?order=TEST-001":{state:{status:"in_progress"},tasks:[
+  "/api/task2?pending=1":{pendingProjection:true,viewer:"user@domain.test",items:[{order_code:"TEST-001",process_status:"in_progress"}],tasks:[
    {id:"ok",assigned_role:"logistic",assigned_login:null,status:"open",task_type:"transport_documents",description:"Упаковочный лист"},
    {id:"done",assigned_role:"logistic",status:"completed",task_type:"pto_review"},
    {id:"warehouse",assigned_role:"logistic",status:"open",task_type:"warehouse_acceptance"},
    {id:"me",assigned_role:"logistic",assigned_login:"user@domain.test",status:"open",task_type:"pto_review"},
    {id:"other-user",assigned_role:"logistic",assigned_login:"other@domain.test",status:"open",task_type:"pto_review"}
-  ]}
+  ].map(t=>({...t,order_code:"TEST-001"}))}
  });
  const result=await api.loadRole("logistic");
  assert.equal(result.tasks.length,2);
@@ -74,14 +72,13 @@ test("VED sees only open document tasks assigned to shared logistic role",async(
 
 test("carrier sees awards awaiting acceptance and assigned container document task",async()=>{
  const api=harness({...noSession,
-  "/api/task2":{items:[
+  "/api/task2?pending=1":{pendingProjection:true,viewer:"carrier@test",items:[
    {order_code:"TEST-WON",process_status:"awaiting_take"},
    {order_code:"TEST-ROAD",process_status:"in_progress"}
-  ]},
-  "/api/task2?order=TEST-ROAD":{state:{status:"in_progress",actual_departure:"2026-11-08T00:00:00Z"},tasks:[
+  ],tasks:[
    {id:"container-1",assigned_role:"carrier",task_type:"container_number",status:"open",description:"Укажите номер контейнера"},
    {id:"old",assigned_role:"carrier",task_type:"container_number",status:"completed"}
-  ]},
+  ].map(t=>({...t,order_code:"TEST-ROAD"}))},
   "/api/carrier":{notifications:[
    {id:"new",order_code:"TEST-QUOTE",round_id:"R1",workflow_status:"pending",is_current:1},
    {id:"old",order_code:"TEST-OLD",round_id:"R0",workflow_status:"pending",is_current:0},
@@ -91,6 +88,19 @@ test("carrier sees awards awaiting acceptance and assigned container document ta
  const result=await api.loadRole("carrier");
  assert.equal(result.tasks.length,3);
  assert.deepEqual(new Set(result.tasks.map(t=>t.id)),new Set(["take:TEST-WON","carrier:container-1","invite:new"]));
+});
+
+test("one compact read finds assignments beyond the old 32-shipment limit without loading cards",async()=>{
+ const items=Array.from({length:100},(_,i)=>({order_code:'ORDER-'+i,process_status:'in_progress'}));
+ const tasks=[33,99].map(i=>({id:'task-'+i,order_code:'ORDER-'+i,assigned_role:'logistic',status:'open',task_type:'pto_review',description:'Review '+i}));
+ const api=harness({...noSession,'/api/task2?pending=1':{pendingProjection:true,viewer:'ved@test',items,tasks}});
+ const result=await api.loadRole('logistic');assert.equal(result.tasks.length,2);assert.equal(result.errors.length,0);
+ assert.equal(api.hits.filter(p=>p.startsWith('/api/task2')).length,1);assert.ok(!api.hits.some(p=>p.includes('?order=')));
+});
+
+test("a legacy or invalid projection never falls back to a card-request flood",async()=>{
+ const api=harness({...noSession,'/api/task2?pending=1':{items:[{order_code:'ORDER-1'}]}});
+ await assert.rejects(api.loadRole('logistic'),/Unexpected assignment projection/);assert.ok(!api.hits.some(p=>p.includes('?order=')));
 });
 
 test("supplier and designer only receive own pending orders and content tasks from access-scoped supplier API",async()=>{
