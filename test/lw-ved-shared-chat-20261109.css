@@ -31,6 +31,7 @@
 @media(max-width:560px){.lw-ved-chat-header{padding:12px;}.lw-ved-chat-thread{height:320px;padding:11px;}.lw-ved-chat-message{max-width:96%;}.lw-ved-chat-composer{padding:12px;}.lw-ved-chat-meta{gap:6px;}}
 
 /* Dedicated VED menu screen; the same conversation is available inside each shipment. */
+.cabinet-app:not(.lw-ved-chat-active) #lw-ved-chat-page{display:none!important;}
 .cabinet-app.lw-ved-chat-active .cabinet-panel {display:none!important;}
 .cabinet-app.lw-ved-chat-active #lw-ved-chat-page{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;}
 #lw-ved-chat-page{padding:16px;min-width:0;}
