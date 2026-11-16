@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "e3f5b284969105b60a250493d9511aa66694136fb1f5305fd5c1edcbdceee0c7",
+  "modelSha256": "f8f7271f7de70d7f4e2e9a44e076e4385b40c5b944054f833316923e59b0df3b",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -618,13 +618,13 @@
       "test/global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
       "test/ved-single-workspace-20261108.css": "68837f2b8ae30c0b36f7bb2bba36186e86f7a81f13b1f007871738dbeb7211b7",
       "test/lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
-      "test/lw-ved-shared-chat-20261109.css": "773dace363b52ed4192977c97569d6a5be13c1ad2e027f177112e4e2aa7e7f4a",
+      "test/lw-ved-shared-chat-20261109.css": "0fd71ba3f4e67a156c6a89721e4b54f2f616a0757fc46fa174d71cc0a769e3ce",
       "test/lw-contrast-canonical-20261111.css": "d74259a8f31013d9721508f6509553c53a57504d3a10f3f3e33eb52b3c98ac4d",
       "test/task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
       "test/public-support-20261115.css": "bab5b910f267c74dd0516b5bf9e4d1addddfb228433b2b6a85a2047b24c92bfc",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "81fbecd02ee874f2c3742310c8f7c0dca40c0a157aa28049673358b947ab3b77",
+      "test/app.js": "099e8f2d54de5df6eb3732892b110e1c7c0089a996bd031c0490333c0676c63e",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
       "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
@@ -637,7 +637,7 @@
       "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
       "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
       "test/carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
-      "test/lw2-staging-20261107.js": "7ec47db347e66185ed4a93f683579f27c52cef36c3583b56759dca90cd40a9dc",
+      "test/lw2-staging-20261107.js": "0f71ad82ccaf45860c60994b516b586b4556968fc534da90f7b2653a7bc3714e",
       "test/carrier-defer-transport-application-20261107.js": "0f7a7173b6cf83514e3969c487803a7c89ad8406f0afc005c707d2e44d75ca3b",
       "test/lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
       "test/lw-approved-dark-20261108.js": "fcae5ead0dbbbcbaa600c2db03689890e0b7a244eec540ee5ef878df71bb0029",
@@ -662,7 +662,7 @@
       "test/global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
       "test/global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283"
     },
-    "reviewedBackendSourceCommit": "fb2d54632920afa7eeb1ede25da122b117300f73",
+    "reviewedBackendSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
     "previousVersion": "20261113-logic-10",
     "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c. Кандидат PROD-GO-LIVE-20261114 проверяется отдельно от опубликованного staging v100. Согласованные правила и оценки готовности сохранены."
   },
