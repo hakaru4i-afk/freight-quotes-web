@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "eb0a1f2bfa5830ddcd5fa7003899a50631cf4b0d940c4909d607b4e9d897e432",
+  "modelSha256": "e3f5b284969105b60a250493d9511aa66694136fb1f5305fd5c1edcbdceee0c7",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -624,7 +624,7 @@
       "test/public-support-20261115.css": "bab5b910f267c74dd0516b5bf9e4d1addddfb228433b2b6a85a2047b24c92bfc",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
-      "test/app.js": "2390291bab62c25820fc8dd8010c06c01650061b029a3b5fc2af725ba1dd0ff3",
+      "test/app.js": "81fbecd02ee874f2c3742310c8f7c0dca40c0a157aa28049673358b947ab3b77",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
       "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
@@ -645,7 +645,7 @@
       "test/current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
       "test/owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
       "test/owner-command-center-20261108.js": "1adfcad6ea0e15c0012abb9285ed7baffbd9501745811025e3fb96cb4e4a31dc",
-      "test/owner-registers-20261111.js": "23eb6e16e2ef39c459f8e051a1a11fde2216b605fb72ab7d4e334a448b9e4e2e",
+      "test/owner-registers-20261111.js": "ea5bba209bfcb4b4322b6d69d49385bf958717964c510556128ee85ad965a39b",
       "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
       "test/global-view/view.mjs": "69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f",
       "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
@@ -662,7 +662,7 @@
       "test/global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
       "test/global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283"
     },
-    "reviewedBackendSourceCommit": "d98b033d25e373c9f306b468abe4e2d4658dc501",
+    "reviewedBackendSourceCommit": "fb2d54632920afa7eeb1ede25da122b117300f73",
     "previousVersion": "20261113-logic-10",
     "technicalContext": "Защита выбора перевозки: повторный выбор текущей не перезагружает форму; устаревший ответ не заменяет данные новой. Этапы/права/SL неизменны. Shared API v89 / QA v8, source 276409c. Кандидат PROD-GO-LIVE-20261114 проверяется отдельно от опубликованного staging v100. Согласованные правила и оценки готовности сохранены."
   },
