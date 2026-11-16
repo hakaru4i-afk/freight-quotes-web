@@ -29,14 +29,18 @@ const rows=[
  {order_code:"TR-26-000103",mode:"Море",process_status:"in_progress"},
  {order_code:"TR-26-000104",mode:"Авиа",process_status:"in_progress"}
 ];
+for(const row of rows)row.departure_required=!row.order_code.endsWith("101")&&!row.order_code.endsWith("103");
+rows.push(...Array.from({length:60},(_,i)=>({order_code:"TR-BULK-"+i,mode:"Авто",process_status:"in_progress",departure_required:false})));
+const apiRequests=[];
 const mime={".css":"text/css",".js":"text/javascript",".svg":"image/svg+xml"};
 const serve=(req,res)=>{
  const url=new URL(req.url,"http://localhost");
  if(url.pathname==="/fixture"){res.writeHead(200,{"Content-Type":"text/html; charset=utf-8"});res.end(html);return;}
  if(url.pathname==="/api/task2"){
   res.writeHead(200,{"Content-Type":"application/json"});
+  apiRequests.push(url.search);
   const id=url.searchParams.get("order");
-  res.end(JSON.stringify(id?{state:{status:"in_progress",actual_departure:id.endsWith("101")||id.endsWith("103")?"2026-11-07":null}}:{role:"carrier",items:rows}));return;
+  res.end(JSON.stringify(id?{state:{status:"in_progress",actual_departure:id.endsWith("101")||id.endsWith("103")?"2026-11-07":null}}:{role:"carrier",pendingProjection:true,limited:false,items:rows}));return;
  }
  const file=path.resolve("."+url.pathname);
  if(!file.startsWith(path.resolve("test")+path.sep)){res.writeHead(404);res.end();return;}
@@ -45,7 +49,7 @@ const serve=(req,res)=>{
 test("LW2 appears on carrier overview with functional widgets and mobile layout",async()=>{
  const server=createServer(serve);
  await new Promise(r=>server.listen(0,"127.0.0.1",r));
- const browser=await chromium.launch({headless:true});
+ const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900},deviceScaleFactor:1});
   const errors=[];page.on("pageerror",e=>errors.push(e.message));
@@ -58,8 +62,8 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   assert.equal(await page.locator('a[href="#transport-applications"]').evaluate(el=>getComputedStyle(el).display),"none");
   assert.ok(!(await page.locator("#lw2-dashboard .lw2-kpis").innerText()).includes("Транспортные заявки"));
   assert.ok((await page.locator("#lw2-dashboard .lw2-kpis").innerText()).includes("Ожидают ставки"));
-  assert.equal(await page.locator("#lw2-dashboard .lw2-donut .lw2-hole strong").textContent(),"4");
-  assert.equal(await page.locator("#lw2-dashboard .lw2-kpi").nth(2).locator("strong").textContent(),"2");
+  assert.equal(await page.locator("#lw2-dashboard .lw2-donut .lw2-hole strong").textContent(),"64");
+  assert.equal(await page.locator("#lw2-dashboard .lw2-kpi").nth(2).locator("strong").textContent(),"62");
   assert.equal(await page.locator(".overview-metrics").evaluate(el=>getComputedStyle(el).display),"none");
   const banner=await page.locator(".overview-welcome").evaluate(el=>getComputedStyle(el,"::before").backgroundImage);
   assert.ok(banner.includes("lw2-hero-20261107.svg"),banner);
@@ -86,6 +90,7 @@ test("LW2 appears on carrier overview with functional widgets and mobile layout"
   const layout=await page.evaluate(()=>({scroll:document.documentElement.scrollWidth,view:innerWidth}));
   assert.ok(layout.scroll<=layout.view+2,JSON.stringify(layout));
   await page.screenshot({path:"lw2-mobile-qa.png",fullPage:true});
+  assert.equal(apiRequests.length,2,"Only the two overview visits load dashboard counts");assert.ok(apiRequests.every(q=>q==="?pending=1"),"Dashboard must use compact reads and never fan out to full cards: "+JSON.stringify(apiRequests));
   assert.deepEqual(errors,[]);
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 });
