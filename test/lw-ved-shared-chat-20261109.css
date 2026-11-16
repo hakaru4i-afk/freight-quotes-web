@@ -32,6 +32,7 @@
 
 /* Dedicated VED menu screen; the same conversation is available inside each shipment. */
 .cabinet-app:not(.lw-ved-chat-active) #lw-ved-chat-page{display:none!important;}
+#lw-ved-chat-page .lw-ved-chat-composer[hidden]{display:none!important;}
 .cabinet-app.lw-ved-chat-active .cabinet-panel {display:none!important;}
 .cabinet-app.lw-ved-chat-active #lw-ved-chat-page{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;}
 #lw-ved-chat-page{padding:16px;min-width:0;}
