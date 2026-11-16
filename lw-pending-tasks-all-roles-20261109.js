@@ -73,45 +73,30 @@ async function fetchOwner(){
  return {tasks,total:Math.max(total,tasks.length),errors,supported:true};
 }
 async function fetchTask2(role){
- const d=await get("/api/task2");
- if(!Array.isArray(d.items))throw Error("Unexpected shipment list");
+ const d=await get("/api/task2?pending=1");
+ if(d.pendingProjection!==true||!Array.isArray(d.items)||!Array.isArray(d.tasks))throw Error("Unexpected assignment projection");
  const rows=d.items.filter(x=>x&&x.order_code&&x.process_status!=="completed");
- const tasks=[],errors=[];
- let assignedLogin="";
- if(role==="logistic"){
-  try{const access=await get("/api/access");assignedLogin=String(access.access?.login||"").trim().toLowerCase();}
-  catch(_){errors.push("Не удалось проверить персональные назначения");}
- }
+ const byOrder=new Map(rows.map(x=>[x.order_code,x])),tasks=[],errors=[];
+ const assignedLogin=String(d.viewer||"").trim().toLowerCase();
  for(const x of rows){
   if(role==="carrier"&&x.process_status==="awaiting_take"){
    tasks.push(makeTask("take:"+x.order_code,word("take"),x.registration_no||x.order_code,"approved-shipments",x.order_code,x.created));
+  }else if(role==="carrier"&&x.departure_required===true){
+   tasks.push(makeTask("departure:"+x.order_code,word("departure"),x.registration_no||x.order_code,"approved-shipments",x.order_code,""));
   }
  }
- // Read at most 32 relevant shipments, in small groups, to avoid flooding the user's session.
- const candidates=rows.filter(x=>x.process_status!=="awaiting_take");
- const active=candidates.slice(0,32);
- for(let i=0;i<active.length;i+=4){
-  const outcome=await Promise.allSettled(active.slice(i,i+4).map(x=>get("/api/task2?order="+encodeURIComponent(x.order_code))));
-  outcome.forEach((o,j)=>{
-   if(o.status!=="fulfilled"){errors.push("Перевозка");return;}
-   const d=o.value,x=active[i+j],state=d.state||{};
-   if(role==="carrier"&&!state.actual_departure&&state.status!=="completed"){
-    tasks.push(makeTask("departure:"+x.order_code,word("departure"),x.registration_no||x.order_code,"approved-shipments",x.order_code,""));
-   }
-   for(const t of Array.isArray(d.tasks)?d.tasks:[]){
-    if(!isOpen(t.status))continue;
-    if(role==="logistic"){
-     if(t.assigned_role!=="logistic"||!docTasks.has(t.task_type))continue;
-     if(t.assigned_login&&String(t.assigned_login).toLowerCase()!==assignedLogin)continue;
-     tasks.push(makeTask("ved:"+t.id,t.task_type==="ved_request_logistic"?"Предоставить документы ВЭД":word("ved"),(x.registration_no||x.order_code)+" · "+(t.description||t.task_type),"approved-shipments",x.order_code,t.created_at));
-    }else if(role==="carrier"){
-     if(t.assigned_role!=="carrier"||t.task_type!=="container_number")continue;
-     tasks.push(makeTask("carrier:"+t.id,word("carrier"),(x.registration_no||x.order_code)+" · "+(t.description||""),"approved-shipments",x.order_code,t.created_at));
-    }
-   }
-  });
+ for(const t of d.tasks){
+  const x=byOrder.get(t.order_code);if(!x||x.process_status==="awaiting_take"||!isOpen(t.status))continue;
+  if(role==="logistic"){
+   if(t.assigned_role!=="logistic"||!docTasks.has(t.task_type))continue;
+   if(t.assigned_login&&String(t.assigned_login).toLowerCase()!==assignedLogin)continue;
+   tasks.push(makeTask("ved:"+t.id,t.task_type==="ved_request_logistic"?"Предоставить документы ВЭД":word("ved"),(x.registration_no||x.order_code)+" · "+(t.description||t.task_type),"approved-shipments",x.order_code,t.created_at));
+  }else if(role==="carrier"){
+   if(t.assigned_role!=="carrier"||t.task_type!=="container_number")continue;
+   tasks.push(makeTask("carrier:"+t.id,word("carrier"),(x.registration_no||x.order_code)+" · "+(t.description||""),"approved-shipments",x.order_code,t.created_at));
+  }
  }
- if(candidates.length>active.length)errors.push("Не все перевозки проверены");
+ if(d.limited)errors.push("Не все перевозки проверены");
  return {tasks,total:tasks.length,errors,supported:true};
 }
 async function fetchCarrier(){

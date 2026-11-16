@@ -1,9 +1,9 @@
 {
   "environment": "production",
-  "version": "652b57cc8c083bef06f6",
+  "version": "f473e9f6be7bf76405cb",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ooclsrndeygojtofuyte",
-  "build": "652b57cc8c083bef06f6",
+  "build": "f473e9f6be7bf76405cb",
   "releaseStatus": "PUBLISHED_PENDING_PRODUCTION_VERIFICATION",
-  "sourceStagingBuild": "3d091316e008a3527866"
+  "sourceStagingBuild": "7ed3e6f6466eb787d6ae"
 }
