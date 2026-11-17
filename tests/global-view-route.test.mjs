@@ -20,7 +20,7 @@ test('unknown waypoint breaks a route, station names and explicit coordinates st
     { incoterm_place: 'Нинбо', route: 'Нет координат этой станции', destination_station: 'Минск', mode: 'Море + Авто' }, resolve);
   assert.equal(route.mode, 'multi');
   assert.equal(route.stops[2].position, null);
-  assert.equal(route.segments.length, 1);
+  assert.equal(route.segments.length, 2); // city fallback now connects the first leg
   assert.ok(route.stops[0].position, "A recognizable city must provide a preliminary automatic point");
   assert.equal(route.stops[0].position.approximate, true);
   assert.equal(route.stops[0].position.confirmed, false);
