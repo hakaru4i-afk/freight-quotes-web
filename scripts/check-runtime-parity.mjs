@@ -15,7 +15,7 @@ function linkedAssets(page){
 // narrowly enumerated environment wiring. Build IDs are NOT business logic.
 function normalizeMainApp(text){
  return text
-  .replace(/staging-api-region\\.mjs\\?v=[a-f0-9]{12,20}/g,'staging-api-region.mjs?v=<cache>')
+  .replace(/staging-api-region\.mjs\?v=[a-f0-9]{12,20}/g,'staging-api-region.mjs?v=<cache>')
   .replace(/environment:"(?:staging|production)"/g,'environment:"<environment>"')
   .replace(/currentVersion:"[a-f0-9]{20}"/g,'currentVersion:"<build>"')
   .replaceAll(prodProject,'PROJECT').replaceAll(testProject,'PROJECT')
