@@ -41,11 +41,24 @@ jobs:
           node --check scripts/reindex-staging-manifest.mjs
           node --check scripts/check-runtime-parity.mjs
           node scripts/check-runtime-parity.mjs
+      - name: Skip re-stamping when all source, business and visual checks already pass
+        id: preflight
+        shell: bash
+        run: |
+          if node scripts/check-staging-alignment.mjs && node scripts/stamp-staging-rc.mjs --check && node scripts/build-process-maps.mjs --check; then
+            echo "noop=true" >> "$GITHUB_OUTPUT"
+            echo "STAGING_ALREADY_COHERENT"
+          else
+            echo "noop=false" >> "$GITHUB_OUTPUT"
+            echo "STAGING_REBUILD_REQUIRED"
+          fi
       - name: Regenerate cache keys and version hashes for staging only
+        if: steps.preflight.outputs.noop != 'true'
         run: |
           node scripts/stamp-staging-rc.mjs --write
           node scripts/stamp-staging-rc.mjs --check
       - name: Review exactly the already approved cosmetic source delta and regenerate process snapshots
+        if: steps.preflight.outputs.noop != 'true'
         run: |
           node --check scripts/approve-ui-process-provenance.mjs
           node scripts/approve-ui-process-provenance.mjs --write
@@ -54,6 +67,7 @@ jobs:
           node scripts/build-process-maps.mjs --check
           node scripts/stamp-staging-rc.mjs --check
       - name: Commit independently reproducible staging assets
+        if: steps.preflight.outputs.noop != 'true'
         run: |
           set -euo pipefail
           git config user.name "staging-coherence-bot"
@@ -63,6 +77,7 @@ jobs:
             git commit -m "build(staging): stamp canonical frontend and cache hashes"
           fi
       - name: Re-index all protected staging sources against committed build
+        if: steps.preflight.outputs.noop != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -76,6 +91,7 @@ jobs:
             git commit -m "chore(staging): pin exact candidate source commit and asset hashes"
           fi
       - name: Fast-forward only; never overwrite other changes or alter production data
+        if: steps.preflight.outputs.noop != 'true'
         shell: bash
         run: |
           set -euo pipefail
