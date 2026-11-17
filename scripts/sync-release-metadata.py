@@ -37,6 +37,12 @@ test_data['release']=active
 test_data['releases']=[active]+[x for x in test_data['releases'] if x['version']!=version]
 write(staging,test_data)
 
+for build_path in [ROOT/'build-info.json', ROOT/'test/build-info.json']:
+    info=json.loads(build_path.read_text(encoding='utf-8'))
+    info['releaseVersion']=version
+    info['ownerReleaseVersion']=owner
+    write(build_path,info)
+
 for page in [ROOT/'index.html',ROOT/'test/index.html']:
     contents=page.read_text(encoding='utf-8')
     pat=r'(portal-release-status-20261117\.js\?v=)[^"]+'
