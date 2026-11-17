@@ -12,9 +12,10 @@ function linkedAssets(page){
  return [...page.matchAll(/(?:src|href)="\.\/([^"?]+\.(?:css|js|mjs))(?:\?[^"]*)?"/g)].map(m=>m[1]);
 }
 function normalize(file,text,stage){
- if(file==='process-editor-20261111.mjs')return text.replace(/(\\.mjs\\?v=)[a-z0-9]+/g,'$1<cache>');
+ if(file==='process-editor-20261111.mjs'||file==='global-view/view.mjs')
+  return text.replace(/\?v=[a-z0-9]+/g,'?v=<cache>');
  if(!stage)return text;
- const stripGuard=s=>s.replace(/^(\s*)if\s*\(!location\.pathname\.includes\("\/test\/"\)\)\s*return;[ \t]*\r?\n/m,'$1');
+ const stripGuard=s=>s.split('\n').map(line=>/\bif\s*\(!location\.pathname\.includes\("\/test\/"\)\)\s*return;/.test(line)?line.match(/^[ \t]*/)[0]:line).join('\n');
  switch(file){
  case 'staging-transport-20261111.js':return text.replaceAll(testProject,prodProject);
  case 'late-bid-staging-3ff2c9ab03f5.js':
@@ -28,8 +29,6 @@ function normalize(file,text,stage){
    .replace('Открыть переключатель кабинетов в тестовой среде','Открыть переключатель кабинетов')
    .replace('● Тестовая среда','● Рабочая среда')
    .replace('Все действия выполняются в тестовой среде','Все действия выполняются в рабочей среде');
- case 'process-editor-20261111.mjs':
-  return text.replace(/(\.mjs\?v=)[a-z0-9]+/g,'$1<cache>');
  case 'app.js':
   return text.replaceAll(testProject,prodProject)
     .replaceAll('Тестовая среда','Рабочая среда')
