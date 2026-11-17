@@ -12,6 +12,7 @@ function linkedAssets(page){
  return [...page.matchAll(/(?:src|href)="\.\/([^"?]+\.(?:css|js|mjs))(?:\?[^"]*)?"/g)].map(m=>m[1]);
 }
 function normalize(file,text,stage){
+ if(file==='process-editor-20261111.mjs')return text.replace(/(\\.mjs\\?v=)[a-z0-9]+/g,'$1<cache>');
  if(!stage)return text;
  const stripGuard=s=>s.replace(/^(\s*)if\s*\(!location\.pathname\.includes\("\/test\/"\)\)\s*return;[ \t]*\r?\n/m,'$1');
  switch(file){
