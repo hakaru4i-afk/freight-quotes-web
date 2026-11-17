@@ -108,10 +108,6 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     const bestRoute=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
     const bestBorder=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
     const bestRisk=ranking.length>1&&uniqueLeader(ranking,x=>out[x.b.id].notes.length);
-    const bestStation=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.station);
-    const bestRoute=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
-    const bestBorder=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
-    const bestConditions=uniqueLeader(ranking,x=>out[x.b.id].notes.length);
     const worst=group.length>1?ranking.filter(x=>x.score===Math.min(...ranking.map(y=>y.score))):[];
     const worstUnique=worst.length===1?worst[0].b:null;
     for(const b of group){
@@ -122,10 +118,6 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&bestStation?.b.id===b.id&&a.breakdown.station===10)a.tags.push('Лучшая подтверждённая станция отправления');
       if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
       if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Лучший подтверждённый погранпереход');
-      if(competing&&bestConditions?.b.id===b.id&&a.notes.length<=1)a.tags.push('Меньше неподтверждённых условий');
-      if(competing&&bestStation?.b.id===b.id&&a.breakdown.station===10)a.tags.push('Лучшая подтверждённая станция отправления');
-      if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
-      if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Подтверждённые погранпереходы');
       if(competing&&bestRisk?.b.id===b.id&&a.notes.length<out[group.find(x=>x.id!==b.id)?.id]?.notes?.length)a.tags.push('Меньше неподтверждённых условий');
       if(competing&&top.length>1&&a.score===maxScore)a.tags.push('Равная итоговая оценка — решение владельца / конкурс');
       if(competing&&worstUnique?.id===b.id)a.tags.push('Худшая сводная оценка в группе');
