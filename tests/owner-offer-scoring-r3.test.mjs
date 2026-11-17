@@ -64,19 +64,20 @@ test('No automatic winner and no duplicate best offer on a tie',()=>{
  assert.ok(r.A.tieForBest&&r.B.tieForBest);
  assert.ok(!('winner' in r.A));
 });
-test('Production and test share exactly same scoring and Owner-only UI code',()=>{
- for(const file of ['offer-scoring.mjs','owner-offer-evaluation-20261117.mjs','owner-offer-evaluation-20261117.css']){
-  assert.equal(readFileSync(new URL('../'+file,import.meta.url),'utf8'),readFileSync(new URL('../test/'+file,import.meta.url),'utf8'));
- }
- const src=readFileSync(new URL('../owner-offer-evaluation-20261117.mjs',import.meta.url),'utf8');
- const a=readFileSync(new URL('../index.html',import.meta.url),'utf8');
- const b=readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
- for(const page of [a,b]){
-  assert.match(page,/owner-offer-evaluation-20261117\.mjs\?v=offer-eval-r3-20261117/);
-  assert.match(page,/owner-offer-evaluation-20261117\.css\?v=offer-eval-r3-20261117/);
- }
- assert.match(src,/data-cabinet-role="owner"/);
- assert.match(src,/\/api\/offer-analysis/);
- assert.match(src,/\/api\/data/);
- assert.doesNotMatch(src,/fetch\([^)]*,\s*\{method:'POST'/);
+test('Production and test use the integrated Owner React offer cards, no duplicate comparison table',()=>{
+  assert.equal(readFileSync(new URL('../offer-scoring.mjs',import.meta.url),'utf8'),readFileSync(new URL('../test/offer-scoring.mjs',import.meta.url),'utf8'));
+  const a=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+  const b=readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
+  for(const html of [a,b]){
+    assert.match(html,/app\.js\?v=offer-eval-r3-20261117-integrated/);
+    assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.mjs\?v=/);
+    assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.css\?v=/);
+  }
+  const scripts=['../app.js','../test/app.js'].map(f=>readFileSync(new URL(f,import.meta.url),'utf8'));
+  for(const src of scripts){
+    assert.match(src,/offer-scoring\.mjs\?v=offer-r3-20261117-verified/);
+    assert.match(src,/КРИТЕРИИ СОПОСТАВЛЕНИЯ · 100 БАЛЛОВ/);
+    assert.match(src,/Открыть расшифровку 7 критериев/);
+    assert.match(src,/Равные оценки не означают двух победителей/);
+  }
 });
