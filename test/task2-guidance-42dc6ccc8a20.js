@@ -100,9 +100,10 @@ function guidance(){if(window.lwCurrentHelpEnabled)return;
    const text=label.textContent.replace("ⓘ","").trim().slice(0,100);
    if(!text)continue;
    const index=label.dataset.task2HintIndex===undefined?hints.findIndex(([re])=>re.test(text)):Number(label.dataset.task2HintIndex);
+   if(!Number.isInteger(index)||!hints[index])continue;
    label.dataset.task2HintIndex=String(index);
    const locale=window.task2HelpLocales?.[helpLanguage()];
-   const title=locale?(locale.hints[index]||locale.general):(hints[index]?.[1]||general);
+   const title=locale?(locale.hints[index]||locale.general):hints[index][1];
    input.title=title;
    const icon=label.querySelector(".t2-legacy-hint");if(icon)icon.title=title;
    else if(!label.dataset.task2Explained){
