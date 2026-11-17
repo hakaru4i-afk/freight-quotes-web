@@ -60,6 +60,9 @@ export function placeIndex(rows) {
       const [, lat, lng] = coordinate.map(Number);
       return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng, approximate: false } : null;
     }
+    // MAP50: validated city fallback for a mixed Chinese administrative pickup.
+    // This is the center of Linyi (approximate), never the factory or village.
+    if (/山东省临沂市/.test(label)) return lookup('linyi cn');
     const key = normal(label);
     const exact = lookup(key);
     if (exact) return exact;
