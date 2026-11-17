@@ -5,11 +5,11 @@
   "frontendBuild": "e0e602c130b51fb75897",
   "sourceStagingBuild": "e49dd78d09811370c74d",
   "sourceStagingFrontendCommit": "6a961e5c98231c174522b66364de5fcbe1aa8482",
-  "publicationState": "CANDIDATE_PENDING_REQUIRED_CHECKS",
+  "publicationState": "APPROVED_FOR_PRODUCTION",
   "assets": {
     "index.html": "5d090645fcdc383bc31ca73cf10820b2fe44a6fa5d1382b1c503f43bfe9974c9",
-    "build-info.json": "329f2486289d15f433e655c2abbaafa63b27fb7f7aff6ab2dd1493679cb2c19d",
-    "site-status.json": "463f8dd18b782da1a4905470371fbe21f6df1fe50e805326fe49a1e23708b02b",
+    "build-info.json": "cd3e04deb93a6220684daad54b5a5ab286de279bf225a22a948afdb1d5a5d9ff",
+    "site-status.json": "f076a7a732594bf6d1443a2f7e38982d531dbd83e117af90cd5528fd066d88bc",
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
     "task2.css": "acac9a54b070dab22b59c8452bf7f494bc3216eea3abd39f001cc65f70a572ba",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
@@ -190,5 +190,11 @@
     "process-history/20261110-logic-1/processes/P09.svg": "a4f53b1253a44cf5eb1b01c40510b188f2a58cc15c87fcda466fcc0b6c4daf39",
     "process-history/20261110-logic-1/processes/P10.svg": "c780361e374a9f0aa6c9313a5cdf79673908946b4ca60346f6e853715a95bd09",
     "process-history/20261110-logic-1/business-process-model.json": "218a1dc3b8a468d562083e16f12c0d9b8df6601dd05b9391f2419d399abfbd17"
+  },
+  "acceptance": {
+    "qaRun": "44011863098",
+    "backupRun": "44015432716",
+    "authenticatedGroups": 37,
+    "releaseChecks": 11
   }
 }
