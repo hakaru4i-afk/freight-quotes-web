@@ -204,7 +204,7 @@ class GlobalRouteView extends HTMLElement {
       node('p', 'gv-coverage-label', 'Пунктов с координатами'),
       node('p', 'gv-warning', 'На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.'));
     if (route.missingEndpoints) summary.append(node('p', 'gv-warning', 'Укажите адреса погрузки и доставки.'));
-    if (located < total) summary.append(node('p', 'gv-warning', 'Для остальных пунктов нужны однозначные названия или координаты.'));
+    if (located < total) summary.append(node('p', 'gv-warning', 'Недостающие точки уточняет автоматический геопоиск. Ручная установка координат не требуется.'));
     if (route.mode === 'multi') summary.append(node('p', 'gv-warning', 'Вид транспорта на отдельных участках не указан.'));
     if (lookupFailed) summary.append(node('p', 'gv-warning', 'Справочник городов временно недоступен.'));
     const distancePanel = node('section', 'gv-distance');
