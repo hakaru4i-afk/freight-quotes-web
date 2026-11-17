@@ -9,12 +9,14 @@ zh:{carrier:"创建承运商",supplier:"创建供应商",purchasing:"创建采�
 const ROLE_DEFS=[["carrier","carrier"],["logistic","ved"],["supplier","supplier"],["designer","designer"],["content","content"],["purchasing","purchasing"],["certification","certification"]];
 const locale=()=>{const l=(document.documentElement.lang||"ru").toLowerCase();return tr[l.slice(0,2)]||tr.ru};
 const el=(tag,attrs={},text)=>{const node=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==="class")node.className=v;else if(k==="type")node.type=v;else node.setAttribute(k,v)}if(text!=null)node.textContent=text;return node};
-const api=async payload=>{const res=await fetch("/api/access",payload?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"}:{cache:"no-store"});const data=await res.json().catch(()=>({}));if(!res.ok||data.error)throw new Error(data.error||"HTTP "+res.status);return data};
+const api=async payload=>{const res=await fetch("/api/team",payload?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"}:{cache:"no-store"});const data=await res.json().catch(()=>({}));if(!res.ok||data.error)throw new Error(data.error||"HTTP "+res.status);return data};
 function ownerTeam(){
  const owner=document.querySelector('#root .cabinet-app[data-cabinet-role="owner"],#root .staff-portal[data-cabinet-role="owner"]');
  if(!owner)return null;
- return owner.querySelector('.cabinet-panel[data-section="team"],.cabinet-panel[data-section="users"],[data-section="team"],[data-section="users"]')||
- [...owner.querySelectorAll('.cabinet-panel')].find(n=>/^(?:пользователи|users|用户)$/.test((n.querySelector("h1,h2,h3")?.textContent||"").trim().toLowerCase()));
+ const area=owner.querySelector('.cabinet-panel[data-section="team"]');
+ if(!area)return null;
+ const h=[...area.querySelectorAll("h1,h2,h3")].find(e=>/пользователи\s+и\s+права|users\s+(?:and|&)\s+rights|用户/.test((e.textContent||"").trim().toLowerCase()));
+ return h?.closest("section.card")||area;
 }
 function dialog(mode,role){
  const t=locale(),bg=el("div",{class:"ow-users-backdrop",role:"presentation"}),form=el("form",{class:"ow-users-dialog",role:"dialog","aria-modal":"true","aria-label":mode==="delete"?t.delete:t.create});
@@ -60,11 +62,17 @@ function apply(){
  }
  const del=el("button",{type:"button",class:"ow-users-action ow-users-delete"},t.remove);del.addEventListener("click",()=>dialog("delete"));wrap.append(del);
  const header=panel.querySelector("h1,h2,h3");if(header)header.insertAdjacentElement("afterend",wrap);else panel.prepend(wrap);
+ const roleNote=[...panel.querySelectorAll("p.small")].find(p=>(p.textContent||"").includes("Логист / сотрудник ВЭД видит все предложения"));
+ if(roleNote)roleNote.textContent="ВЭД: только победившие перевозки, проверка документов перед ПТО, назначенные задачи и чат по заявке; ранние ставки и чужие перевозки недоступны.";
+
  // Do not show a second native button with the same action, especially Supplier.
  const labels=new Set(ROLE_DEFS.map(([,key])=>t[key]));
  for(const btn of panel.querySelectorAll("button")){
   if(wrap.contains(btn))continue;
-  if(labels.has((btn.textContent||"").trim())){btn.classList.add("ow-users-native-duplicate");btn.hidden=true;btn.style.display="none";}
+  const value=(btn.textContent||"").trim();
+  if(labels.has(value)||/^(?:Создать дизайнера\s*\/\s*контент-менеджера|Create designer\s*\/\s*content manager)$/i.test(value)){
+   btn.classList.add("ow-users-native-duplicate");btn.hidden=true;btn.style.display="none";
+  }
  }
 }
 let scheduled=false;
