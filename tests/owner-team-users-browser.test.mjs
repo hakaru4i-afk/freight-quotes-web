@@ -19,7 +19,7 @@ test('Owner may create VED, Designer, Content and permanently delete a synthetic
    await page.locator('.ow-users-dialog input').nth(1).fill('QA '+role);
    await page.locator('.ow-users-dialog input').nth(2).fill('test-passphrase-123');
    await page.locator('.ow-users-dialog button[type="submit"]').click();
-   await page.waitForFunction(()=>!document.querySelector('.ow-users-dialog')?.querySelector('button[type="submit"]')?.disabled);
+   await page.waitForFunction(()=>document.querySelector('.ow-users-result')?.textContent.includes('Пользователь создан'));
    const received=await page.evaluate(()=>window.__requests.at(-1));
    assert.equal(received.action,'add');assert.equal(received.role,role);
    assert.equal(received.email,'qa-'+role);assert.equal(received.password,'test-passphrase-123');
