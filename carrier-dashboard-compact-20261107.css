@@ -1,0 +1,47 @@
+/* Staging only — 2026-11-07. Compact carrier dashboard. */
+.carrier-portal .workspace-hero,
+[data-carrier-compact-hero]{
+  min-height:0!important;
+  padding:20px 26px!important;
+  margin-bottom:14px!important;
+  gap:18px!important;
+  border-radius:18px!important;
+}
+[data-carrier-compact-hero] h1,
+.carrier-portal .workspace-hero h1{
+  font-size:clamp(22px,2.25vw,32px)!important;
+  line-height:1.13!important;
+  letter-spacing:-.025em!important;
+  margin:7px 0 8px!important;
+}
+[data-carrier-compact-hero] p,
+.carrier-portal .workspace-hero .intro{font-size:12px!important;line-height:1.5!important;margin:4px 0 8px!important;}
+[data-carrier-sl-compact]{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:135px!important;
+  max-width:180px!important;
+  min-height:0!important;
+  height:auto!important;
+  aspect-ratio:auto!important;
+  padding:12px 16px!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+  transform:none!important;
+  background:rgba(103,144,181,.14)!important;
+  border:1px solid rgba(162,203,231,.28)!important;
+}
+[data-carrier-sl-compact]::before,[data-carrier-sl-compact]::after{display:none!important}
+[data-carrier-sl-compact] :is(svg,canvas){display:none!important}
+[data-carrier-sl-compact] *{box-shadow:none!important}
+[data-carrier-sl-compact] :is(strong,b){font-size:clamp(21px,2vw,30px)!important;line-height:1.2!important;}
+[data-carrier-sl-compact] :is(small,span,p){font-size:11px!important;line-height:1.35!important;}
+.carrier-portal .carrier-metrics{margin-bottom:12px!important;gap:12px!important;}
+.carrier-portal .carrier-metrics .metric{padding:13px 17px!important;min-height:0!important;}
+.carrier-portal .carrier-metrics .metric strong{font-size:clamp(23px,2.2vw,30px)!important;}
+@media(max-width:700px){
+  [data-carrier-compact-hero],.carrier-portal .workspace-hero{padding:17px!important;min-height:0!important;gap:12px!important}
+  [data-carrier-compact-hero] h1{font-size:24px!important}
+  [data-carrier-sl-compact]{width:100%!important;max-width:none!important;min-width:0!important}
+  .carrier-portal .carrier-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}

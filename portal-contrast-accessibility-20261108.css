@@ -1,0 +1,450 @@
+/* LW-CONTRAST-04 | 2026-11-08 | STAGING ONLY.
+   Fix unreadable text in Owner response monitoring and bid comparisons while
+   keeping the agreed dark workspaces, semantic decision colours and light forms.
+   Loaded AFTER role themes and hover fixes; no DOM/API/authorization changes. */
+
+/* LW-CONTRAST-ALL: keep foreground, text fill and surface in the same scope.
+   The role themes still provide their own accents and surface design. */
+:root {
+  --lw-contrast-light-ink: #172d44;
+  --lw-contrast-light-muted: #344b64;
+  --lw-contrast-light-surface: #f3f7fc;
+  --lw-contrast-dark-ink: #f3f9ff;
+  --lw-contrast-dark-muted: #cbdced;
+  --lw-contrast-dark-surface: #1b3b57;
+  --lw-contrast-disabled-ink: #33465b;
+  --lw-contrast-disabled-surface: #e4eaf0;
+  --lw-contrast-error-ink: #79261f;
+  --lw-contrast-error-surface: #fff0ed;
+  --lw-contrast-warning-ink: #573c12;
+  --lw-contrast-warning-surface: #fff4da;
+  --lw-contrast-focus-light: #174f94;
+  --lw-contrast-focus-dark: #87d8ff;
+}
+
+/* Readable dark workspace tables in every role. The generic legacy rule
+   "tbody tr:hover{background:#f9fcfb}" caused white-on-white Owner rows. */
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover {
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
+}
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover > td {
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
+}
+/* Never apply a dark-row hover to explicitly light document surfaces. */
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover,
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover > td {
+  background:#e6f0eb !important;color:#1b3c30 !important;
+}
+
+/* Owner uses a light notice/warning on a dark cabinet, but its new shell
+   previously passed along white foreground text. Keep light alerts readable. */
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel :is(.notice,.warning,.error,.offer-legend) {
+  color:#234338 !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .warning {color:#63451d !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .error {color:#853025 !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel
+  :is(.notice,.warning,.error,.offer-legend) :is(p,span,small,.small,.quiet,b,strong,em):not(.btn) {
+  color:inherit !important;opacity:1 !important;
+}
+/* No white notice text after visiting Owner's dark overview. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-panel:not([data-section="overview"]) .notice a:not(.btn) {
+  color:#075f69 !important;text-decoration:underline;
+}
+
+/* Real offers: each scored row is deliberately pastel. Owner's global
+   dark-shell typography (.small,.quiet) must NOT bleed onto pastel cells.
+   Keep semantic backgrounds: red=unavailable, green=good/selected, etc. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td {
+  color:#20392f !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-unavailable > td {color:#622c2d !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-review > td {color:#4b380f !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-alternative > td {color:#283e51 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td
+  :is(p,.small,.quiet,small,time,span,strong,b,em,a):not(.btn):not(.offer-label):not(.badge) {
+  color:inherit !important;opacity:1 !important;
+  -webkit-text-fill-color:currentColor;
+}
+/* A label is a signal with its own readable foreground. */
+.cabinet-app[data-cabinet-role] .cabinet-panel :is(.offer-label-good,.offer-label-review,.offer-label-alternative,.offer-label-unavailable) {
+  opacity:1 !important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-good {color:#075532 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-review {color:#634300 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-alternative {color:#283e56 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-unavailable {color:#702222 !important;}
+
+/* Outcome badges are light surfaces even when placed on a dark table. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap td .badge {
+  background:#e5f0ed !important;color:#284b42 !important;
+  -webkit-text-fill-color:currentColor;opacity:1 !important;
+  border:1px solid #a9c8bf !important;
+}
+/* A dark CTA should never have dark text over dark blue on coloured rows. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):hover:not(:disabled) {
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
+  background:#185d99 !important;border-color:#2a76b6 !important;
+  box-shadow:0 2px 7px #09274329 !important;text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:hover:not(:disabled) {
+  color:#f3f9ff !important;-webkit-text-fill-color:currentColor !important;
+  background:#173d5b !important;border-color:#436e8d !important;
+  box-shadow:0 2px 7px #09274326 !important;text-shadow:none !important;
+}
+
+/* Dense tables, explanations and menu labels: small text must stay legible. */
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap th {
+  font-size:12px !important;font-weight:700 !important;line-height:1.5 !important;
+  letter-spacing:.015em !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap td {
+  font-size:13px;line-height:1.55;
+}
+.cabinet-app[data-cabinet-role] :is(.cabinet-sidebar nav a,.cabinet-topbar a,.cabinet-topbar button) {
+  text-shadow:none !important;
+}
+/* Prism sidebars are dark for both cabinet shells. Selected links retain their
+   role-specific text/background pair and bypass the normal/hover override. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]) {
+  color:var(--lw-contrast-dark-muted) !important;
+  -webkit-text-fill-color:currentColor;
+  opacity:1;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]):hover {
+  color:var(--lw-contrast-dark-ink) !important;
+}
+
+/* Keep the selected Owner item blue while staying readable across the
+   full gradient, including the brightest end on a wide sidebar. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(120deg,#075487,#12669d) !important;
+  color:var(--lw-contrast-dark-ink) !important;
+  -webkit-text-fill-color:currentColor;
+}
+/* State is not removed from disabled controls. */
+.cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
+.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:focus-visible {
+  outline:2px solid #87d8ff !important;outline-offset:3px !important;
+}
+@media(max-width:480px){
+  .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap {
+    max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+}
+
+/* LW-CONTRAST-05: Issue 63 / VED execution header. Keep text and surface in sync. */
+.cabinet-app #task2-root .t2-heading {
+  background:var(--lw-contrast-light-surface) !important;
+  border:1px solid #cad7e6 !important;
+  border-radius:14px !important;
+  padding:18px 20px !important;
+  color:var(--lw-contrast-light-ink) !important;
+}
+.cabinet-app #task2-root .t2-heading h2,
+.cabinet-app #task2-root .t2-heading p,
+.cabinet-app #task2-root .t2-heading div {
+  color:var(--lw-contrast-light-ink) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-ink) !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+.cabinet-app #task2-root .t2-heading p {
+  color:var(--lw-contrast-light-muted) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-muted) !important;
+  font-size:14px !important;
+  line-height:1.55 !important;
+}
+.cabinet-app #task2-root .t2-heading .t2-btn {
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
+  background:#2058a8 !important;border-color:#2058a8 !important;
+  opacity:1 !important;
+}
+.cabinet-app #task2-root .t2-empty {
+  background:#fff !important;color:#253b56 !important;
+}
+.cabinet-app #task2-root .t2-empty :is(h3,p) {
+  color:#253b56 !important;-webkit-text-fill-color:currentColor !important;opacity:1 !important;
+}
+
+/* Text-bearing alerts own an opaque surface, including in nested dark panels. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .error {
+  color:var(--lw-contrast-error-ink) !important;
+  background:var(--lw-contrast-error-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .warning {
+  color:var(--lw-contrast-warning-ink) !important;
+  background:var(--lw-contrast-warning-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page)
+  :is(.warning,.error) :is(p,span,small,strong,em):not(.btn):not(.badge) {
+  color:inherit !important;
+  -webkit-text-fill-color:currentColor;
+}
+
+/* Disabled state is conveyed by its own pair, not a translucent label.
+   Map widgets and document-specific controls keep their component palette. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(button.btn,input,select,textarea):disabled {
+  opacity:1 !important;
+  color:var(--lw-contrast-disabled-ink) !important;
+  -webkit-text-fill-color:currentColor !important;
+  background:var(--lw-contrast-disabled-surface) !important;
+  border-color:#a4b3c1 !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(input,textarea)::placeholder {
+  opacity:1;
+  -webkit-text-fill-color:currentColor;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.field,.t2-stage,.compact-transport-document) :is(a,button,input,textarea,select,summary):focus-visible {
+  outline-color:var(--lw-contrast-focus-light) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar,.sw-sidebar) :is(a,button):focus-visible {
+  outline-color:var(--lw-contrast-focus-dark) !important;
+}
+@media (max-width:480px) {
+  :is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+    :is(.cabinet-sidebar nav a,.sw-sidebar nav button,.cabinet-panel .btn,.sw-page .btn) {
+    white-space:normal;
+    overflow-wrap:anywhere;
+    min-width:0;
+    height:auto;
+  }
+}
+
+/* TRACK-UX-01: readable grouped tracking form, all screen sizes. */
+#task2-root [data-t2-form="save"] .t2-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;max-width:840px!important;}
+#task2-root [data-t2-form="save"] .t2-block-title{grid-column:1/-1!important;background:#eaf1fa!important;color:#173653!important;-webkit-text-fill-color:#173653!important;border-left:4px solid #3676c9!important;padding:13px 16px!important;border-radius:8px!important;font-size:16px!important;font-weight:750!important;margin:18px 0 2px!important;}
+#task2-root [data-t2-form="save"] .t2-field{display:flex!important;flex-direction:column!important;gap:7px!important;min-width:0!important;}
+#task2-root [data-t2-form="save"] .t2-field>span{font-size:15px!important;line-height:1.45!important;font-weight:650!important;color:#1b344e!important;-webkit-text-fill-color:#1b344e!important;}
+#task2-root [data-t2-form="save"] .t2-field>small{font-size:13px!important;line-height:1.45!important;color:#4b5d73!important;-webkit-text-fill-color:#4b5d73!important;}
+#task2-root [data-t2-form="save"] :is(input,select,textarea){width:100%!important;min-height:44px!important;box-sizing:border-box!important;font-size:16px!important;background:#fff!important;color:#1a314a!important;-webkit-text-fill-color:#1a314a!important;border:1px solid #a9bacd!important;border-radius:9px!important;}
+#task2-root [data-t2-form="save"] textarea{min-height:80px!important;resize:vertical!important;}
+@media(max-width:600px){#task2-root [data-t2-form="save"] .t2-fields{gap:12px!important;}#task2-root [data-t2-form="save"] .t2-block-title{font-size:15px!important;}}
+
+/* SHIPMENT-LAYOUT-03: clear hierarchy of the three primary shipment blocks. */
+#task2-root .t2-stage {
+  border:1px solid #cbd8e8!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  padding:clamp(16px,2.5vw,28px)!important;
+  margin:20px 0!important;
+  box-shadow:0 3px 16px rgba(24,48,78,.06)!important;
+}
+#task2-root .t2-stage>h3 {
+  font-size:clamp(20px,2.4vw,27px)!important;
+  line-height:1.25!important;
+  color:#16334f!important;
+  -webkit-text-fill-color:#16334f!important;
+  border-bottom:2px solid #e1eaf5!important;
+  padding-bottom:14px!important;
+  margin:0 0 20px!important;
+}
+#task2-root .t2-stage[data-t2-section="stages"],
+#task2-root .t2-stage[data-t2-section="completion"],
+#task2-root .t2-stage[data-t2-section="claims"],
+#task2-root .t2-stage[data-t2-section="history"] {
+  margin-top:24px!important;
+}
+
+/* TRACK-UX-02: paired planned date / reason, full-width actual departure below. */
+#task2-root [data-t2-form="save"] .t2-date-reason-row {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ gap:18px!important;
+ align-items:start!important;
+ width:100%!important;
+ min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row>.t2-field {
+ width:100%!important;min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row textarea {
+ min-height:52px!important;
+}
+@media(max-width:680px){
+ #task2-root [data-t2-form="save"] .t2-date-reason-row {
+  grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+ }
+}
+
+#task2-root .t2-plans-current{background:#f0f5fc;border:1px solid #c8d8ea;border-radius:12px;padding:16px;margin:0 0 12px;color:#1b344e}
+#task2-root .t2-plans-current>strong{display:block;color:#17334f;font-size:16px;margin-bottom:12px}
+#task2-root .t2-plan-history{display:grid;gap:8px}
+#task2-root .t2-plan-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:12px;background:#fff;border:1px solid #d8e3ef;border-radius:8px;align-items:center}
+#task2-root .t2-plan-entry span{color:#304862;font-size:14px}
+#task2-root .t2-plan-entry b{color:#16324d;font-size:15px}
+#task2-root .t2-plan-entry small{grid-column:1/-1;color:#435973;font-size:13px}
+#task2-root .t2-plan-next{font-weight:700;color:#183e69;margin:12px 0}
+@media(max-width:680px){#task2-root .t2-plan-entry{grid-template-columns:1fr}}
+
+/* TRACK-PLAN-04: four reschedule rows, independent save actions */
+#task2-root .t2-plan-four{display:grid;gap:10px;margin:14px 0 20px}
+#task2-root .t2-plan-four-row{display:grid;grid-template-columns:95px minmax(180px,1fr) minmax(180px,1.2fr) 140px;gap:12px;align-items:center;background:#fff;border:1px solid #cbd8e7;border-radius:10px;padding:12px;margin:0}
+#task2-root .t2-plan-four-row>span:first-child{font-weight:700;color:#18344e}
+#task2-root .t2-plan-four-row label{display:grid;gap:5px;min-width:0;font-size:13px;font-weight:600;color:#233e5a}
+#task2-root .t2-plan-four-row input{box-sizing:border-box;width:100%;min-width:0;min-height:42px;border:1px solid #9baec5;border-radius:7px;padding:8px;background:#fff;color:#19334d;font-size:15px}
+#task2-root .t2-plan-four-row .t2-btn{min-height:42px;white-space:nowrap}
+#task2-root .t2-plan-four-row.is-saved{background:#f1f7f2}
+#task2-root .t2-plan-four-row.is-locked{background:#f4f6f9;color:#657387}
+#task2-root .t2-plan-saved{color:#25633c;font-weight:700}
+@media(max-width:850px){#task2-root .t2-plan-four-row{grid-template-columns:1fr 1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:1/-1}}
+@media(max-width:550px){#task2-root .t2-plan-four-row{grid-template-columns:1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:auto}}
+
+/* TRACK-PLAN-05: force compact rows even under legacy form styles */
+#task2-root .t2-plan-four{display:grid!important;gap:6px!important;margin:8px 0 16px!important;max-width:100%!important}
+#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{
+ display:grid!important;grid-template-columns:90px minmax(180px,1fr) minmax(180px,1fr) 116px!important;
+ align-items:center!important;gap:10px!important;padding:9px 12px!important;
+ background:#f8fbff!important;border:1px solid #c8d7e7!important;border-radius:9px!important;
+ color:#1b344e!important;min-width:0!important;
+}
+#task2-root .t2-plan-four-row label{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;margin:0!important}
+#task2-root .t2-plan-four-row label>span{font-size:12px!important;color:#38526e!important;-webkit-text-fill-color:#38526e!important}
+#task2-root .t2-plan-four-row input{height:40px!important;min-height:40px!important;background:#fff!important;color:#172f4a!important;-webkit-text-fill-color:#172f4a!important;border:1px solid #9fb1c6!important;border-radius:7px!important;box-sizing:border-box!important;padding:6px 9px!important}
+#task2-root .t2-plan-four-row button{min-height:40px!important;margin:0!important}
+#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:1/-1;color:#8c2930!important;font-size:13px!important}
+#task2-root .t2-plans-current{display:flex!important;gap:14px!important;align-items:center!important;flex-wrap:wrap!important;padding:10px 14px!important}
+#task2-root .t2-plans-current span{color:#3e536b!important}
+@media(max-width:760px){#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{grid-template-columns:1fr!important}#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:auto}}
+
+/* TRACK-ACTUAL-01: align the one-time actual date with reschedule rows */
+#task2-root .t2-actual-row{display:grid!important;grid-template-columns:90px minmax(0,1fr)!important;gap:10px!important;align-items:center!important;border:1px solid #c8d7e7!important;border-radius:9px!important;background:#eef5fd!important;padding:9px 12px!important;margin:10px 0 18px!important;color:#1b344e!important}
+#task2-root .t2-actual-label{font-weight:700!important;font-size:14px!important;line-height:1.3!important;color:#173650!important}
+#task2-root form.t2-actual-form{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) 116px!important;gap:10px!important;align-items:center!important;min-width:0!important;margin:0!important}
+#task2-root .t2-actual-form label{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;min-width:0!important}
+#task2-root .t2-actual-form label>span{font-size:12px!important;color:#38526e!important}
+#task2-root .t2-actual-form input{box-sizing:border-box!important;min-height:40px!important;height:40px!important;width:100%!important;min-width:0!important;border:1px solid #9fb1c6!important;border-radius:7px!important;background:#fff!important;color:#172f4a!important;-webkit-text-fill-color:#172f4a!important;padding:6px 9px!important;font-size:15px!important}
+#task2-root .t2-actual-form button{min-height:40px!important;margin:0!important}
+#task2-root .t2-actual-note{font-size:13px!important;color:#50627b!important}
+#task2-root .t2-actual-form .t2-plan-feedback{grid-column:1/-1!important}
+#task2-root .t2-actual-saved{font-size:15px!important}
+@media(max-width:760px){#task2-root .t2-actual-row,#task2-root form.t2-actual-form{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-01 */
+#task2-root .t2-weekly-tracking{display:grid;gap:8px;margin:10px 0 18px}
+#task2-root .t2-weekly-row{display:grid!important;grid-template-columns:95px minmax(180px,1fr) minmax(180px,1fr) 180px!important;align-items:center!important;gap:10px!important;padding:8px 12px!important;margin:0!important;border:1px solid #c8d7e7!important;border-radius:9px!important;background:#f8fbff!important;min-width:0!important;color:#18344f!important}
+#task2-root .t2-weekly-row label{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;min-width:0!important}
+#task2-root .t2-weekly-row label span{font-size:12px!important;color:#395572!important}
+#task2-root .t2-weekly-row input{box-sizing:border-box!important;width:100%!important;min-width:0!important;height:40px!important;background:white!important;color:#18344f!important;-webkit-text-fill-color:#18344f!important;border:1px solid #a1b3c7!important;border-radius:7px!important;padding:6px 9px!important}
+#task2-root .t2-weekly-row button{height:40px!important;margin:0!important}
+#task2-root .t2-weekly-row.is-saved{background:#eef8f1!important}
+#task2-root .t2-weekly-row.is-pending{color:#53687d!important}
+@media(max-width:760px){#task2-root .t2-weekly-row{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-02: stable single-line desktop layout, no inherited field stacking */
+#task2-root form.t2-weekly-row{display:grid!important;grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important;align-items:end!important;gap:10px!important;width:100%!important;box-sizing:border-box!important}
+#task2-root form.t2-weekly-row label{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;width:100%!important}
+#task2-root form.t2-weekly-row label input{width:100%!important;max-width:100%!important;margin:0!important}
+#task2-root form.t2-weekly-row button{width:100%!important;white-space:nowrap!important}
+#task2-root .t2-weekly-tracking>.t2-muted{margin:0 0 4px!important}
+@media(min-width:761px){#task2-root form.t2-weekly-row{grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important}}
+@media(max-width:760px){#task2-root form.t2-weekly-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#task2-root form.t2-weekly-row>strong{grid-column:1/-1}#task2-root form.t2-weekly-row>button{grid-column:1/-1}}
+
+
+/* QA-009 / TRACK-PLAN-ALIGN-01: all four reschedule rows use the same
+   shared grid, equal-height inputs and a right-aligned Save action.
+   A conditional aria-live feedback slot must not reserve an empty grid row.
+   Scope to Task2 only, without changing form submission or save history. */
+#task2-root .t2-plan-four {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+}
+#task2-root :is(form,div).t2-plan-four-row {
+  box-sizing:border-box!important;
+  width:100%!important;
+  grid-template-columns:minmax(90px,96px) minmax(180px,1fr) minmax(180px,1fr) minmax(112px,120px)!important;
+  gap:10px!important;
+  min-height:70px!important;
+  align-items:center!important;
+}
+#task2-root form.t2-plan-four-row {
+  align-items:end!important;
+}
+#task2-root form.t2-plan-four-row > span:first-child {
+  align-self:center!important;
+}
+#task2-root form.t2-plan-four-row > label {
+  display:grid!important;
+  grid-template-rows:17px 40px!important;
+  align-items:end!important;
+  gap:4px!important;
+  margin:0!important;
+  min-width:0!important;
+}
+#task2-root form.t2-plan-four-row > label > span {
+  min-height:17px!important;
+  line-height:17px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row input,
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  box-sizing:border-box!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  align-self:end!important;
+  width:100%!important;
+  white-space:nowrap!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:empty {
+  display:none!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {
+  display:block!important;
+  grid-column:1/-1!important;
+  min-height:0!important;
+  margin:0!important;
+}
+@media(max-width:840px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(80px,92px) minmax(0,1fr) minmax(0,1fr)!important;
+  }
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:2/-1!important;
+    justify-self:end!important;
+    width:min(100%,160px)!important;
+  }
+}
+@media(max-width:560px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(0,1fr)!important;
+    min-height:0!important;
+  }
+  #task2-root form.t2-plan-four-row > span:first-child,
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:1!important;
+    justify-self:stretch!important;
+    width:100%!important;
+  }
+  #task2-root form.t2-plan-four-row > label {width:100%!important}
+  #task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {grid-column:1!important}
+}

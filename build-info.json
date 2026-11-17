@@ -1,9 +1,9 @@
 {
   "environment": "production",
-  "version": "23fb722d6c9da7c95914",
-  "releaseVersion": "1.19.3",
+  "version": "e0e602c130b51fb75897",
+  "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ooclsrndeygojtofuyte",
-  "build": "23fb722d6c9da7c95914",
-  "sourceHash": "git-blob-sha1:23fb722d6c9da7c9591456702b162a10e5f9a8d0",
-  "builtAt": "2026-11-03T11:26:48.805Z"
+  "build": "e0e602c130b51fb75897",
+  "releaseStatus": "PUBLISHED",
+  "sourceStagingBuild": "e49dd78d09811370c74d"
 }

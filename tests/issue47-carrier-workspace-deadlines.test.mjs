@@ -1,3 +1,4 @@
+import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -44,12 +45,12 @@ test("dashboard filters closed requests, picks real dates, sorts overdue first",
   assert.deepEqual(Array.from(tasks.map(x=>x.order_code)),["sooner","selected","later"]);
   assert.match(tasks[1].description,/забор/i);
 });
-test("approved tabs, cards, styling, and assets are staging-only", () => {
+test("carrier assets stay isolated until a verified production promotion", () => {
   for(const tab of ["Готовлю","На рассмотрении","Выбранные","Исполнение","Выполненные","Архив"])assert.ok(app.includes(tab));
   for(const marker of ['className:"carrier-card-deadline"','className:"carrier-card-subline"','className:"carrier-card-stage"','issue47Stage(x,b)===d','Ближайшие сроки и действия'])assert.ok(app.includes(marker), marker);
   assert.match(css,/STAGING Issue #47 \/ B10-B11/);
   assert.equal(manifest.carrierWorkspace.status,"COMMITTED_STAGING_QA_PENDING");
   assert.ok(html.includes("app.js?v="+manifest.servedAppBlobSha.slice(0,12)));
   assert.ok(html.includes("style.css?v="+manifest.servedStyleBlobSha.slice(0,12)));
-  assert.ok(!production.includes("issue47CarrierDeadlines"));
+ assertProductionFeatureBoundary(production,'issue47CarrierDeadlines');
 });

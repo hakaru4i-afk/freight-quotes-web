@@ -1,3 +1,4 @@
+import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
@@ -48,8 +49,8 @@ test("switching language preserves original labels and does not translate user d
  assert.equal(nodes[0].nodeValue,"Исполнение и трекинг");
  assert.equal(nodes[1].nodeValue," Документы и ВЭД ");
 });
-test("staging only, loader pinned to exact translation file SHA",()=>{
+test("translation loader stays pinned and production promotion requires its integrity manifest",()=>{
  const html=readFileSync("test/index.html","utf8");
  assert.match(html,/task2-i18n\.js\?v=[a-f0-9]{12}/);
- assert.ok(!readFileSync("index.html","utf8").includes("task2-i18n.js"));
+ assertProductionFeatureBoundary(readFileSync("index.html","utf8"),'task2-i18n.js');
 });

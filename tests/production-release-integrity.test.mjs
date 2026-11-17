@@ -1,0 +1,11 @@
+import test from'node:test';import assert from'node:assert/strict';import{mkdtempSync,mkdirSync,writeFileSync,readFileSync,rmSync,existsSync}from'node:fs';import{tmpdir}from'node:os';import{join}from'node:path';import{createHash}from'node:crypto';import{assertProductionReleaseIntegrity,assertProductionFeatureBoundary}from'./helpers/production-release-boundary.mjs';
+test('production promotion requires exact production identity and every declared asset byte',()=>{
+ const root=mkdtempSync(join(tmpdir(),'production-release-boundary-'));try{
+ mkdirSync(join(root,'test'));const put=(p,v)=>writeFileSync(join(root,p),typeof v==='string'?v:JSON.stringify(v)),build='a'.repeat(20),version='SH-01.30.52 v';put('test/build-info.json',{primaryBusinessVersion:version,stagingAssetBuildId:'b'.repeat(20)});put('app.js','const host="ooclsrndeygojtofuyte"; /* promoted feature */');put('index.html','<script src="app.js?v='+build+'"></script>');put('build-info.json',{environment:'production',projectRef:'ooclsrndeygojtofuyte',releaseVersion:version,build});put('site-status.json',{version:build,release:{version}});
+ assert.throws(()=>assertProductionFeatureBoundary('promoted feature','promoted feature',root),/complete release manifest/);
+ const assets=Object.fromEntries(['app.js','index.html','build-info.json','site-status.json'].map(p=>[p,createHash('sha256').update(readFileSync(join(root,p))).digest('hex')]));put('production-release-manifest.json',{environment:'production',businessVersion:version,frontendBuild:build,sourceStagingBuild:'b'.repeat(20),sourceStagingFrontendCommit:'c'.repeat(40),assets});assertProductionReleaseIntegrity(root);
+ put('app.js','tampered');assert.throws(()=>assertProductionReleaseIntegrity(root),/Unreviewed production asset/);
+ put('app.js','ibclzdkxiozbzmniiygv');const m=JSON.parse(readFileSync(join(root,'production-release-manifest.json')));m.assets['app.js']=createHash('sha256').update('ibclzdkxiozbzmniiygv').digest('hex');put('production-release-manifest.json',m);assert.throws(()=>assertProductionReleaseIntegrity(root));
+ }finally{rmSync(root,{recursive:true,force:true});}
+});
+test('the production release tree is internally consistent when a promotion manifest is present',()=>{if(existsSync('production-release-manifest.json'))assertProductionReleaseIntegrity();});

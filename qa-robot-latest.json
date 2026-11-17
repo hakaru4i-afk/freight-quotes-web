@@ -1,0 +1,610 @@
+{
+  "version": 1,
+  "generatedAt": "2026-11-16T09:00:53.256Z",
+  "environment": "isolated-ui-and-public-readonly-staging",
+  "fullAuthorizedE2e": false,
+  "warning": "Unit/source/browser-with-mocked-API results are NOT full authenticated staging E2E. No production writes. BLOCKED groups are not successful.",
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/43835670052",
+  "commit": "c35f71055fd0d2127f7076567b625fbd155d8ee6",
+  "checks": {
+    "PARTIAL": 37,
+    "BLOCKED": 0,
+    "FAIL": 0,
+    "PASS_E2E": 0
+  },
+  "scenarios": [
+    {
+      "id": "T1-01",
+      "title": "Создание новой перевозки: обязательные поля и валидация",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task1-create-form-browser.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-02",
+      "title": "Редактирование без потери исходных значений и вложений",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-owner-cabinets.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-03",
+      "title": "Запрет редактирования полей Владельца чужими ролями",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task12-role-robots.test.mjs",
+        "qa-anonymous-roles.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-04",
+      "title": "Incoterms: выбор, место поставки, сохранение и повторное открытие",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-help-locales.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-05",
+      "title": "Регистрационный номер, заказ поставщика и все номера Bitrix",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-agreed-roles-and-owner-registers.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-06",
+      "title": "Множественная загрузка, удаление, скачивание файлов байт-в-байт",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "qa-publication-gate.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-07",
+      "title": "Публикация заявки и журнал уведомлений всем назначенным перевозчикам",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-agreed-roles-and-owner-registers.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-08",
+      "title": "Передача всех полей и вложений в кабинет каждого адресата",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task12-role-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-09",
+      "title": "Изоляция заявок и защищённый доступ к документам на уровне API",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "qa-anonymous-roles.test.mjs",
+        "task12-real-api-security-negative.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-10",
+      "title": "Меню, кнопки, подсказки и языки RU/EN/ZH",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-help-locales.test.mjs",
+        "issue47-live-mobile.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T1-11",
+      "title": "Десктоп/мобильный 390×844, откат и совместимость staging",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-live-mobile.test.mjs",
+        "qa-publication-gate.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-01",
+      "title": "Получение заявки перевозчиком, прочтение, назначение, причины отказа",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-workspace-deadlines.test.mjs",
+        "task12-role-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-02",
+      "title": "Разграничение ролей и изоляция чужих заявок, файлов и API",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "qa-anonymous-roles.test.mjs",
+        "task12-role-robots.test.mjs",
+        "task12-real-api-security-negative.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-03",
+      "title": "Сессии, вход, три неверные попытки, лимит двух сессий",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "qa-anonymous-roles.test.mjs",
+        "task12-real-api-security-negative.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-04",
+      "title": "Статусы: новая, взята в работу, черновик, отправлена, рассмотрена",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-round-status.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-05",
+      "title": "Несколько вариантов ставки, добавление и удаление варианта",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-xlsx.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-06",
+      "title": "Редактирование ставки и валюты до выбора победителя",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-bid-edit-route.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-07",
+      "title": "Excel XLSX/WPS: отдельные столбцы, корректный импорт и отправка",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-xlsx.test.mjs",
+        "issue47-insurance-excel-import.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-08",
+      "title": "CSV: кодировка, типы, предварительный просмотр, ошибки и сохранение",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-task2-csv.test.mjs",
+        "issue47-legacy-csv-integrity.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-09",
+      "title": "Дедлайн по Минску, своевременное участие и отказ без штрафа",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-workspace-deadlines.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-10",
+      "title": "Поздняя ставка до выбора победителя, решения Владельца, SL",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-late-ui.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-11",
+      "title": "Блокировка выбора победителя при активном черновике",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-late-ui.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-12",
+      "title": "Рассмотрение предложений, сравнение ставок и условий",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-contrast.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-13",
+      "title": "Один победитель, закрытие проигравших и архив без статуса «участвую»",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-round-status.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-14",
+      "title": "Тендер, конкурирующие цены, номер протокола и PDF",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-owner-optional-reason.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-15",
+      "title": "Уведомления и журнал событий по выбору и смене статусов",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-workspace-deadlines.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-16",
+      "title": "Принятие выигранной перевозки без документа-согласования",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue28-workflow-separation.test.mjs",
+        "carrier-acceptance-singleton-browser.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-17",
+      "title": "Исполнение: исходная дата, фактический выход и история переносов",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-18",
+      "title": "Авто/ЖД/море/авиа/мультимодал: маршрут, трекинг, контрольные точки",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-19",
+      "title": "Документы, адресные запросы логистам, общий чат Owner/Carrier/ВЭД и вложения",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue17-formal-document-ui.test.mjs",
+        "ved-shared-chat-and-requests.test.mjs",
+        "ved-navigation-dom.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-20",
+      "title": "Одна проверка ВЭД до ПТО (<1000 км или согласованный резерв), ПТО/таможня/склад",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-21",
+      "title": "Контейнер(ы), запрос номера, разрешение закрыть без номера",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-22",
+      "title": "Закрытие без претензии, права и обязательные условия",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-23",
+      "title": "Претензии, акты, версии, согласие/отказ и закрытие только уполномоченным",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "task2-execution-robots.test.mjs",
+        "issue17-formal-document-ui.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-24",
+      "title": "Service Level: шкала, однократные штрафы и ограничения участия",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-carrier-workspace-deadlines.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-25",
+      "title": "Наследование TR/Bitrix/заказа по кабинетам и документам",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-agreed-roles-and-owner-registers.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    },
+    {
+      "id": "T2-26",
+      "title": "Левое меню, сводка, сроки, RU/EN/ZH, мобильность и rollback",
+      "scenarioType": "unit_or_isolated_ui",
+      "status": "PARTIAL",
+      "e2eStatus": "PENDING_E2E",
+      "files": [
+        "issue47-menu-clarity.test.mjs",
+        "issue47-task2-i18n.test.mjs",
+        "lw2-dashboard-browser.test.mjs"
+      ],
+      "note": "Available automated checks passed; actual authenticated E2E still missing."
+    }
+  ],
+  "evidence": [
+    {
+      "file": "task1-create-form-browser.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 17784
+    },
+    {
+      "file": "issue47-owner-cabinets.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 79
+    },
+    {
+      "file": "task12-role-robots.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 5179
+    },
+    {
+      "file": "qa-anonymous-roles.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 17618
+    },
+    {
+      "file": "issue47-help-locales.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 73
+    },
+    {
+      "file": "issue47-agreed-roles-and-owner-registers.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 89
+    },
+    {
+      "file": "qa-publication-gate.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 80
+    },
+    {
+      "file": "task12-real-api-security-negative.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 15977
+    },
+    {
+      "file": "issue47-live-mobile.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 9491
+    },
+    {
+      "file": "issue47-carrier-workspace-deadlines.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 102
+    },
+    {
+      "file": "issue47-carrier-round-status.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 89
+    },
+    {
+      "file": "issue47-carrier-xlsx.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 80
+    },
+    {
+      "file": "issue47-bid-edit-route.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 86
+    },
+    {
+      "file": "issue47-insurance-excel-import.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 77
+    },
+    {
+      "file": "issue47-task2-csv.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 79
+    },
+    {
+      "file": "issue47-legacy-csv-integrity.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 84
+    },
+    {
+      "file": "issue47-late-ui.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 93
+    },
+    {
+      "file": "task2-contrast.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 79
+    },
+    {
+      "file": "issue47-owner-optional-reason.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 80
+    },
+    {
+      "file": "issue28-workflow-separation.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 81
+    },
+    {
+      "file": "carrier-acceptance-singleton-browser.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 785
+    },
+    {
+      "file": "task2-execution-robots.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 5743
+    },
+    {
+      "file": "issue17-formal-document-ui.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 85
+    },
+    {
+      "file": "ved-shared-chat-and-requests.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 81
+    },
+    {
+      "file": "ved-navigation-dom.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 448
+    },
+    {
+      "file": "issue47-menu-clarity.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 89
+    },
+    {
+      "file": "issue47-task2-i18n.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 74
+    },
+    {
+      "file": "lw2-dashboard-browser.test.mjs",
+      "status": "PASS",
+      "exitCode": 0,
+      "durationMs": 1924
+    }
+  ]
+}
