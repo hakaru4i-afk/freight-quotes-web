@@ -6,8 +6,10 @@ on:
       - 'test/**'
       - 'scripts/stamp-staging-rc.mjs'
       - 'scripts/reindex-staging-manifest.mjs'
-      - 'scripts/check-runtime-parity.mjs'
-      - '.github/workflows/reconcile-staging-provenance.yml'
+      - 'scripts/**'
+      - 'tests/**'
+      - 'docs/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 concurrency:
   group: staging-provenance-repair
@@ -34,6 +36,14 @@ jobs:
       - name: Regenerate cache keys and version hashes for staging only
         run: |
           node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+      - name: Review exactly the already approved cosmetic source delta and regenerate process snapshots
+        run: |
+          node --check scripts/approve-ui-process-provenance.mjs
+          node scripts/approve-ui-process-provenance.mjs --write
+          node scripts/build-process-maps.mjs
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/build-process-maps.mjs --check
           node scripts/stamp-staging-rc.mjs --check
       - name: Commit independently reproducible staging assets
         run: |
