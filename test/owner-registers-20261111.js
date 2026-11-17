@@ -142,7 +142,7 @@ function paintArchive(host,id){
  const sortControl=el('select',null,{'aria-label':'Порядок записей'});for(const [v,t]of [['recent','Сначала новые'],['old','Сначала старые']])sortControl.append(el('option',t,{value:v}));sortControl.value=sort;
  toolbar.append(search,sortControl,refresh);host.append(toolbar);
  const rows=source?.records||[],views=el('div',null,{class:'ow-tabs','aria-label':'Показать записи'});
- for(const [value,title]of [['all','Все'],['new','Новые'],['working','В работе'],['done','Выполненные'],['selected','Выбранные владельцем'],['archive','Архив']]){
+ for(const [value,title]of [['all','Все'],['today','Сегодня'],['new','Новые'],['working','В работе'],['done','Выполненные'],['selected','Выбранные владельцем'],['archive','Архив']]){
   const button=el('button',title,{type:'button','aria-pressed':String(filters.view===value),'data-register-view':value});button.onclick=()=>{filters.view=value;paintArchive(host,id);};views.append(button);
  }
  host.append(views);
@@ -163,8 +163,9 @@ function paintArchive(host,id){
   const visible=rows.filter(row=>{
    const job=taskFor(id,row.id),status=recordState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
    return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
-    (view==='all'||view==='archive'&&(row.archived||job?.status==='denied'||finished(status,job))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status,job)||view==='selected'&&!!job);
+    (view==='all'||view==='today'&&date===minskDay()||view==='archive'&&(row.archived||job?.status==='denied'||finished(status,job))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status,job)||view==='selected'&&!!job);
   }).sort((a,b)=>String(/^\d{4}-/.test(a.detectedAt)?a.detectedAt:'').localeCompare(String(/^\d{4}-/.test(b.detectedAt)?b.detectedAt:''))*(sort==='old'?1:-1));
+  if(view==='done'&&!visible.length)target.append(el('p','Пока нет работ, лично подтверждённых владельцем. Технические исправления находятся в «Реестре приёмки владельцем».',{class:'ow-board-help'}));
   for(const row of visible){
    const job=taskFor(id,row.id),state=recordState(row,job),card=el('article',null,{class:'ow-work-card','data-record-id':row.id}),heading=el('div',null,{class:'ow-work-card-top'});
    const badge=el('span',humanStatuses[state]||'Ожидает решения',{class:'ow-human-status'});if(state==='in_progress')badge.dataset.state='working';heading.append(el('h3',row.title),badge);card.append(heading);if(row.historyOnly)card.append(el('p','Историческая запись. Текущий статус не подтверждён; активная работа не создаётся.',{class:'ow-board-help'}));
@@ -197,7 +198,7 @@ async function load(id,host,expected){
 }
 
 let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='';
-const minskDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const minskDay=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const acceptanceTaskFor=row=>{
  const marker=row.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
  return workItems.find(x=>x.sender_role==='owner'&&
