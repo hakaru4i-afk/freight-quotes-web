@@ -82,11 +82,33 @@ class GlobalRouteView extends HTMLElement {
     let lookupFailed = false;
     try { places = await loadCities(); } catch { lookupFailed = true; }
     if (signal.aborted) return;
+    // Owner-only request maps have no carrier/winner yet. Geocode their points
+    // through the authenticated server rather than requiring manual map markers.
+    const serverPoints=new Map();
+    if(!plannedGeocodes){
+      const wanted=routeModel(request,offer,()=>null).stops.map(p=>p.label);
+      if(wanted.length>=2&&wanted.length<=8){
+        try{
+          const response=await fetch('/api/route-distance',{method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({action:'geocode_points',addresses:wanted}),signal});
+          if(response.ok){
+            const payload=await response.json();
+            for(const point of payload.points||[]){
+              if(point.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon))
+                serverPoints.set(point.label,{lat:point.lat,lng:point.lon,approximate:point.precision==='city',
+                  precision:point.precision,confirmed:point.confirmed,provider:point.provider,queryScope:point.queryScope});
+            }
+          }
+        }catch{}
+      }
+    }
+    if(signal.aborted)return;
+    const localPlace=placeIndex(places);
     const resolve=plannedGeocodes?(label,role)=>{
       const source=/владелец/.test(role)?plannedGeocodes.owner:plannedGeocodes.offer;
       const point=(source||[]).find(p=>p.original_text===label||p.label===label);
       return point?.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon)?{lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id}:null;
-    }:placeIndex(places);
+    }:(label)=>serverPoints.get(label)||localPlace(label);
     const correction=(record,source)=>{
       const canChange=request.viewerRole==='owner'||request.viewerRole==='carrier'&&source!=='owner';
       if(!record?.id||!canChange)return null;
