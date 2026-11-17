@@ -1,0 +1,43 @@
+name: Owner multi-criteria scoring
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'offer-scoring.mjs'
+      - 'test/offer-scoring.mjs'
+      - 'owner-offer-evaluation-20261117.mjs'
+      - 'test/owner-offer-evaluation-20261117.mjs'
+      - 'owner-offer-evaluation-20261117.css'
+      - 'test/owner-offer-evaluation-20261117.css'
+      - 'tests/owner-offer-scoring-r3.test.mjs'
+      - '.github/workflows/owner-offer-scoring.yml'
+  pull_request:
+    paths:
+      - 'offer-scoring.mjs'
+      - 'test/offer-scoring.mjs'
+      - 'owner-offer-evaluation-20261117.mjs'
+      - 'test/owner-offer-evaluation-20261117.mjs'
+      - 'tests/owner-offer-scoring-r3.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scoring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and production/test parity
+        run: |
+          node --check offer-scoring.mjs
+          node --check test/offer-scoring.mjs
+          node --check owner-offer-evaluation-20261117.mjs
+          node --check test/owner-offer-evaluation-20261117.mjs
+          cmp offer-scoring.mjs test/offer-scoring.mjs
+          cmp owner-offer-evaluation-20261117.mjs test/owner-offer-evaluation-20261117.mjs
+          cmp owner-offer-evaluation-20261117.css test/owner-offer-evaluation-20261117.css
+      - name: Run scoring regression
+        run: node --test tests/owner-offer-scoring-r3.test.mjs
