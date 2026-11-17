@@ -7,7 +7,7 @@
   "sourceStagingFrontendCommit": "6a961e5c98231c174522b66364de5fcbe1aa8482",
   "publicationState": "APPROVED_FOR_PRODUCTION",
   "assets": {
-    "index.html": "2beba369d7336e3003bd0b770466e74cebd2facd0139c43573bab220cdff514a",
+    "index.html": "5d1ae1fc6a524d9aa5b5fbb2028dedd035128e4cf46c6b146e72f3c3f706d08c",
     "build-info.json": "cd3e04deb93a6220684daad54b5a5ab286de279bf225a22a948afdb1d5a5d9ff",
     "site-status.json": "f076a7a732594bf6d1443a2f7e38982d531dbd83e117af90cd5528fd066d88bc",
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
@@ -191,7 +191,7 @@
     "process-history/20261110-logic-1/business-process-model.json": "218a1dc3b8a468d562083e16f12c0d9b8df6601dd05b9391f2419d399abfbd17",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
     "owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
-    "owner-team-users-20261117.js": "66d49964d7750ba3ec30e7fd71d8acc929f4e2558e1205bcf12efad471cbd422",
+    "owner-team-users-20261117.js": "1d9cb9411705c12a8384ef5e651cc26c928e4658dfff7b678feb3c939d119853",
     "owner-team-users-20261117.css": "e5293a4763554cb7d48a631eff881baeb7e8cfd5acf034df0a13950f56f5eddc"
   },
   "acceptance": {
@@ -217,6 +217,18 @@
   "ownerUsers20261117": {
     "change": "Restore VED, Designer, Content Manager create buttons and delete user workflow",
     "productionApiVersion": 40,
-    "stagingApiVersion": 109
+    "stagingApiVersion": 109,
+    "release": "OW-USERS-7-20261117",
+    "createdCabinets": [
+      "carrier",
+      "logistic",
+      "supplier",
+      "designer",
+      "content",
+      "purchasing",
+      "certification"
+    ],
+    "ownerNotIncluded": true,
+    "noDbDataMigration": true
   }
 }
