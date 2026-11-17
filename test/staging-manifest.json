@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "807b939dcbedbaf053de88549dab3ea27b58b60b",
+  "frontendCommit": "59f9d3d750c77b40f46f34b0b926ff9c4db2a8c6",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -58,7 +58,7 @@
     ".github/workflows/lw-permanent-delete-staging.yml": "bd6d4a2e9a79653802e594470c9f5f8dad20e35cba3471f116eee8d4e59cc9ef",
     ".github/workflows/lw-public-guide-qa.yml": "0a3396d657b5b0dff9ca5f79a6c986505b85fd817122705559e5ac3750388d41",
     ".github/workflows/lw2-dashboard-visual.yml": "57959ac972656ce1b0d91d5d8ea1366626b4b877ebd7037f3cea4b927373bfa9",
-    ".github/workflows/owner-command-center.yml": "d6d4f52a4ad917d7d06d68df65b0cc3b9bc0c5cfef54696099c1251c81e88a13",
+    ".github/workflows/owner-command-center.yml": "6c436d90a72936ac0e5440648c18492bae34c08a646f8799af9ed529f72d86aa",
     ".github/workflows/owner-permanent-delete.yml": "489720637de57cc4573a65e45ae7a23df5a2a8cb387881ff92a589e8ab8294d6",
     ".github/workflows/owner-registers-20261111.yml": "2dfad92438966cf66dbd749ea0952a4cca3f18732cc94c47c8dad3b1b22706a7",
     ".github/workflows/owner-workspace-compact.yml": "3779f90a7d6fcbe3ad16879df9fc1a56f2f295f15110b7bd8e737601657a4f2e",
@@ -311,6 +311,7 @@
     "tests/owner-register-release-browser.test.mjs": "5a9820ee79fe9d48e593cddb74f82f87f81c7758646f78244e1c28c43ebf99a1",
     "tests/owner-registers-20261111.test.mjs": "d24fd3fb2bd1837730cc0584a820602549f2ba8edb24e9f5081e8e7ce993541c",
     "tests/owner-registers-browser.test.mjs": "b10af7616f3379e29243f205a457a1c97dee53d600ce1c0c75a03db1b2525169",
+    "tests/owner-ui-unification-browser.test.mjs": "ea340168bbec46e5f053094019477aef04e0523ec08e08679b26b868d763ecb2",
     "tests/owner-workspace-compact-browser.test.mjs": "1228a365800492a0cf33a77ffc7b0767de5cbf5545dff0c12789deb14c31548d",
     "tests/owner-workspace-compact.test.mjs": "8b1503ad033123e4b5bfaac50f4ec992fd127222e07979396f26056f03dc6afa",
     "tests/portal-contrast-accessibility-browser.test.mjs": "a414866c5f7caae1944981eb6d0480402c98123eda61a5d8c044faf18edadb4a",
