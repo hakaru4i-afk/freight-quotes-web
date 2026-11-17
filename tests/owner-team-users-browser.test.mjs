@@ -65,3 +65,21 @@ test('Owner controls mount once after delayed card render',async()=>{
   assert.equal(await page.locator('#owner-users-card .ow-users-delete').count(),1);
  }finally{await browser.close()}
 });
+
+
+test('Owner can read text entered in every create-user field',async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:1024,height:768}});
+  await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" data-section="team"><section class="card"><h2>Пользователи и права</h2></section></section></div></div>');
+  await page.addStyleTag({content:'input {color:white!important;-webkit-text-fill-color:white!important;caret-color:white!important}'});
+  await page.addStyleTag({path:'test/owner-team-users-20261117.css'});
+  await page.addScriptTag({path:'test/owner-team-users-20261117.js'});
+  await page.waitForSelector('.ow-users-create');
+  await page.getByRole('button',{name:'Создать сотрудника ВЭД',exact:true}).click();
+  for(const input of await page.locator('.ow-users-dialog input').all()){
+   const colors=await input.evaluate(el=>{const c=getComputedStyle(el);return [c.color,c.webkitTextFillColor,c.backgroundColor,c.caretColor]});
+   assert.deepEqual(colors,['rgb(20, 43, 67)','rgb(20, 43, 67)','rgb(255, 255, 255)','rgb(20, 43, 67)']);
+  }
+ }finally{await browser.close()}
+});
