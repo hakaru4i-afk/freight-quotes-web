@@ -6,6 +6,7 @@ const split = value => clean(value).split(/\s*(?:\r?\n|→|->|;|\s+[–—-]\s+)
 const aliases = {
   'Шэньчжэнь': 'Shenzhen', 'Шенчжень': 'Shenzhen', '深圳': 'Shenzhen', '深圳市': 'Shenzhen',
   'Нинбо': 'Ningbo', '宁波': 'Ningbo', '宁波市': 'Ningbo',
+  'Юйяо': 'Yuyao', 'Юяо': 'Yuyao', '余姚': 'Yuyao', '余姚市': 'Yuyao',
   'Минск': 'Minsk', 'Мінск': 'Minsk', '明斯克': 'Minsk',
   'Шанхай': 'Shanghai', '上海': 'Shanghai', 'Гуанчжоу': 'Guangzhou', '广州': 'Guangzhou',
   'Иу': 'Yiwu', '义乌': 'Yiwu', 'Сиань': 'Xian', '西安': 'Xian',
@@ -49,6 +50,15 @@ export function placeIndex(rows) {
       }
     }
   }
+  // Verified gazetteer supplement for a city missing from the bundled Natural Earth list.
+  // Yuyao city centre: OSM node 244082817, 30.0403 N, 121.1501 E.
+  // NEVER claim that these are the coordinates of the supplier's warehouse or Mazhu Road.
+  for (const name of ['Yuyao', '余姚', '余姚市']) {
+    const pts = new Map();
+    pts.set('30.0403,121.1501', {lat:30.0403,lng:121.1501,approximate:true,precision:'city',confirmed:false,source:'OSM Yuyao city centre'});
+    index.set(normal(name),pts);
+    index.set(normal(name+' CN'),pts);
+  }
   const aliasIndex = new Map(Object.entries(aliases).map(([key, value]) => [normal(key), normal(value)]));
   const lookup = key => {
     const points = index.get(aliasIndex.get(key) ?? key);
@@ -63,6 +73,15 @@ export function placeIndex(rows) {
     // MAP50: validated city fallback for a mixed Chinese administrative pickup.
     // This is the center of Linyi (approximate), never the factory or village.
     if (/山东省临沂市/.test(label)) return lookup('linyi cn');
+    // Yuyao is a county-level city within Ningbo, Zhejiang: match the most
+    // specific administrative name, never its parent Ningbo city centre.
+    // The point is a city-centre estimate until an address-level geocoder succeeds.
+    const yuyaoAddress=/(?:余姚市|余姚|\byuyao\b)/i.test(label);
+    const zhejiangContext=/(?:浙江|宁波|\bzhejiang\b|\bningbo\b)/i.test(label);
+    if(yuyaoAddress&&zhejiangContext){
+      const located=lookup('yuyao cn');
+      if(located)return {...located,precision:'city',approximate:true,confirmed:false,source:'verified Yuyao city-centre fallback'};
+    }
     const key = normal(label);
     // A mixed-language pickup such as “QINGDAO Linyi shandong 山东省临沂市费县梁丘镇郝家村”
     // contains the actual administrative city. Use only a *verified gazetteer*
