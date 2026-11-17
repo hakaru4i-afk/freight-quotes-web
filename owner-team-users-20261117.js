@@ -16,7 +16,8 @@ function ownerTeam(){
  const area=owner.querySelector('.cabinet-panel[data-section="team"]');
  if(!area)return null;
  const h=[...area.querySelectorAll("h1,h2,h3")].find(e=>/пользователи\s+и\s+права|users\s+(?:and|&)\s+rights|用户/.test((e.textContent||"").trim().toLowerCase()));
- return h?.closest("section.card")||area;
+ // Wait for the real People & Rights card. Never mount controls on the outer team panel.
+ return h?.closest("section.card")||null;
 }
 function dialog(mode,role){
  const t=locale(),bg=el("div",{class:"ow-users-backdrop",role:"presentation"}),form=el("form",{class:"ow-users-dialog",role:"dialog","aria-modal":"true","aria-label":mode==="delete"?t.delete:t.create});
@@ -54,7 +55,13 @@ function dialog(mode,role){
  login.focus();
 }
 function apply(){
- const panel=ownerTeam();if(!panel||panel.querySelector(".ow-users-actions"))return;
+ const panel=ownerTeam();if(!panel)return;
+ const area=panel.closest('.cabinet-panel[data-section="team"]');
+ // React may render the card later. Remove any earlier/floating action sets, retaining one canonical set.
+ const sets=[...(area?.querySelectorAll(".ow-users-actions")||[])];
+ const canonical=sets.find(node=>node.parentElement===panel);
+ for(const node of sets)if(node!==canonical)node.remove();
+ if(canonical)return;
  const t=locale(),wrap=el("div",{class:"ow-users-actions","data-ow-users-version":"OW-20261117"});
  for(const [role,key] of ROLE_DEFS){
   const label=t[key];

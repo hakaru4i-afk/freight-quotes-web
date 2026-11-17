@@ -46,3 +46,22 @@ test('Owner may create all 7 roles and permanently delete a synthetic user',asyn
   await page.close();
  }finally{await browser.close()}
 });
+
+
+test('Owner controls mount once after delayed card render',async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  const page=await browser.newPage({viewport:{width:1440,height:900}});
+  await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" id="owner-team-area" data-section="team"><h2>Пользователи и доступ</h2></section></div></div>');
+  await page.addScriptTag({path:source});
+  await page.waitForTimeout(80);
+  assert.equal(await page.locator('#owner-team-area .ow-users-actions').count(),0,'No actions before the real card renders');
+  await page.evaluate(()=>document.getElementById('owner-team-area').insertAdjacentHTML('beforeend','<section class="card" id="owner-users-card"><h2>Пользователи и права</h2></section>'));
+  await page.waitForSelector('#owner-users-card .ow-users-actions');
+  assert.equal(await page.locator('#owner-team-area .ow-users-actions').count(),1,'Exactly one user management block');
+  await page.evaluate(()=>{const stray=document.createElement('div');stray.className='ow-users-actions';stray.id='erroneous-duplicate';document.getElementById('owner-team-area').prepend(stray)});
+  await page.waitForFunction(()=>document.querySelectorAll('#owner-team-area .ow-users-actions').length===1);
+  assert.equal(await page.locator('#owner-users-card .ow-users-create').count(),7);
+  assert.equal(await page.locator('#owner-users-card .ow-users-delete').count(),1);
+ }finally{await browser.close()}
+});
