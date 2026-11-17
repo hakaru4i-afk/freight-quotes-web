@@ -1,5 +1,5 @@
 import { calculateMapDistances } from './distance.mjs?v=map50-initial-km-20261117-2';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=map50-multilingual-geocode-20261117-4';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=map50-multilingual-geocode-20261117-5';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
