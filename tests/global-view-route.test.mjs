@@ -38,3 +38,28 @@ test('unsequenced waypoints stay visible without changing the selected route', (
   assert.equal(route.markers.length, 6);
   assert.equal(route.segments.length, 3);
 });
+
+test('WS26098: Yuyao Zhejiang pickup is located without manually entered coordinates', async () => {
+  const pickup = 'NINGBO Zhejiang Yuyao 浙江省余姚市马渚镇北盛路';
+  const route = routeModel({origin:pickup,destination:'Минск'},null,resolve);
+  assert.equal(route.stops.length,2);
+  assert.ok(route.stops[0].position,'Yuyao must have a provisional city-centre position');
+  assert.equal(route.stops[0].position.precision,'city');
+  assert.equal(route.stops[0].position.confirmed,false);
+  assert.ok(Math.abs(route.stops[0].position.lat-30.0403)<0.00001);
+  assert.ok(Math.abs(route.stops[0].position.lng-121.1501)<0.00001);
+  assert.equal(route.markers.length,2);
+  assert.equal(route.segments.length,1);
+  const {calculateMapDistances} = await import('../test/global-view/distance.mjs');
+  const result = await calculateMapDistances(route,{
+    fetchImpl:async()=>{throw Error('router offline')}
+  });
+  assert.ok(result.totalKm>0,'A preliminary geographical lower bound must be shown even offline');
+  assert.equal(result.geodesicMinimum,true,'A straight line is not a transport route');
+});
+
+test('Never substitute Yuyao for unrelated locations or verified factory coordinates', () => {
+  assert.equal(resolve('NINGBO Zhejiang warehouse unrelated to Yuyao'),null);
+  assert.equal(resolve('Чжэцзян, неизвестный склад'),null);
+  assert.equal(resolve('30.0743889, 121.0452108').approximate,false);
+});
