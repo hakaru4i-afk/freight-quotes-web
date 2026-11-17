@@ -197,7 +197,7 @@ async function load(id,host,expected){
  finally{if(n===request){loading=false;if(!failed){await refreshWork(true);paintArchive(host,id);}}}
 }
 
-let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='';
+let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={};
 const minskDay=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const acceptanceTaskFor=row=>{
  const marker=row.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
@@ -219,7 +219,7 @@ async function refreshAcceptance(){
  if(acceptanceBusy)return;acceptanceBusy=true;acceptanceError='';
  const host=document.getElementById('ow-workspace');
  try{
-  const records=[];
+  const records=[],nextRevisions={};
   for(const id of ['remarks','developments','updates']){
    const response=await fetch('/api/engineering-registers?name='+id,{cache:'no-store'});
    const data=await response.json();
@@ -227,8 +227,10 @@ async function refreshAcceptance(){
    const sha=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(data.markdown)))).map(x=>x.toString(16).padStart(2,'0')).join('');
    if(sha!==data.sha256)throw Error('Несовпадение контрольной суммы: '+id);
    records.push(...(data.records||[]));
+   nextRevisions[id]=data.liveRevision||'';
   }
   await refreshWork();
+  acceptanceRevisions=nextRevisions;
   acceptanceRows=records;
   acceptanceReady=true;acceptanceNote='';
  }catch(e){acceptanceError=String(e.message||e);acceptanceReady=true;}
@@ -349,6 +351,34 @@ function render(){
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});}
 document.addEventListener('click',e=>{const a=e.target.closest?.('a[data-ow-register]');if(a&&owner()?.contains(a)){e.preventDefault();e.stopImmediatePropagation();navigate(a.dataset.owRegister);return;}if(e.target.closest?.('.cabinet-sidebar nav a')&&selected())navigate('');},true);
 for(const event of ['hashchange','popstate','freight-access-updated'])window.addEventListener(event,schedule);
+// Lightweight metadata polling; Owner's live registry never needs a frontend rebuild
+// to display a new record. Keep unsaved dialogs intact and avoid false zero counts.
+let livePollBusy=false;
+async function pollLiveRegisters(){
+ if(livePollBusy||document.visibilityState==='hidden'||document.querySelector('dialog[open]'))return;
+ const id=selected(),host=document.getElementById('ow-workspace');
+ if(!host||!['remarks','developments','updates','acceptance'].includes(id))return;
+ if(id==='acceptance'&&(!acceptanceReady||acceptanceBusy))return;
+ if(id!=='acceptance'&&(!source||source.name!==id||loading))return;
+ livePollBusy=true;
+ try{
+  for(const name of (id==='acceptance'?['remarks','developments','updates']:[id])){
+   const response=await fetch('/api/engineering-registers?name='+name+'&meta=1',{cache:'no-store'});
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const meta=await response.json();
+   if(!meta.ok||!meta.liveRevision)continue;
+   const known=id==='acceptance'?acceptanceRevisions[name]:source?.liveRevision;
+   if(meta.liveRevision!==known){
+    if(id==='acceptance')await refreshAcceptance();
+    else await load(id,host);
+    break;
+   }
+  }
+ }catch(e){console.warn('Owner register live refresh unavailable',String(e?.message||e))}
+ finally{livePollBusy=false}
+}
+setInterval(()=>void pollLiveRegisters(),30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')void pollLiveRegisters()});
 new MutationObserver(schedule).observe(document.getElementById('root')||document.body,{childList:true,subtree:true});new MutationObserver(()=>{key='';schedule();}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});schedule();
 window.owOwnerRegistersVersion='OW-REG-20261117-ACCEPTANCE';
 })();
