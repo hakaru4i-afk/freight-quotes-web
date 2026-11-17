@@ -7,7 +7,7 @@ export const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const wrap=(s,n=28)=>{const out=[];let line='';for(const w of String(s).split(/\s+/)){if((line+' '+w).trim().length>n&&line){out.push(line);line=w;}else line=(line+' '+w).trim();}if(line)out.push(line);return out;};
 const watchedSources=[...new Set([...readFileSync(resolve(root,'test/index.html'),'utf8').matchAll(/(?:src|href)="\.\/([^"?]+\.(?:js|mjs|css))(?:\?[^"\s]*)?"/g)].map(x=>'test/'+x[1]).concat('test/process-model-graph.mjs','test/process-model-diff.mjs','test/task2-panel.js',...['view.mjs','route-model.mjs','distance.mjs','globe.mjs','map.mjs','view.css'].map(n=>'test/global-view/'+n)))];
-function sourceSignatures(){
+export function sourceSignatures(){
  // Reviewed process logic must not become stale just because cache keys or a
  // generated app build ID rotate. All other source changes remain fail-closed.
  return Object.fromEntries(watchedSources.map(path=>{
