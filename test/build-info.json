@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "ddd6692c7ff0fe920b2d",
+  "version": "e49dd78d09811370c74d",
   "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -10,7 +10,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "8b5410783f908e825866da1f8ed7876874d7b67b",
+  "servedAppBlobSha": "0a17a5fed7cc49b479bfa9b73a5c95b257f6f503",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -21,7 +21,7 @@
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
-    "guidanceSha": "7281af9c35c6f872d2cd9ad96d46ee411b464aaa",
+    "guidanceSha": "82523edbcef7cf00945e1152b06a7ac9db06b346",
     "tablesApplied": true,
     "qaStatus": "ISSUE99_COMPACT_INBOX_FINAL_AUTHENTICATED_QA_PENDING",
     "manualAcceptance": "PENDING_AUTOMATED_AUTHENTICATED_FINAL_QA",
@@ -54,16 +54,16 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "8b5410783f908e825866da1f8ed7876874d7b67b",
-        "sha256": "40228a16f11f3cf7f809fabb5a88f6d9f2a62b8df3c11884c9ad4cddd4d3a724"
+        "gitBlob": "0a17a5fed7cc49b479bfa9b73a5c95b257f6f503",
+        "sha256": "e319d6d3feacffdaeb7733909ca4af6c6ccaa963b568057a8dacc6b52a6ecc10"
       },
       "task2-panel.js": {
         "gitBlob": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
         "sha256": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65"
       },
       "task2-guidance.js": {
-        "gitBlob": "7281af9c35c6f872d2cd9ad96d46ee411b464aaa",
-        "sha256": "e8c78f90c988ebb7d948c1363bd6a9e7927a6da1fc09bb154bd5f3947c1830b0"
+        "gitBlob": "82523edbcef7cf00945e1152b06a7ac9db06b346",
+        "sha256": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea"
       },
       "late-bid-staging.js": {
         "gitBlob": "447b037d674dc38b2d2608a95a4e014501322ecf",
@@ -574,12 +574,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "ddd6692c7ff0fe920b2d",
+  "stagingAssetBuildId": "e49dd78d09811370c74d",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "40228a16f11f3cf7f809fabb5a88f6d9f2a62b8df3c11884c9ad4cddd4d3a724",
+    "app.js": "e319d6d3feacffdaeb7733909ca4af6c6ccaa963b568057a8dacc6b52a6ecc10",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -636,7 +636,7 @@
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
     "task2-contrast-hotfix.css": "eaf63a6e55af6ae0d5e478970648e0375bb6f9fab6cf7d8470fd6cacab4dbe8b",
     "task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
-    "task2-guidance-42dc6ccc8a20.js": "e8c78f90c988ebb7d948c1363bd6a9e7927a6da1fc09bb154bd5f3947c1830b0",
+    "task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
     "task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
     "task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
     "task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
@@ -676,7 +676,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-17T03:16:15.148Z",
+  "assetBuildRecordedAt": "2026-11-17T03:26:35.579Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,
