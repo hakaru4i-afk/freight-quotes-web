@@ -25,7 +25,7 @@ function dialog(mode,role){
  const title=el("h3",{},mode==="delete"?t.delete:labels[role]||t.create);
  const note=el("p",{class:"ow-users-note"},mode==="delete"?t.warning:role==="logistic"?t.vedNote:["purchasing","certification"].includes(role)?t.newRights:t.note);
  form.append(title,note);let login,pass,name,sel;
- const field=(label,input)=>{const wrap=el("label",{class:"ow-users-field"});wrap.append(el("span",{},label),input);form.append(wrap);return input};
+ const field=(label,input)=>{const wrap=el("label",{class:"ow-users-field"});wrap.append(el("span",{},label),input);form.append(wrap);input.style.setProperty("color","#142b43","important");input.style.setProperty("-webkit-text-fill-color","#142b43","important");input.style.setProperty("caret-color","#142b43","important");return input};
  if(mode==="delete"){
   sel=field(t.select,el("select",{required:"required"}));sel.append(el("option",{value:""},t.select));
   const opt=()=>api().then(data=>{
