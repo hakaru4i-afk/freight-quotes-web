@@ -1,4 +1,4 @@
-// OFFER-SCORE-20261117 · Deterministic 100-point assessment.
+// OFFER-SCORE-20261117-R2 · Transparent 100-point assessment with Owner-only winner decision.
 // A recommendation is NOT the Owner's winner decision. No exchange-rate guesses.
 // Compare only one order, round, currency, transport mode and weight.
 export const OFFER_SCORE_WEIGHTS=Object.freeze({price:25,days:20,station:10,route:15,border:15,extras:10,insurance:5});
@@ -6,10 +6,9 @@ export const OFFER_SCORE_BANDS=Object.freeze([
   {min:90,max:100,level:'dark-green',label:'90–100 · тёмно-зелёный'},
   {min:80,max:89,level:'green',label:'80–89 · зелёный'},
   {min:70,max:79,level:'light-green',label:'70–79 · светло-зелёный'},
-  {min:60,max:69,level:'yellow-green',label:'60–69 · жёлто-зелёный'},
-  {min:50,max:59,level:'yellow',label:'50–59 · жёлтый'},
-  {min:35,max:49,level:'orange',label:'35–49 · оранжевый'},
-  {min:0,max:34,level:'red',label:'0–34 · красный'}
+  {min:60,max:69,level:'yellow',label:'60–69 · жёлтый'},
+  {min:35,max:59,level:'orange',label:'35–59 · оранжевый'},
+  {min:0,max:34,level:'orange',label:'0–34 · оранжевый'}
 ]);
 const round=n=>Math.max(0,Math.round(Number(n)||0));
 const norm=s=>String(s??'').trim().toLowerCase().replace(/\s+/g,' ');
@@ -19,7 +18,11 @@ const clamp=(v,max)=>Math.min(max,Math.max(0,round(v)));
 const eq=(a,b)=>Math.abs(a-b)<0.00001;
 const crossed=text=>/(?:маньчжур|manzhouli|满洲里|забайкаль|zabaikalsk|хоргос|khorgos|霍尔果斯|достык|dostyk|алатау|alatau|эрлянь|эрэнхот|erenhot|erlian|二连|замын|zamiin|наушки|naushki|сухэ.?батор|sukhbaatar|брест|brest|козлович|kozlovichi)/iu.test(text);
 const stationExplicit=b=>meaningful(b.departure_station)||meaningful(b.departure_port)||meaningful(b.incoterm_place);
-const insuranceIncluded=b=>/(?:включен|входит|в стоимости|included|insured|含保险|已投保)/iu.test(String(b.insurance||''));
+const insuranceIncluded=b=>{
+  const v=norm(b.insurance);
+  if(/(?:не включен|не входит|без страхов|not included|excluded|uninsured|不含保险|未投保)/iu.test(v))return false;
+  return /(?:включен|входит|в стоимости|included|insurance included|含保险|已投保)/iu.test(v);
+};
 export function explicitSurcharge(b){
   const raw=norm(b.extras);
   if(!raw)return {known:false,amount:0,reason:'Дополнительные расходы не раскрыты'};
@@ -55,11 +58,13 @@ function oneScore(b,minPrice,minDays,base,effectiveCost){
   const movement=(route+' '+waypoints),cross=crossed(movement);
   breakdown.border=cross?15:hasWaypoints?7:0;
   if(!cross)notes.push('Погранпереходы не подтверждены, логистический риск требует проверки');
-  breakdown.extras=extras.known?(extras.amount===0?10:7):2;
+  breakdown.extras=extras.known?(extras.amount===0?10:7):0;
   if(!extras.known)notes.push(extras.reason);
-  breakdown.insurance=insuranceIncluded(b)?5:meaningful(b.insurance)?2:0;
+  breakdown.insurance=insuranceIncluded(b)?5:0;
   if(!insuranceIncluded(b))notes.push('Страховое покрытие не подтверждено как включённое');
-  const total=Object.values(breakdown).reduce((a,x)=>a+x,0);
+  const rawTotal=Object.values(breakdown).reduce((a,x)=>a+x,0);
+  // An unpriced surcharge or undocumented route must never earn a «best offer» quality badge.
+  const total=Math.min(rawTotal,!extras.known?79:100,breakdown.route<8?69:100);
   return {score:Math.min(100,total),breakdown,notes,extrasKnown:extras.known,extrasAmount:extras.known?extras.amount:null,
     comparableTotal:extras.known?Number((quoted+extras.amount).toFixed(2)):null,quotedAmount:quoted,
     level:tier(total).level,band:tier(total).label,priceBasis:extras.known?'цена + подтверждённые доплаты':'только заявленная ставка, доплаты требуют проверки',
@@ -97,7 +102,7 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     });
     const cheapest=uniqueLeader(group,price),fastest=uniqueLeader(group,b=>Number(b.days));
     const maxScore=Math.max(...ranking.map(x=>x.score)),top=ranking.filter(x=>x.score===maxScore);
-    const balanced=group.length>1&&top.length===1?top[0].b:null;
+    const balanced=group.length>1&&top.length===1&&completeExtras&&top[0].score>=70?top[0].b:null;
     const bestStation=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.station);
     const bestRoute=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
     const bestBorder=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
@@ -113,15 +118,19 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
       if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Подтверждённые погранпереходы');
       if(competing&&bestRisk?.b.id===b.id&&a.notes.length<out[group.find(x=>x.id!==b.id)?.id]?.notes?.length)a.tags.push('Меньше неподтверждённых условий');
-      if(competing&&top.length>1&&a.score===maxScore)a.tags.push('Равная итоговая оценка — требуется конкурс');
+      if(competing&&top.length>1&&a.score===maxScore)a.tags.push('Равная итоговая оценка — решение владельца / конкурс');
       if(competing&&worstUnique?.id===b.id)a.tags.push('Худшая сводная оценка в группе');
-      a.category=a.notes.length>=3?'сомнительная':balanced?.id===b.id?'наиболее сбалансированная':'альтернативная';
-      a.quality=a.notes.length>=3?'review':balanced?.id===b.id?'good':'alternative';
+      a.category=a.notes.length>=3||!completeExtras?'сомнительная':balanced?.id===b.id?'наиболее сбалансированная':'альтернативная';
+      a.quality=a.notes.length>=3||!completeExtras?'review':balanced?.id===b.id?'good':'alternative';
       a.isBalancedLeader=balanced?.id===b.id;
       a.isWorst=worstUnique?.id===b.id;
       a.tieForBest=top.length>1&&a.score===maxScore;
       a.groupSize=group.length;
-      a.methodology='OFFER-SCORE-20261117 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
+      a.methodology='OFFER-SCORE-20261117-R2 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
+      a.comparable=group.length>1;
+      a.compareKey=[b.order_code,b.round_id||'',norm(b.currency),norm(b.mode),norm(b.weight)].join(' / ');
+      if(!completeExtras)a.notes.push('Доплаты раскрыты не у всех: это предварительная оценка, а не полная стоимость');
+      a.ownerDecisionRequired=true;
     }
   }
   return out;
