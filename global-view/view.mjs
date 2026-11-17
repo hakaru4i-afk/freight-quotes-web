@@ -9,6 +9,7 @@ const node = (tag, className, text) => {
 };
 const icons = { rail: '▤', road: '▰', sea: '⚓', air: '✈', multi: '⇄', unknown: '◇' };
 let cities;
+const automaticGeocodeAttempts=new Map();
 function loadCities() {
   return cities ??= fetch(new URL('./places.json', import.meta.url)).then(response => {
     if (!response.ok) throw Error('City data unavailable');
@@ -102,8 +103,18 @@ class GlobalRouteView extends HTMLElement {
     this.addEventListener('click',async event=>{const button=event.target.closest('[data-geo-retry]');if(button){event.preventDefault();await updatePoint(button.closest('form'),{pointId:button.dataset.geoRetry});}},{signal});
     async function updatePoint(form,data){const buttons=[...form.querySelectorAll('button')];buttons.forEach(b=>b.disabled=true);let status=form.querySelector('[role="status"]');if(!status){status=node('p','');status.setAttribute('role','status');form.append(status);}status.textContent='Сохраняем…';try{const r=await fetch('/api/task2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_retry',order:request.orderCode,...data})});const result=await r.json();if(!r.ok)throw Error(result.error||'Ошибка геокодирования');status.textContent='Сохранено';window.dispatchEvent(new Event('map-geocodes-changed'));}catch(e){status.textContent=e.message;}finally{buttons.forEach(b=>b.disabled=false);}}
     const route = routeModel(request, offer, resolve);
-    if(plannedGeocodes&&!plannedGeocodes.owner?.length&&['owner','carrier'].includes(request.viewerRole)){
-      const button=node('button','','Определить координаты маршрута');button.type='button';button.addEventListener('click',async()=>{button.disabled=true;try{const r=await fetch('/api/task2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_route',order:request.orderCode})});const d=await r.json();if(!r.ok)throw Error(d.error);window.dispatchEvent(new Event('map-geocodes-changed'));}catch(e){button.textContent=e.message;button.disabled=false;}},{signal});info.append(button);
+    // MAP50: owner inputs are geocoded without requiring a manual button or map pin.
+    const ownerNeedsResolution=plannedGeocodes&&(!plannedGeocodes.owner?.length||plannedGeocodes.owner.some(p=>p.status!=='resolved'));
+    if(ownerNeedsResolution&&['owner','carrier'].includes(request.viewerRole)&&request.orderCode){
+      const key=String(request.orderCode),last=automaticGeocodeAttempts.get(key)||0;
+      if(Date.now()-last>180000){
+        automaticGeocodeAttempts.set(key,Date.now());
+        fetch('/api/task2',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'geocode_route',order:key}),signal})
+          .then(async r=>{if(!r.ok)throw Error('GEOCODE_HTTP_'+r.status);return r.json()})
+          .then(()=>{if(!signal.aborted)window.dispatchEvent(new Event('map-geocodes-changed'))})
+          .catch(()=>{});
+      }
+      info.append(node('p','gv-geocode-pending','Географические точки определяются автоматически. Для непроверенных координат маршрут пока предварительный.'));
     }
     this.routeSnapshot=JSON.parse(JSON.stringify(route));
     this.dataset.coordinateSource=plannedGeocodes?'server':'city-preview';
@@ -179,12 +190,14 @@ class GlobalRouteView extends HTMLElement {
     else calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
       distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
-      const totalText = result.totalKm == null ? 'Общий километраж: нет точного расчёта' : 'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км' + (result.estimated ? ' (ориентировочно)' : '');
+      const totalText = result.totalKm == null ? 'Расстояние пока не рассчитано: координаты уточняются автоматически' :
+        result.geodesicMinimum ? 'Предварительный минимум по прямой: ' + result.totalKm.toLocaleString('ru-RU') + ' км (не фактическая длина маршрута)' :
+        'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км' + (result.estimated ? ' (предварительно, уточняется по данным перевозчика)' : '');
       distancePanel.append(node('p', 'gv-coverage-label', totalText));
       if (result.totalKm == null && result.knownKm > 0) distancePanel.append(node('p', '', 'Подтверждённые участки: ' + result.knownKm.toLocaleString('ru-RU') + ' км'));
       const legList = node('ol', 'gv-distance-legs');
       for (const leg of result.legs) {
-        const label = leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' + (leg.estimated ? ' (по центрам городов)' : '') : ({
+        const label = result.geodesicMinimum && leg.km!=null ? 'не менее '+leg.km.toLocaleString('ru-RU')+' км по прямой (не маршрут)' : leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' + (leg.estimated ? ' (по центрам городов)' : '') : ({
           COORDINATES_MISSING: 'нет координат',
           EXACT_ADDRESS_REQUIRED: 'требуется точный адрес',
           LEG_MODES_REQUIRED: 'укажите транспорт каждого участка',
@@ -193,7 +206,7 @@ class GlobalRouteView extends HTMLElement {
         }[leg.reason] || 'расчёт недоступен');
         legList.append(node('li', '', leg.from + ' → ' + leg.to + ': ' + label));
       }
-      distancePanel.append(legList, node('small', '', 'Автомобильные участки рассчитываются по дорожной сети. При координатах центра города километраж ориентировочный. Для других видов транспорта расстояние по прямой не подставляется.'));
+      distancePanel.append(legList, node('small', '', result.geodesicMinimum ? 'Минимальная географическая дистанция — только временный ориентир. Реальные километры и маршрут рассчитываются заново после данных о станциях, переходах и транспорте.' : 'Предварительный маршрут по дорожной сети уточняется после добавления станций, промежуточных точек и вида транспорта перевозчиком.'));
     }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Расчёт временно недоступен')); });
     // OSRM — автомобильная сеть; для ЖД/моря/авиа не строим ложный дорожный километраж.
     if(Array.isArray(tracking)&&distance?.total==null&&route.mode==='road'){
