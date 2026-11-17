@@ -49,3 +49,15 @@
 @media(max-width:760px){
  #root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions{grid-template-columns:minmax(0,1fr)!important}
 }
+
+/* OW-USERS-DEDUP-01: one creation interface only. Existing staff list remains. */
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > :is(.bar,form.grid,p.small){
+ display:none!important;
+}
+/* Keep the seven new creation controls, delete control, alerts and members. */
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > .ow-users-actions{
+ display:grid!important;
+}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > .doc-list{
+ display:block!important;visibility:visible!important;
+}

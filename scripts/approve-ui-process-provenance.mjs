@@ -21,7 +21,7 @@ const approvedNew={
 };
 const approvedRevisions={
  'test/owner-team-users-20261117.js':{before:'1d9cb9411705c12a8384ef5e651cc26c928e4658dfff7b678feb3c939d119853',after:'032d23eebac79707ce859c86663a7b19b4675bc25faded67d71939f8ae3bebd7'},
- 'test/owner-team-users-20261117.css':{before:'e5293a4763554cb7d48a631eff881baeb7e8cfd5acf034df0a13950f56f5eddc',after:'ddb51de80826bdfd0f7300040175ccc420717414be8435f2458dd0f119b68e93'}
+ 'test/owner-team-users-20261117.css':{before:'ddb51de80826bdfd0f7300040175ccc420717414be8435f2458dd0f119b68e93',after:'727960144818c7365da15895488dd644fe28c4fec03b09d9f1b01a22b4cc9ac5'}
 };
 const current=sourceSignatures(),changed=Object.keys(current).filter(k=>model.reviewedSourceSignatures?.[k]!==current[k]);
 if(Object.keys(model.reviewedSourceSignatures).some(k=>!(k in current)))throw Error('SOURCE_FILE_REMOVAL_REQUIRES_REVIEW');
