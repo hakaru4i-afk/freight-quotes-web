@@ -1,8 +1,8 @@
 {
   "environment": "staging",
   "version": "972ba51ea87d35338e95",
-  "releaseVersion": "SH-01.30.53 v",
-  "ownerReleaseVersion": "OW-01.30.48 v",
+  "releaseVersion": "SH-01.30.54 v",
+  "ownerReleaseVersion": "OW-01.30.49 v",
   "releaseNotice": "release-status.json",
   "projectRef": "ibclzdkxiozbzmniiygv",
   "build": "SH-01.30.50 v",
@@ -183,7 +183,7 @@
     "bundleSha256": "cd32296c0ad5ac38878302dd5f9d5f6864fbbdd4ed2c76a4eb704eb74bed6adb",
     "build": "issue47qa-draft-lock-v11"
   },
-  "releaseNotes": "2026-11-04 #47: late bid send enabled through authenticated draft start; live updates journal; price/time color comparison; 26/26 NOT PASS",
+  "releaseNotes": "release-status.json",
   "hotfix": {
     "issue": 47,
     "component": "test/app.js",
@@ -765,5 +765,7 @@
     "deadlineTimezone": "Europe/Minsk",
     "uiAsset": "late-bid-staging-3ff2c9ab03f5.js"
   },
-  "indexStructureSha256": "dbd82bece5244a54415bf32045618f05353e931b4987eece2c367e346ef09923"
+  "indexStructureSha256": "dbd82bece5244a54415bf32045618f05353e931b4987eece2c367e346ef09923",
+  "releaseStatus": "PUBLISHING",
+  "releaseDate": "2026-11-17"
 }
