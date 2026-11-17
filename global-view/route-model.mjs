@@ -123,7 +123,7 @@ export function placeIndex(rows) {
     }
     // MAP50: validated city fallback for a mixed Chinese administrative pickup.
     // This is the center of Linyi (approximate), never the factory or village.
-    if (/山东省临沂市/.test(label)) return lookup('linyi cn');
+    if (/山东省临沂市/.test(label)) { const p=lookup('linyi cn');return p?{...p,precision:'city',confirmed:false}:null; }
     // Yuyao is a county-level city within Ningbo, Zhejiang: match the most
     // specific administrative name, never its parent Ningbo city centre.
     // The point is a city-centre estimate until an address-level geocoder succeeds.
