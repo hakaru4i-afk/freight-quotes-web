@@ -1,0 +1,43 @@
+name: Release metadata single source
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site-status.json'
+      - 'release-status.json'
+      - 'test/site-status.json'
+      - 'test/release-status.json'
+      - 'index.html'
+      - 'test/index.html'
+      - 'scripts/sync-release-metadata.py'
+      - '.github/workflows/sync-release-metadata.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release-metadata-main
+  cancel-in-progress: false
+jobs:
+  synchronize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Sync release metadata and check integrity
+        run: python scripts/sync-release-metadata.py
+      - name: Commit synchronized version across production and staging
+        run: |
+          git add site-status.json test/site-status.json release-status.json test/release-status.json index.html test/index.html
+          if git diff --cached --quiet; then
+            echo "Release metadata already synchronized"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: synchronize portal release metadata [skip ci]"
+          git push origin HEAD:main
