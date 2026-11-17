@@ -11,7 +11,19 @@ const prodProject='ooclsrndeygojtofuyte',testProject='ibclzdkxiozbzmniiygv';
 function linkedAssets(page){
  return [...page.matchAll(/(?:src|href)="\.\/([^"?]+\.(?:css|js|mjs))(?:\?[^"]*)?"/g)].map(m=>m[1]);
 }
+// Main SPA bundle must be semantically byte-identical after removing only
+// narrowly enumerated environment wiring. Build IDs are NOT business logic.
+function normalizeMainApp(text){
+ return text
+  .replace(/staging-api-region\\.mjs\\?v=[a-f0-9]{12,20}/g,'staging-api-region.mjs?v=<cache>')
+  .replace(/environment:"(?:staging|production)"/g,'environment:"<environment>"')
+  .replace(/currentVersion:"[a-f0-9]{20}"/g,'currentVersion:"<build>"')
+  .replaceAll(prodProject,'PROJECT').replaceAll(testProject,'PROJECT')
+  .replace(/freight-(?:staging-PROJECT|production-PROJECT)(-preview|-bootstrap|-session)?/g,(_,suffix='')=>'freight-ENV'+suffix)
+  .replace(/Un="freight-session"/g,'Un="freight-ENV-session"');
+}
 function normalize(file,text,stage){
+ if(file==='app.js')return normalizeMainApp(text);
  if(file==='process-editor-20261111.mjs'||file==='global-view/view.mjs')
   return text.replace(/\?v=[a-z0-9]+/g,'?v=<cache>');
  if(!stage)return text;
@@ -48,17 +60,17 @@ export function verify(){
   assert.ok(existsSync(resolve(root,file)),file+' is missing in production');
   assert.ok(existsSync(resolve(root,'test',file)),file+' is missing in staging');
   const p=read(file),t=read('test/'+file);
+  if(file==='app.js'){
+    assert.ok(p.includes('https://'+prodProject+'.supabase.co/functions/v1/freight-api'),'Production app must use production API');
+    assert.ok(t.includes('https://'+testProject+'.supabase.co/functions/v1/freight-api'),'Staging app must use staging API');
+    assert.ok(!p.includes(testProject)&&!t.includes(prodProject),'Cross-environment projectRef leak');
+  }
   if(p===t){checks.push({file,sha256:hash(p)});continue;}
   if(file.endsWith('.css')){mismatches.push(file+': CSS/style differs');continue;}
   const np=normalize(file,p,false),nt=normalize(file,t,true);
   if(np===nt){exempt.push({file,reason:'known environment-specific URL, label, storage key, cache key or TEST guard'});continue;}
-  if(file==='app.js'){
-   // The main app has independently stamped environment-specific build identity.
-   // Check backend isolation; no cross-environment calls are allowed.
-   if(!p.includes(prodProject)||p.includes(testProject)||!t.includes(testProject)||t.includes(prodProject))
-    mismatches.push(file+': backend isolation failed');
-   else exempt.push({file,reason:'main app has independently stamped environment-specific build identities; compare in authenticated E2E'});
-  }else mismatches.push(file+': unreviewed runtime divergence');
+  // No blanket app.js exception. Functional differences are release blockers.
+  mismatches.push(file+': functional source mismatch (outside approved environment identity differences)');
  }
  const output={status:mismatches.length?'FAIL':'PASS',sharedAssets:checks.length,isolatedAssets:exempt,failures:mismatches,release:pr.releaseVersion,productionBuild:pr.build,stagingBuild:st.version};
  console.log(JSON.stringify(output,null,2));
