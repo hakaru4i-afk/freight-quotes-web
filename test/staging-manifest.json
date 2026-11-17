@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "25c260853dbb3446d9fb8e0d7ff962fb50ed9c3d",
+  "frontendCommit": "7203124e402c0888a04292db68e72b99c64372f4",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -83,8 +83,8 @@
     "scripts/wait-staging-publication.mjs": "5924064c53aa72c318ac2d5fea4301077656b83f883ebf9b53ed995b1e0e8ac2",
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
-    "test/app.js": "e319d6d3feacffdaeb7733909ca4af6c6ccaa963b568057a8dacc6b52a6ecc10",
-    "test/build-info.json": "968af0e9f2d1852289d16edac7a84cd974d67f3e112685ffadcde348683794fc",
+    "test/app.js": "de2d5e61f655e9f2b6f8f8a4ae9bc4bab1f25ac76aab472af3074c9800224056",
+    "test/build-info.json": "71e503ddb858f640cf2e487ac9a01d3299a18dd84287bade42f08c08abd77f5e",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "1e4e9898402df2043830d345513e4fa14758986815136844ec1e27b6124bcdb3",
     "test/business-process-model.json": "486f412666cf5545a1409fcf98fce5e8c1bf5d795421c9fe0e9ab20cd25508ae",
@@ -125,7 +125,7 @@
     "test/global-view/view.mjs": "69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "818e2f255c09c32e0be52f69c6dfd9bef7ed3d669d271d5015ec2ba0b58d2928",
+    "test/index.html": "b1a85441392efad0b59768e98b9eebb363293352bdcbff01d59a251765768790",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
     "test/late-bid-staging.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -211,7 +211,7 @@
     "test/recognition-tesseract-worker-7.0.0.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
     "test/role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-    "test/site-status.json": "921490f15e12a7a3a4134dc3040e8e3596b2404201f49544acd62093a9189435",
+    "test/site-status.json": "1e4746a5df3e42ecc745baaf5334cdbf82e35a91292a37ff572476345787048e",
     "test/smart-import-v1.mjs": "852ff13b071ae4f00e4ef5677618ba5651028db2e6d17adc20fd90608ccc555f",
     "test/staging-api-region.mjs": "b16d116ff434addf7019a9632e1d4f2db5f1d089d1ea016c751fd5ff63c8e7b9",
     "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
@@ -356,7 +356,8 @@
     "tests/task2-request-coalescing.test.mjs": "3f7118bc58406a19dbfd36344c00e89c5a08197fd76c8c488347b4d21b442f20",
     "tests/transport-mode-real-scenarios.mjs": "413c0f92d8f408e9c9207bc52bcec5f300685863c3802e19e10cf766c7a7f49b",
     "tests/ved-navigation-dom.test.mjs": "0b199d063b43ee45db8b57a7cbf32dfc51e48a6dfb9811e96877127d631b917f",
-    "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa"
+    "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa",
+    "tests/sql-safety-delete-confirmation.test.mjs": "39aed4f382c59bbac2245a2b65f540775de99a3d9739191e764fc5afb71c3b2b"
   },
   "roleHelpSha256": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
   "apiVersion": 108,
