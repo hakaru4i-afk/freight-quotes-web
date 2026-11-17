@@ -61,3 +61,19 @@
 #root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > .doc-list{
  display:block!important;visibility:visible!important;
 }
+
+/* OW-INPUT-READABLE: force dark ink on light fields in the Owner user dialog. */
+body .ow-users-backdrop .ow-users-dialog .ow-users-field :is(input,select),
+body .ow-users-backdrop .ow-users-dialog .ow-users-field :is(input,select):is(:hover,:focus,:focus-visible,:active){
+ color:#142b43!important;
+ -webkit-text-fill-color:#142b43!important;
+ caret-color:#142b43!important;
+ background:#fff!important;
+ color-scheme:light!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+body .ow-users-backdrop .ow-users-dialog .ow-users-field input:-webkit-autofill{
+ -webkit-text-fill-color:#142b43!important;
+ box-shadow:0 0 0 1000px #fff inset!important;
+}
