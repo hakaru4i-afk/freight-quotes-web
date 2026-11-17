@@ -85,12 +85,18 @@ class GlobalRouteView extends HTMLElement {
     // Owner-only request maps have no carrier/winner yet. Geocode their points
     // through the authenticated server rather than requiring manual map markers.
     const serverPoints=new Map();
-    if(!plannedGeocodes){
+    {
       const wanted=routeModel(request,offer,()=>null).stops.map(p=>p.label);
-      if(wanted.length>=2&&wanted.length<=8){
+      // Always retry unresolved points through the server, even if historical
+      // (unresolved) geocode rows are present in the payload.
+      const allRecords=[...(plannedGeocodes?.owner||[]),...(plannedGeocodes?.offer||[])];
+      const unresolved=wanted.filter(label=>!allRecords.some(p=>
+        (p.original_text===label||p.label===label)&&p.status==='resolved'&&
+        Number.isFinite(p.lat)&&Number.isFinite(p.lon)));
+      if(unresolved.length>0&&wanted.length<=8){
         try{
           const response=await fetch('/api/route-distance',{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({action:'geocode_points',addresses:wanted}),signal});
+            body:JSON.stringify({action:'geocode_points',addresses:unresolved}),signal});
           if(response.ok){
             const payload=await response.json();
             for(const point of payload.points||[]){
