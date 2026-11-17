@@ -7,6 +7,9 @@ on:
       - index.html
       - build-info.json
       - site-status.json
+      - production-release-manifest.json
+      - 'owner-ui-unification-*.css'
+      - 'owner-ui-unification-*.js'
       - .github/workflows/issue43-production-smoke.yml
   pull_request:
     paths:
@@ -14,6 +17,9 @@ on:
       - index.html
       - build-info.json
       - site-status.json
+      - production-release-manifest.json
+      - 'owner-ui-unification-*.css'
+      - 'owner-ui-unification-*.js'
       - .github/workflows/issue43-production-smoke.yml
   workflow_dispatch:
 permissions:
