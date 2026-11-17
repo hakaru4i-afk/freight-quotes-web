@@ -95,6 +95,11 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       const previous=out[b.id];
       const s=oneScore(b,minPrice,minDays,previous,price(b));
       const merged={...previous,...s,peers:group.length-1,quality:'review',category:'альтернативная',tags:[]};
+      // No green «best» status when group comparison is incomplete or has no peer.
+      const scoreCap=Math.min(completeExtras?100:79,group.length>1?100:79);
+      merged.score=Math.min(merged.score,scoreCap);
+      merged.level=tier(merged.score).level;
+      merged.band=tier(merged.score).label;
       if(!meaningful(b.weight)){merged.notes.push('Вес груза не указан — другие ставки нельзя считать сопоставимыми');merged.score=Math.min(merged.score,69);merged.level=tier(merged.score).level;merged.band=tier(merged.score).label;}
       merged.quotedAmount=Number(b.amount);
       merged.effectiveAmount=price(b);
@@ -119,7 +124,7 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
       if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Лучший подтверждённый погранпереход');
       if(competing&&bestRisk?.b.id===b.id&&a.notes.length<out[group.find(x=>x.id!==b.id)?.id]?.notes?.length)a.tags.push('Меньше неподтверждённых условий');
-      if(competing&&top.length>1&&a.score===maxScore)a.tags.push('Равная итоговая оценка — решение владельца / конкурс');
+      if(competing&&top.length>1&&a.score===maxScore)a.tags.push(completeExtras?'Равная итоговая оценка — решение владельца / конкурс':'Предварительная оценка равна — доплаты требуют уточнения');
       if(competing&&worstUnique?.id===b.id)a.tags.push('Худшая сводная оценка в группе');
       a.category=a.notes.length>=3||!completeExtras?'сомнительная':balanced?.id===b.id?'наиболее сбалансированная':'альтернативная';
       a.quality=a.notes.length>=3||!completeExtras?'review':balanced?.id===b.id?'good':'alternative';
@@ -127,7 +132,7 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       a.isWorst=worstUnique?.id===b.id;
       a.tieForBest=top.length>1&&a.score===maxScore;
       a.groupSize=group.length;
-      a.uniqueBest=top.length===1&&a.score===maxScore&&completeExtras;
+      a.uniqueBest=group.length>1&&top.length===1&&a.score===maxScore&&completeExtras;
       a.unconfirmedConditions=a.notes.length;
       a.worstFlag=worstUnique?.id===b.id? 'Худшая оценка среди сравнимых' : null;
       a.methodology='OFFER-SCORE-20261117-R3 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
