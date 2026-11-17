@@ -4,6 +4,14 @@ on:
     branches: [main]
     paths:
       - 'test/**'
+      - '*.js'
+      - '*.mjs'
+      - '*.css'
+      - 'index.html'
+      - 'build-info.json'
+      - 'site-status.json'
+      - 'production-release-manifest.json'
+      - 'global-view/**'
       - 'scripts/stamp-staging-rc.mjs'
       - 'scripts/reindex-staging-manifest.mjs'
       - 'scripts/**'

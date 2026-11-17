@@ -53,6 +53,7 @@ jobs:
           assertProductionReleaseIntegrity();
           console.log('PRODUCTION_RELEASE_MANIFEST_PASS');
           NODE_MANIFEST
+          node scripts/check-runtime-parity.mjs
       - name: Verify served GitHub Pages bytes
         if: github.event_name != 'pull_request'
         run: |
