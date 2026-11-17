@@ -1,7 +1,7 @@
 {
   "version": "SH-01.30.53 v",
   "ownerVersion": "OW-01.30.48 v",
-  "status": "updating",
+  "status": "released",
   "date": "2026-11-17",
   "changes": [
     "Управление пользователями: один блок без повторяющихся кнопок.",
