@@ -13,14 +13,21 @@ const expectedLegacy={
  'test/process-editor-20261111.mjs':'3c9c037f638fb003de80d6cce66ca207057a9034dc1db2b555d3014f664f2eb9',
  'test/global-view/view.mjs':'69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f'
 };
+const approvedNew={
+ 'test/owner-ui-unification-20261117.css':'a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205',
+ 'test/owner-ui-unification-20261117.js':'ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3'
+};
 const current=sourceSignatures(),changed=Object.keys(current).filter(k=>model.reviewedSourceSignatures?.[k]!==current[k]);
 if(Object.keys(model.reviewedSourceSignatures).some(k=>!(k in current)))throw Error('SOURCE_FILE_REMOVAL_REQUIRES_REVIEW');
 for(const key of changed){
- if(!(key in expectedLegacy)||model.reviewedSourceSignatures[key]!==expectedLegacy[key])
+ if(key in approvedNew){
+  if(model.reviewedSourceSignatures[key]!==undefined||current[key]!==approvedNew[key])
+   throw Error('NEW_UI_SOURCE_UNAPPROVED:'+key);
+ }else if(!(key in expectedLegacy)||model.reviewedSourceSignatures[key]!==expectedLegacy[key])
    throw Error('UNREVIEWED_PROCESS_SOURCE_CHANGE:'+key);
 }
 if(!changed.length){console.log('PROCESS_REVIEW_ALREADY_CURRENT');process.exit(0);}
-if(changed.length!==4)throw Error('UNEXPECTED_PROCESS_REVIEW_SCOPE:'+changed.join(','));
+if(changed.length!==6)throw Error('UNEXPECTED_PROCESS_REVIEW_SCOPE:'+changed.join(','));
 const cssCurrent=JSON.parse(readFileSync(resolve(root,'test/staging-manifest.json'),'utf8')).assetHashes['test/lw-contrast-canonical-20261111.css'];
 if(cssCurrent!=='103ba53da07390fea89b365e33d3ec1eddf370d4c31c767cc2fedd2f23246ef0')throw Error('UNAPPROVED_CSS_SOURCE');
 if(!process.argv.includes('--write')){console.log('PROCESS_UI_REVIEW_PENDING',changed.join(','));process.exitCode=1;}
