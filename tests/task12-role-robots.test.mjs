@@ -53,7 +53,7 @@ test("ROBOT-OWNER isolated Owner can open canonical New Shipment form",async t=>
  assert.deepEqual(errors,[],"Owner JavaScript errors");
 });
 test("ROBOT-CARRIER isolated Carrier has own workspace and cannot open Owner creation",async t=>{
- const {page,errors}=await withBrowser(t,"carrier");
+ const {page,errors,requests}=await withBrowser(t,"carrier");
  await page.locator(".cabinet-sidebar nav").waitFor({timeout:10000});
  assert.equal(await page.locator('.cabinet-sidebar nav a[href="#create-request"]').count(),0,"Carrier should not see Owner creation");
  assert.ok(await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').count()>0,"Carrier requests workspace missing");
@@ -61,13 +61,15 @@ test("ROBOT-CARRIER isolated Carrier has own workspace and cannot open Owner cre
  await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').click();
  const panel=page.locator('.cabinet-panel[data-section="carrier-orders"]');
  await panel.waitFor({state:"visible",timeout:10000});
+ assert.equal(requests.filter(x=>x.path==="/api/test-cabinets").length,0,"Carrier UI must never query Owner cabinet preview");
  assert.deepEqual(errors,[],"Carrier JavaScript errors");
 });
 test("ROBOT-VED isolated VED cannot access Owner request creation controls",async t=>{
- const {page,errors}=await withBrowser(t,"logistic");
+ const {page,errors,requests}=await withBrowser(t,"logistic");
  await page.locator(".cabinet-sidebar nav").waitFor({timeout:10000});
  assert.equal(await page.locator('.cabinet-sidebar nav a[href="#create-request"]').count(),0);
  assert.equal(await page.locator('input[aria-label="Номер заказа *"]').count(),0);
+ assert.equal(requests.filter(x=>x.path==="/api/test-cabinets").length,0,"VED must never query Owner cabinet preview");
  assert.deepEqual(errors,[],"VED JavaScript errors");
 });
 test("ROBOT-MOBILE isolated Carrier workspace fits 390px viewport",async t=>{
