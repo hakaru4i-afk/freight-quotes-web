@@ -1,0 +1,29 @@
+/* Owner audit: business-readable explanation first, immutable technical record remains expandable. */
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-title {
+ font-size:14px;line-height:1.4;font-weight:750;color:#10364b;-webkit-text-fill-color:#10364b;
+ margin:0 0 5px;max-width:34rem;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-result {
+ margin-top:5px;font-size:13px;line-height:1.4;font-weight:550;color:#173e50;-webkit-text-fill-color:#173e50;
+ max-width:30rem;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail{
+ margin:10px 0;padding:10px 12px;border:1px solid #567895;border-radius:8px;background:#173450;color:#fff;
+ -webkit-text-fill-color:#fff;line-height:1.5
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail p {
+ margin:6px 0;color:#fff;-webkit-text-fill-color:#fff
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail strong {
+ color:#fff;-webkit-text-fill-color:#fff;font-weight:800
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-technical-line {
+ font:12px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor tbody tr td:nth-child(3)>small{
+ display:block;margin-top:4px;opacity:.8
+}
+@media(max-width:600px){
+ #root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-title{font-size:13px}
+ #root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-result{font-size:12px}
+}
