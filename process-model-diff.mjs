@@ -1,4 +1,4 @@
-import {processEdges} from './process-model-graph.mjs?v=80210b349fa65b922c1e';
+import {processEdges} from './process-model-graph.mjs?v=65d9edb90c1e31aa0ddb';
 const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
 export function diffProcessModels(before,after){
  const changes=[];for(const field of ['version','scope','decisions'])if(JSON.stringify(stable(before[field]))!==JSON.stringify(stable(after[field])))changes.push({process:'MODEL',field,before:before[field],after:after[field]});const roles=Object.keys(before.roles),value=(n,key,i)=>key==='position'?(n.position||{x:60+roles.indexOf(n.role)*260,y:70+i*130}):(n[key]??'');
