@@ -7,7 +7,7 @@
   "sourceStagingFrontendCommit": "6a961e5c98231c174522b66364de5fcbe1aa8482",
   "publicationState": "APPROVED_FOR_PRODUCTION",
   "assets": {
-    "index.html": "cd69d3c3f8dc7b8cba3547126de8013f3afa18f056880b92255dfb98d7b43209",
+    "index.html": "eb067a21f3b8b3735dc4a36afb6905569d714c241117e7a19f4b2e76132ff683",
     "build-info.json": "cd3e04deb93a6220684daad54b5a5ab286de279bf225a22a948afdb1d5a5d9ff",
     "site-status.json": "f076a7a732594bf6d1443a2f7e38982d531dbd83e117af90cd5528fd066d88bc",
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
@@ -191,7 +191,7 @@
     "process-history/20261110-logic-1/business-process-model.json": "218a1dc3b8a468d562083e16f12c0d9b8df6601dd05b9391f2419d399abfbd17",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
     "owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
-    "owner-team-users-20261117.js": "032d23eebac79707ce859c86663a7b19b4675bc25faded67d71939f8ae3bebd7",
+    "owner-team-users-20261117.js": "34d376bf5649b522eedff4ef964474e50891bc4aa9cbc67a05fd4e5b3a0e6ba7",
     "owner-team-users-20261117.css": "727960144818c7365da15895488dd644fe28c4fec03b09d9f1b01a22b4cc9ac5"
   },
   "acceptance": {
@@ -239,12 +239,13 @@
     "databaseDataChanged": false
   },
   "ownerUsersDedup": {
-    "id": "OW-USERS-DEDUP-01",
-    "scope": "hide legacy duplicate creation form and buttons; retain existing members and permissions",
+    "id": "OW-USERS-DEDUP-02",
+    "scope": "one canonical People & Rights action block, deferred mount and cleanup of stray duplicate blocks",
     "environments": [
       "production",
       "staging"
     ],
-    "noDatabaseChanges": true
+    "noDatabaseChanges": true,
+    "regressionTest": "tests/owner-team-users-browser.test.mjs"
   }
 }
