@@ -1,0 +1,16 @@
+/* OFFER-EVAL-20261117-R2 · Owner-only methodology. */
+.cabinet-app[data-cabinet-role="owner"] .offer-methodology-legacy-hidden,
+.staff-portal[data-cabinet-role="owner"] .offer-methodology-legacy-hidden{display:none!important}
+.offer-methodology-r2{background:#edf4fd;color:#102d45;border:1px solid #aec4da;border-radius:12px;padding:16px 19px;margin:12px 0 18px;line-height:1.5;max-width:100%}
+.offer-methodology-r2 h3{color:#112d48;margin:0 0 6px;font-size:17px}
+.offer-methodology-r2 p{color:#213c56;margin:6px 0 10px}
+.offer-methodology-details summary{cursor:pointer;font-weight:700;color:#173a5a;padding:8px 0}
+.offer-methodology-table{border-collapse:collapse;width:100%;background:white;color:#17304b;table-layout:fixed}
+.offer-methodology-table th,.offer-methodology-table td{border-bottom:1px solid #c8d6e5;padding:8px 10px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.offer-methodology-table th:first-child{width:25%}.offer-methodology-table th:nth-child(2){width:12%;text-align:center}.offer-methodology-table td:nth-child(2){text-align:center;font-weight:700}
+.offer-methodology-bands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.offer-methodology-band{display:flex;gap:8px;align-items:flex-start;flex-direction:column;padding:10px;border-radius:8px;background:white;border-left:5px solid #74869b;color:#142f49}
+.offer-methodology-band strong{font-size:16px}.offer-methodology-band small{font-size:12px}
+.offer-methodology-band.band-0{border-left-color:#126034}.offer-methodology-band.band-1{border-left-color:#248849}.offer-methodology-band.band-2{border-left-color:#7ebd73}.offer-methodology-band.band-3{border-left-color:#e1b514}.offer-methodology-band.band-4{border-left-color:#ed8c26}.offer-methodology-band.band-5{border-left-color:#8e3748}
+.offer-methodology-r2 .offer-methodology-owner{font-weight:650}
+@media(max-width:760px){.offer-methodology-bands{grid-template-columns:repeat(2,minmax(0,1fr))}.offer-methodology-r2{padding:12px}.offer-methodology-table{font-size:12px}}
