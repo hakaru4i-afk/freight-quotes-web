@@ -1,4 +1,4 @@
-import { calculateMapDistances } from './distance.mjs?v=e0e602c130b51fb75897';
+import { calculateMapDistances } from './distance.mjs?v=sh-013054-map50-20261117';
 import { modes, placeIndex, routeModel } from './route-model.mjs?v=e0e602c130b51fb75897';
 
 const node = (tag, className, text) => {
