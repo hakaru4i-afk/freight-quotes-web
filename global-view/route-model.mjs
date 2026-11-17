@@ -64,6 +64,54 @@ export function placeIndex(rows) {
     const points = index.get(aliasIndex.get(key) ?? key);
     return points?.size === 1 ? points.values().next().value : null;
   };
+  // Generic address parser: extract *known* city names from mixed RU/EN/ZH
+  // address hierarchies, instead of adding a hard-coded rule for every request.
+  // A city centre is ALWAYS a provisional point, never a verified warehouse
+  // or railway station. Ambiguous same-name settlements remain unresolved.
+  const aliasesWithTargets = [...aliasIndex.entries()].map(([name, target])=>[name,target]);
+  const isHan = name => /[\p{Script=Han}]/u.test(name);
+  const hasName = (haystack, needle) => {
+    if (isHan(needle)) return needle.length >= 2 && haystack.includes(needle);
+    if (needle.length < 3) return false;
+    const safe = needle.replace(/[.*+?^${}()|[\]\\]/g,'\\  const lookup = key => {
+    const points = index.get(aliasIndex.get(key) ?? key);
+    return points?.size === 1 ? points.values().next().value : null;
+  };
+  return label => {');
+    return new RegExp('(^|[^\\p{L}\\p{N}])'+safe+'(?=$|[^\\p{L}\\p{N}])','u').test(haystack);
+  };
+  const countryIn = text => {
+    if (/(?:中国|中华人民共和国|(?:^|\W)(?:china|cn|китай)(?:$|\W)|浙江|山东|广东|江苏|福建|河北|宁波|上海)/iu.test(text)) return 'cn';
+    if (/(?:беларусь|белоруссия|白俄罗斯|(?:^|\W)(?:belarus|by)(?:$|\W))/iu.test(text)) return 'by';
+    if (/(?:россия|俄罗斯|(?:^|\W)(?:russia|ru)(?:$|\W))/iu.test(text)) return 'ru';
+    if (/(?:казахстан|哈萨克斯坦|(?:^|\W)(?:kazakhstan|kz)(?:$|\W))/iu.test(text)) return 'kz';
+    if (/(?:монголия|蒙古国|(?:^|\W)(?:mongolia|mn)(?:$|\W))/iu.test(text)) return 'mn';
+    return '';
+  };
+  const candidateNames = [...new Set([...index.keys(),...aliasesWithTargets.map(([name])=>name)])]
+    .filter(name=>name.length>=2 && !/ (?:[a-z]{2})$/.test(name));
+  const knownAddress = label => {
+    const haystack=normal(label),country=countryIn(haystack),found=[];
+    for(const name of candidateNames){
+      if(!hasName(haystack,name))continue;
+      const target=aliasIndex.get(name)||name;
+      const point=country ? lookup(target+' '+country) : lookup(target);
+      if(!point)continue;
+      const last=haystack.lastIndexOf(name);
+      // Later place names in hierarchical addresses generally identify the
+      // more specific locality, e.g. Ningbo -> Yuyao. Prefer explicit Chinese
+      // city suffix over bare region tokens.
+      const suffix = isHan(name) && /(市|县|区)/u.test(haystack.slice(last+name.length,last+name.length+1));
+      found.push({name,last,point,score:last*2 + (suffix?4:0)});
+    }
+    if(!found.length)return null;
+    found.sort((a,b)=>b.score-a.score||b.name.length-a.name.length);
+    const best=found[0];
+    // Do not silently pick a location if equal-scoring candidates conflict.
+    if(found.some(p=>p.score===best.score && (p.point.lat!==best.point.lat||p.point.lng!==best.point.lng)))return null;
+    return {...best.point,approximate:true,precision:'city',confirmed:false,
+      source:'gazetteer locality parsed from mixed-language address'};
+  };
   return label => {
     const coordinate = label.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
     if (coordinate) {
@@ -97,8 +145,8 @@ export function placeIndex(rows) {
     // The bundled gazetteer only verifies a city and its ISO country code.
     // An unmatched qualifier may be a different country or a street address.
     const parts = key.split(/[,，]/).map(part => part.trim());
-    if (parts.length === 1) return lookup(parts[0].replace(/^(?:г\.|город|city of)\s*/, ''));
-    if (parts.length !== 2) return null;
+    if (parts.length === 1) return lookup(parts[0].replace(/^(?:г\.|город|city of)\s*/, '')) || knownAddress(label);
+    if (parts.length !== 2) return knownAddress(label);
     const countryCode = value => ({
       'китай': 'cn', china: 'cn', '中国': 'cn',
       'беларусь': 'by', belarus: 'by', '白俄罗斯': 'by'
@@ -106,7 +154,7 @@ export function placeIndex(rows) {
     const [city, country] = countryCode(parts[0]) ? [...parts].reverse() : parts;
     const cityName = city.replace(/^(?:г\.|город|city of)\s*/, '');
     const code = countryCode(country);
-    return code ? lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code) : null;
+    return (code ? lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code) : null) || knownAddress(label);
   };
 }
 
