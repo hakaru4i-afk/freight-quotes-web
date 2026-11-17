@@ -29,6 +29,14 @@ def write(path, value):
 state=source.get('releaseStatus','checking')
 if state not in ('updating','checking','released','failed'):
     raise SystemExit('Invalid release status')
+# A build explicitly marked PUBLISHED for this release must not be shown as still checking.
+production_info=json.loads((ROOT/'build-info.json').read_text(encoding='utf-8'))
+if (production_info.get('releaseStatus') == 'PUBLISHED'
+        and production_info.get('releaseVersion') == version
+        and state in ('updating','checking')):
+    state='released'
+    source['releaseStatus']=state
+    write(ROOT/'site-status.json',source)
 manifest = {'version':version,'ownerVersion':owner,'status':state,
             'date':active['date'],'changes':active['changes']}
 for path in [ROOT/'release-status.json', ROOT/'test/release-status.json']:
@@ -37,6 +45,7 @@ for path in [ROOT/'release-status.json', ROOT/'test/release-status.json']:
 staging = ROOT/'test/site-status.json'
 test_data=json.loads(staging.read_text(encoding='utf-8'))
 test_data['release']=active
+test_data['releaseStatus']=state
 test_data['releases']=[active]+[x for x in test_data['releases'] if x['version']!=version]
 write(staging,test_data)
 
