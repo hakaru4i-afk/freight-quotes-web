@@ -9,6 +9,8 @@ on:
       - 'test/release-status.json'
       - 'index.html'
       - 'test/index.html'
+      - 'build-info.json'
+      - 'test/build-info.json'
       - 'scripts/sync-release-metadata.py'
       - '.github/workflows/sync-release-metadata.yml'
   workflow_dispatch:
@@ -32,7 +34,7 @@ jobs:
         run: python scripts/sync-release-metadata.py
       - name: Commit synchronized version across production and staging
         run: |
-          git add site-status.json test/site-status.json release-status.json test/release-status.json index.html test/index.html
+          git add site-status.json test/site-status.json release-status.json test/release-status.json build-info.json test/build-info.json index.html test/index.html
           if git diff --cached --quiet; then
             echo "Release metadata already synchronized"
             exit 0
