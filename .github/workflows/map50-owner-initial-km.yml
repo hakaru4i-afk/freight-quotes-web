@@ -1,0 +1,33 @@
+name: MAP50 Owner initial km and third-station regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/map50-owner-km-before-bid.test.mjs'
+      - '.github/workflows/map50-owner-initial-km.yml'
+  pull_request:
+    paths:
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/map50-owner-km-before-bid.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  node-regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Owner 2 points, carrier third station, rail safety
+        run: node --test tests/map50-owner-km-before-bid.test.mjs
+      - name: Frontend and staging use matching map logic
+        run: |
+          cmp global-view/view.mjs test/global-view/view.mjs
+          cmp global-view/distance.mjs test/global-view/distance.mjs
+          cmp global-view/route-model.mjs test/global-view/route-model.mjs
