@@ -1,0 +1,19 @@
+/* OW-USERS-20261117: Owner-only user management additions */
+.ow-users-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:14px 0;padding:0}
+.ow-users-action{font:600 13px/1.35 system-ui,sans-serif;min-height:42px;padding:10px 14px;border-radius:10px;border:1px solid #6694be;background:#173c60;color:#f4f9ff;-webkit-text-fill-color:#f4f9ff;cursor:pointer}
+.ow-users-action:hover,.ow-users-action:focus-visible{background:#24577e;color:#fff;-webkit-text-fill-color:#fff;outline:2px solid #91d4ff;outline-offset:1px}
+.ow-users-delete{border-color:#bc7d79;background:#653333}
+.ow-users-delete:hover{background:#7d4141}
+.ow-users-backdrop{position:fixed;inset:0;z-index:2147483600;background:rgba(7,17,29,.74);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.ow-users-dialog{box-sizing:border-box;width:min(100%,520px);max-height:90vh;overflow:auto;background:#142c44;color:#eff7ff;-webkit-text-fill-color:#eff7ff;padding:24px;border:1px solid #78a7cd;border-radius:15px;box-shadow:0 18px 46px rgba(0,0,0,.55);font:14px/1.45 system-ui,sans-serif}
+.ow-users-dialog h3{margin:0 0 8px;color:#fff;-webkit-text-fill-color:#fff;font-size:20px}
+.ow-users-note{color:#c6e0f6;-webkit-text-fill-color:#c6e0f6;margin:0 0 16px}
+.ow-users-field{display:flex;flex-direction:column;gap:6px;margin:12px 0;color:#eaf4ff;-webkit-text-fill-color:#eaf4ff}
+.ow-users-field input,.ow-users-field select{box-sizing:border-box;min-height:44px;width:100%;padding:10px 12px;background:#f8fbff;color:#142b43;-webkit-text-fill-color:#142b43;border:1px solid #869bb0;border-radius:9px;font-size:15px}
+.ow-users-dialog-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:15px}
+.ow-users-dialog-actions button{min-height:42px;border-radius:9px;padding:10px 15px;cursor:pointer;border:1px solid #6c9bba;font-weight:650}
+.ow-users-primary{background:#2874ae;color:#fff;-webkit-text-fill-color:#fff}
+.ow-users-secondary{background:#29455e;color:#fff;-webkit-text-fill-color:#fff}
+.ow-users-primary:disabled{opacity:.65;cursor:wait}
+.ow-users-result{min-height:1.5em;color:#ffe3c3;-webkit-text-fill-color:#ffe3c3}
+@media(max-width:640px){.ow-users-action{width:100%;text-align:left}.ow-users-dialog{padding:16px}.ow-users-dialog-actions button{flex:1}}
