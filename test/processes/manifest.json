@@ -1,6 +1,6 @@
 {
   "version": "20261113-logic-11",
-  "modelSha256": "02898851997356873d67cdf5247dc0d5ef58ab966b9eda5232d2357ad41da6b5",
+  "modelSha256": "cc3636adceba39116ff84bd79fdac1272e82a86a653c4f003a80e3dbe2d4e97d",
   "modelSnapshot": {
     "version": "20261113-logic-11",
     "date": "2026-11-14",
@@ -657,7 +657,7 @@
       "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
       "test/public-support-20261115.js": "c755a3d31b512622dbac161347b9ea7c5edb9cd85108538b910b12967ce3ed44",
       "test/owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
-      "test/owner-team-users-20261117.js": "66d49964d7750ba3ec30e7fd71d8acc929f4e2558e1205bcf12efad471cbd422",
+      "test/owner-team-users-20261117.js": "1d9cb9411705c12a8384ef5e651cc26c928e4658dfff7b678feb3c939d119853",
       "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
       "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
       "test/task2-panel.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
