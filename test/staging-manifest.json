@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "ca49970bb87804247c42918089476ceef28bb0f8",
+  "frontendCommit": "101c0106502ffa009d4a31ff5c0dfd8993da8ad9",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -159,6 +159,8 @@
     "test/owner-command-hero-20261108.svg": "3abeddac0d726f2437a405732d686a0a0f15234efa5c8f877b91d6a4a5249fce",
     "test/owner-registers-20261111.css": "45ba26e21f398e4bcb1715b915b7f0ad6b307b519e15312dbc514994ff5ad111",
     "test/owner-registers-20261111.js": "ea5bba209bfcb4b4322b6d69d49385bf958717964c510556128ee85ad965a39b",
+    "test/owner-team-users-20261117.css": "e5293a4763554cb7d48a631eff881baeb7e8cfd5acf034df0a13950f56f5eddc",
+    "test/owner-team-users-20261117.js": "66d49964d7750ba3ec30e7fd71d8acc929f4e2558e1205bcf12efad471cbd422",
     "test/owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
     "test/owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
     "test/owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
