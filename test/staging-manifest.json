@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "98c9134158290af2aec0b4c5de3beabaa2c4fec6",
+  "frontendCommit": "6e464a8e89636f4a7839951e7fe705fe6a3784b8",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -69,7 +69,7 @@
     ".github/workflows/reconcile-staging-provenance.yml": "b9fe6182088c306c7056ad298b76578e92f1fda64aef2c05648020676db696de",
     ".github/workflows/release-stabilization.yml": "ff99071ee5f1ef3d0e84f2074ef309ab0d6a754e90a47db80909b567f522a787",
     ".github/workflows/sanitize-completed-qa-artifact.yml": "b3eb6002a7e61cc9c7c683d0293245c4bdebfb9223711e14de3b4f517180443d",
-    ".github/workflows/staging-alignment.yml": "a43aa64d31052348f9caab5d71cd4d12f04f9b33b18f0ac5a0fc1d723787527b",
+    ".github/workflows/staging-alignment.yml": "baf8ed1109df1fa76bff9e803cbdc5c52de2f497d38a4f7713ec7933ef814936",
     ".github/workflows/staging-faq-check.yml": "08adc7bf1159f3df667d24ef16a6dcd82b026bd4efdc25f611fc8a3b633e34eb",
     ".github/workflows/task12-observer.yml": "7bf82872adfe0bdab2d50f47e5408e3db0f99c74d01aed38edc6d76dd87c2c0f",
     ".github/workflows/task2-contrast.yml": "952f20ccab6a4b49444c46a6589f9fcc430147bf6e647ed25a157f85c2d2fc32",
