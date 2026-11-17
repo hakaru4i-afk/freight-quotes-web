@@ -28,7 +28,7 @@
       "issue": 50
     }
   ],
-  "frontendCommit": "59f9d3d750c77b40f46f34b0b926ff9c4db2a8c6",
+  "frontendCommit": "f2652eb5767bb9582d0fbb2629545d1bb8a46b96",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "fcedaf529f20baa21ff2a20b8f5ee43d741133ca6c00fb653d77ff4a147d1a4f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -38,7 +38,7 @@
     ".github/workflows/issue17-formal-document.yml": "633a1e0e8614d5489399c3e835f4bb20ba696c5866da339a92e32ea79ee866ab",
     ".github/workflows/issue17-rebuild-samples.yml": "b3a4100be226bdae630bbbc02c8ff1cedf2e8e89b3fe6a8c95790898790f3e89",
     ".github/workflows/issue28-separated-processes.yml": "754518c1f8a42130605fa913d54a32d6f6042b00ddafd9ae239286e39809e62d",
-    ".github/workflows/issue43-production-smoke.yml": "f936f91f885fffebb095f123319c97faf52564420ea6967cceba107de9a89ab9",
+    ".github/workflows/issue43-production-smoke.yml": "f539a3fd5c64baca110958a4e00a93180154efe9c5e5bd6c786ce62e6d51d5ec",
     ".github/workflows/issue43-qa-smoke.yml": "0f70726e04fd4a2b45f5be9b842ad713f03517e624d8ad647127f3fc230434ed",
     ".github/workflows/issue47-api-smoke.yml": "78f87ca3b12803e9f8c9eae4f3b5eb3264239128bd6e984dcc86f2e21a317457",
     ".github/workflows/issue47-excel-qa.yml": "d26da7d6676f6725955e8227ba39d86e52be7d75ab8740e3204c5a349d4ffaa1",
@@ -257,7 +257,7 @@
     "tests/chat-unread-contrast.test.mjs": "1ff45915393ed3d9f32fa6a02832146d7cf41bd56ee643b98380bcf04cde8da0",
     "tests/current-workspace-help.test.mjs": "43ea31dd6f600b43d3b2c90b78796582042e98e8e31041b08193b0e3bfd61a82",
     "tests/global-view-route.test.mjs": "f16662fcfb815278d53e96b766e06e9e67acae7672fbe9b683b13ce57753ed39",
-    "tests/helpers/production-release-boundary.mjs": "c3ae937c6b9e423ced8ef01743fcbeb3f3548ebc8f2dc42be1d80e3da242c4ee",
+    "tests/helpers/production-release-boundary.mjs": "9051790367616d091453f8c36546d6e58d73fbfa8ddb268991426dd5854a5d57",
     "tests/helpers/real-browser-network.mjs": "54b1bbff613f159bc0c0c672fc29625a04b20303442eeae3d2f8c44d4fb1b32c",
     "tests/helpers/real-http-response.mjs": "f38f23b1483767656129199a145fb60d163988c1a4451fc8552363c54aeec4c4",
     "tests/helpers/runtime-assets.mjs": "836706730cb5e660a9bfe0258beacde04a34688a9d64f76bbb622841b85131c6",
