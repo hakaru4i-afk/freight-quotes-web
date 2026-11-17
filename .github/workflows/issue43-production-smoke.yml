@@ -8,6 +8,7 @@ on:
       - build-info.json
       - site-status.json
       - production-release-manifest.json
+      - tests/helpers/production-release-boundary.mjs
       - 'owner-ui-unification-*.css'
       - 'owner-ui-unification-*.js'
       - .github/workflows/issue43-production-smoke.yml
@@ -18,6 +19,7 @@ on:
       - build-info.json
       - site-status.json
       - production-release-manifest.json
+      - tests/helpers/production-release-boundary.mjs
       - 'owner-ui-unification-*.css'
       - 'owner-ui-unification-*.js'
       - .github/workflows/issue43-production-smoke.yml
