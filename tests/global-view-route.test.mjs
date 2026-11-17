@@ -61,7 +61,10 @@ test('WS26098: Yuyao Zhejiang pickup is located without manually entered coordin
 });
 
 test('Never substitute Yuyao for unrelated locations or verified factory coordinates', () => {
-  assert.equal(resolve('NINGBO Zhejiang warehouse without address'),null);
+  const ningbo=resolve('NINGBO Zhejiang warehouse without address');
+  assert.ok(ningbo, 'Known parent city may be used as a labelled preview');
+  assert.equal(ningbo.approximate,true);
+  assert.notEqual(ningbo.lat,30.0403,'Ningbo cannot masquerade as Yuyao');
   assert.equal(resolve('Чжэцзян, неизвестный склад'),null);
   assert.equal(resolve('30.0743889, 121.0452108').approximate,false);
 });
