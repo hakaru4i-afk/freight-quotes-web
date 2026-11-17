@@ -104,11 +104,16 @@ class GlobalRouteView extends HTMLElement {
     }
     if(signal.aborted)return;
     const localPlace=placeIndex(places);
-    const resolve=plannedGeocodes?(label,role)=>{
-      const source=/владелец/.test(role)?plannedGeocodes.owner:plannedGeocodes.offer;
+    const resolve=(label,role)=>{
+      const source=/владелец/.test(role)?plannedGeocodes?.owner:plannedGeocodes?.offer;
       const point=(source||[]).find(p=>p.original_text===label||p.label===label);
-      return point?.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon)?{lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id}:null;
-    }:(label)=>serverPoints.get(label)||localPlace(label);
+      if(point?.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon))
+        return {lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id};
+      // Historical unresolved server records must not conceal a verified gazetteer city-center preview.
+      // The preview is never a confirmed facility or a valid source for operational VED thresholds.
+      const preview=serverPoints.get(label)||localPlace(label);
+      return preview?{...preview,approximate:true,precision:'city',confirmed:false}:null;
+    };
     const correction=(record,source)=>{
       const canChange=request.viewerRole==='owner'||request.viewerRole==='carrier'&&source!=='owner';
       if(!record?.id||!canChange)return null;
