@@ -10,7 +10,7 @@ const aliases = {
   'Шанхай': 'Shanghai', '上海': 'Shanghai', 'Гуанчжоу': 'Guangzhou', '广州': 'Guangzhou',
   'Иу': 'Yiwu', '义乌': 'Yiwu', 'Сиань': 'Xian', '西安': 'Xian',
   'Чэнду': 'Chengdu', '成都': 'Chengdu', 'Чунцин': 'Chongqing', '重庆': 'Chongqing',
-  'Циндао': 'Qingdao', '青岛': 'Qingdao', 'Пекин': 'Beijing', '北京': 'Beijing',
+  'Циндао': 'Qingdao', '青岛': 'Qingdao', 'Линьи':'Linyi', '临沂':'Linyi','临沂市':'Linyi', 'Пекин': 'Beijing', '北京': 'Beijing',
   'Москва': 'Moscow', '莫斯科': 'Moscow', 'Брест': 'Brest BY', 'Брэст': 'Brest BY',
   'Варшава': 'Warsaw', 'Алматы': 'Almaty', 'Астана': 'Astana', 'Владивосток': 'Vladivostok',
   'Гамбург': 'Hamburg', 'Клайпеда': 'Klaipeda', 'Рига': 'Riga',
@@ -64,6 +64,15 @@ export function placeIndex(rows) {
     // This is the center of Linyi (approximate), never the factory or village.
     if (/山东省临沂市/.test(label)) return lookup('linyi cn');
     const key = normal(label);
+    // A mixed-language pickup such as “QINGDAO Linyi shandong 山东省临沂市费县梁丘镇郝家村”
+    // contains the actual administrative city. Use only a *verified gazetteer*
+    // city-center fallback; never pretend this is the supplier's exact address.
+    const cnHierarchy = String(label).normalize('NFKC').match(/(?:省|自治区|特别行政区)([\p{Script=Han}]{2,12})市/u);
+    if(cnHierarchy){
+      const verifiedCity=aliasIndex.get(normal(cnHierarchy[1]));
+      const located=verifiedCity&&lookup(verifiedCity+' cn');
+      if(located)return {...located,precision:'city',approximate:true,confirmed:false,source:'Chinese administrative city in local gazetteer'};
+    }
     const exact = lookup(key);
     if (exact) return exact;
     // The bundled gazetteer only verifies a city and its ISO country code.
