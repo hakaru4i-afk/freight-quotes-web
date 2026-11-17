@@ -22,6 +22,8 @@ function paint(){
  const role=signed()?(owner()?'owner':'staff'):'guest';if(role==='guest'){root.hidden=true;currentRole=role;return}currentRole=role;
  const t=tr[language()],state=data?.status||'checking',newer=!!loaded&&!!data?.version&&loaded!==data.version;
  const title=newer?t.stale:(t[state]||t.checking);
+ // A completed deployment is not an ongoing notification. Keep the change history in 'Что нового'.
+ if(state==='released'&&!newer){root.hidden=true;root.dataset.state=state;root.innerHTML='';return}
  const notes=role==='owner'&&Array.isArray(data?.changes)?data.changes:[];
  root.hidden=false;root.dataset.state=state;root.classList.toggle('is-collapsed',collapsed);
  if(collapsed){root.innerHTML='<button type="button" data-release-toggle="open">'+html(t.expand)+' '+html(stamp())+'</button>';return}
