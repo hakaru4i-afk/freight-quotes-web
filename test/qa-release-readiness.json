@@ -1,14 +1,14 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-17T10:02:43.559Z",
+  "generatedAt": "2026-11-17T10:16:02.762Z",
   "environment": "staging",
   "status": "RELEASE_BLOCKED",
   "canDeployProduction": false,
   "note": "Данный gate никогда не разворачивает production автоматически. Даже после READY нужно отдельное явное разрешение Владельца.",
-  "frontendCandidateSha": "33189ca93ce77852b856246650d42b1c07a691ec",
+  "frontendCandidateSha": "9bc89fc716c871ff52a12f5c08d558d6d1d7eb8d",
   "backendCandidateSha": null,
-  "robotPartialChecks": 37,
-  "robotFailures": 0,
+  "robotPartialChecks": 29,
+  "robotFailures": 8,
   "authenticatedE2ePassed": 0,
   "authenticatedE2eRequired": 37,
   "blockers": [
@@ -43,6 +43,10 @@
     {
       "id": "PRODUCTION_BACKUP_AND_RESTORE",
       "reason": "Реальный зашифрованный бэкап production с SHA-256, обратным чтением и отдельным восстановлением; без него выпуск запрещён."
+    },
+    {
+      "id": "CURRENT_ROBOT_REPORT",
+      "reason": "Требуется полный отчёт робота для текущего SHA, без FAIL/BLOCKED; публичный исторический отчёт не заменяет артефакт запуска."
     },
     {
       "id": "T1_01_REQUIRED_FIELDS",
@@ -104,7 +108,7 @@
     },
     {
       "id": "CURRENT_ROBOT_REPORT",
-      "status": "PASS",
+      "status": "BLOCKED",
       "note": "Требуется полный отчёт робота для текущего SHA, без FAIL/BLOCKED; публичный исторический отчёт не заменяет артефакт запуска.",
       "evidenceId": null
     },
@@ -121,5 +125,5 @@
       "evidenceId": null
     }
   ],
-  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/44060882027"
+  "workflowUrl": "https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/44062847043"
 }
