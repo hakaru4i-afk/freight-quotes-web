@@ -1,0 +1,73 @@
+name: Reconcile staging provenance without promoting production
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'test/**'
+      - 'scripts/stamp-staging-rc.mjs'
+      - 'scripts/reindex-staging-manifest.mjs'
+      - 'scripts/check-runtime-parity.mjs'
+      - '.github/workflows/reconcile-staging-provenance.yml'
+  workflow_dispatch:
+concurrency:
+  group: staging-provenance-repair
+  cancel-in-progress: false
+permissions:
+  contents: write
+jobs:
+  reindex:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require isolated environments and matching runtime UI assets
+        run: |
+          node --check scripts/reindex-staging-manifest.mjs
+          node --check scripts/check-runtime-parity.mjs
+          node scripts/check-runtime-parity.mjs
+      - name: Regenerate cache keys and version hashes for staging only
+        run: |
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+      - name: Commit independently reproducible staging assets
+        run: |
+          set -euo pipefail
+          git config user.name "staging-coherence-bot"
+          git config user.email "staging-coherence-bot@users.noreply.github.com"
+          git add test
+          if ! git diff --cached --quiet; then
+            git commit -m "build(staging): stamp canonical frontend and cache hashes"
+          fi
+      - name: Re-index all protected staging sources against committed build
+        shell: bash
+        run: |
+          set -euo pipefail
+          SHA="$(git rev-parse HEAD)"
+          node scripts/reindex-staging-manifest.mjs --write "--source-commit=$SHA"
+          node scripts/check-staging-alignment.mjs
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/check-runtime-parity.mjs
+          git add test/staging-manifest.json staging-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(staging): pin exact candidate source commit and asset hashes"
+          fi
+      - name: Fast-forward only; never overwrite other changes or alter production data
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "::error::New commits arrived; refusing to overwrite. Re-run on current HEAD."
+            exit 1
+          fi
+          git push origin HEAD:main
+      - name: Report that process review and authenticated QA remain separate gates
+        run: |
+          echo "STAGING_METADATA_AND_RUNTIME_PARITY_PASS"
+          echo "No production migration, API deployment, backend data write or release approval performed."
