@@ -40,7 +40,7 @@ jobs:
         run: |
           node --check scripts/reindex-staging-manifest.mjs
           node --check scripts/check-runtime-parity.mjs
-          node scripts/check-runtime-parity.mjs
+          node scripts/check-runtime-parity.mjs --allow-staging-candidate
       - name: Skip re-stamping when all source, business and visual checks already pass
         id: preflight
         shell: bash
@@ -85,7 +85,7 @@ jobs:
           node scripts/reindex-staging-manifest.mjs --write "--source-commit=$SHA"
           node scripts/check-staging-alignment.mjs
           node scripts/stamp-staging-rc.mjs --check
-          node scripts/check-runtime-parity.mjs
+          node scripts/check-runtime-parity.mjs --allow-staging-candidate
           git add test/staging-manifest.json staging-manifest.json
           if ! git diff --cached --quiet; then
             git commit -m "chore(staging): pin exact candidate source commit and asset hashes"

@@ -72,9 +72,35 @@ export function verify(){
   // No blanket app.js exception. Functional differences are release blockers.
   mismatches.push(file+': functional source mismatch (outside approved environment identity differences)');
  }
- const output={status:mismatches.length?'FAIL':'PASS',sharedAssets:checks.length,isolatedAssets:exempt,failures:mismatches,release:pr.releaseVersion,productionBuild:pr.build,stagingBuild:st.version};
+ const candidateMode=process.argv.includes('--allow-staging-candidate');
+ let candidate=null,approvedCandidate=false;
+ // Staging may differ before Owner acceptance, but only with an explicit,
+ // issue-linked, non-promotable manifest pinning the production baseline.
+ if(candidateMode&&mismatches.length&&existsSync(resolve(root,'test/development-candidate.json'))){
+  try {
+   candidate=JSON.parse(read('test/development-candidate.json'));
+   assert.equal(candidate.environment,'staging');
+   assert.equal(candidate.state,'IN_DEVELOPMENT');
+   assert.equal(candidate.ownerApproved,false);
+   assert.equal(candidate.promotionBlocked,true);
+   assert.match(candidate.issueUrl,/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/issues\/[1-9]\d*$/);
+   assert.ok(candidate.allowedDifferences&&typeof candidate.allowedDifferences==='object');
+   for(const mismatch of mismatches){
+    const file=mismatch.split(':')[0];
+    assert.ok(Object.prototype.hasOwnProperty.call(candidate.allowedDifferences,file),'Unregistered staged difference: '+file);
+    assert.equal(candidate.allowedDifferences[file],hash(read(file)),'Production baseline changed: '+file);
+   }
+   approvedCandidate=true;
+  }catch(e){mismatches.push('STAGING_CANDIDATE_INVALID: '+e.message)}
+ }
+ const output={
+  status:mismatches.length?(approvedCandidate?'STAGING_CANDIDATE_ONLY':'FAIL'):'PASS',
+  sharedAssets:checks.length,isolatedAssets:exempt,failures:mismatches,
+  candidate:approvedCandidate?{issueUrl:candidate.issueUrl,promotionBlocked:true}:null,
+  release:pr.releaseVersion,productionBuild:pr.build,stagingBuild:st.version
+ };
  console.log(JSON.stringify(output,null,2));
- if(mismatches.length)process.exitCode=1;
+ if(mismatches.length&&!approvedCandidate)process.exitCode=1;
  return output;
 }
 if(process.argv[1]===import.meta.filename)verify();

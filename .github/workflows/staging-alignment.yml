@@ -24,4 +24,4 @@ jobs:
       - run: node scripts/check-staging-alignment.mjs
       - run: node scripts/stamp-staging-rc.mjs --check
       - run: node scripts/build-process-maps.mjs --check
-      - run: node scripts/check-runtime-parity.mjs
+      - run: node scripts/check-runtime-parity.mjs --allow-staging-candidate
