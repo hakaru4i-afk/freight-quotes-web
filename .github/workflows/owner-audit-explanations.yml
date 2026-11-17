@@ -1,0 +1,26 @@
+name: Owner audit log explanations
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'owner-audit-explanations-20261117.mjs'
+      - 'test/owner-audit-explanations-20261117.mjs'
+      - 'owner-audit-explanations-20261117.css'
+      - 'test/owner-audit-explanations-20261117.css'
+      - 'tests/owner-audit-explanations-20261117.test.mjs'
+      - '.github/workflows/owner-audit-explanations.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readable-audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/owner-audit-explanations-20261117.test.mjs
+      - run: cmp owner-audit-explanations-20261117.mjs test/owner-audit-explanations-20261117.mjs
+      - run: cmp owner-audit-explanations-20261117.css test/owner-audit-explanations-20261117.css
