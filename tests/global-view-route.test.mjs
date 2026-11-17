@@ -21,7 +21,9 @@ test('unknown waypoint breaks a route, station names and explicit coordinates st
   assert.equal(route.mode, 'multi');
   assert.equal(route.stops[2].position, null);
   assert.equal(route.segments.length, 1);
-  assert.equal(route.stops[0].position, null, "An unverified warehouse qualifier must not be discarded by city fallback");
+  assert.ok(route.stops[0].position, "A recognizable city must provide a preliminary automatic point");
+  assert.equal(route.stops[0].position.approximate, true);
+  assert.equal(route.stops[0].position.confirmed, false);
   assert.equal(route.stops.at(-1).position.approximate, false);
 });
 
@@ -62,4 +64,22 @@ test('Never substitute Yuyao for unrelated locations or verified factory coordin
   assert.equal(resolve('NINGBO Zhejiang warehouse without address'),null);
   assert.equal(resolve('Чжэцзян, неизвестный склад'),null);
   assert.equal(resolve('30.0743889, 121.0452108').approximate,false);
+});
+
+test('generic mixed-language locality parser works without per-order hardcoded routes', () => {
+  const cases = [
+    ['Shenzhen Guangdong China warehouse address','Shenzhen'],
+    ['QINGDAO Linyi shandong 山东省临沂市费县梁丘镇郝家村','Linyi'],
+    ['NINGBO Zhejiang Yuyao 浙江省余姚市马渚镇北盛路','Yuyao'],
+    ['浙江省宁波市余姚市马渚镇北盛路','Yuyao'],
+    ['Китай, Шэньчжэнь, адрес склада','Shenzhen']
+  ];
+  for (const [input,city] of cases) {
+    const position=resolve(input);
+    assert.ok(position, input+' should resolve city centre');
+    assert.equal(position.approximate,true);
+    assert.equal(position.confirmed,false);
+    assert.equal(position.precision,'city');
+  }
+  assert.equal(resolve('неизвестный склад неизвестный город'),null);
 });
