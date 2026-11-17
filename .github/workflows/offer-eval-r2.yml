@@ -1,0 +1,34 @@
+name: Offer Evaluation R2
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'offer-scoring.mjs'
+      - 'test/offer-scoring.mjs'
+      - 'app.js'
+      - 'test/app.js'
+      - 'offer-score-methodology-20261117.js'
+      - 'test/offer-score-methodology-20261117.js'
+      - 'tests/offer-scoring-r2-nov17.test.mjs'
+      - '.github/workflows/offer-eval-r2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  score-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - name: Check module syntax
+        run: |
+          node --check offer-scoring.mjs
+          node --check app.js
+          node --check test/app.js
+          node --check offer-score-methodology-20261117.js
+      - name: Keep evaluation algorithm identical
+        run: cmp offer-scoring.mjs test/offer-scoring.mjs
+      - name: Validate business rules, colors and runtime integration
+        run: node --test tests/offer-scoring-r2-nov17.test.mjs
