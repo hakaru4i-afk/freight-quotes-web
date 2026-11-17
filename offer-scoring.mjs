@@ -79,10 +79,10 @@ function uniqueLeader(items,getter){
 export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseAnalysis={}){
   const today=new Date(Date.parse(asof)+10800000).toISOString().slice(0,10),out={},groups=new Map();
   for(const b of bids||[]){
-    const reason=eligibility(b,policies,today),prior=baseAnalysis[b.id]||{};
+    const prior=baseAnalysis[b.id]||{},reason=prior.quality==='unavailable'||prior.eligible===false||prior.level==='excluded'?'Сервер исключил ставку из сравнения':eligibility(b,policies,today);
     out[b.id]={...prior,score:null,breakdown:null,category:'исключённая',tags:[],notes:reason?[reason]:[],level:'excluded',band:'Серый · вне сравнения',eligible:!reason};
     if(reason)continue;
-    const key=JSON.stringify([b.order_code,b.round_id||'',norm(b.currency),norm(b.mode),norm(b.weight)]);
+    const key=JSON.stringify([b.order_code,b.round_id||'',norm(b.currency),norm(b.mode),norm(b.weight),meaningful(b.weight)?'':b.id]);
     if(!groups.has(key))groups.set(key,[]);
     groups.get(key).push(b);
   }
@@ -95,10 +95,11 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       const previous=out[b.id];
       const s=oneScore(b,minPrice,minDays,previous,price(b));
       const merged={...previous,...s,peers:group.length-1,quality:'review',category:'альтернативная',tags:[]};
+      if(!meaningful(b.weight)){merged.notes.push('Вес груза не указан — другие ставки нельзя считать сопоставимыми');merged.score=Math.min(merged.score,69);merged.level=tier(merged.score).level;merged.band=tier(merged.score).label;}
       merged.quotedAmount=Number(b.amount);
       merged.effectiveAmount=price(b);
       merged.priceBasis=completeExtras?'все подтверждённые доплаты включены':'сравнение базовой цены: доплаты не полностью раскрыты';
-      out[b.id]=merged;return {b,score:s.score};
+      out[b.id]=merged;return {b,score:merged.score};
     });
     const cheapest=uniqueLeader(group,price),fastest=uniqueLeader(group,b=>Number(b.days));
     const maxScore=Math.max(...ranking.map(x=>x.score)),top=ranking.filter(x=>x.score===maxScore);
