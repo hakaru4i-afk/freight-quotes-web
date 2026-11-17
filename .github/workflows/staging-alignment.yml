@@ -6,18 +6,25 @@ on:
     branches: [main]
     paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/**']
   workflow_dispatch:
+  workflow_run:
+    workflows: ["Reconcile staging provenance without promoting production"]
+    types: [completed]
+    branches: [main]
 permissions:
   contents: read
 jobs:
   coherence:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
       - run: node scripts/check-staging-alignment.mjs
       - run: node scripts/stamp-staging-rc.mjs --check
       - run: node scripts/build-process-maps.mjs --check
+      - run: node scripts/check-runtime-parity.mjs
