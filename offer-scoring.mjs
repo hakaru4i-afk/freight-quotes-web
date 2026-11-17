@@ -18,7 +18,7 @@ const meaningful=s=>nonEmpty(s)&&!/^(?:нет|no|none|n\/a|не применим
 const clamp=(v,max)=>Math.min(max,Math.max(0,round(v)));
 const eq=(a,b)=>Math.abs(a-b)<0.00001;
 const crossed=text=>/(?:маньчжур|manzhouli|满洲里|забайкаль|zabaikalsk|хоргос|khorgos|霍尔果斯|достык|dostyk|алатау|alatau|эрлянь|эрэнхот|erenhot|erlian|二连|замын|zamiin|наушки|naushki|сухэ.?батор|sukhbaatar|брест|brest|козлович|kozlovichi)/iu.test(text);
-const stationExplicit=b=>meaningful(b.departure_station)||meaningful(b.departure_port);
+const stationExplicit=b=>meaningful(b.departure_station)||meaningful(b.departure_port)||meaningful(b.incoterm_place);
 const insuranceIncluded=b=>/(?:включен|входит|в стоимости|included|insured|含保险|已投保)/iu.test(String(b.insurance||''));
 export function explicitSurcharge(b){
   const raw=norm(b.extras);
@@ -40,8 +40,8 @@ function eligibility(b,policies,today){
   return '';
 }
 const tier=score=>OFFER_SCORE_BANDS.find(x=>score>=x.min)||OFFER_SCORE_BANDS.at(-1);
-function oneScore(b,minPrice,minDays,base){
-  const extras=explicitSurcharge(b),quoted=Number(b.amount),cost=quoted+(extras.known?extras.amount:0);
+function oneScore(b,minPrice,minDays,base,effectiveCost){
+  const extras=explicitSurcharge(b),quoted=Number(b.amount),cost=effectiveCost;
   const route=String(b.route||''),waypoints=String(b.waypoints||'');
   const notes=[],breakdown={};
   breakdown.price=clamp(25*minPrice/cost,25);
@@ -88,7 +88,7 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     const minPrice=Math.min(...group.map(price)),minDays=Math.min(...group.map(b=>Number(b.days)));
     const ranking=group.map(b=>{
       const previous=out[b.id];
-      const s=oneScore(b,minPrice,minDays,previous);
+      const s=oneScore(b,minPrice,minDays,previous,price(b));
       const merged={...previous,...s,peers:group.length-1,quality:'review',category:'альтернативная',tags:[]};
       merged.quotedAmount=Number(b.amount);
       merged.effectiveAmount=price(b);
@@ -98,6 +98,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     const cheapest=uniqueLeader(group,price),fastest=uniqueLeader(group,b=>Number(b.days));
     const maxScore=Math.max(...ranking.map(x=>x.score)),top=ranking.filter(x=>x.score===maxScore);
     const balanced=group.length>1&&top.length===1?top[0].b:null;
+    const bestStation=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.station);
+    const bestRoute=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
+    const bestBorder=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
+    const bestRisk=ranking.length>1&&uniqueLeader(ranking,x=>out[x.b.id].notes.length);
     const worst=group.length>1?ranking.filter(x=>x.score===Math.min(...ranking.map(y=>y.score))):[];
     const worstUnique=worst.length===1?worst[0].b:null;
     for(const b of group){
@@ -105,6 +109,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&cheapest?.id===b.id)a.tags.push(completeExtras?'Самая дешёвая с учётом доплат':'Самая низкая заявленная цена (доплаты уточнить)');
       if(competing&&fastest?.id===b.id)a.tags.push('Самая быстрая');
       if(competing&&balanced?.id===b.id)a.tags.push('Самая сбалансированная');
+      if(competing&&bestStation?.b.id===b.id&&a.breakdown.station===10)a.tags.push('Лучшая подтверждённая станция отправления');
+      if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
+      if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Подтверждённые погранпереходы');
+      if(competing&&bestRisk?.b.id===b.id&&a.notes.length<out[group.find(x=>x.id!==b.id)?.id]?.notes?.length)a.tags.push('Меньше неподтверждённых условий');
       if(competing&&top.length>1&&a.score===maxScore)a.tags.push('Равная итоговая оценка — требуется конкурс');
       if(competing&&worstUnique?.id===b.id)a.tags.push('Худшая сводная оценка в группе');
       a.category=a.notes.length>=3?'сомнительная':balanced?.id===b.id?'наиболее сбалансированная':'альтернативная';
