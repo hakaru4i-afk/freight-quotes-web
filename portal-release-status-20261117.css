@@ -1,0 +1,20 @@
+/* OW-01.30.48 / SH-01.30.53: unambiguous live release indicator. */
+#lw-release-status{position:fixed;bottom:16px;right:16px;z-index:2147481000;width:min(405px,calc(100vw - 32px));max-height:min(68vh,520px);overflow:auto;box-sizing:border-box;padding:15px 16px;background:#112e49;color:#f3f9ff;-webkit-text-fill-color:#f3f9ff;border:1px solid #5d95bb;border-left:5px solid #5d95bb;border-radius:12px;box-shadow:0 9px 32px rgba(0,0,0,.38);font:14px/1.42 system-ui,-apple-system,sans-serif}
+#lw-release-status[hidden]{display:none!important}
+#lw-release-status[data-state=updating]{border-left-color:#ffc266}
+#lw-release-status[data-state=checking]{border-left-color:#ffdc87}
+#lw-release-status[data-state=released]{border-left-color:#79d8ae}
+#lw-release-status[data-state=failed]{border-left-color:#f49b9b}
+#lw-release-status .lw-release-header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+#lw-release-status .lw-release-header strong{font-size:15px;font-weight:750;line-height:1.35;color:#fff;-webkit-text-fill-color:#fff}
+#lw-release-status .lw-release-header button{width:30px;height:30px;min-height:30px;flex:none;background:transparent;border:1px solid #7099bd;border-radius:7px;color:#fff;-webkit-text-fill-color:#fff;font-size:21px;line-height:1;cursor:pointer}
+#lw-release-status .lw-release-version{margin:5px 0 8px;color:#d1e7fa;-webkit-text-fill-color:#d1e7fa;font-size:12px;font-weight:650}
+#lw-release-status .lw-release-subtitle{font-weight:700;margin:8px 0 4px;color:#fff;-webkit-text-fill-color:#fff}
+#lw-release-status ul{margin:5px 0 12px;padding-left:20px;line-height:1.45}
+#lw-release-status li{margin:5px 0;overflow-wrap:anywhere}
+#lw-release-status .lw-release-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:13px}
+#lw-release-status .lw-release-actions :is(a,button){padding:7px 10px;min-height:34px;box-sizing:border-box;border:1px solid #91b8d5;border-radius:8px;background:#194665;color:#fff;-webkit-text-fill-color:#fff;text-decoration:none;font:650 13px/1.2 system-ui,sans-serif;cursor:pointer}
+#lw-release-status :is(a,button):focus-visible{outline:3px solid #ffe19b;outline-offset:2px}
+#lw-release-status.is-collapsed{width:auto;max-width:calc(100vw - 24px);padding:0;border-left-width:3px}
+#lw-release-status.is-collapsed button{padding:10px 15px;min-height:42px;font-weight:750;background:transparent;color:#fff;-webkit-text-fill-color:#fff;border:0;cursor:pointer}
+@media(max-width:520px){#lw-release-status{bottom:10px;right:10px;width:calc(100vw - 20px);max-height:50vh;padding:12px}}
