@@ -26,7 +26,10 @@ def write(path, value):
         path.write_text(contents, encoding='utf-8')
         print('SYNC:',path.relative_to(ROOT))
 
-manifest = {'version':version,'ownerVersion':owner,'status':'released',
+state=source.get('releaseStatus','checking')
+if state not in ('updating','checking','released','failed'):
+    raise SystemExit('Invalid release status')
+manifest = {'version':version,'ownerVersion':owner,'status':state,
             'date':active['date'],'changes':active['changes']}
 for path in [ROOT/'release-status.json', ROOT/'test/release-status.json']:
     write(path,manifest)
