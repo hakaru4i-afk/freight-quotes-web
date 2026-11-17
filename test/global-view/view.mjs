@@ -96,7 +96,7 @@ class GlobalRouteView extends HTMLElement {
       if(unresolved.length>0&&wanted.length<=8){
         try{
           const response=await fetch('/api/route-distance',{method:'POST',headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({action:'geocode_points',addresses:unresolved}),signal});
+            body:JSON.stringify({action:'geocode_points',addresses:wanted}),signal});
           if(response.ok){
             const payload=await response.json();
             for(const point of payload.points||[]){
