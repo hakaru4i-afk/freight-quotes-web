@@ -14,3 +14,27 @@
 .offer-methodology-band.band-0{border-left-color:#126034}.offer-methodology-band.band-1{border-left-color:#248849}.offer-methodology-band.band-2{border-left-color:#7ebd73}.offer-methodology-band.band-3{border-left-color:#e1b514}.offer-methodology-band.band-4{border-left-color:#ed8c26}.offer-methodology-band.band-5{border-left-color:#8e3748}
 .offer-methodology-r2 .offer-methodology-owner{font-weight:650}
 @media(max-width:760px){.offer-methodology-bands{grid-template-columns:repeat(2,minmax(0,1fr))}.offer-methodology-r2{padding:12px}.offer-methodology-table{font-size:12px}}
+
+/* Actual React comparison cards — one highlighted leader, independent score bands. */
+.cabinet-app[data-cabinet-role="owner"] .offer-scoring,
+.staff-portal[data-cabinet-role="owner"] .offer-scoring{
+ display:grid;gap:5px;background:#f4f8fb;color:#142b42;border:1px solid #b5c7d8;
+ border-left:5px solid #7893a6;border-radius:9px;padding:10px 12px;margin:8px 0;
+ max-width:100%;overflow-wrap:anywhere;line-height:1.45
+}
+.offer-scoring strong{font-weight:750;color:#12314c}
+.offer-scoring-band{font-size:12px;font-weight:650}
+.offer-scoring-tags{display:flex;flex-wrap:wrap;gap:5px}
+.offer-scoring-tag{background:#e8eef5;border-radius:6px;padding:3px 7px;font-size:12px}
+.offer-scoring-details,.offer-scoring details{padding:6px 0}
+.offer-scoring-detail{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #d8e1ea;padding:4px 0}
+.offer-scoring-note{font-size:12px;color:#744009!important}
+.offer-scoring-dark-green{border-left-color:#16633c!important}
+.offer-scoring-green{border-left-color:#24844c!important}
+.offer-scoring-light-green{border-left-color:#79ae5d!important}
+.offer-scoring-yellow{border-left-color:#cb9d0e!important}
+.offer-scoring-orange{border-left-color:#bf6915!important}
+.offer-scoring-leader{background:#e4f4e9!important;border-color:#4a9365!important;border-left-color:#136738!important}
+.offer-scoring-leader:before{content:'Единственный лидер по совокупной оценке';display:block;font-weight:750;color:#125d38}
+.offer-scoring-worst:not(.offer-scoring-leader){background:#fff1ec!important;border-left-color:#b44535!important}
+.offer-scoring-excluded{color:#8f3131!important;font-weight:700}
