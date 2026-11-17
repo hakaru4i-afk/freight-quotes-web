@@ -73,20 +73,15 @@ export function placeIndex(rows) {
   const hasName = (haystack, needle) => {
     if (isHan(needle)) return needle.length >= 2 && haystack.includes(needle);
     if (needle.length < 3) return false;
-    const at = haystack.indexOf(needle);
-    if(at<0)return false;
-    let pos=at;
-    while(pos>=0){
-      const before = pos === 0 ? '' : haystack[pos-1];
-      const after = haystack[pos+needle.length] || '';
-      if((!before||!/[\\p{L}\\p{N}]/u.test(before)) &&
-         (!after||!/[\\p{L}\\p{N}]/u.test(after))) return true;
+    let pos=haystack.indexOf(needle);
+    while(pos>=0) {
+      const before=pos===0?'':haystack[pos-1];
+      const after=haystack[pos+needle.length]||'';
+      if((!before||!/[\p{L}\p{N}]/u.test(before)) &&
+         (!after||!/[\p{L}\p{N}]/u.test(after)))return true;
       pos=haystack.indexOf(needle,pos+1);
     }
     return false;
-  };
-  return label => {');
-    return new RegExp('(^|[^\\p{L}\\p{N}])'+safe+'(?=$|[^\\p{L}\\p{N}])','u').test(haystack);
   };
   const countryIn = text => {
     if (/(?:中国|中华人民共和国|(?:^|\W)(?:china|cn|китай)(?:$|\W)|浙江|山东|广东|江苏|福建|河北|宁波|上海)/iu.test(text)) return 'cn';
