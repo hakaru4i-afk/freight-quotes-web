@@ -1,4 +1,4 @@
-// OFFER-SCORE-20261117-R2 · Transparent 100-point assessment with Owner-only winner decision.
+// OFFER-SCORE-20261117-R3 · Transparent 100-point assessment with Owner-only winner decision.
 // A recommendation is NOT the Owner's winner decision. No exchange-rate guesses.
 // Compare only one order, round, currency, transport mode and weight.
 export const OFFER_SCORE_WEIGHTS=Object.freeze({price:25,days:20,station:10,route:15,border:15,extras:10,insurance:5});
@@ -108,6 +108,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     const bestRoute=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
     const bestBorder=ranking.length>1&&uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
     const bestRisk=ranking.length>1&&uniqueLeader(ranking,x=>out[x.b.id].notes.length);
+    const bestStation=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.station);
+    const bestRoute=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.route);
+    const bestBorder=uniqueLeader(ranking,x=>-out[x.b.id].breakdown.border);
+    const bestConditions=uniqueLeader(ranking,x=>out[x.b.id].notes.length);
     const worst=group.length>1?ranking.filter(x=>x.score===Math.min(...ranking.map(y=>y.score))):[];
     const worstUnique=worst.length===1?worst[0].b:null;
     for(const b of group){
@@ -115,6 +119,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&cheapest?.id===b.id)a.tags.push(completeExtras?'Самая дешёвая с учётом доплат':'Самая низкая заявленная цена (доплаты уточнить)');
       if(competing&&fastest?.id===b.id)a.tags.push('Самая быстрая');
       if(competing&&balanced?.id===b.id)a.tags.push('Самая сбалансированная');
+      if(competing&&bestStation?.b.id===b.id&&a.breakdown.station===10)a.tags.push('Лучшая подтверждённая станция отправления');
+      if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
+      if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Лучший подтверждённый погранпереход');
+      if(competing&&bestConditions?.b.id===b.id&&a.notes.length<=1)a.tags.push('Меньше неподтверждённых условий');
       if(competing&&bestStation?.b.id===b.id&&a.breakdown.station===10)a.tags.push('Лучшая подтверждённая станция отправления');
       if(competing&&bestRoute?.b.id===b.id&&a.breakdown.route>=12)a.tags.push('Лучше описанный маршрут');
       if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Подтверждённые погранпереходы');
@@ -127,7 +135,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       a.isWorst=worstUnique?.id===b.id;
       a.tieForBest=top.length>1&&a.score===maxScore;
       a.groupSize=group.length;
-      a.methodology='OFFER-SCORE-20261117-R2 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
+      a.uniqueBest=top.length===1&&a.score===maxScore&&completeExtras;
+      a.unconfirmedConditions=a.notes.length;
+      a.worstFlag=worstUnique?.id===b.id? 'Худшая оценка среди сравнимых' : null;
+      a.methodology='OFFER-SCORE-20261117-R3 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
       a.comparable=group.length>1;
       a.compareKey=[b.order_code,b.round_id||'',norm(b.currency),norm(b.mode),norm(b.weight)].join(' / ');
       if(!completeExtras)a.notes.push('Доплаты раскрыты не у всех: это предварительная оценка, а не полная стоимость');
