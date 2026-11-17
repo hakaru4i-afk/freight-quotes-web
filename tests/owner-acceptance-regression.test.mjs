@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
 
 const owner = readFileSync(new URL('../owner-registers-20261111.js', import.meta.url),'utf8');
 const staged = readFileSync(new URL('../test/owner-registers-20261111.js', import.meta.url),'utf8');
@@ -32,6 +33,9 @@ test('Private engineering archives stay Owner-authenticated and are not embedded
   assert.doesNotMatch(owner,/localStorage/);
 });
 test('Cache keys on both pages point to the new owner journal',()=>{
-  assert.match(index,/owner-registers-20261111\.js\?v=ow-reg-acceptance-20261117-/);
-  assert.match(testIndex,/owner-registers-20261111\.js\?v=ow-reg-acceptance-20261117-/);
+  const asset=runtimeAssetUrl('owner-registers-20261111.js');
+  assert.ok(index.includes(asset),'production references the exact current module blob');
+  assert.ok(testIndex.includes(asset),'staging references the same module blob');
+  assert.match(owner,/setInterval\(\(\)=>void pollLiveRegisters\(\),30000\)/);
+  assert.match(owner,/liveRevision/);
 });
