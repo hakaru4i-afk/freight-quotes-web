@@ -6,8 +6,8 @@ test('Owner may create all 7 roles and permanently delete a synthetic user',asyn
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}});
-  await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" data-section="team"><h2>Пользователи</h2><button id="native-supplier">Создать поставщика</button></section></div><div class="cabinet-app" data-cabinet-role="carrier"><section class="cabinet-panel" data-section="team"><h2>Пользователи</h2></section></div></div>');
-  await page.evaluate(()=>{window.__requests=[];window.fetch=async(url,opts)=>{if(!String(url).endsWith('/api/access'))throw Error('unexpected route');const p=opts?.body?JSON.parse(opts.body):null;window.__requests.push(p);return new Response(JSON.stringify(p?{ok:true}:{members:[{email:'qa-content',name:'QA Content',role:'content'}]}),{status:200,headers:{'Content-Type':'application/json'}})};});
+  await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" data-section="team"><section class="card" id="owner-access-card"><h2>Уровни доступа</h2></section><section class="card" id="owner-users-card"><h2>Пользователи и права</h2><button id="native-supplier">Создать поставщика</button><button id="native-combined">Создать дизайнера / контент-менеджера</button></section></section></div><div class="cabinet-app" data-cabinet-role="carrier"><section class="cabinet-panel" data-section="team"><h2>Пользователи</h2></section></div></div>');
+  await page.evaluate(()=>{window.__requests=[];window.fetch=async(url,opts)=>{if(!String(url).endsWith('/api/team'))throw Error('unexpected route');const p=opts?.body?JSON.parse(opts.body):null;window.__requests.push(p);return new Response(JSON.stringify(p?{ok:true}:{members:[{email:'qa-content',name:'QA Content',role:'content'}]}),{status:200,headers:{'Content-Type':'application/json'}})};});
   await page.addScriptTag({path:source});
   const owner='.cabinet-app[data-cabinet-role="owner"]';
   await page.waitForSelector(owner+' .ow-users-actions');
@@ -15,6 +15,9 @@ test('Owner may create all 7 roles and permanently delete a synthetic user',asyn
   assert.equal(await page.locator(owner+' .ow-users-delete').count(),1);
   assert.deepEqual(await page.locator(owner+' .ow-users-create').evaluateAll(nodes=>nodes.map(n=>n.dataset.userRole)),['carrier','logistic','supplier','designer','content','purchasing','certification']);
   assert.equal(await page.locator('#native-supplier:visible').count(),0);
+  assert.equal(await page.locator('#native-combined:visible').count(),0);
+  assert.equal(await page.locator('#owner-access-card .ow-users-action').count(),0);
+  assert.equal(await page.locator('#owner-users-card .ow-users-create').count(),7);
   assert.equal(await page.locator('.cabinet-app[data-cabinet-role="carrier"] .ow-users-action').count(),0);
   for(const [label,role]of [['Создать перевозчика','carrier'],['Создать сотрудника ВЭД','logistic'],['Создать поставщика','supplier'],['Создать дизайнера','designer'],['Создать контент-менеджера','content'],['Создать сотрудника закупок','purchasing'],['Создать сотрудника сертификации','certification']]){
    await page.getByRole('button',{name:label,exact:true}).click();
