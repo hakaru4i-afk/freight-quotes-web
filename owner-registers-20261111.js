@@ -129,10 +129,10 @@ function confirmWork(row){
 const selected=()=>new URL(location.href).searchParams.get('ownerView')||'';
 function navigate(id){const u=new URL(location.href);if(id)u.searchParams.set('ownerView',id);else u.searchParams.delete('ownerView');history.pushState({},'',u);key='';source=null;query='';filters={version:'',role:'',status:'',priority:'',area:'',from:'',to:'',view:'all'};request++;loading=false;schedule();window.dispatchEvent(new Event('ow-workspace-changed'));}
 function sections(){if(!source)return[];return (source.legacyEntries||source.markdown.split(/(?=^## )/m).map((text,i)=>({id:'archive-'+i,markdown:text}))).map(x=>({id:x.id,text:x.markdown}));}
-const humanStatuses={new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
+const humanStatuses={accepted:'Принято владельцем',new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
 const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
 const roleNames={owner:'Владелец',carrier:'Перевозчик',ved:'ВЭД',logistic:'ВЭД / логист',supplier:'Поставщик',visitor:'Посетитель',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
-const recordState=(row,job)=>['published','production_verified'].includes(row.status)?row.status:job?({sent:'new',read:'awaiting_decision',evaluated:'awaiting_decision',in_progress:'in_progress',release:'checking',completed:'fixed_review',denied:'rejected'}[job.status]||row.status):row.status;
+const recordState=(row,job)=>job?.status==='completed'?'accepted':job?.status==='denied'?'rejected':job?.status==='release'?'checking':job?.status==='in_progress'?'in_progress':row.status;
 const finished=(s,job)=>job?.status==='completed';
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);
