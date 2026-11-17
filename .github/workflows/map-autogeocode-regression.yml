@@ -1,0 +1,40 @@
+name: Automatic Map Geocoding Regression
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/global-view-route.test.mjs'
+      - '.github/workflows/map-autogeocode-regression.yml'
+  pull_request:
+    paths:
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/global-view-route.test.mjs'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  map-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify module syntax
+        run: |
+          node --check global-view/route-model.mjs
+          node --check test/global-view/route-model.mjs
+          node --check global-view/view.mjs
+          node --check test/global-view/view.mjs
+          node --check global-view/distance.mjs
+      - name: Keep prod/test route implementation identical
+        run: |
+          cmp global-view/route-model.mjs test/global-view/route-model.mjs
+          cmp global-view/view.mjs test/global-view/view.mjs
+          cmp global-view/distance.mjs test/global-view/distance.mjs
+      - name: Geocoding and preliminary-kilometres regression
+        run: node --test tests/global-view-route.test.mjs
