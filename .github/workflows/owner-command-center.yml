@@ -8,6 +8,9 @@ on:
       - "test/owner-command-hero-20261108.svg"
       - "test/current-workspace-help-20261108.js"
       - "test/index.html"
+      - "test/owner-ui-unification-20261117.css"
+      - "test/owner-ui-unification-20261117.js"
+      - "tests/owner-ui-unification-browser.test.mjs"
       - "tests/owner-command-center.test.mjs"
       - "tests/owner-command-center-browser.test.mjs"
       - ".github/workflows/owner-command-center.yml"
@@ -68,7 +71,7 @@ jobs:
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Verify SL, navigation, role safety and visual screenshots
-        run: node --test tests/owner-command-center-browser.test.mjs
+        run: node --test tests/owner-command-center-browser.test.mjs tests/owner-ui-unification-browser.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
