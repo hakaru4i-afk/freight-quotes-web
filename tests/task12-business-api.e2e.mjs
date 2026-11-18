@@ -50,6 +50,7 @@ try{
  await check('carrier_124_server_stages_first_open_winner_and_actual_departure',async()=>{
   // Real protected QA only. The previous QA44 without this capability must
   // fail here; no fixture, synthetic PASS, or fallback replaces the response.
+  for(const actor of Object.keys(sessions)){const profile=ok(await call(actor,'/api/session'));assert.equal(profile.authenticated,true,actor+' session must be valid');assert.equal(profile.role,actors[actor].role,actor+' role must be verified');}
   const preflight=ok(await call('carrierA','/api/carrier'));
   assert.equal(preflight.dashboard?.version,1,'Deploy the reviewed dashboard API to isolated QA before this gate');
   const order=makeOrder('DASHBOARD124');await create(order);

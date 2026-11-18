@@ -9,6 +9,9 @@ on:
       - 'scripts/staging-asset-cache.mjs'
       - '.github/workflows/release-stabilization.yml'
   workflow_dispatch:
+concurrency:
+  group: release-stabilization-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
