@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "0c4b01daf5f0d22dd9b1",
+  "version": "35b31311f8eaa25b214c",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "38ea98f4a286cafb148096c5e0a6540d0b51d3d9",
+  "servedAppBlobSha": "c930b3a4277fa2853229302c67db0ce58c39cea4",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -56,8 +56,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "38ea98f4a286cafb148096c5e0a6540d0b51d3d9",
-        "sha256": "aa4e0cea9e079958c2203bd279d36ea75bd5c470460a0aac8c802e896732ae87"
+        "gitBlob": "c930b3a4277fa2853229302c67db0ce58c39cea4",
+        "sha256": "dd83005406b79e7141765fb4d351a06951e853aa86a6e0e15edf9ef2391af316"
       },
       "task2-panel.js": {
         "gitBlob": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
@@ -576,12 +576,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "0c4b01daf5f0d22dd9b1",
+  "stagingAssetBuildId": "35b31311f8eaa25b214c",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "aa4e0cea9e079958c2203bd279d36ea75bd5c470460a0aac8c802e896732ae87",
+    "app.js": "dd83005406b79e7141765fb4d351a06951e853aa86a6e0e15edf9ef2391af316",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -593,12 +593,12 @@
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
     "current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
     "global-view/distance.mjs": "5afbc5bce74f0145f7cbbdbf92cd451c34392e2ffaad998cdf53c3ddde3f7297",
-    "global-view/globe.mjs": "265d38eca483eddc7c6573300c72b54af89f89c34241f184fee8984fc0f386a7",
+    "global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
-    "global-view/map.mjs": "f396fbc6260ea7258c452dad833daa8277b7ed5074906d885a10feede1b1fc5b",
-    "global-view/route-model.mjs": "85ac032afcedb4461699c1275994bdba916113f4797e8d60445b738fa615de8b",
+    "global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13",
+    "global-view/route-model.mjs": "9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2",
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "global-view/view.mjs": "91b245f8be2a41b1ca54fcecabb23db589128a33d87300d6ae7e9e5d1dbb0035",
+    "global-view/view.mjs": "d188fc0d4896221859c13ae574c28369060266fdf548366450ef39ad82fcad79",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -620,11 +620,11 @@
     "offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
     "offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
     "owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
-    "owner-audit-explanations-20261117.mjs": "1bab566d963dfbb1320358246e5a1c4b695d99016aa5f06325dd65e3820b5e82",
+    "owner-audit-explanations-20261117.mjs": "95dc1bcbeda3fade5ed918228f93ab9bd3765b89db1ea8111ab4bb579880bb6d",
     "owner-command-center-20261108.css": "8fa40a358b77c5bd55186eb1c39281fdfd95bc4d43f5bc8da565dbf0147908a0",
     "owner-command-center-20261108.js": "1adfcad6ea0e15c0012abb9285ed7baffbd9501745811025e3fb96cb4e4a31dc",
     "owner-registers-20261111.css": "45ba26e21f398e4bcb1715b915b7f0ad6b307b519e15312dbc514994ff5ad111",
-    "owner-registers-20261111.js": "ee50e0c35abe19a2d59da34df082a5322f8acef5ac7094023209b40ed4ed8b05",
+    "owner-registers-20261111.js": "d9081e25f7fcaecfac2e15f7d1fbe63e471c361bcb5fc6fb11b9030c914c53e0",
     "owner-team-users-20261117.css": "2b0146ed84d868d1a0b0f1bf55892b79a4d311b61db0991729720553a85c6a4c",
     "owner-team-users-20261117.js": "c6cb3aaa74aa6ce820e2a0845458a36543ba5b341ac1c6e660ac0e43d683d721",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
@@ -688,7 +688,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-18T04:59:02.671Z",
+  "assetBuildRecordedAt": "2026-11-18T05:14:38.357Z",
   "processModelVersion": "20261112-logic-9",
   "mapGeocode01": {
     "issue": 50,
@@ -771,7 +771,7 @@
     "deadlineTimezone": "Europe/Minsk",
     "uiAsset": "late-bid-staging-3ff2c9ab03f5.js"
   },
-  "indexStructureSha256": "be3d80a3b5befd327c015ef514aa2baab1bde50090352c75ad9ffcebafad56aa",
+  "indexStructureSha256": "3c9b44e607415a32b6866cc54a09468fea5d9e0f67ad30c756ae947c426acc1a",
   "releaseStatus": "PUBLISHED",
   "releaseDate": "2026-11-17",
   "carrierDashboard124": {

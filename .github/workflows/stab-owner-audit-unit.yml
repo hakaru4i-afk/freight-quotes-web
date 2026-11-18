@@ -1,0 +1,21 @@
+name: STAB Owner audit targeted unit
+on:
+  pull_request:
+    paths:
+      - 'owner-audit-explanations-20261117.mjs'
+      - 'test/owner-audit-explanations-20261117.mjs'
+      - 'tests/owner-audit-explanations-20261117.test.mjs'
+      - '.github/workflows/stab-owner-audit-unit.yml'
+permissions:
+  contents: read
+jobs:
+  audit-http-explanation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check Owner audit HTTP explanation only
+        run: node --test tests/owner-audit-explanations-20261117.test.mjs

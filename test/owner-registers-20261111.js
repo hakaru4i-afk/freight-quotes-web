@@ -132,7 +132,18 @@ function sections(){if(!source)return[];return (source.legacyEntries||source.mar
 const humanStatuses={accepted:'Принято владельцем',new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
 const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
 const roleNames={owner:'Владелец',carrier:'Перевозчик',ved:'ВЭД',logistic:'ВЭД / логист',supplier:'Поставщик',visitor:'Посетитель',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
-const recordState=(row,job)=>job?.status==='completed'?'accepted':job?.status==='denied'?'rejected':job?.status==='release'?'checking':job?.status==='in_progress'?'in_progress':row.status;
+const recordState=(row,job)=>{
+ const current=row?.status||'new';
+ // Business publication is distinct from work-item status. A completed
+ // engineering task cannot silently erase a verified production release.
+ if(current==='published'||current==='production_verified')return current;
+ if(job?.status==='denied')return 'rejected';
+ if(job?.status==='in_progress')return 'in_progress';
+ if(job?.status==='release')return 'checking';
+ // Owner has completed the work item, not necessarily its release QA.
+ if(job?.status==='completed')return ['fixed_review','checking','ready'].includes(current)?current:'accepted';
+ return current;
+};
 const finished=(s,job)=>job?.status==='completed';
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);

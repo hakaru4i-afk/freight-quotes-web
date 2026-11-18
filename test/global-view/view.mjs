@@ -1,5 +1,5 @@
 import { calculateMapDistances } from './distance.mjs?v=850df59b95e2';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=924046c4b2b0';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=1d87195c17c6';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -271,8 +271,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=08c6e8ad058e')).createGlobe
-            : (await import('./map.mjs?v=e8dc83167112')).createMap;
+            ? (await import('./globe.mjs?v=e76bce4b88fb')).createGlobe
+            : (await import('./map.mjs?v=83f24022cd29')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;
