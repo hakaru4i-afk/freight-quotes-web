@@ -8,7 +8,7 @@ import {outputs,validate,assertSourcesCurrent} from '../scripts/build-process-ma
 import {chromium} from 'playwright';
 const model=JSON.parse(readFileSync('test/business-process-model.json','utf8'));
 test('all ten processes have independent technical and logic assessments and current artifacts',()=>{
- validate(model);assertSourcesCurrent(model);assert.throws(()=>assertSourcesCurrent({...model,reviewedSourceSignatures:{}}),/without reviewed map/);assert.equal(model.processes.length,10);
+ validate(model);assertSourcesCurrent(model);assert.throws(()=>assertSourcesCurrent({...model,reviewedBackendSourceCommit:"f".repeat(40)}),/Backend source changed/);assert.throws(()=>assertSourcesCurrent({...model,reviewedSourceSignatures:{}}),/without reviewed map/);assert.equal(model.processes.length,10);
  for(const [path,content] of outputs(model))assert.equal(readFileSync(path,'utf8'),content,path+' is stale; regenerate from reviewed model');
  assert.equal(model.processes.find(p=>p.id==='P05').logicStatus,'LOGIC_IMPROVED');
  assert.equal(model.processes.find(p=>p.id==='P07').logicStatus,'LOGIC_OK');

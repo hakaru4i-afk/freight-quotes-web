@@ -4,12 +4,13 @@ function entries(html){return [...html.matchAll(/(?:src|href)="(\.\/[^"\s]+)"/g)
 export function assertStagingReleaseLabels(status,primary){
  if(status.release?.version!==primary||![primary,primary+' · тестовая'].includes(status.releases?.[0]?.version))throw Error('STALE_VISIBLE_RELEASE_NOTES');
 }
-export function stampAssetReference(html,name,version){
+export function stampAssetReference(html,name,version,parameters={}){
  if(!/^[a-f0-9]{12}$/.test(version))throw Error('INVALID_CACHE_DIGEST');
  const matches=entries(html).filter(m=>m[1].split('?')[0]==='./'+name);
  if(matches.length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);
  const before=matches[0][1],url=new URL(before,'https://cache.invalid/');
  url.searchParams.set('v',version);
+ for(const [key,value] of Object.entries(parameters))url.searchParams.set(key,value);
  return html.replace('="'+before+'"','="./'+name+'?'+url.searchParams.toString()+'"');
 }
 export function stagingHtmlStructure(html){

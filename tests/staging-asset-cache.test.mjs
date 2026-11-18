@@ -30,3 +30,11 @@ test('structural identity retains source order, revisions and stylesheet choices
  assert.notEqual(stagingHtmlStructure(a),stagingHtmlStructure(a.replace('rev=1','rev=2')));
  assert.notEqual(stagingHtmlStructure(a),stagingHtmlStructure(a.replace('style.css','other.css')));
 });
+
+
+test('release business identity remains separate from the content cache digest',()=>{
+ const html='<script src="./portal-release-status-20261117.js?v=SH-01.30.59%20v&rev=unified"></script>';
+ const stamped=stampAssetReference(html,'portal-release-status-20261117.js','123456abcdef',{businessVersion:'SH-01.30.59 v'});
+ assert.ok(stamped.includes('v=123456abcdef&rev=unified&businessVersion=SH-01.30.59+v'));
+ assert.equal(stampAssetReference(stamped,'portal-release-status-20261117.js','123456abcdef',{businessVersion:'SH-01.30.59 v'}),stamped);
+});

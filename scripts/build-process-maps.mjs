@@ -25,7 +25,14 @@ export function sourceSignatures(){
   return [path,createHash('sha256').update(bytes).digest('hex')];
  }));
 }
-function backendSource(){return JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')).stabilizationQa20261110.backendSourceCommit;}
+function backendSource(){
+ const info=JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')),candidate=info.carrierDashboard124;
+ if(candidate?.status==='UNPUBLISHED_CANDIDATE'){
+  if(candidate.releaseGate!=='BLOCKED'||candidate.ownerAccepted!==false||!/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes\/pull\/[1-9]\d*$/.test(candidate.backendPullRequest||'')||!/^[a-f0-9]{40}$/.test(candidate.backendSourceCommit||''))throw Error('Invalid unpublished backend review binding');
+  return candidate.backendSourceCommit;
+ }
+ return info.stabilizationQa20261110.backendSourceCommit;
+}
 export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}
 export function validate(model){
  if(model.releaseStatus!=='RELEASE_BLOCKED')throw Error('Map does not authorize release');

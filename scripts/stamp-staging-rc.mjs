@@ -42,6 +42,9 @@ collectVisual();visualAssets.sort();
 const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
 // HTML order affects styling and execution even when every asset byte is unchanged.
+const boundReleaseHtml=stampAssetReference(html,'portal-release-status-20261117.js',blob('portal-release-status-20261117.js').slice(0,12),{businessVersion:primaryVersion});
+if(!process.argv.includes('--write')&&boundReleaseHtml!==html)throw Error('STALE_RELEASE_BUSINESS_BINDING');
+html=boundReleaseHtml;
 const htmlStructureSha256=hash(stagingHtmlStructure(html));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));

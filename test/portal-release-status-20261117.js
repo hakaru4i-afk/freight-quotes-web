@@ -3,7 +3,9 @@
 if(window.__lwReleaseStatus20261117)return;window.__lwReleaseStatus20261117=true;
 const script=document.currentScript;
 const base=script?.src||document.baseURI;
-const loaded=new URL(base).searchParams.get('v')||'';
+const params=new URL(base).searchParams;
+const declared=params.get('businessVersion')||params.get('v')||'';
+const loaded=/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(declared)?declared:'';
 const manifest=new URL('./release-status.json',base);
 const root=document.createElement('aside');
 root.id='lw-release-status';root.setAttribute('aria-live','polite');root.hidden=true;
@@ -20,7 +22,7 @@ const signed=()=>!!document.querySelector('#root .cabinet-app[data-cabinet-role]
 const stamp=()=>data?.version||'—';
 function paint(){
  const role=signed()?(owner()?'owner':'staff'):'guest';if(role==='guest'){root.hidden=true;currentRole=role;return}currentRole=role;
- const t=tr[language()],state=data?.status||'checking',newer=!!loaded&&!!data?.version&&loaded!==data.version;
+ const t=tr[language()],state=loaded?(data?.status||'checking'):'checking',newer=!!loaded&&!!data?.version&&loaded!==data.version;
  const title=newer?t.stale:(t[state]||t.checking);
  // A completed deployment is not an ongoing notification. Keep the change history in 'Что нового'.
  if(state==='released'&&!newer){root.hidden=true;root.dataset.state=state;root.innerHTML='';return}
