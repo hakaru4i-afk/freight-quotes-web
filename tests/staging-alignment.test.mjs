@@ -22,9 +22,10 @@ test('a committed candidate can prove source coherence without claiming a verifi
   const source='d'.repeat(40);info.carrierDashboard124={status:'UNPUBLISHED_CANDIDATE',releaseGate:'BLOCKED',ownerAccepted:false,backendSourceCommit:source};info.observedBackendDeployment={version:92,sourceBindingStatus:'UNVERIFIED'};model.reviewedBackendSourceCommit=source;
   f.put('test/build-info.json',info);f.put('test/business-process-model.json',model);f.put('build-info.json',{releaseVersion:info.primaryBusinessVersion});
   f.git(['add','.']);f.git(['-c','user.name=QA','-c','user.email=qa@example.invalid','commit','-qm','Reviewed candidate source']);
-  Object.assign(f.m,{publicationState:'CANDIDATE_NOT_RELEASED',ownerAccepted:false,runtimePairStatus:'UNVERIFIED',apiSourceCommit:null,apiBundleSha256:null,backendSourceCommit:source,frontendCommit:f.git(['rev-parse','HEAD']),businessVersionSourceCommit:f.git(['rev-parse','HEAD'])});
+  Object.assign(f.m,{publicationState:'CANDIDATE_NOT_RELEASED',ownerAccepted:false,runtimePairStatus:'UNVERIFIED',apiSourceCommit:null,apiBundleSha256:null,backendSourceCommit:source,frontendCommit:f.git(['rev-parse','HEAD']),businessVersionSourceCommit:f.git(['rev-parse','HEAD']),canonicalHash:null,qaEvidence:{status:'BLOCKED_CURRENT_PAIR_NOT_RUN',fullGroupsPassed:0,fullGroupsTotal:37,independentRestore:'NOT_CONFIRMED_FOR_CURRENT_CANDIDATE'}});
   for(const p of Object.keys(f.m.assetHashes))f.m.assetHashes[p]=hash(readFileSync(join(f.root,p)));f.put('test/staging-manifest.json',f.m);
   assert.doesNotThrow(()=>checkAlignment(f.root,{sourceOnly:true}));
+  f.m.qaEvidence.independentRestore='PASS_FROM_AN_OLD_RELEASE';f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/STALE_CANDIDATE_ACCEPTANCE_EVIDENCE/);f.m.qaEvidence.independentRestore='NOT_CONFIRMED_FOR_CURRENT_CANDIDATE';f.put('test/staging-manifest.json',f.m);
   assert.throws(()=>checkAlignment(f.root),/MISSING_VERIFIED_RUNTIME_PAIR/);
   f.m.apiSourceCommit=source;f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/INVALID_CANDIDATE_PROVENANCE/);
   f.m.apiSourceCommit=null;f.m.ownerAccepted=true;f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/INVALID_CANDIDATE_PROVENANCE/);

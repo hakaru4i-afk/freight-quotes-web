@@ -10,6 +10,7 @@ export function checkAlignment(root,{sourceOnly=false}={}){
  if(candidate){
   if(m.ownerAccepted!==false||m.runtimePairStatus!=='UNVERIFIED'||m.apiSourceCommit!==null||m.apiBundleSha256!==null||!/^[a-f0-9]{40}$/.test(m.backendSourceCommit||''))throw Error('INVALID_CANDIDATE_PROVENANCE');
   if(!sourceOnly)throw Error('MISSING_VERIFIED_RUNTIME_PAIR:CANDIDATE_NOT_RELEASED');
+  if(m.canonicalHash!==null||m.qaEvidence?.status!=='BLOCKED_CURRENT_PAIR_NOT_RUN'||m.qaEvidence?.fullGroupsPassed!==0||m.qaEvidence?.fullGroupsTotal!==37||m.qaEvidence?.independentRestore!=='NOT_CONFIRMED_FOR_CURRENT_CANDIDATE')throw Error('STALE_CANDIDATE_ACCEPTANCE_EVIDENCE');
   if(!/^[a-f0-9]{40}$/.test(m.businessVersionSourceCommit||''))throw Error('MISSING_BUSINESS_VERSION_SOURCE');
   const original=JSON.parse(execFileSync('git',['show',m.businessVersionSourceCommit+':build-info.json'],{cwd:root}));
   if(original.releaseVersion!==m.primaryBusinessVersion)throw Error('BUSINESS_VERSION_SOURCE_MISMATCH');
