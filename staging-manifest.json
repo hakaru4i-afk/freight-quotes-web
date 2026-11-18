@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "ce950df40775b3cbe95333992910cbfd16911e37",
+  "frontendCommit": "3df8ef57659d32a5a470048df00a17eb280ce3c4",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -96,9 +96,9 @@
     "scripts/build-issue17-assets.mjs": "5c882580d18d289e16afc8c98687f837f0cae8750d0b842f0d8ef1a03df17fbc",
     "scripts/build-process-maps.mjs": "e92e22dfa702fece959819ea58358806d25fae0f62004c7cd67d14389035a9ac",
     "scripts/check-runtime-parity.mjs": "2a56d8e218ce41c21b36a2bf5ca2528b7cbdb3aee76a8c31c3db8503448df0b6",
-    "scripts/check-staging-alignment.mjs": "1306900291ad3f51dbe047a85549d33863ad33c85d93653baa46221928d021c4",
+    "scripts/check-staging-alignment.mjs": "6cb58b760cc8a5cf7619f9bb006d13e5adbeb720ce1572fc28fa2c715b2bd7d3",
     "scripts/qa-publication-gate.mjs": "33117135787b946a5adbff82bb12df029d8d9acb38ddd2d53ffd9625a03059a4",
-    "scripts/reindex-staging-manifest.mjs": "553c0107f8ac68e6eaa350ff5630a2005fd89f029ffd72332b6952ee0b8c0721",
+    "scripts/reindex-staging-manifest.mjs": "521a8f7008779e32bd4d6608cc617c0dfb900f03ce4364631b328a6acccd8a44",
     "scripts/staging-asset-cache.mjs": "c2db04b7257192c6f7e351f50b171d1f179fd101d3e8e633e56ef2dd0e2b320e",
     "scripts/stamp-staging-rc.mjs": "7d1c2bfaac89db210bf0397d5401eb7f351f611e1368677286e06a2da0ddca01",
     "scripts/wait-staging-publication.mjs": "5924064c53aa72c318ac2d5fea4301077656b83f883ebf9b53ed995b1e0e8ac2",
@@ -375,7 +375,7 @@
     "tests/role-help-20261111.test.mjs": "f96ead8316746be2dda0058d47859591134b9b950d682eedbc8d7086c9143b79",
     "tests/role-help-browser.test.mjs": "53784e295fe09f9e92560753c1eb0f7bb16b873465bc88a43f58fe2d5fb7d124",
     "tests/security-gate-real.e2e.mjs": "6fe8442a7c1b5e9ddaea666340bb1871df1e4c828629bdbe759d93df3889c034",
-    "tests/staging-alignment.test.mjs": "8913cc11f43747c366d740d37ab272cf0f0c342a3ef01b3af534d91262886ac0",
+    "tests/staging-alignment.test.mjs": "75fd26a22c65c1977fb2f4fdc0c31565eff7d6f34d330c11ac07e211ca5a3d0f",
     "tests/staging-api-region.test.mjs": "d2f781e8c066f59cd46a2cde2c5ad4fc99e7e78e0b732ab2ced1cd8a3d4b3fa6",
     "tests/staging-asset-cache.test.mjs": "8de9a8f4501e608bcd2c3edcba9fdc92c80bbb097ba4654b5fa4063ceddf5b58",
     "tests/staging-asset-contract.test.mjs": "a1f4b4b758ba1c18d9e47e9317e8367fd891c69338010f9a701a951eb01a1d50",
@@ -413,20 +413,17 @@
   "apiSourceCommit": null,
   "apiBundleSha256": null,
   "processModelVersion": "20261118-logic-12",
-  "canonicalHash": "2df51412a62df7520a05aa28a6836e084b26f96a0080fae2c68175176dee4614",
+  "canonicalHash": null,
   "qaEvidence": {
-    "status": "BLOCKED_ISSUE_99_FINAL_QA_PENDING",
-    "candidateRolesPassed": 10,
-    "candidateLocaleViewportPassed": 60,
+    "status": "BLOCKED_CURRENT_PAIR_NOT_RUN",
     "fullGroupsPassed": 0,
     "fullGroupsTotal": 37,
-    "protectedCi": "AUTOMATED_OIDC_AVAILABLE",
-    "independentRestore": "PASS_ENCRYPTED_COPY_RESTORED_43720645950",
-    "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/68"
+    "protectedCi": "MAIN_ONLY_CANDIDATE_UNAUTHORIZED",
+    "independentRestore": "NOT_CONFIRMED_FOR_CURRENT_CANDIDATE"
   },
   "releaseStatus": "RELEASE_BLOCKED",
   "publishedAt": null,
-  "rollback": "Baseline FE d6da784 and runtime91 bundle06f3149, staging only.",
+  "rollback": "NOT_AUTHORIZED: a verified paired rollback receipt is required before deployment.",
   "publicationState": "CANDIDATE_NOT_RELEASED",
   "ownerAccepted": false,
   "runtimePairStatus": "UNVERIFIED",
@@ -448,6 +445,20 @@
     "apiVersion": 108,
     "apiSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
     "apiBundleSha256": "ee71d39784b7d463c3f7d545d3c264b156b164a12ce10ec1d2f165af4904ee66",
-    "processModelVersion": "20261113-logic-11"
-  }
+    "processModelVersion": "20261113-logic-11",
+    "canonicalHash": "2df51412a62df7520a05aa28a6836e084b26f96a0080fae2c68175176dee4614",
+    "qaEvidence": {
+      "status": "BLOCKED_ISSUE_99_FINAL_QA_PENDING",
+      "candidateRolesPassed": 10,
+      "candidateLocaleViewportPassed": 60,
+      "fullGroupsPassed": 0,
+      "fullGroupsTotal": 37,
+      "protectedCi": "AUTOMATED_OIDC_AVAILABLE",
+      "independentRestore": "PASS_ENCRYPTED_COPY_RESTORED_43720645950",
+      "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/68"
+    },
+    "rollback": "Baseline FE d6da784 and runtime91 bundle06f3149, staging only.",
+    "sqlMigrationVersion": "20261115101617"
+  },
+  "sqlMigrationSemantics": "Source-declared migration baseline; not an attestation of the applied staging ledger."
 }
