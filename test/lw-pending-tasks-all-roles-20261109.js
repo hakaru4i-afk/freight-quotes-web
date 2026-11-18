@@ -100,7 +100,7 @@ async function fetchTask2(role){
  return {tasks,total:tasks.length,errors,supported:true};
 }
 async function fetchCarrier(){
- const outcomes=await Promise.allSettled([fetchTask2("carrier"),get("/api/carrier")]);
+ const outcomes=await Promise.allSettled([fetchTask2("carrier"),get("/api/carrier"),get("/api/pending-tasks")]);
  const tasks=[],errors=[];
  if(outcomes[0].status==="fulfilled"){tasks.push(...outcomes[0].value.tasks);errors.push(...outcomes[0].value.errors);}else errors.push("Исполнение перевозок");
  if(outcomes[1].status==="fulfilled"){
@@ -112,8 +112,17 @@ async function fetchCarrier(){
    tasks.push(makeTask("invite:"+n.id,word("invitation"),(n.order_code||"")+" · "+short(n.summary,75),"carrier-orders",n.order_code,n.created));
   }
  }else errors.push("Входящие заявки");
+ if(outcomes[2].status==="fulfilled"){
+  const assigned=outcomes[2].value.items;
+  if(Array.isArray(assigned))for(const task of assigned){
+   if(task.assigned_role!=="carrier"||task.task_type!=="container_number"||!isOpen(task.status))continue;
+   tasks.push(makeTask("carrier:"+task.id,word("carrier"),
+    (task.registration_no||task.order_code)+" · "+task.description,"approved-shipments",task.order_code,task.created_at));
+  }
+ }else errors.push("Запросы номера контейнера");
  if(outcomes.every(x=>x.status==="rejected"))return {tasks:[],total:0,errors,supported:true};
- return {tasks,total:tasks.length,errors,supported:true};
+ const items=unique(tasks);
+ return {tasks:items,total:items.length,errors,supported:true};
 }
 async function fetchSupplier(role){
  const d=await get("/api/supplier-orders");

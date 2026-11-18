@@ -2,7 +2,7 @@ import{map50Scenario}from'./map50-real-scenario.mjs';
 import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
-import {carrier124, carrier124Base, assertCandidateCheckout, isolatedBrowserApiPath, isolatedApiUrl} from './carrier124-isolated-target.mjs';
+import {carrier124, carrier124Base, carrier124ContainerAssets, assertCandidateCheckout, isolatedBrowserApiPath, isolatedApiUrl} from './carrier124-isolated-target.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -17,6 +17,7 @@ import {createHash} from 'node:crypto';
 async function revealForm(form){await form.waitFor({state:'attached',timeout:60000});const summary=form.locator('xpath=ancestor::details[1]/summary');if(await summary.count()&&await form.isHidden())await summary.click();}
 const evidenceDir=process.env.QA_BROWSER_EVIDENCE_DIR||'reports/isolated-rc';
 const map50=process.env.QA_MAP50==='true';
+const containerFix=process.env.QA_CARRIER124_CONTAINER_FIX==='true';
 const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const loginFor=actor=>(exactCandidate?carrier124.run:'rc20261110')+'-'+actor.toLowerCase();
@@ -52,7 +53,8 @@ assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
 const loginSmoke=exactCandidate&&process.env.QA_BROWSER_LOGIN==='true';
 const ownerFieldsDenied=exactCandidate&&process.env.QA_BROWSER_OWNER_FIELDS_DENIED==='true';
 const loserArchive=exactCandidate&&process.env.QA_BROWSER_LOSER_ARCHIVE==='true';
-const phase=loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
+const remainingPhase=exactCandidate&&process.env.QA_BROWSER_REMAINING;
+const phase=remainingPhase?'remaining-'+remainingPhase:loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=frozenSource,base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
@@ -60,7 +62,7 @@ const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://lo
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
 const launchArgs=map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[];
-const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree,...(containerFix?{verifiedContainerAssetHashes:carrier124ContainerAssets}:{} )}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
 const html=await readFile(resolve(root,'test/index.html'),'utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile(resolve(root,'test',name))).digest('hex');}
@@ -172,6 +174,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    assert.equal((await dashboard()).items.find(item=>item.id===target.id).stage,'viewed');
    rec.dashboard={matchedCounts:stageKeys.length+filterKeys.length,order:target.order_code,openedOnce:true,routePreserved:true,persistedAfterReload:true};
   }
+  if(remainingPhase)await (await import('./carrier124-remaining-workflows.mjs')).remainingWorkflow({page,actor,sessions,rec,report,evidenceDir,phase:remainingPhase});
   if(process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'&&actor==='logistic')await addressedLogisticScenario({page,rec,base,sessions});
   if(process.env.QA_OWNER_REGISTERS==='true')await (await import('./nov14-owner-registers-real.mjs')).ownerRegistersScenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_NOV14_PHASE)await (await import('./nov14-real-scenario.mjs')).nov14Scenario({page,actor,base,sessions,rec,report,evidenceDir});
@@ -204,11 +207,24 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   if(process.env.QA_BROWSER_BID==='true'&&['carrierA','carrierB'].includes(actor)){
    const previous=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;
    await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').first().evaluate(el=>el.click());
-   const card=page.locator('article.carrier-request').filter({hasText:order}).first();await card.waitFor({state:'visible',timeout:60000});
-   await card.locator('a[href*="quote"]').first().click();
+   if(exactCandidate&&process.env.QA_CARRIER124_LATE_SUBMIT==='true'){
+    await page.locator('#late-bid-controls-carrier').getByRole('button',{name:'Подать позднюю ставку по заявке '+order}).click({timeout:20000});
+   }else{
+    const card=page.locator('article.carrier-request').filter({hasText:order}).first();await card.waitFor({state:'visible',timeout:60000});
+    await card.locator('a[href*="quote"]').first().click();
+   }
    const form=page.locator('form').filter({has:page.locator('input[name="carrier"]')});
    await revealForm(form);await form.waitFor({state:'visible',timeout:120000});
    await form.locator('input[name="carrier"]').fill('Synthetic browser carrier');await form.locator('input[name="contact"]').fill('Synthetic QA contact');
+   if(exactCandidate&&process.env.QA_CARRIER124_ADD_REMOVE==='true'){
+    const variants=form.locator('fieldset.quote-variant');
+    const initial=await variants.count();
+    await form.getByRole('button',{name:'+ Добавить вариант',exact:true}).click();
+    assert.equal(await variants.count(),initial+1);
+    await form.getByRole('button',{name:'Удалить вариант '+(initial+1),exact:true}).click();
+    assert.equal(await variants.count(),initial);
+    rec.removedEmptyVariant=true;
+   }
    const v=form.locator('fieldset.quote-variant').first();
    await v.locator('input[aria-label="Общая ставка за партию"]').fill('1550');await v.locator('select[aria-label="Валюта"]').selectOption('USD');
    await v.locator('select[name$=".mode"]').selectOption({label:process.env.QA_NOV14_RAIL==='true'?'ЖД':'Авто'});await v.locator('input[name$=".pickup"]').fill(map50?'2026-11-02':'2026-12-05');await v.locator('input[name$=".days"]').fill(process.env.QA_NOV14_RAIL==='true'?'65':'21');

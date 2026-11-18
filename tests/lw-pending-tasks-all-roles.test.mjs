@@ -90,6 +90,27 @@ test("carrier sees awards awaiting acceptance and assigned container document ta
  assert.deepEqual(new Set(result.tasks.map(t=>t.id)),new Set(["take:TEST-WON","carrier:container-1","invite:new"]));
 });
 
+test("carrier sees open container requests from the inbox and each request appears once",async()=>{
+ const order="TEST-MULTI";
+ const task={id:"container-1",assigned_role:"carrier",task_type:"container_number",status:"open",order_code:order,description:"Укажите номер контейнера"};
+ const api=harness({...noSession,
+  "/api/task2?pending=1":{pendingProjection:true,items:[{order_code:order,process_status:"in_progress"}],tasks:[task]},
+  "/api/carrier":{notifications:[],bids:[]},
+  "/api/pending-tasks":{items:[
+   task,
+   {...task,id:"container-2",order_code:"TEST-SEA",registration_no:"TR-26-000002"},
+   {...task,id:"done",status:"completed"},
+   {...task,id:"ved",assigned_role:"logistic"}
+  ]}
+ });
+ const result=await api.loadRole("carrier");
+ assert.equal(result.total,2);
+ assert.deepEqual(new Set(result.tasks.map(t=>t.id)),new Set(["carrier:container-1","carrier:container-2"]));
+ const inboxOnly=result.tasks.find(t=>t.id==="carrier:container-2");
+ assert.equal(inboxOnly.route,"approved-shipments");
+ assert.match(inboxOnly.detail,/TR-26-000002 · Укажите номер контейнера/);
+});
+
 test("one compact read finds assignments beyond the old 32-shipment limit without loading cards",async()=>{
  const items=Array.from({length:100},(_,i)=>({order_code:'ORDER-'+i,process_status:'in_progress'}));
  const tasks=[33,99].map(i=>({id:'task-'+i,order_code:'ORDER-'+i,assigned_role:'logistic',status:'open',task_type:'pto_review',description:'Review '+i}));
