@@ -47,9 +47,48 @@ try{
  await check('competitive_tender_step_final_protocol_and_role_guard',async()=>{
   const order=makeOrder('TENDER'),body={action:'create',order,title:'Synthetic QA price tender',criteria:'Lowest eligible total price',mode:'price',currency:'USD',deadline:'2099-12-20T12:00',step:15,ceiling:2000,extension:false,participants:[actors.carrierA.login,actors.carrierB.login],origin:'Brest, Belarus',destination:'Minsk, Belarus',grossWeight:'1250'};assert.equal((await call('carrierA','/api/tenders',body)).status,403);const id=ok(await call('owner','/api/tenders',body)).id;assert.ok(id);const a={action:'offer',id,requestId:randomUUID(),amount:1500,days:21,terms:'Synthetic QA transport'};ok(await call('carrierA','/api/tenders',a));const b={...a,requestId:randomUUID(),amount:1490};assert.equal((await call('carrierB','/api/tenders',b)).status,409);b.amount=1480;ok(await call('carrierB','/api/tenders',b));ok(await call('carrierB','/api/tenders',b));ok(await call('owner','/api/tenders',{action:'close',id,reason:'Synthetic early close after both offers'}));const d=ok(await call('owner','/api/tenders?id='+id)),winner=d.item.participants.find(p=>p.login===actors.carrierB.login);assert.ok(winner);ok(await call('owner','/api/tenders',{action:'finalize',id,winner:winner.id,reason:'Synthetic lowest eligible offer'}));const protocol=ok(await call('owner','/api/tenders?protocol='+id));assert.equal(protocol.final,true);assert.equal(protocol.protocol.tender.winner,winner.id);assert.equal((await call('carrierA','/api/tenders?protocol='+id)).status,403);return{order,id,step:15,acceptedImprovement:20,duplicateOfferProtected:true,final:true,protocol:protocol.protocol.tender.protocol};
  });
+ await check('carrier_124_server_stages_first_open_winner_and_actual_departure',async()=>{
+  // Real protected QA only. The previous QA44 without this capability must
+  // fail here; no fixture, synthetic PASS, or fallback replaces the response.
+  const preflight=ok(await call('carrierA','/api/carrier'));
+  assert.equal(preflight.dashboard?.version,1,'Deploy the reviewed dashboard API to isolated QA before this gate');
+  const order=makeOrder('DASHBOARD124');await create(order);
+  const keys=['new','viewed','preparing','review','selected','execution','all','requires_response','declined','lost','completed','archive'];
+  const read=async actor=>{
+   const data=ok(await call(actor,'/api/carrier'));assert.equal(data.dashboard.version,1);
+   const own=new Set(data.notifications.map(n=>n.id));
+   for(const item of data.dashboard.items)assert.ok(own.has(item.id),'Foreign dashboard notification');
+   for(const key of keys)assert.equal(data.dashboard.counts[key],data.dashboard.items.filter(x=>x.stage===key||x.filters.includes(key)).length,key);
+   assert.equal(data.dashboard.items.filter(x=>x.order_code===order).length,1,'One current-round dashboard row per order');
+   return data;
+  };
+  const stage=async(actor,expected)=>{const data=await read(actor);assert.equal(data.dashboard.items.find(x=>x.order_code===order).stage,expected);return data;};
+  const first=await stage('carrierA','new'),notice=first.notifications.find(n=>n.order_code===order);assert.equal(notice.read_at,null);
+  ok(await call('carrierA','/api/carrier',{id:notice.id}));const viewed=await stage('carrierA','viewed'),opened=viewed.notifications.find(n=>n.id===notice.id).read_at;assert.ok(Number.isFinite(Date.parse(opened)));
+  ok(await call('carrierA','/api/carrier',{id:notice.id}));assert.equal((await read('carrierA')).notifications.find(n=>n.id===notice.id).read_at,opened,'First read persists across separate authenticated HTTP requests');
+  assert.equal((await call('carrierB','/api/carrier',{id:notice.id})).status,404);
+  ok(await call('carrierA','/api/request-status',{id:notice.id,status:'accepted'}));await stage('carrierA','preparing');
+  const a1=variant(1300),a2=variant(1400),b=variant(1500),quote={order,carrier:'Synthetic dashboard carrier A',contact:'Synthetic QA contact',variants:[a1,a2]};
+  ok(await call('carrierA','/api/quote',quote));ok(await call('carrierA','/api/quote',quote));await stage('carrierA','review');
+  ok(await call('carrierB','/api/quote',{order,carrier:'Synthetic dashboard carrier B',contact:'Synthetic QA contact',variants:[b]}));await stage('carrierB','review');
+  let rows=ok(await call('owner','/api/data')).bids.filter(x=>x.order_code===order);assert.equal(rows.length,3,'Quote replay must not create a duplicate bid');
+  for(const row of rows)ok(await call('owner','/api/review',{id:row.id,decision:'accepted'}));
+  rows=ok(await call('owner','/api/data')).bids.filter(x=>x.order_code===order);const bid=rows.find(x=>x.request_id===a1.requestId);assert.ok(bid);
+  const choose={id:notice.id,bidId:bid.id,requestId:randomUUID(),revision:0,reason:'',expected:bid};ok(await call('owner','/api/offer-selection',choose));
+  const repeated=await call('owner','/api/offer-selection',choose);assert.ok([200,409].includes(repeated.status));
+  assert.equal(ok(await call('owner','/api/data')).selections.filter(x=>x.round_id===notice.round_id).length,1,'Winner replay must not create another selection');
+  await stage('carrierA','selected');await stage('carrierB','lost');
+  ok(await call('carrierA','/api/task2',{order,action:'take'}));await stage('carrierA','selected');
+  const actual=new Date(Date.now()-600000).toISOString();ok(await call('carrierA','/api/task2',{order,action:'actual_departure',date:actual}));await stage('carrierA','execution');
+  const task=ok(await call('carrierA','/api/task2?order='+order));assert.ok(task.state.actual_departure);await stage('carrierB','lost');
+  for(const actor of Object.keys(sessions).filter(x=>!['carrierA','carrierB'].includes(x)))assert.equal((await call(actor,'/api/carrier')).status,403,actor+' cannot read Carrier counters');
+  const refusal=makeOrder('DASHBOARD124REFUSAL');await create(refusal);ok(await call('carrierB','/api/decline',{order:refusal,reason:'Synthetic dashboard refusal, not a lost selection'}));
+  assert.equal(ok(await call('carrierB','/api/carrier')).dashboard.items.find(x=>x.order_code===refusal).stage,'declined');
+  return {order,stages:['new','viewed','preparing','review','selected','execution'],firstOpenPersisted:true,quoteReplayProtected:true,winnerReplayProtected:true,loserNeverInTransit:true,refusalSeparateFromLoss:true,roleDenials:true,serverCountListParity:true,actualDeparture:task.state.actual_departure};
+ });
  await check('two_sessions_and_three_wrong_passwords',async()=>{
   const actor='certification',old=sessions[actor],created=[];for(let i=0;i<2;i++){const r=ok(await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:process.env.QA_CERTIFICATION_PASSWORD}));assert.match(r.sessionToken||'',/^[a-f0-9]{64}$/);created.push(r.sessionToken);}
   sessions[actor]=old;assert.equal((await call(actor,'/api/session')).data.authenticated,false);for(const token of created){sessions[actor]=token;assert.equal((await call(actor,'/api/session')).data.authenticated,true);}let r;for(let i=0;i<3;i++){r=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});assert.equal(r.status,401);}assert.equal(r.data.recoveryRequested,true);for(const token of created){sessions[actor]=token;ok(await call(actor,'/api/auth',{action:'logout'}));}sessions[actor]=old;return{oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true};
  });
- report.result=report.checks.length===8&&report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';if(report.result!=='PASS')process.exitCode=1;
+ report.result=report.checks.length===9&&report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';if(report.result!=='PASS')process.exitCode=1;
 }finally{await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/business-api-real.json',JSON.stringify(report,null,2)+'\n');}
