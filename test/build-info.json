@@ -773,7 +773,7 @@
     "uiAsset": "late-bid-staging-3ff2c9ab03f5.js"
   },
   "indexStructureSha256": "cde2d2f5737640f43dfe9810bcbf9b35a3366fb772300027263f66e2c61b707c",
-  "releaseStatus": "PUBLISHED",
+  "releaseStatus": "CANDIDATE_NOT_RELEASED",
   "releaseDate": "2026-11-17",
   "carrierDashboard124": {
     "status": "UNPUBLISHED_CANDIDATE",

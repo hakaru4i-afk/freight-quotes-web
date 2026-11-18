@@ -25,7 +25,8 @@ if(current.environment!=='staging'||current.releaseStatus!=='RELEASE_BLOCKED')
 const prod=JSON.parse(read('build-info.json')),stage=JSON.parse(read('test/build-info.json'));
 if(prod.projectRef===stage.projectRef||stage.projectRef!=='ibclzdkxiozbzmniiygv')
  throw Error('UNSAFE_ENVIRONMENT_IDENTITY');
-if(current.primaryBusinessVersion!==stage.primaryBusinessVersion||stage.primaryBusinessVersion!==prod.releaseVersion)
+const candidate=process.argv.includes('--candidate');
+if((!candidate&&current.primaryBusinessVersion!==stage.primaryBusinessVersion)||stage.primaryBusinessVersion!==prod.releaseVersion)
  throw Error('BUSINESS_VERSION_MISMATCH');
 const sourceArg=process.argv.find(x=>x.startsWith('--source-commit='));
 const sourceCommit=sourceArg?.split('=')[1];
@@ -34,7 +35,21 @@ const git=(args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 const head=git(['rev-parse','HEAD']);if(head!==sourceCommit)throw Error('SOURCE_COMMIT_MUST_BE_CURRENT_HEAD');
 const files=[...new Set(['test','docs','scripts','tests','.github/workflows'].flatMap(dir=>walk(dir)))].sort();
 const hashes=Object.fromEntries(files.map(path=>[path,digest(path)]));
-const manifest={...current,frontendCommit:sourceCommit,assetHashes:hashes,roleHelpSha256:digest('test/alignment-role-help.json')};
+// Hashing a dirty worktree must never certify it as an immutable Git source.
+for(const path of files){const committed=execFileSync('git',['show',sourceCommit+':'+path],{cwd:root,maxBuffer:16*1024*1024});if(createHash('sha256').update(committed).digest('hex')!==hashes[path])throw Error('SOURCE_COMMIT_MISMATCH:'+path);}
+let candidatePins={};
+if(candidate){
+ const model=JSON.parse(read('test/business-process-model.json')),c=stage.carrierDashboard124;
+ if(c?.status!=='UNPUBLISHED_CANDIDATE'||c.releaseGate!=='BLOCKED'||c.ownerAccepted!==false||!/^[a-f0-9]{40}$/.test(c.backendSourceCommit||'')||model.reviewedBackendSourceCommit!==c.backendSourceCommit||stage.observedBackendDeployment?.sourceBindingStatus!=='UNVERIFIED')throw Error('INVALID_CANDIDATE_PROVENANCE');
+ const versionSource=process.argv.find(x=>x.startsWith('--business-version-source='))?.split('=')[1]||current.businessVersionSourceCommit;
+ if(!/^[a-f0-9]{40}$/.test(versionSource||''))throw Error('REQUIRE_BUSINESS_VERSION_SOURCE');
+ const original=JSON.parse(git(['show',versionSource+':build-info.json']));
+ if(original.releaseVersion!==stage.primaryBusinessVersion)throw Error('BUSINESS_VERSION_SOURCE_MISMATCH');
+ git(['merge-base','--is-ancestor',versionSource,sourceCommit]);
+ candidatePins={publicationState:'CANDIDATE_NOT_RELEASED',ownerAccepted:false,runtimePairStatus:'UNVERIFIED',businessVersionSourceCommit:versionSource,primaryBusinessVersion:stage.primaryBusinessVersion,businessVersions:current.businessVersions.some(x=>x.version===stage.primaryBusinessVersion)?current.businessVersions:[...current.businessVersions,{version:stage.primaryBusinessVersion,issue:null,sourceCommit:versionSource}],apiVersion:stage.observedBackendDeployment.version,apiSourceCommit:null,apiBundleSha256:null,backendSourceCommit:c.backendSourceCommit,processModelVersion:model.version,sqlMigrationVersion:stage.sqlMigrationVersion,observedBackendDeployment:stage.observedBackendDeployment,
+ historicalPublication:current.historicalPublication||{frontendCommit:current.frontendCommit,primaryBusinessVersion:current.primaryBusinessVersion,apiVersion:current.apiVersion,apiSourceCommit:current.apiSourceCommit,apiBundleSha256:current.apiBundleSha256,processModelVersion:current.processModelVersion}};
+}
+const manifest={...current,...candidatePins,frontendCommit:sourceCommit,assetHashes:hashes,roleHelpSha256:digest('test/alignment-role-help.json')};
 const serialized=JSON.stringify(manifest,null,2)+'\n';
 if(process.argv.includes('--write')){
  writeFileSync(resolve(root,'test/staging-manifest.json'),serialized);
