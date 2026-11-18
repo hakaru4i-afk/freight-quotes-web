@@ -19,7 +19,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 108,
+    "backendVersion": 115,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -47,8 +47,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 108,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V108_ACTIVE",
+    "lastObservedBackendVersion": 115,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V115_ACTIVE",
     "backendCandidate": {
       "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
       "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
@@ -710,7 +710,7 @@
     "backendBundleSha256": "ae329b9b328f039817217114aebb50c75d6930b01f70d2b0e367889a4c7d5b67",
     "qaBundleSha256": "f7a1ceaf863ff403ced301e376d660d0ed9a11c7eb17d07bcc5dff45ee1ae159"
   },
-  "backendMetadataSemantics": "Active deployment: task2/backendVersion and stabilizationQa20261110. Per-feature backendVersion values describe introduction history; historical fields remain preserved.",
+  "backendMetadataSemantics": "task2/backendVersion and lastObservedBackendVersion identify the provider-observed active Edge version. observedBackendDeployment source remains UNVERIFIED. sourceBoundBackendReference and stabilizationQa20261110/backendSourceCommit preserve the historical source-bound baseline; they do not establish API115 source. carrierDashboard124 binds the separately verified unpublished code candidate. Per-feature introduction versions remain historical.",
   "qa20261114": {
     "status": "SOURCE_QA_VERIFIED; PUBLICATION_STATUS_IN_RECEIPT",
     "sourcePr": 71,
@@ -783,5 +783,20 @@
     "backendSourceCommit": "bec4fa5596a32cfdba01253388f3039ad5ebdd42",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
+  },
+  "sourceBoundBackendReference": {
+    "edgeVersion": 108,
+    "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
+    "scope": "historical source-bound baseline, not active API source proof"
+  },
+  "observedBackendDeployment": {
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "function": "freight-api",
+    "version": 115,
+    "observedOn": "2026-11-18",
+    "sourceCommit": null,
+    "sourceBindingStatus": "UNVERIFIED",
+    "providerBundleSha256": "23bb527d1281a7a0240f9d933213d93f7f48400d34349493a5928787198ae6ee",
+    "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/101"
   }
 }
