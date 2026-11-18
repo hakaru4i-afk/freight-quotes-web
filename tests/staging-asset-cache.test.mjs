@@ -1,5 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {stampAssetReference,stagingHtmlStructure,assertStagingReleaseLabels} from '../scripts/staging-asset-cache.mjs';
+import {stampAssetReference,stagingHtmlStructure,assertStagingReleaseLabels,normalizeModuleCacheImports} from '../scripts/staging-asset-cache.mjs';
+test('module parity ignores only import cache parameters, preserving paths, other parameters and executable code',()=>{
+ const a="import {route} from './route.mjs?v=map50-initial-20261117&rev=1';const n=1;fetch('/api/route?v=1');";
+ const b=a.replace('map50-initial-20261117','abcdef123456');assert.equal(normalizeModuleCacheImports(a),normalizeModuleCacheImports(b));
+ for(const changed of [b.replace('route.mjs','other.mjs'),b.replace('rev=1','rev=2'),b.replace('n=1','n=2'),b.replace('/api/route?v=1','/api/route?v=2')])assert.notEqual(normalizeModuleCacheImports(a),normalizeModuleCacheImports(changed));
+ assert.equal(normalizeModuleCacheImports("import('./map.mjs?v=old-label')"),"import('./map.mjs')");
+});
 test('current release history accepts its stored label without duplicating or relabelling historical releases',()=>{
  const version='SH-01.30.59 v';
  for(const label of [version,version+' · тестовая'])assert.doesNotThrow(()=>assertStagingReleaseLabels({release:{version},releases:[{version:label}]},version));

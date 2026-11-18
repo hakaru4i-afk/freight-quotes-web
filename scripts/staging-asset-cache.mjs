@@ -22,3 +22,9 @@ export function stagingHtmlStructure(html){
  }
  return html;
 }
+export function normalizeModuleCacheImports(source){
+ return source.replace(/((?:from\s*|import\s*\()\s*['"])(\.\/[^'"\s]+\.mjs)(\?[^'"]+)(['"])/g,(_,prefix,path,query,quote)=>{
+  const params=new URLSearchParams(query.slice(1));params.delete('v');
+  const rest=params.toString();return prefix+path+(rest?'?'+rest:'')+quote;
+ });
+}
