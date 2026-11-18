@@ -1,0 +1,27 @@
+name: Fast QA tooling unit (read-only)
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'tools/qa-fast.mjs'
+      - 'tests/qa-fast-cli.test.mjs'
+      - '.github/workflows/qa-fast-tooling.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: qa-fast-tooling-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  qa-fast:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and isolated regression only
+        run: |
+          node --check tools/qa-fast.mjs
+          node --test tests/qa-fast-cli.test.mjs
