@@ -1,0 +1,21 @@
+name: STAB Owner publication state targeted unit
+on:
+  pull_request:
+    paths:
+      - 'owner-registers-20261111.js'
+      - 'test/owner-registers-20261111.js'
+      - 'tests/owner-register-publication.test.mjs'
+      - '.github/workflows/stab-owner-publication-unit.yml'
+permissions:
+  contents: read
+jobs:
+  owner-publication-state:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify business release and Owner work statuses independently
+        run: node --test tests/owner-register-publication.test.mjs
