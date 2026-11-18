@@ -21,7 +21,7 @@ test('Carrier #124: actual app cards/list parity, translations, first open/reloa
   for(const width of [1440,390]){
    const page=await browser.newPage({viewport:{width,height:width===390?844:900}});let fail=false,reads=0,posts=0;
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   const notes=[...stages,'declined','lost','completed','archive'].map((stage,i)=>({id:'note-'+stage,order_code:'QA-'+stage,round_id:'round-'+stage,recipient:'carrier-a',created:'2026-11-18T00:00:00Z',deadline:'2099-12-01T12:00',is_current:stage==='archive'?0:1,read_at:stage==='new'?null:'2026-11-18',workflow_status:stage==='preparing'?'accepted':'new',dashboard_stage:stage,summary:'Synthetic '+stage,origin:'Original 00017 中文',destination:'Minsk',cargo:'00017',bitrix_task:'QA-'+i,round_result:stage==='lost'?'lost':stage==='declined'?'declined':null}));
+   const notes=[...stages,'declined','lost','completed','archive'].map((stage,i)=>({id:'note-'+stage,order_code:'QA-'+stage,round_id:'round-'+stage,recipient:'carrier-a',created:'2026-11-18T00:00:00Z',deadline:'2099-12-01T12:00',is_current:stage==='archive'?0:1,read_at:stage==='new'?null:'2026-11-18',workflow_status:stage==='preparing'?'accepted':'new',dashboard_stage:stage,summary:'Synthetic '+stage,origin:'Original '+stage+' 00017 中文',destination:'Minsk',cargo:'00017',bitrix_task:'QA-'+i,round_result:stage==='lost'?'lost':stage==='declined'?'declined':null}));
    const dashboard=()=>{const items=notes.map(n=>({id:n.id,order_code:n.order_code,round_id:n.round_id,stage:n.dashboard_stage,filters:['all',...['new','viewed','preparing'].includes(n.dashboard_stage)?['requires_response']:[],...['declined','lost','completed'].includes(n.dashboard_stage)?[n.dashboard_stage,'archive']:n.dashboard_stage==='archive'?['archive']:[]]}));return {version:1,scope:'assigned_requests',items,counts:Object.fromEntries([...stages,...filters].map(k=>[k,items.filter(n=>n.stage===k||n.filters.includes(k)).length]))};};
    await page.route('https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/**',async route=>{
     const req=route.request(),url=new URL(req.url()),path=url.pathname.split('/freight-api')[1]||'';
@@ -58,9 +58,12 @@ test('Carrier #124: actual app cards/list parity, translations, first open/reloa
     assert.equal(await page.locator('.carrier-request-list .carrier-request').count(),dashboard().counts[key],key+' exact list parity');
    }
    await page.evaluate(()=>{location.hash='#overview'});await page.locator('[data-carrier-stage=new]').click();
+   assert.equal(await page.locator('.carrier-request-list .carrier-request .map-link').getAttribute('aria-pressed'),'false','A preview must not pretend that an unopened request is already open');
    await page.locator('.carrier-request-list .carrier-request .map-link').click();
    await page.waitForFunction(()=>document.querySelector('[data-carrier-stage=new] strong')?.textContent==='0');
    assert.equal(posts,1,'nested button and row bubbling must not send opening twice');
+   assert.ok((await page.locator('.logistics-panel').getAttribute('aria-label')).includes('QA-new'),'Opened request stays selected when server moves it out of the New filter');
+   assert.equal(JSON.parse(await page.locator('.logistics-panel global-route-view').getAttribute('data-route'))[0].origin,'Original new 00017 中文','The map receives the original data of the explicitly opened request');
    await page.reload({waitUntil:'networkidle'});await page.evaluate(()=>{location.hash='#overview'});
    await page.waitForFunction(()=>document.querySelector('[data-carrier-stage=new] strong')?.textContent==='0');
    assert.equal(await page.locator('[data-carrier-stage=viewed] strong').textContent(),'2');
