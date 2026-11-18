@@ -49,7 +49,10 @@ if(!exactCandidate&&process.env.QA_BROWSER_BACKEND_PROOF_FILE){
 assert.equal(metadata.isolatedQaFunction,exactCandidate?carrier124.function:'freight-api-qa-rc20261110');
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
-const phase=process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
+const loginSmoke=exactCandidate&&process.env.QA_BROWSER_LOGIN==='true';
+const ownerFieldsDenied=exactCandidate&&process.env.QA_BROWSER_OWNER_FIELDS_DENIED==='true';
+const loserArchive=exactCandidate&&process.env.QA_BROWSER_LOSER_ARCHIVE==='true';
+const phase=loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=frozenSource,base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
@@ -66,7 +69,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
  assert.match(sessions[actor]||'',/^[a-f0-9]{64}$/,'Missing isolated QA session for '+actor);
  const context=await browser.newContext({viewport:{width:1440,height:900},...(exactCandidate?{serviceWorkers:'block'}:{})});const errors=[];
- await context.addInitScript(({token})=>{if(window.top===window&&/^https?:$/.test(location.protocol))localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
+ if(!loginSmoke)await context.addInitScript(({token})=>{if(window.top===window&&/^https?:$/.test(location.protocol))localStorage.setItem('freight-staging-ibclzdkxiozbzmniiygv-session-persistent-v1',token);},{token:sessions[actor]});
  const realTransport=async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
@@ -92,12 +95,83 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   await route.abort();
  };await context.route('**/*',realTransport);
  const createPublicPage=async()=>{const ctx=await browser.newContext({viewport:{width:1366,height:768},...(exactCandidate?{serviceWorkers:'block'}:{})});await ctx.route('**/*',realTransport);const anonymous=await ctx.newPage();anonymous.on('pageerror',e=>errors.push(e.message));await anonymous.goto(origin+(published?'/freight-quotes-web/test/':'/test/')+'#lw-partners',{waitUntil:'domcontentloaded'});return{page:anonymous,close:()=>ctx.close()};};
- const page=await context.newPage();const consoleErrors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error'){let value=m.text();for(const token of Object.values(sessions))value=value.replaceAll(token,'[REDACTED_SESSION]');consoleErrors.push(value.slice(0,1500));}});
+ const page=await context.newPage();const password=loginSmoke?process.env.QA_BROWSER_PASSWORD:undefined;
+ const secretValues=[...Object.values(sessions),...(password?[password]:[])];
+ const redact=value=>secretValues.reduce((output,secret)=>output.replaceAll(secret,'[REDACTED]'),String(value));
+ const consoleErrors=[];page.on('pageerror',e=>errors.push(redact(e.message)));page.on('console',m=>{if(m.type()==='error'){consoleErrors.push(redact(m.text()).slice(0,1500));}});
  try{
   await page.goto(origin+(published?'/freight-quotes-web/test/':'/test/'),{waitUntil:'domcontentloaded'});
+  if(loginSmoke){
+   assert.match(password||'',/^[a-f0-9]{64}$/,'Expected a protected synthetic credential');
+   const login=page.locator('input[name="login"]').first();
+   await login.fill(loginFor(actor));
+   await page.locator('input[name="password"]').first().fill(password);
+   const response=page.waitForResponse(r=>r.url().includes('/api/auth')&&r.request().method()==='POST');
+   await page.locator('form').filter({has:login}).getByRole('button',{name:/Войти|Вход|Login/i}).first().click();
+   const signedIn=await response;
+   assert.equal(signedIn.status(),200);
+   rec.login={http:200,requestId:signedIn.headers()['x-freight-request-id']};
+  }
   await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});
   rec.dom=await page.evaluate(()=>[...document.querySelectorAll('main,section,[class*=workspace],[class*=cabinet]')].slice(0,35).map(x=>({tag:x.tagName,cls:x.className,section:x.getAttribute('data-section'),role:x.getAttribute('data-cabinet-role')})));
   await writeFile(evidenceDir+'/'+actor+'-dom.json',JSON.stringify(rec.dom,null,2));
+  if(ownerFieldsDenied){
+   assert.ok(['carrierA','carrierB','ved','supplier'].includes(actor));
+   await page.evaluate(()=>{location.hash='#create-request';});
+   assert.equal(await page.locator('.cabinet-panel[data-section="create-request"] fieldset.request-owner-fields').isVisible(),false);
+   assert.equal(await page.getByRole('button',{name:/Опубликовать и уведомить/}).isVisible(),false);
+   rec.ownerFieldAccess={formHidden:true,publishControlHidden:true};
+  }
+  if(loserArchive){
+   const saved=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0];
+   assert.ok(['carrierA','carrierB'].includes(actor)&&actor!==saved.selection.winnerActor);
+   const response=await fetch(isolatedApiUrl('/api/carrier'),{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]},redirect:'error',signal:AbortSignal.timeout(15000)});
+   assert.equal(response.status,200);
+   const dashboard=(await response.json()).dashboard;
+   const lost=dashboard.items.find(x=>x.order_code===saved.createdOrder);
+   assert.equal(lost?.stage,'lost');assert.ok(lost.filters.includes('archive'));
+   await page.locator('[data-carrier-filter=archive]').click();
+   const card=page.locator('.carrier-request-list .carrier-request').filter({hasText:saved.createdOrder});
+   await card.waitFor();
+   assert.equal(await card.getByText(/^Участвую$/).count(),0);
+   rec.loserArchive={order:saved.createdOrder,archived:true,participationHidden:true,requestId:response.headers.get('x-freight-request-id')};
+  }
+  if(exactCandidate&&process.env.QA_BROWSER_CARRIER124==='true'){
+   assert.equal(actor,'carrierA');
+   const dashboard=async()=>{
+    const response=await fetch(isolatedApiUrl('/api/carrier'),{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]},redirect:'error',signal:AbortSignal.timeout(15000)});
+    assert.equal(response.status,200);
+    return (await response.json()).dashboard;
+   };
+   const before=await dashboard();
+   assert.equal(before.version,1);
+   const target=before.items.find(item=>item.stage==='new'&&/^QA-CI-[0-9A-F]+-DASHBOARD124REFUSAL-[0-9A-F]+$/.test(item.order_code));
+   assert.ok(target,'A fresh synthetic dashboard fixture must be available');
+   const stageKeys=['new','viewed','preparing','review','selected','execution'];
+   const filterKeys=['all','requires_response','declined','lost','completed','archive'];
+   await page.locator('[data-carrier-dashboard]').waitFor();
+   for(const key of [...stageKeys,...filterKeys]){
+    await page.evaluate(()=>{location.hash='#overview';});
+    const button=page.locator('[data-carrier-'+(stageKeys.includes(key)?'stage':'filter')+'="'+key+'"]');
+    await button.click();
+    await page.waitForFunction(count=>document.querySelectorAll('.carrier-request-list .carrier-request').length===count,before.counts[key]);
+   }
+   await page.evaluate(()=>{location.hash='#overview';});
+   await page.locator('[data-carrier-stage=new]').click();
+   const row=page.locator('.carrier-request-list .carrier-request').filter({hasText:target.order_code});
+   const opened=page.waitForResponse(r=>r.url().includes('/api/carrier')&&r.request().method()==='POST'&&r.request().postDataJSON()?.id===target.id);
+   await row.locator('.map-link').click();
+   assert.equal((await opened).status(),200);
+   assert.equal(report.calls.filter(c=>c.path==='/api/carrier'&&c.method==='POST').length,1);
+   const after=await dashboard();
+   assert.equal(after.items.find(item=>item.id===target.id).stage,'viewed');
+   assert.equal(after.counts.new,before.counts.new-1);
+   assert.equal(after.counts.viewed,before.counts.viewed+1);
+   await page.waitForFunction(order=>document.querySelector('.logistics-panel')?.getAttribute('aria-label')?.includes(order),target.order_code);
+   await page.reload({waitUntil:'domcontentloaded'});
+   assert.equal((await dashboard()).items.find(item=>item.id===target.id).stage,'viewed');
+   rec.dashboard={matchedCounts:stageKeys.length+filterKeys.length,order:target.order_code,openedOnce:true,routePreserved:true,persistedAfterReload:true};
+  }
   if(process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'&&actor==='logistic')await addressedLogisticScenario({page,rec,base,sessions});
   if(process.env.QA_OWNER_REGISTERS==='true')await (await import('./nov14-owner-registers-real.mjs')).ownerRegistersScenario({page,actor,base,sessions,rec,report,evidenceDir});
   if(process.env.QA_NOV14_PHASE)await (await import('./nov14-real-scenario.mjs')).nov14Scenario({page,actor,base,sessions,rec,report,evidenceDir});
@@ -330,9 +404,21 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    assert.ok(layout.text>100,'Blank cabinet');assert.ok(layout.scroll<=viewport.width+4,'Horizontal overflow: '+JSON.stringify(layout));
    const file=evidenceDir+'/'+actor+'-'+phase+'-'+viewport.width+'.png';await page.screenshot({path:file,fullPage:false,animations:"disabled",timeout:60000});rec.viewports.push({...viewport,...layout,screenshot:file,screenshotSha256:createHash('sha256').update(await readFile(file)).digest('hex')});
   }
+  if(loginSmoke){
+   const logout=page.waitForResponse(r=>r.url().includes('/api/auth')&&r.request().method()==='POST'&&r.request().postDataJSON()?.action==='logout');
+   await page.getByText(/^(Выйти|Sign out|退出)$/).first().click();
+   const signedOut=await logout;
+   assert.equal(signedOut.status(),200);
+   const login=page.locator('input[name="login"]').first();
+   await login.waitFor({state:'visible'});
+   await page.reload({waitUntil:'domcontentloaded'});
+   await login.waitFor({state:'visible'});
+   assert.equal(await page.getByText(/^(Выйти|Sign out|退出)$/).count(),0);
+   rec.logout={http:200,requestId:signedOut.headers()['x-freight-request-id'],anonymousAfterReload:true};
+  }
   rec.runtimeErrors=consoleErrors.filter(value=>/^(?:[A-Za-z]+Error:|Error:)|Minified React error|The above error occurred/.test(value)).slice(0,5);assert.deepEqual(rec.runtimeErrors,[],'Caught application render error');assert.equal(await page.getByText('Не удалось открыть раздел',{exact:true}).count(),0,'Application error boundary');assert.deepEqual(errors,[]);assert.equal(report.calls.filter(c=>c.actor===actor&&c.error).length,0,'Real API transport failure');rec.status='PASS';console.log('REAL_BROWSER_PASS',actor);
  }catch(e){rec.failureScreenshot=evidenceDir+'/'+actor+'-'+phase+'-failure.png';await page.screenshot({path:rec.failureScreenshot,fullPage:false,animations:"disabled",timeout:60000}).catch(error=>{rec.failureScreenshotError=String(error.message).slice(0,300);});
    await writeFile(evidenceDir+'/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
-   rec.errorStack=String(e.stack||'').slice(0,5000);for(const token of Object.values(sessions))rec.errorStack=rec.errorStack.replaceAll(token,'[REDACTED_SESSION]');rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=e.message.slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);if(rec.cabinetMatrixFailures)console.log('QA_MATRIX_FAILURES',JSON.stringify(rec.cabinetMatrixFailures.map(f=>({lang:f.lang,screen:f.screen,width:f.width,error:f.error?.slice(0,120),violations:f.violations?.map(v=>({id:v.id,impact:v.impact,targets:v.nodes?.map(n=>n.target)}))}))));console.log('QA_FAILURE_CONTEXT',JSON.stringify({phase,pageErrors:errors,apiCalls:report.calls.filter(c=>c.actor===actor).slice(-12).map(({path,method,status,error})=>({path,method,status,error}))}));process.exitCode=1;}
+   rec.errorStack=redact(e.stack||'').slice(0,5000);rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=redact(e.message).slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);if(rec.cabinetMatrixFailures)console.log('QA_MATRIX_FAILURES',JSON.stringify(rec.cabinetMatrixFailures.map(f=>({lang:f.lang,screen:f.screen,width:f.width,error:f.error?.slice(0,120),violations:f.violations?.map(v=>({id:v.id,impact:v.impact,targets:v.nodes?.map(n=>n.target)}))}))));console.log('QA_FAILURE_CONTEXT',JSON.stringify({phase,pageErrors:errors,apiCalls:report.calls.filter(c=>c.actor===actor).slice(-12).map(({path,method,status,error})=>({path,method,status,error}))}));process.exitCode=1;}
  await context.close();
 }}finally{await browser.close();await new Promise(done=>server.close(done));await rm(frozenSource,{recursive:true,force:true});report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile(evidenceDir+'/browser-results-'+actorName+'.json',bytes);await writeFile(evidenceDir+'/browser-results-'+actorName+'-'+phase+'.json',bytes);}

@@ -113,7 +113,7 @@ try{
   rows=ok(await call('owner','/api/data')).bids.filter(x=>x.order_code===order);const bid=rows.find(x=>x.request_id===a1.requestId);assert.ok(bid);
   const choose={id:notice.id,bidId:bid.id,requestId:randomUUID(),revision:0,reason:'',expected:bid};ok(await call('owner','/api/offer-selection',choose));
   const repeated=await call('owner','/api/offer-selection',choose);assert.ok([200,409].includes(repeated.status));
-  assert.equal(ok(await call('owner','/api/data')).selections.filter(x=>x.round_id===notice.round_id).length,1,'Winner replay must not create another selection');
+  assert.equal(ok(await call('owner','/api/offer-analysis')).selections.filter(x=>x.round_id===notice.round_id).length,1,'Winner replay must not create another selection');
   await stage('carrierA','selected');await stage('carrierB','lost');
   ok(await call('carrierA','/api/task2',{order,action:'take'}));await stage('carrierA','selected');
   const actual=new Date(Date.now()-600000).toISOString();ok(await call('carrierA','/api/task2',{order,action:'actual_departure',date:actual}));await stage('carrierA','execution');
@@ -127,6 +127,8 @@ try{
   const actor='certification',old=sessions[actor],created=[];for(let i=0;i<2;i++){const r=ok(await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:process.env.QA_CERTIFICATION_PASSWORD}));assert.match(r.sessionToken||'',/^[a-f0-9]{64}$/);created.push(r.sessionToken);}
   sessions[actor]=old;assert.equal((await call(actor,'/api/session')).data.authenticated,false);for(const token of created){sessions[actor]=token;assert.equal((await call(actor,'/api/session')).data.authenticated,true);}let r;for(let i=0;i<3;i++){r=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});assert.equal(r.status,401);}assert.equal(r.data.recoveryRequested,true);for(const token of created){sessions[actor]=token;ok(await call(actor,'/api/auth',{action:'logout'}));}sessions[actor]=old;return{oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true};
  });
- report.result=report.checks.length===9&&report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';if(report.result!=='PASS')process.exitCode=1;
  if(selected.size)assert.equal(report.checks.length,selected.size,'Unknown Carrier124 case identifier');
+ const allExpectedPassed=report.checks.length===(selected.size||9)&&report.checks.every(c=>c.status==='PASS');
+ report.result=allExpectedPassed?(selected.size?'TARGETED_PASS':'PASS'):'FAIL';
+ if(!allExpectedPassed)process.exitCode=1;
 }finally{await mkdir(evidenceDir,{recursive:true});await writeFile(join(evidenceDir,'business-api-real.json'),JSON.stringify(report,null,2)+'\n');}
