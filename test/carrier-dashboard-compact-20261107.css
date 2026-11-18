@@ -1,4 +1,16 @@
-/* Staging only — 2026-11-07. Compact carrier dashboard. */
+/* Staging only — compact Carrier dashboard; Issue #124 server counters. */
+.carrier-stage-dashboard{margin:14px 0;min-width:0}
+.carrier-stage-cards{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+.carrier-stage-card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0;min-height:100px;padding:16px 12px;border:1px solid #60829a;border-radius:14px;background:#142e43;color:#f1f7fc;text-align:left;cursor:pointer;font:inherit}
+.carrier-stage-card strong{font-size:30px;line-height:1.1}
+.carrier-stage-card span{font-size:13px;overflow-wrap:anywhere}
+.carrier-stage-card:hover{background:#203e55}
+.carrier-stage-card:focus-visible{outline:3px solid #5ee5bf;outline-offset:3px}
+.carrier-stage-card:disabled{cursor:wait;opacity:.75}
+.carrier-stage-filters{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.carrier-stage-dashboard [role=alert],.carrier-stage-dashboard [role=status]{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:12px;color:#f1f7fc}
+@media(max-width:1000px){.carrier-stage-cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:520px){.carrier-stage-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.carrier-stage-card{min-height:96px;padding:14px 10px}}
 .carrier-portal .workspace-hero,
 [data-carrier-compact-hero]{
   min-height:0!important;

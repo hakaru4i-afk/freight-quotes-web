@@ -6,6 +6,7 @@ on:
       - 'tests/**'
       - 'scripts/build-process-maps.mjs'
       - 'scripts/stamp-staging-rc.mjs'
+      - 'scripts/staging-asset-cache.mjs'
       - '.github/workflows/release-stabilization.yml'
   workflow_dispatch:
 permissions:
@@ -31,11 +32,14 @@ jobs:
           tests/task12-release-gate.test.mjs
           tests/lw-pending-tasks-all-roles.test.mjs
           tests/staging-asset-contract.test.mjs
+          tests/staging-asset-cache.test.mjs
+          tests/carrier-dashboard-browser.test.mjs
       - name: Verify current asset digests, cache keys and update banner build ID
         run: node scripts/stamp-staging-rc.mjs --check
       - name: Reject stale process diagrams
         run: node scripts/build-process-maps.mjs --check
       - name: Execute all 37 mapped robot groups
+        if: ${{ !cancelled() }}
         run: node tests/task12-robot-runner.mjs
       - uses: actions/upload-artifact@v4
         if: always()
