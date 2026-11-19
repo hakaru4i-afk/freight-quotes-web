@@ -33,11 +33,11 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "39f374ccd9ed42e01eec0ffbeb845e0456601402",
+  "frontendCommit": "c918c133d20fe8532603b0bc5489c1ea97cd6946",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "899e45d4a1d80f07c349b7878739fdacc04174b80205ba4d69c72e53042da156",
-    ".github/workflows/carrier124-reindex-candidate.yml": "fcd987cd2a198aee5de82dc242126d99a68a9a8b512be4f929ff2bd34cffbfda",
+    ".github/workflows/carrier124-reindex-candidate.yml": "8182cc07cbc835efcbc668ef6df7d01e425ad4839929d092ca5f426c4d4bd077",
     ".github/workflows/carrier124-stamp-source-only.yml": "9c48576f1b0d38a9b75c1a0fe6142fcfe0c70307fc6cb582e47eafd8ca98dd2f",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
     ".github/workflows/isolated-qa-oidc-browser.yml": "d7d99072960d875087725c1daa2bf7531b87e47a3292d106c5586e525780653c",
@@ -75,6 +75,7 @@
     ".github/workflows/owner-offer-scoring.yml": "f4d2b5651d8d8c200969a0093a0163c34ea435aca7fd8e6f59e212483a60dcd3",
     ".github/workflows/owner-permanent-delete.yml": "489720637de57cc4573a65e45ae7a23df5a2a8cb387881ff92a589e8ab8294d6",
     ".github/workflows/owner-preview-access.yml": "1750afec618d647ffd602019cc40f2fb05e900f3cb29cc9fbe05e915a8775d41",
+    ".github/workflows/owner-progress-browser-qa.yml": "11aa57849d6f2450075058b506acd410b6c2ec981926170a4bee67687d89e7ce",
     ".github/workflows/owner-registers-20261111.yml": "2dfad92438966cf66dbd749ea0952a4cca3f18732cc94c47c8dad3b1b22706a7",
     ".github/workflows/owner-workspace-compact.yml": "3779f90a7d6fcbe3ad16879df9fc1a56f2f295f15110b7bd8e737601657a4f2e",
     ".github/workflows/portal-contrast-accessibility.yml": "5ec56b10836761cece86f99828df33cd461d78f833b60d79653a5f5bd751af25",
@@ -392,7 +393,7 @@
     "tests/staging-api-region.test.mjs": "d2f781e8c066f59cd46a2cde2c5ad4fc99e7e78e0b732ab2ced1cd8a3d4b3fa6",
     "tests/staging-asset-cache.test.mjs": "8de9a8f4501e608bcd2c3edcba9fdc92c80bbb097ba4654b5fa4063ceddf5b58",
     "tests/staging-asset-contract.test.mjs": "a1f4b4b758ba1c18d9e47e9317e8367fd891c69338010f9a701a951eb01a1d50",
-    "tests/task1-create-form-browser.test.mjs": "97b617db10c0cf7d5eae4c8401aa3eb3d966fd2f7e59e1ab95e04cd4380e6271",
+    "tests/task1-create-form-browser.test.mjs": "aa9f840a09e784c97b13a6d0e7d70fc2fa110f03f34df6aaa0c7123bc1bc9872",
     "tests/task12-authenticated-readonly.e2e.mjs": "c48e2609827b9c547f1aff456eeac984ae1508a4560f998db812fd90a86af996",
     "tests/task12-business-api.e2e.mjs": "a1fe2cf98616b62eff105891bdb9e145e23bc9d2107a01fcdadb688b3deb248c",
     "tests/task12-ci-auth.mjs": "9127239df6b045e63ac0ddeb3352ac048912228eb3ba3b13547d000072a1360d",
