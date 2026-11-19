@@ -479,3 +479,7 @@ body.lw-cc-owner-view .test-cabinets a{
 .lw-cc-development-item .ow-task-progress .ow-task-clock{color:#526f80;font-size:12px;font-weight:500}
 .lw-cc-development-item .ow-task-progress .ow-task-overdue{color:#a72f29;font-size:12px;font-weight:750}
 @media(prefers-reduced-motion:reduce){.lw-cc-development-item .ow-task-progress-track .ow-task-progress-fill{transition:none}}
+
+
+.lw-cc-development-item .lw-cc-expected-label{font-size:11px;font-weight:700;color:#496b83;line-height:1.3}
+.lw-cc-development-item .lw-cc-expected-result{color:#21445b;font-size:13px;font-weight:500;line-height:1.5;overflow-wrap:anywhere}
