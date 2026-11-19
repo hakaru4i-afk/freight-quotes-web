@@ -250,6 +250,19 @@ const dict={
   "Документ/фото доказательство. Загруженные файлы отображаются в документах и чате заявки.":["Evidence document or photo. Uploaded files appear in the shipment documents and chat.", "证据文件或照片。上传后显示在运输文件及聊天中。"],
   "Общий чат именно этой выигранной перевозки: ВЭД, перевозчик и Владелец.":["Shared chat for this winning shipment only: foreign trade staff, carrier and owner.", "仅用于本次中选运输的共享聊天：外贸人员、承运商和所有者。"]
 };
+Object.assign(dict,{
+  "Просрочен еженедельный трекинг":["Weekly tracking overdue","每周跟踪已逾期"],
+  "Следующий отчёт о местоположении":["Next location report","下一次位置报告"],
+  "План трекинга — ожидается фактическое отправление":["Tracking schedule — awaiting actual departure","跟踪计划：等待实际发运"],
+  "Заполнено":["Completed","已完成"],
+  "из":["of","／"],
+  "Следующий срок":["Next deadline","下次截止时间"],
+  "Осталось":["Remaining","剩余"],
+  "Открыть трекинг":["Open tracking","打开跟踪"],
+  "Срок доставки не указан":["Transit time is missing","未提供运输时长"],
+  "Уточните срок утверждённой ставки для еженедельного графика.":["Check the winning quote for the transit time used by the weekly schedule.","请核对中选报价的运输时长，用于每周跟踪计划。"],
+  "Номер заказа поставщика":["Supplier order number","供应商订单号"]
+});
 const originalTexts=new WeakMap();
 const originalAttributes=new WeakMap();
 const language=()=>/^zh/i.test(document.documentElement.lang)?"zh":/^en/i.test(document.documentElement.lang)?"en":"ru";
@@ -258,6 +271,15 @@ function update(){
  const root=document.querySelector("#task2-root");
  if(!root)return;
  const lang=language();
+ const timeFormat=new Intl.DateTimeFormat({ru:"ru-RU",en:"en-GB",zh:"zh-CN"}[lang],{
+  timeZone:"Europe/Minsk",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"
+ });
+ for(const time of root.querySelectorAll("time[data-t2-deadline]")){
+  const instant=new Date(time.dateTime);
+  if(Number.isNaN(instant.getTime()))continue;
+  const text=timeFormat.format(instant);
+  if(time.textContent!==text)time.textContent=text;
+ }
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
  let node;
  while((node=walker.nextNode())){

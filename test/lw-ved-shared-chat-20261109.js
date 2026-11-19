@@ -102,6 +102,8 @@ async function init(root){
 }
 let scanScheduled=false;
 const PAGE_ID="lw-ved-chat-page";
+const chatTitle=()=>/^zh/i.test(document.documentElement.lang)?"询价聊天":
+ /^en/i.test(document.documentElement.lang)?"Shipment chats":"Чаты по заявкам";
 function vedCabinet(){
  if(document.querySelector('.cabinet-app[data-addressed-logistic="true"]'))return null;
  return [...document.querySelectorAll(".cabinet-app")].find(c=>
@@ -115,10 +117,12 @@ function setupPage(){
  const cabinet=vedCabinet();if(!cabinet)return;
  const nav=cabinet.querySelector(".cabinet-sidebar nav");
  if(nav&&!nav.querySelector('a[href="#chats"]')){
-  const link=document.createElement("a");link.href="#chats";link.textContent="Чаты по заявкам";link.className="lw-ved-chat-menu-link";
+  const link=document.createElement("a");link.href="#chats";link.textContent=chatTitle();link.className="lw-ved-chat-menu-link";
   const after=nav.querySelector('a[href="#approved-shipments"]');
   if(after)after.insertAdjacentElement("afterend",link);else nav.append(link);
  }
+ const chatLink=nav?.querySelector('.lw-ved-chat-menu-link');
+ if(chatLink&&chatLink.textContent!==chatTitle())chatLink.textContent=chatTitle();
  const home=cabinet.querySelector('.cabinet-panel[data-section="overview"]');
  if(!home)return;
  let page=cabinet.querySelector("#"+PAGE_ID);
@@ -130,6 +134,8 @@ function setupPage(){
    '<div class="lw-ved-chat-mount" data-lw-ved-chat-order=""></div>';
   home.parentElement.append(page);
  }
+ const heading=page.querySelector('.lw-ved-chat-page-heading h2');
+ if(heading&&heading.textContent!==chatTitle())heading.textContent=chatTitle();
  const current=location.hash==="#chats";
  cabinet.classList.toggle("lw-ved-chat-active",current);
  if(current&&(!pageListLoaded||Date.now()-pageListLoaded>60000)&&!pageBusy)loadPageChats(page);
@@ -222,6 +228,7 @@ document.addEventListener("keydown",e=>{
  }
 });
 new MutationObserver(schedule).observe(document.getElementById("root")||document.documentElement,{childList:true,subtree:true});
+new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:["lang"]});
 document.addEventListener("DOMContentLoaded",schedule);
 window.addEventListener("hashchange",()=>{pageListLoaded=0;schedule();});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&active?.isConnected)refresh(active);});

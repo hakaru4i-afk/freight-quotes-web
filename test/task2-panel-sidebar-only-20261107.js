@@ -166,7 +166,9 @@
      const remaining=Math.max(0,total-completed);
      const message=overdue?'Просрочен еженедельный трекинг':departed?'Следующий отчёт о местоположении':'План трекинга — ожидается фактическое отправление';
      const noticeStyle=overdue?'border:1px solid #d5a544;border-left:4px solid #d5a544;background:#fff8e9;color:#533d13':'border:1px solid #b8ccdc;border-left:4px solid #5f879f;background:#eef5fd;color:#173650';
-     if(remaining>0)html+='<div role="status" style="padding:12px 16px;margin:12px 0;border-radius:9px;'+noticeStyle+'"><strong>'+message+'</strong><p style="margin:6px 0;color:inherit">Заполнено '+completed+' из '+total+'. '+(deadline?'Следующий срок: '+fmt(deadline.toISOString())+'. ':'')+'Осталось '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Открыть трекинг</button></div>';
+     if(remaining>0)html+='<div role="status" data-t2-weekly-summary style="padding:12px 16px;margin:12px 0;border-radius:9px;'+noticeStyle+'"><strong>'+message+'</strong><p style="margin:6px 0;color:inherit"><span>Заполнено</span> '+completed+' <span>из</span> '+total+'. '+
+       (deadline?'<span>Следующий срок</span>: <time data-t2-deadline datetime="'+esc(deadline.toISOString())+'">'+esc(fmt(deadline.toISOString()))+'</time>. ':'')+
+       '<span>Осталось</span> '+remaining+'.</p><button type="button" class="t2-btn" data-t2-tab="track">Открыть трекинг</button></div>';
      else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
    }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+

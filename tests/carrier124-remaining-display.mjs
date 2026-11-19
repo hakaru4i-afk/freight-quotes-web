@@ -37,14 +37,24 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
       for(const item of desktop){
         if(!/^#[a-z0-9-]+$/.test(item.key))continue;
         try{
-          await openCabinet(page,item.key.slice(1));
+          const mount={'#portal-feedback':'#portal-feedback-root','#chats':'#lw-ved-chat-page'}[item.key];
+          if(mount){
+            await page.locator('.cabinet-sidebar nav a[href="'+item.key+'"]').first().evaluate(el=>el.click());
+            await page.locator(mount).waitFor({state:'visible',timeout:8000});
+          }else{
+            await openCabinet(page,item.key.slice(1));
+          }
           navigation.push({key:item.key,opened:true});
         }catch(error){
           navigation.push({key:item.key,opened:false,reason:String(error.message).slice(0,250)});
         }
       }
       await page.setViewportSize(viewportSizes[1]);
+      const toggle=page.locator('.cabinet-menu-toggle');
+      if(await toggle.isVisible()&&await toggle.getAttribute('aria-expanded')==='false')await toggle.click();
       const mobileCount=await page.locator(selector).evaluateAll(links=>links.filter(el=>el.getClientRects().length>0).length);
+      assert.ok(mobileCount>0,'No mobile menu items after opening the menu');
+      if(await toggle.isVisible()&&await toggle.getAttribute('aria-expanded')==='true')await toggle.click();
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
       entries.push({lang,desktop,navigation,mobileCount});
     }
@@ -128,9 +138,9 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
           }
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
         }
-        for(const [lang,label,controls] of [
-          ['en','English',['3D globe','2D map','Shipment distance']],
-          ['zh','中文',['3D 地球','2D 地图','运输距离']]
+        for(const [lang,label,controls,weeklyLabel] of [
+          ['en','English',['3D globe','2D map','Shipment distance'],'Next deadline'],
+          ['zh','中文',['3D 地球','2D 地图','运输距离'],'下次截止时间']
         ]){
           await page.getByRole('button',{name:label,exact:true}).first().click({timeout:12000});
           await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
@@ -138,7 +148,15 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
           await map.getByRole('button',{name:controls[1],exact:true}).click();
           await map.getByRole('heading',{name:controls[2],exact:true}).waitFor();
           await page.waitForFunction(()=>document.querySelector('#task2-root global-route-view')?.dataset.mode==='2d');
-          captures.push({locale:lang,view:'2d',localizedControls:true});
+          const capture={locale:lang,view:'2d',localizedControls:true};
+          if(process.env.QA_CARRIER124_CHECK_DEADLINE==='true'){
+            const weekly=page.locator('[data-t2-weekly-summary]');
+            await weekly.getByText(weeklyLabel,{exact:true}).waitFor({timeout:12000});
+            const time=weekly.locator('time[data-t2-deadline]');
+            assert.ok(Number.isFinite(Date.parse(await time.getAttribute('datetime'))));
+            capture.deadline={label:weeklyLabel,displayed:await time.innerText(),instant:await time.getAttribute('datetime')};
+          }
+          captures.push(capture);
         }
         entries.push({mode,order,api:detail.requestId,captures});
       }catch(error){
