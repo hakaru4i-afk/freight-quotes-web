@@ -9,10 +9,11 @@ const call=async(actor,path,body,query={})=>{
  const url=new URL(base+path);
  for(const [key,value] of Object.entries(query))url.searchParams.set(key,value);
  const method=body===undefined?'GET':'POST';
+ const multipart=body instanceof FormData;
  let r;
  for(let attempt=1;attempt<=(method==='GET'?3:1);attempt++){
    try{
-     r=await fetch(url.toString(),{method,redirect:'follow',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+     r=await fetch(url.toString(),{method,redirect:'follow',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
      break;
    }catch(err){
      const cause=String(err?.cause?.code||err?.cause?.name||err?.code||err?.name||'NETWORK_ERROR').replace(/[^A-Z0-9_]/gi,'').slice(0,60);
@@ -41,8 +42,13 @@ try{
  const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Minsk',dateStyle:'short',timeStyle:'short'});
  const deadline=fmt.format(Date.now()+86400000).replace(' ','T');
  const logistics={sender_contact:'OIDC synthetic owner',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'E2E synthetic freight',weight:'1250',volume:'12.5',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Synthetic Brest gate',dangerous_goods:'no'};
+ const attachment=new FormData();
+ attachment.set('order',order);
+ attachment.append('files',new Blob(['Isolated OIDC acceptance '+order+'\n'],{type:'text/plain'}),'qa-control.txt');
+ const uploaded=await call('owner','/api/documents',attachment);
+ assert.equal(uploaded.status,200,'isolated QA attachment failed HTTP '+uploaded.status+' '+String(uploaded.data.error||''));
  const publish=await call('owner','/api/requests',{order,deadline,summary:'Isolated QA OIDC '+order,bitrixTask:'910083,910084',logistics});
- assert.equal(publish.status,200,'owner request create failed');
+ assert.equal(publish.status,200,'owner request create failed HTTP '+publish.status+' '+String(publish.data.error||publish.data.message||''));
  evidence.order=order;
  const carrier=await call('carrierA','/api/requests',undefined,{order});
  assert.equal(carrier.status,200);
