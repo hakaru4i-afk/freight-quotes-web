@@ -33,7 +33,7 @@ test('Staging HTML cache keys match exact changed assets',()=>{
  const html=file('index.html');
  for(const name of candidates){
   const source=readFileSync('test/'+name);
-  const blob=createHash('sha1').update('blob '+source.length+'\\0').update(source).digest('hex');
+  const blob=createHash('sha1').update('blob '+source.length+'\0').update(source).digest('hex');
   const expected='./'+name+'?v='+blob.slice(0,12);
   assert.ok(html.includes(expected),'stale staging cache key: '+name);
  }
