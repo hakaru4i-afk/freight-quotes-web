@@ -45,3 +45,5 @@ jobs:
 # 2026-11-19 refresh source map for translated Owner and carrier request fields.
 # 2026-11-19 reviewed role-scoped progress UI sources (candidate only, no owner approval or deploy).
 # 2026-11-19 pin reviewed backend source 194fb3ff8f2564801357da9f6b2b84450958e918; regenerate candidate maps only.
+
+# 2026-11-19 regenerate process metadata after reviewed f861cbd backend QA schema fix (not a deployment).
