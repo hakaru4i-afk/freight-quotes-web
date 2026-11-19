@@ -1,0 +1,76 @@
+name: Carrier124 live OIDC acceptance on isolated v6 (11 roles)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: carrier124-main-oidc-verified
+  cancel-in-progress: false
+jobs:
+  qa:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    environment: isolated-qa
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Enforce main-only, GitHub OIDC and source integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          node --check tests/carrier124-ci-oidc-bindings.mjs
+          node --check tests/carrier124-ci-auth.mjs
+          node --check tests/carrier124-ci-business.mjs
+          node --check tests/task12-isolated-browser.e2e.mjs
+      - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
+        run: node tests/carrier124-ci-oidc-bindings.mjs
+      - name: Authenticate 11 QA users against exact isolated Carrier124 v6 function
+        run: node tests/carrier124-ci-auth.mjs
+      - name: Execute real owner-carrier award and take with isolated synthetic rows
+        id: business
+        continue-on-error: true
+        run: node tests/carrier124-ci-business.mjs
+      - name: Install Chromium for real published-assets browser E2E
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
+          npx playwright install --with-deps chromium
+      - name: Open all 11 actual role cabinets against isolated v6 (published /test bytes)
+        id: browser
+        continue-on-error: true
+        env:
+          QA_ISOLATED_RUN: carrier124nov18
+          QA_BROWSER_PUBLISHED: 'true'
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Fail closed unless both real API and browser validation succeed
+        if: always()
+        shell: bash
+        run: |
+          test '${{ steps.business.outcome }}' = success
+          test '${{ steps.browser.outcome }}' = success
+      - name: Log out all issued synthetic sessions
+        if: always()
+        run: node tests/carrier124-ci-auth.mjs --logout
+      - name: Disable 11 QA accounts, revoke remaining sessions and close leases
+        if: always()
+        run: node tests/carrier124-ci-oidc-bindings.mjs --finish
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carrier124-oidc-v5-redacted-evidence
+          path: |
+            reports/carrier124-ci-qa-auth.json
+            reports/carrier124-ci-business.json
+            reports/carrier124-published-browser/
+          retention-days: 14
