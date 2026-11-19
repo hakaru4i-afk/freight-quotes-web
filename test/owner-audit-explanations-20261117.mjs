@@ -107,7 +107,7 @@ export function explainAuditEvent(event){
  if(path==='/api/test-cabinets'&&status===403){
    result.title='Автоматический запрос списка кабинетов владельца';
    result.what='При загрузке страницы прежний интерфейс запросил служебный список кабинетов, доступный только владельцу.';
-   result.why='Сотрудник с ролью не владельца не имеет права получать этот список.';
+   result.why='Список доступен только владельцу. Сотрудник с другой ролью не имеет права получать его.';
    result.outcome='Сервер отклонил запрос. Список кабинетов не выдан, данные не изменены.';
    result.origin='Известная ошибка прежнего интерфейса: такой запрос выполнялся автоматически. Эта запись не доказывает попытку сотрудника войти в чужой кабинет.';
    return result;
@@ -116,7 +116,7 @@ export function explainAuditEvent(event){
    result.title=httpMeanings[status][0]+' — «'+service+'»';
    result.why=httpMeanings[status][1];
    result.outcome='Запрос не подтверждён как выполненный. Смотрите исходную запись и серверную диагностику.';
- }else if(status===403||kind==='denied'){
+ }else if(status===403||(kind==='denied'&&!status)){
    result.title='Доступ к разделу «'+service+'» запрещён';
    result.why='Сервер запретил операцию. Точная причина (роль, состояние сеанса или правило безопасности) не сохранена в этой записи.';
    result.outcome='Операция отклонена; из этой записи не следует, что она была выполнена.';
@@ -124,7 +124,7 @@ export function explainAuditEvent(event){
    result.title='Пользователь не авторизован для доступа к «'+service+'»';
    result.why='Сервер не принял подтверждение входа для этого запроса.';
    result.outcome='Запрос не выполнен.';
- }else if(status===400||status===422||kind==='validation'){
+ }else if(status===400||status===422||(kind==='validation'&&!status)){
    result.title='Данные для раздела «'+service+'» не прошли проверку';
    result.why='Сервер отклонил запрос. Конкретное некорректное поле в этой записи не указано.';
    result.outcome='Запрос не выполнен; нужно проверить введённые значения или состояние заявки.';
@@ -140,7 +140,7 @@ export function explainAuditEvent(event){
    result.title='Слишком много запросов к разделу «'+service+'»';
    result.why='Сработало ограничение частоты запросов.';
    result.outcome='Запрос временно отклонён.';
- }else if(status>=500||kind==='server_error'){
+ }else if(status>=500||(kind==='server_error'&&!status)){
    if(httpMeanings[status])result.title=httpMeanings[status][0]+' — «'+service+'»';
    result.title='Сбой сервера при обращении к разделу «'+service+'»';
    result.why=httpMeanings[status]?.[1]||'Произошла серверная ошибка; подробная техническая причина в этой записи отсутствует.';

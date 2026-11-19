@@ -18,3 +18,25 @@
 #lw-release-status.is-collapsed{width:auto;max-width:calc(100vw - 24px);padding:0;border-left-width:3px}
 #lw-release-status.is-collapsed button{padding:10px 15px;min-height:42px;font-weight:750;background:transparent;color:#fff;-webkit-text-fill-color:#fff;border:0;cursor:pointer}
 @media(max-width:520px){#lw-release-status{bottom:10px;right:10px;width:calc(100vw - 20px);max-height:50vh;padding:12px}}
+
+
+/* Role-scoped work notices. Never render raw engineering-register history. */
+#lw-dev-notices{position:fixed;right:16px;top:72px;z-index:2147480998;width:min(420px,calc(100vw - 32px));max-height:min(55vh,550px);overflow:auto;box-sizing:border-box;padding:15px;background:#112e49;color:#f4f9ff;border:1px solid #5d95bb;border-left:5px solid #56baac;border-radius:12px;box-shadow:0 10px 30px #001a2b55;font:14px/1.45 system-ui,sans-serif}
+#lw-dev-notices[hidden]{display:none!important}
+#lw-dev-notices .lw-dev-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+#lw-dev-notices .lw-dev-header>strong{font-size:15px;color:#fff}
+#lw-dev-notices button{background:#194665;color:#fff;border:1px solid #91b8d5;cursor:pointer;border-radius:7px;min-height:30px;padding:4px 9px}
+#lw-dev-notices button:focus-visible{outline:3px solid #ffe19b;outline-offset:2px}
+#lw-dev-notices .lw-dev-item{margin-top:12px;padding-top:12px;border-top:1px solid #426886}
+#lw-dev-notices .lw-dev-item strong{display:block;color:#fff;overflow-wrap:anywhere;margin:3px 0 9px}
+#lw-dev-notices .lw-dev-label{font-size:12px;font-weight:700;color:#b8dced}
+#lw-dev-notices .lw-dev-item p{margin:4px 0 10px;color:#e0eff9;overflow-wrap:anywhere}
+#lw-dev-notices .lw-dev-stage{display:flex;gap:8px;justify-content:space-between;align-items:center;font-size:12px;margin:6px 0}
+#lw-dev-notices .lw-dev-stage b{white-space:nowrap}
+#lw-dev-notices .lw-dev-track{height:10px;background:#37556d;border-radius:99px;overflow:hidden;border:1px solid #67869d}
+#lw-dev-notices .lw-dev-track span{display:block;height:100%;background:#51d6b4;border-radius:99px;transition:width .3s ease}
+#lw-dev-notices .lw-dev-overdue{display:block;margin-top:7px;color:#ffbb9c;font-weight:750}
+#lw-dev-notices .lw-dev-remaining{font-size:12px;margin:12px 0 0;color:#d5eafa}
+#lw-dev-notices:has(>[data-dev-expand]){padding:8px}
+@media(max-width:520px){#lw-dev-notices{top:58px;right:10px;width:calc(100vw - 20px);max-height:38vh;padding:11px}}
+@media(prefers-reduced-motion:reduce){#lw-dev-notices .lw-dev-track span{transition:none}}

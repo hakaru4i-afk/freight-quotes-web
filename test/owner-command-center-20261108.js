@@ -10,7 +10,7 @@ const short=v=>String(v??"").trim().slice(0,90);
 const localDate=v=>{if(!v)return "—";const d=new Date(v);return Number.isNaN(+d)?"—":d.toLocaleDateString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",timeZone:"Europe/Minsk"})};
 const statusText=v=>({new:"Новая",open:"Открыта",accepted:"В работе",approved:"Допущена",selected:"Победитель выбран",awarded:"Победитель выбран",completed:"Завершено",archived:"Архив",annulled:"Аннулирована",pending:"Ожидает решения",active:"Активна",in_progress:"В работе",waiting_container:"Ожидается номер контейнера",claim:"Претензия",rejected:"Отклонена",no_response:"Нет ответа"})[String(v||"").toLowerCase()]||short(v)||"—";
 const icon=s=>'<span class="lw-cc-icon" aria-hidden="true">'+s+'</span>';
-let state={workload:null,registry:null,shipments:null,sl:null,development:null,errors:[],loading:false,tab:"requests",updated:null};
+let state={workload:null,registry:null,shipments:null,sl:null,development:null,notices:null,errors:[],loading:false,tab:"requests",updated:null};
 let queued=false,hasLoaded=false,inFlight=false;
 function owner(){return document.querySelector('.cabinet-app[data-cabinet-role="owner"]')}
 function overview(){return owner()?.querySelector('.cabinet-panel[data-section="overview"]')}
@@ -27,20 +27,22 @@ function normalize(obj){
   registry:obj[1]?.status==="fulfilled"&&Array.isArray(obj[1].value?.items)?obj[1].value.items:null,
   shipments:obj[2]?.status==="fulfilled"&&Array.isArray(obj[2].value?.items)?obj[2].value.items:null,
   sl:obj[3]?.status==="fulfilled"&&Array.isArray(obj[3].value?.policies)?obj[3].value.policies:null,
-  development:obj[4]?.status==="fulfilled"&&obj[4].value?.owner===true&&Array.isArray(obj[4].value?.items)?obj[4].value.items:null
+  development:obj[4]?.status==="fulfilled"&&obj[4].value?.owner===true&&Array.isArray(obj[4].value?.items)?obj[4].value.items:null,
+  notices:obj[5]?.status==="fulfilled"&&Array.isArray(obj[5].value?.items)?obj[5].value.items.filter(x=>typeof x?.taskId==="string"&&typeof x?.expectedResult==="string"):null
  };
 }
 async function load(){
  if(inFlight||!visible())return;
  inFlight=true;state.loading=true;render();
- const names=["Нагрузка","Заявки","Перевозки","Service Level","Центр доработок"];
+ const names=["Нагрузка","Заявки","Перевозки","Service Level","Центр доработок","Прогресс доработок"];
  try{
   const outcomes=await Promise.allSettled([
    request("/api/workload"),
    request("/api/registry"),
    request("/api/shipments"),
    request("/api/service-level?overview=1"),
-   request("/api/portal-feedback")
+   request("/api/portal-feedback"),
+   request("/api/portal-feedback?view=notices")
   ]);
   const data=normalize(outcomes);
   state={...state,...data,errors:outcomes.flatMap((x,i)=>x.status==="rejected"?[names[i]+": "+(x.reason?.message||"недоступно")]:[]),updated:new Date(),loading:false};
@@ -108,14 +110,32 @@ function urgentMarkup(){
  const w=state.workload;const arr=Array.isArray(w?.items)?w.items.slice(0,5):null;
  return '<section class="lw-cc-panel lw-cc-urgent"><div class="lw-cc-heading"><h2>Требует решения</h2><span class="lw-cc-pill">'+fmt(w?.total)+'</span></div><div class="lw-cc-urgent-list">'+(arr?arr.length?arr.map((item,i)=>link(item.section||"overview",'<span class="lw-cc-urgent-ico">'+["◷","▤","!","✉","⚑"][i]+'</span><div><strong>'+escapeHTML(short(item.label)||"Требуется действие")+'</strong><small>'+escapeHTML(short(item.order_code)||"Открыть соответствующий раздел")+' · '+localDate(item.created)+'</small></div><span>›</span>','lw-cc-urgent-link')).join(""):'<p class="lw-cc-empty">Сейчас нет действий в очереди</p>':'<p class="lw-cc-empty">Очередь пока недоступна</p>')+'</div></section>';
 }
+
+const developmentStages={sent:1,read:2,evaluated:3,in_progress:4,release:5,completed:6};
+const developmentStageNames=['Зарегистрировано','Прочитано','Оценено','В разработке','Проверка и выпуск','Принято владельцем'];
+function developmentProgress(item){
+ const status=String(item?.status||''),step=developmentStages[status]||0,percent=Math.round(step/6*100);
+ const started=Date.parse(item?.started_at||item?.startedAt||'');
+ const elapsed=Number.isFinite(started)&&['in_progress','release'].includes(status)?Math.max(0,Math.floor((Date.now()-started)/60000)):null;
+ const clock=elapsed===null?'':('<small class="'+(elapsed>120?'ow-task-overdue':'ow-task-clock')+'">'+(elapsed>120?'Просрочено (>2 ч): ':'С начала: ')+Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0')+'</small>');
+ return '<div class="ow-task-progress" data-work-status="'+escapeHTML(status)+'" data-stage="'+step+'">'+
+  '<div class="ow-task-progress-label"><span>'+escapeHTML(step?developmentStageNames[step-1]+' · '+step+'/6':'Этап не подтверждён')+'</span><strong>'+percent+'% этапов</strong></div>'+
+  '<div class="ow-task-progress-track" role="progressbar" aria-label="Этапы доработки" aria-valuemin="0" aria-valuemax="6" aria-valuenow="'+step+'"><span class="ow-task-progress-fill" style="width:'+percent+'%"></span></div>'+clock+'</div>';
+}
+
 function developmentMarkup(){
  const items=Array.isArray(state.development)?state.development.filter(x=>x.status==='in_progress'||x.status==='release'):null;
  const n=items?.length;
  const title='Сейчас разрабатывается';
+ const notices=new Map((state.notices||[]).map(item=>[item.taskId,item]));
  const cards=items?items.slice(0,4).map(item=>{
-  const text=short(String(item.description||'').split('Источник реестра:')[0])||short(item.code)||'Без описания';
+  const notice=notices.get(item.id);
+  const text=notice?.title||short(String(item.description||'').split('Источник реестра:')[0])||short(item.code)||'Без описания';
+  const expected=notice?.expectedResult||'Результат уточняется в реестре доработок';
   const label=item.status==='release'?'Готовится к выпуску':'В работе';
-  return link('portal-feedback','<strong>'+escapeHTML(text)+'</strong><span>'+escapeHTML(label)+'</span>','lw-cc-development-item');
+  return link('portal-feedback','<strong>'+escapeHTML(text)+'</strong>'+
+   '<small class="lw-cc-expected-label">Ожидаемый результат</small><span class="lw-cc-expected-result">'+escapeHTML(expected)+'</span>'+
+   '<span>'+escapeHTML(label)+'</span>'+developmentProgress(item),'lw-cc-development-item');
  }).join(''):'<p class="lw-cc-empty">Очередь разработок недоступна. Данные не подставляются вручную.</p>';
  return '<section class="lw-cc-panel lw-cc-development"><div class="lw-cc-heading"><h2>'+title+'</h2><span class="lw-cc-pill">'+(n??'—')+'</span></div><p class="lw-cc-sub">Только реальные задания из Центра доработок, без повторного ручного учёта.</p><div class="lw-cc-development-list">'+(cards||'<p class="lw-cc-empty">Активных разработок сейчас нет</p>')+'</div>'+link('portal-feedback','Открыть все доработки ↗','lw-cc-fine-link')+'</section>';
 }
@@ -238,5 +258,20 @@ for(const name of ["hashchange","focus","requests-updated","workload-updated"]){
 new MutationObserver(schedule).observe(document.getElementById("root")||document.body,{childList:true,subtree:true});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",schedule);else schedule();
 setInterval(()=>{if(!document.hidden&&visible())load()},90000);
+ // Refresh only work-item statuses every 30 seconds, avoiding a full dashboard reload.
+ let workPollBusy=false;
+ setInterval(async()=>{
+  if(workPollBusy||document.hidden||!visible()||inFlight)return;
+  workPollBusy=true;
+  try{
+   const [result,notices]=await Promise.allSettled([request('/api/portal-feedback'),request('/api/portal-feedback?view=notices')]);
+   if(result.status==='fulfilled'&&result.value?.owner===true&&Array.isArray(result.value.items))
+    state.development=result.value.items;
+   if(notices.status==='fulfilled'&&Array.isArray(notices.value?.items))
+    state.notices=notices.value.items.filter(x=>typeof x?.taskId==='string'&&typeof x?.expectedResult==='string');
+   render();
+  }catch(_error){/* Keep the last verified snapshot; normal dashboard load reports connectivity. */}
+  finally{workPollBusy=false;}
+ },30000);
 window.lwOwnerCommandVersion="owner-command-04";
 })();

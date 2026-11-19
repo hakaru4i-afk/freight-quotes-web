@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "972ba51ea87d35338e95",
+  "version": "53c1ff1f95609e1febc0",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,16 +12,16 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "c6f5933bfe48d1d0d76e08c6a20a1284a2c9704e",
+  "servedAppBlobSha": "d6b3c44a86e9adfabe2efcd54cfbefa89cbd39c4",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 108,
+    "backendVersion": 115,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
+    "frontendSha": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "82523edbcef7cf00945e1152b06a7ac9db06b346",
     "tablesApplied": true,
@@ -37,7 +37,7 @@
     "stagingBuildNote": "Staging API108 / isolated QA44: direct ESM, batched lists, one-statement VED snapshot, compact task and dashboard reads, database-region placement before transactions, direct anonymous denials. No timeout increase. Full authenticated QA required; production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
-      "sourceSha": "7fb40d45fee46447d4262f9b08f07f566bfbdb30",
+      "sourceSha": "784d55894f6bf6cb475cf6cc7e79b939c231db6c",
       "coverage": "Static execution and addressed Logistic labels in EN/ZH; role identity derives from server capabilities, never translated labels.",
       "languages": [
         "ru",
@@ -47,8 +47,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 108,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V108_ACTIVE",
+    "lastObservedBackendVersion": 115,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V115_ACTIVE",
     "backendCandidate": {
       "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
       "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
@@ -56,12 +56,12 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "08e4031ce1feda5393c26cacd1d7e6ad5a55e874",
-        "sha256": "42ac74825673f70409fb61630a85537e6431f7aec0a84243fe494aa7743088b5"
+        "gitBlob": "d6b3c44a86e9adfabe2efcd54cfbefa89cbd39c4",
+        "sha256": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa"
       },
       "task2-panel.js": {
-        "gitBlob": "e4a043f5944df34ac6a52ce0158cb7ff08364127",
-        "sha256": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65"
+        "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
+        "sha256": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61"
       },
       "task2-guidance.js": {
         "gitBlob": "82523edbcef7cf00945e1152b06a7ac9db06b346",
@@ -72,8 +72,8 @@
         "sha256": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2"
       },
       "lw-pending-tasks-all-roles-20261109.js": {
-        "gitBlob": "006ead6d0c6e248df1766967eac8ff0a980fb530",
-        "sha256": "aacb915e66ce6616dfd0499f70ace6aa78183987f43e7e93dc7f76a28bbb85a8"
+        "gitBlob": "910eed5be226acf8432f2f5496fcad1e53c20a3a",
+        "sha256": "c5e4755db86c4dd4213ee6dd7878143bce7bb55b0c55cebf4b686d483be8082b"
       }
     },
     "helpLocales": {
@@ -558,10 +558,11 @@
     "sharedBackendBundleSha256": "ee71d39784b7d463c3f7d545d3c264b156b164a12ce10ec1d2f165af4904ee66"
   },
   "businessProcessReview": {
-    "modelVersion": "20261111-logic-7",
-    "scope": "staging-only",
+    "modelVersion": "20261118-logic-12",
+    "scope": "unpublished-candidate",
     "status": "RELEASE_BLOCKED",
-    "technicalAndLogicSeparate": true
+    "technicalAndLogicSeparate": true,
+    "reviewedBackendSourceCommit": "bec4fa5596a32cfdba01253388f3039ad5ebdd42"
   },
   "stagingApiRegion": {
     "region": "eu-central-1",
@@ -576,29 +577,29 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "972ba51ea87d35338e95",
+  "stagingAssetBuildId": "53c1ff1f95609e1febc0",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "42ac74825673f70409fb61630a85537e6431f7aec0a84243fe494aa7743088b5",
+    "app.js": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
     "carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",
-    "carrier-dashboard-compact-20261107.css": "c0eec017989288884652e503a2eca8ebf9b2b6d7bd85c2dd945b1486bc990532",
+    "carrier-dashboard-compact-20261107.css": "7beacb66d1c25ac50a32d6e8ec0e88408c8e7552ef52ac9600436a9809c15a6c",
     "carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
     "carrier-defer-transport-application-20261107.css": "1f66be0e0b22cd27d86dc51e63a9e9d1ec4aa8f7af4d521b60973ad9d2d286ab",
     "carrier-defer-transport-application-20261107.js": "0f7a7173b6cf83514e3969c487803a7c89ad8406f0afc005c707d2e44d75ca3b",
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
     "current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
-    "global-view/distance.mjs": "3822e5a78418e54335995a8ddf3aee01d65548b5c0b690a47f33cc8dc9cb6554",
-    "global-view/globe.mjs": "c6a31ba635df2e99f4970487616522ef882eeb144a3206a8a882412f142c15c5",
+    "global-view/distance.mjs": "5afbc5bce74f0145f7cbbdbf92cd451c34392e2ffaad998cdf53c3ddde3f7297",
+    "global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
-    "global-view/map.mjs": "ad71766d478b5545e6a34eb98689f6c16b78f93153e6306b6f580eb8fee31283",
-    "global-view/route-model.mjs": "7403ede22db477f4183f1a4b0d919363e13e557809124e8776bdb78fc19a706d",
+    "global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13",
+    "global-view/route-model.mjs": "9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2",
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "global-view/view.mjs": "69db4f443b8f79812ee264cc9c7dea906caddac1a778be074b71d382f576747f",
+    "global-view/view.mjs": "befe46e0c999bf1abb0388fc97e640e853ae71645910f8e892b853b27f37280b",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -607,22 +608,26 @@
     "lw-contrast-canonical-20261111.css": "103ba53da07390fea89b365e33d3ec1eddf370d4c31c767cc2fedd2f23246ef0",
     "lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "lw-pending-tasks-all-roles-20261109.css": "c24e7e0af2cead92bed054cc4974f59fda88b06696ba48bc0cbdb9fe6d73870f",
-    "lw-pending-tasks-all-roles-20261109.js": "aacb915e66ce6616dfd0499f70ace6aa78183987f43e7e93dc7f76a28bbb85a8",
+    "lw-pending-tasks-all-roles-20261109.js": "c5e4755db86c4dd4213ee6dd7878143bce7bb55b0c55cebf4b686d483be8082b",
     "lw-premium-landing-20261108.css": "de01f810439d74c037303f938d1b53a86702c5ba3b09794c77aff8eda46dc6d0",
     "lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
     "lw-public-cooperation-20261108.css": "3d84bda6b1cbb3ccbff46ed8113cd627a91b01a39bb16332f3b6184253c3dc1a",
     "lw-public-cooperation-20261108.js": "2a7586e0ba859c1bc751c4001688f223d5f20c6adc08a9d910e9aecceee482ce",
     "lw-ved-shared-chat-20261109.css": "0fd71ba3f4e67a156c6a89721e4b54f2f616a0757fc46fa174d71cc0a769e3ce",
-    "lw-ved-shared-chat-20261109.js": "62ea0b58922086afdb31516ff767710992cf6e00d3b6c65a570e8211d9063111",
+    "lw-ved-shared-chat-20261109.js": "141e45e95201602725acecc5d529ff5ed3dde3916b7060ad8d608ef34f3e24e0",
     "lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
-    "lw2-staging-20261107.js": "0f71ad82ccaf45860c60994b516b586b4556968fc534da90f7b2653a7bc3714e",
+    "lw2-staging-20261107.js": "0fdf2ff86e71440ea63c50e596291bb16130040366d427a41dfba52e19a63d3f",
     "offer-edit-modal-readability-20261108.css": "ac402655682dfe32bca0b35b39a55a5dc3b391b16b44b9a226644c0c7369fd65",
-    "owner-command-center-20261108.css": "8fa40a358b77c5bd55186eb1c39281fdfd95bc4d43f5bc8da565dbf0147908a0",
-    "owner-command-center-20261108.js": "1adfcad6ea0e15c0012abb9285ed7baffbd9501745811025e3fb96cb4e4a31dc",
-    "owner-registers-20261111.css": "45ba26e21f398e4bcb1715b915b7f0ad6b307b519e15312dbc514994ff5ad111",
-    "owner-registers-20261111.js": "ea5bba209bfcb4b4322b6d69d49385bf958717964c510556128ee85ad965a39b",
-    "owner-team-users-20261117.css": "727960144818c7365da15895488dd644fe28c4fec03b09d9f1b01a22b4cc9ac5",
-    "owner-team-users-20261117.js": "032d23eebac79707ce859c86663a7b19b4675bc25faded67d71939f8ae3bebd7",
+    "offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
+    "offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
+    "owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
+    "owner-audit-explanations-20261117.mjs": "95dc1bcbeda3fade5ed918228f93ab9bd3765b89db1ea8111ab4bb579880bb6d",
+    "owner-command-center-20261108.css": "b0c2a7b468be7d6b967698115d2e5c91e5166a8c42232f386b332837c1355cd3",
+    "owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
+    "owner-registers-20261111.css": "3e001f6a07af5e79ad665d070f56afb2927a93659f5e377d8063f5733e92c5d9",
+    "owner-registers-20261111.js": "e763828fc4e81a27bdff763ec7b2f7cd5e401d927d92734baa0ed6e9f643dbec",
+    "owner-team-users-20261117.css": "2b0146ed84d868d1a0b0f1bf55892b79a4d311b61db0991729720553a85c6a4c",
+    "owner-team-users-20261117.js": "c6cb3aaa74aa6ce820e2a0845458a36543ba5b341ac1c6e660ac0e43d683d721",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
     "owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
     "owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
@@ -630,6 +635,8 @@
     "portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
     "portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
+    "portal-release-status-20261117.css": "935bd66cf987466b04e6ef07a9f3089be393fb5b4d8c13529ef9a9e5f2c1bdfb",
+    "portal-release-status-20261117.js": "119b5335622e6a19ebc37b16db3f9cf2c0344aca14edb6c335e994a6f5cedf94",
     "process-editor-20261111.mjs": "3c9c037f638fb003de80d6cce66ca207057a9034dc1db2b555d3014f664f2eb9",
     "process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
@@ -644,8 +651,8 @@
     "task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
     "task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
     "task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
-    "task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
-    "task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
+    "task2-i18n.js": "1214b7571b2c1cbb2011cd131e4bee52db62948c8327bed06ebed4cd1993c0e5",
+    "task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "acac9a54b070dab22b59c8452bf7f494bc3216eea3abd39f001cc65f70a572ba",
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
@@ -666,7 +673,7 @@
     "SH-01.30.49 v",
     "SH-01.30.50 v"
   ],
-  "primaryBusinessVersion": "SH-01.30.52 v",
+  "primaryBusinessVersion": "SH-01.30.59 v",
   "canonicalSourceProvenance": {
     "sourceCommit": "staging-manifest.json#/frontendCommit",
     "legacyBundleFields": [
@@ -682,8 +689,8 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-17T11:31:28.300Z",
-  "processModelVersion": "20261112-logic-9",
+  "assetBuildRecordedAt": "2026-11-19T10:07:05.074Z",
+  "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
     "businessVersion": "SH-01.30.52 v",
@@ -703,7 +710,7 @@
     "backendBundleSha256": "ae329b9b328f039817217114aebb50c75d6930b01f70d2b0e367889a4c7d5b67",
     "qaBundleSha256": "f7a1ceaf863ff403ced301e376d660d0ed9a11c7eb17d07bcc5dff45ee1ae159"
   },
-  "backendMetadataSemantics": "Active deployment: task2/backendVersion and stabilizationQa20261110. Per-feature backendVersion values describe introduction history; historical fields remain preserved.",
+  "backendMetadataSemantics": "task2/backendVersion and lastObservedBackendVersion identify the provider-observed active Edge version. observedBackendDeployment source remains UNVERIFIED. sourceBoundBackendReference and stabilizationQa20261110/backendSourceCommit preserve the historical source-bound baseline; they do not establish API115 source. carrierDashboard124 binds the separately verified unpublished code candidate. Per-feature introduction versions remain historical.",
   "qa20261114": {
     "status": "SOURCE_QA_VERIFIED; PUBLICATION_STATUS_IN_RECEIPT",
     "sourcePr": 71,
@@ -765,7 +772,31 @@
     "deadlineTimezone": "Europe/Minsk",
     "uiAsset": "late-bid-staging-3ff2c9ab03f5.js"
   },
-  "indexStructureSha256": "dbd82bece5244a54415bf32045618f05353e931b4987eece2c367e346ef09923",
-  "releaseStatus": "PUBLISHED",
-  "releaseDate": "2026-11-17"
+  "indexStructureSha256": "cde2d2f5737640f43dfe9810bcbf9b35a3366fb772300027263f66e2c61b707c",
+  "releaseStatus": "CANDIDATE_NOT_RELEASED",
+  "releaseDate": "2026-11-17",
+  "carrierDashboard124": {
+    "status": "UNPUBLISHED_CANDIDATE",
+    "apiProjectionVersion": 1,
+    "scope": "assigned_requests",
+    "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
+    "backendSourceCommit": "fd74bdabc7170173945fb71b85feb27d24133cd5",
+    "releaseGate": "BLOCKED",
+    "ownerAccepted": false
+  },
+  "sourceBoundBackendReference": {
+    "edgeVersion": 108,
+    "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
+    "scope": "historical source-bound baseline, not active API source proof"
+  },
+  "observedBackendDeployment": {
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "function": "freight-api",
+    "version": 115,
+    "observedOn": "2026-11-18",
+    "sourceCommit": null,
+    "sourceBindingStatus": "UNVERIFIED",
+    "providerBundleSha256": "23bb527d1281a7a0240f9d933213d93f7f48400d34349493a5928787198ae6ee",
+    "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/101"
+  }
 }

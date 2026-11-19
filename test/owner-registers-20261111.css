@@ -83,3 +83,18 @@
 @media(max-width:600px){#ow-workspace .ow-stable-toolbar{grid-template-columns:minmax(0,1fr) 120px}#ow-workspace .ow-stable-toolbar input{grid-column:1/-1}#ow-workspace .ow-register-facts{grid-template-columns:1fr;gap:2px}#ow-workspace .ow-register-facts dd{margin-bottom:7px}#ow-workspace .ow-human-actions>button{width:100%}}
 
 #ow-workspace input::placeholder{color:#506a7c;opacity:1}
+
+
+/* Live Owner development progress: stage count from private API, never elapsed-time animation. */
+#ow-workspace .ow-task-progress{display:grid;gap:6px;width:100%;min-width:0;margin:9px 0 4px;color:#23455d}
+#ow-workspace .ow-task-progress-label{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font:600 12px/1.5 system-ui,sans-serif}
+#ow-workspace .ow-task-progress-track{height:10px;overflow:hidden;background:#dbe7ef;border-radius:999px;border:1px solid #b5cada}
+#ow-workspace .ow-task-progress-fill{display:block;height:100%;background:#218e81;border-radius:999px;transition:width .25s ease}
+#ow-workspace .ow-task-clock{color:#45677e;font-weight:500}
+#ow-workspace .ow-task-overdue{color:#962e24;font-weight:750}
+#ow-workspace .ow-active-item>div{flex:1;min-width:0}
+#ow-workspace .ow-active-item .ow-task-progress{min-width:min(100%,190px)}
+@media(prefers-reduced-motion:reduce){#ow-workspace .ow-task-progress-fill{transition:none}}
+
+#ow-workspace .ow-expected-title{display:block;color:#1a425b;font-size:12px;margin-top:7px}
+#ow-workspace .ow-expected-result{margin:4px 0 10px;color:#244257;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
