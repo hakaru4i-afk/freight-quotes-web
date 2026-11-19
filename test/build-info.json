@@ -780,7 +780,7 @@
     "apiProjectionVersion": 1,
     "scope": "assigned_requests",
     "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
-    "backendSourceCommit": "fd74bdabc7170173945fb71b85feb27d24133cd5",
+    "backendSourceCommit": "194fb3ff8f2564801357da9f6b2b84450958e918",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
   },
