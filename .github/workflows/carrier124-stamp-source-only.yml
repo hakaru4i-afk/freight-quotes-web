@@ -45,3 +45,5 @@ jobs:
           fi
           git commit -m 'build(staging): regenerate candidate-only asset version (release blocked) [skip ci]'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+
+# 2026-11-19 QA-only source stamp for translated supplier/Incoterms fields; no deployment.
