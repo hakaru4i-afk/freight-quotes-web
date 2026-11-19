@@ -15,6 +15,41 @@ const locales=[['ru','Русский','Изменения и инструкци�
 
 export async function remainingDisplay({page,actor,sessions,rec,report,evidenceDir,phase}, openCabinet) {
   const api=await createRemainingClient(sessions,report.calls);
+  if(phase==='menus'){
+    const profile=(await api(actor,'/api/session')).json;
+    assert.equal(profile.authenticated,true);
+    const selector='.cabinet-sidebar nav a[href^="#"],.sw-sidebar nav button';
+    const entries=[];
+    rec.remaining={role:profile.role,entries};
+    for(const [lang,label] of locales){
+      await page.setViewportSize(viewportSizes[0]);
+      await page.getByRole('button',{name:label,exact:true}).first().click();
+      await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
+      await page.locator(selector).first().waitFor({state:'attached'});
+      const desktop=await page.locator(selector).evaluateAll(links=>links.map((el,i)=>({
+        key:el.getAttribute('href')||'button-'+i,
+        label:(el.innerText||el.getAttribute('aria-label')||'').trim(),
+        visible:el.getClientRects().length>0
+      })).filter(el=>el.visible));
+      assert.ok(desktop.length>0,'No visible menu');
+      assert.ok(desktop.every(item=>item.label),'An active menu item has no label');
+      const navigation=[];
+      for(const item of desktop){
+        if(!/^#[a-z0-9-]+$/.test(item.key))continue;
+        try{
+          await openCabinet(page,item.key.slice(1));
+          navigation.push({key:item.key,opened:true});
+        }catch(error){
+          navigation.push({key:item.key,opened:false,reason:String(error.message).slice(0,250)});
+        }
+      }
+      await page.setViewportSize(viewportSizes[1]);
+      const mobileCount=await page.locator(selector).evaluateAll(links=>links.filter(el=>el.getClientRects().length>0).length);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
+      entries.push({lang,desktop,navigation,mobileCount});
+    }
+    return;
+  }
   if(phase==='locales'){
     const profile=await api(actor,'/api/session');
     assert.equal(profile.json.authenticated,true);
