@@ -1,17 +1,39 @@
 import assert from'node:assert/strict';import{readFile,writeFile}from'node:fs/promises';import{createHash,randomUUID}from'node:crypto';
+import {setTimeout as delay} from 'node:timers/promises';
 export async function map50Scenario({page,actor,base,sessions,rec,report,evidenceDir}){
  const owner=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0],order=owner.createdOrder,winner=owner.selection.winnerActor;rec.mapOrder=order;
  async function api(who,path,body){const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',...(who?{Authorization:'Bearer '+sessions[who]}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});return{status:r.status,data:await r.json()};}
  const detail=async who=>api(who,'/api/task2?order='+encodeURIComponent(order));let d=(await detail(actor)).data;
  await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());await page.locator('#t2-select').selectOption(order,{timeout:60000});const map=page.locator('global-route-view').first();await map.waitFor({state:'visible',timeout:60000});
  if(actor==='owner'){
-  for(const p of d.plannedGeocodes.owner.filter(p=>p.status!=='resolved')){const response=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.action==='geocode_retry',{timeout:60000});const form=page.locator('.gv-geocode-form[data-geo-id="'+p.id+'"]');await form.locator('..').locator('summary').click();await form.getByRole('button',{name:'Повторить геокодирование',exact:true}).click();assert.equal((await response).status(),200);await page.waitForTimeout(400);}
+  rec.ownerGeocodeRetries=[];
+  for(const point of d.plannedGeocodes.owner.filter(p=>p.status==='unavailable')){
+   let state=point;
+   // Match the resolver's 30-second provider circuit. Retry at most twice and
+   // still require persisted coordinates below. Ambiguity needs confirmation.
+   for(let attempt=1;attempt<=2&&state.status==='unavailable';attempt++){
+    const elapsed=Date.now()-Date.parse(state.geocodedAt);
+    await delay(Number.isFinite(elapsed)?Math.min(31000,Math.max(0,31000-elapsed)):31000);
+    const form=page.locator('.gv-geocode-form[data-geo-id="'+point.id+'"]');
+    if(!await form.isVisible())await form.locator('..').locator('summary').click();
+    const response=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.action==='geocode_retry'&&r.request().postDataJSON()?.pointId===point.id,{timeout:60000});
+    await form.getByRole('button',{name:'Повторить геокодирование',exact:true}).click();
+    const saved=await response;
+    assert.equal(saved.status(),200);
+    const body=await saved.json();
+    state=body.result;
+    assert.ok(state?.status,'Provider retry returned no point status');
+    rec.ownerGeocodeRetries.push({pointId:point.id,attempt,status:state.status,reason:state.reason||null,requestId:saved.headers()['x-freight-request-id']});
+   }
+  }
   d=(await detail(actor)).data;
   for(const p of d.plannedGeocodes.owner.filter(p=>p.status==='ambiguous')){
    const candidate=p.candidates.find(c=>c.objectType==='station')||p.candidates[0];assert.ok(candidate);
    const form=page.locator('.gv-geocode-form[data-geo-id="'+p.id+'"]');await form.locator('..').locator('summary').click();await form.locator('[name="candidateId"]').selectOption(candidate.candidateId);await form.locator('[name="reason"]').fill('Synthetic confirmed station selection for MAP50');await form.locator('[name="confirmed"]').check();const saved=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.candidateId===candidate.candidateId);await form.getByRole('button',{name:'Сохранить уточнение',exact:true}).click();assert.equal((await saved).status(),200);await page.waitForTimeout(500);
   }
-  d=(await detail(actor)).data;assert.ok(d.plannedGeocodes.owner.every(p=>p.status==='resolved'));
+  d=(await detail(actor)).data;
+  const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(({id,status,reason})=>({id,status,reason}));
+  assert.deepEqual(unresolved,[],'MAP50 unresolved after the real provider retry');
   const p=d.plannedGeocodes.owner[0],before=p.original_text;
   for(const[body,status]of [[{queryText:'Беларусь, Шэньчжэнь',reason:'Synthetic country conflict for MAP50',confirmed:true},'not_found'],[{},'resolved']]){const r=await api('owner','/api/task2',{action:'geocode_retry',order,pointId:p.id,...body});assert.equal(r.status,200);assert.equal(r.data.result.status,status);}
   const checked=(await detail('owner')).data.plannedGeocodes.owner.find(q=>q.id===p.id);assert.equal(checked.original_text,before);
