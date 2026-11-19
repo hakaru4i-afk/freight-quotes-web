@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "c747bd619639811d7f51000c20bedc1ffa504b9e",
+  "frontendCommit": "bed43dce9abc1573aca719bc0e839f439e2ca5af",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "72d2893884b07fb668888388c021b386b6531a5074ae0ebb22476b6718cc35b9",
@@ -348,7 +348,7 @@
     "tests/map50-owner-km-before-bid.test.mjs": "235c34b10d7b9ec313e50f4103f7b1b7daf80586ee1bb7bb913e6cc03b9838ee",
     "tests/map50-published-chain.e2e.mjs": "8187929cdc98920fd99732b166f7b6e0a31f3199e3b20c36f8edef672d9135bc",
     "tests/map50-real-edits.e2e.mjs": "0fcba51ee227e826bd4e0aed8a3d12639341f6ade5236732b1912c349f5bd838",
-    "tests/map50-real-scenario.mjs": "0d71be578033ce6a927be4d56312839ff1e57fc58559715b0258812a622bf681",
+    "tests/map50-real-scenario.mjs": "8985a22454fb0e4861c326400b23ecf153ed2a951ee29d73cd90231e73129126",
     "tests/nov14-owner-registers-real.mjs": "558ac5c5e1d06fb2a77af2ed6002c22c0dcd2015862892b123c0e9139c5adeb0",
     "tests/nov14-published-chain.e2e.mjs": "776d216490d9da1d343de8447daa3909818b71ff0879f72599dfe91a4cd4ed6a",
     "tests/nov14-real-scenario.mjs": "1919737a75e4708920085c009f5e744aecdf66ba1b92a653e95bdcbb7d7fbee3",
