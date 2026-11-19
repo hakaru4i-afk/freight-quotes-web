@@ -16,6 +16,8 @@ on:
       - 'index.html'
       - 'test/index.html'
       - 'tests/owner-acceptance-regression.test.mjs'
+      - 'tests/owner-development-progress.test.mjs'
+      - '.github/workflows/owner-acceptance-regression.yml'
   workflow_dispatch:
 permissions:
   contents: read
