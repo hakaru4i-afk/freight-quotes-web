@@ -1,0 +1,27 @@
+name: Owner and staff progress browser regression (synthetic, no secrets)
+on:
+  push:
+    branches: ['fix/carrier-dashboard-124']
+    paths: ['.github/workflows/owner-progress-browser-qa.yml']
+permissions:
+  contents: read
+jobs:
+  progress-browser:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install pinned browser test dependency without lifecycle scripts
+        run: npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify no false release alert and role-scoped development progress in browser
+        run: node --test tests/portal-release-cache-browser.test.mjs
+      - name: Verify Owner work progress in pure Node CI
+        run: node --test tests/owner-development-progress.test.mjs
