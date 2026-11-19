@@ -1,6 +1,6 @@
 {
   "version": "20261118-logic-12",
-  "modelSha256": "1d4c1ba23a8dd953610593c1a363a10bbf412e2fbc179491249650b344b22ace",
+  "modelSha256": "eba799579054f2eea2ada0271b269d9eabd310afc8341febebefcdb9b01f0aba",
   "modelSnapshot": {
     "version": "20261118-logic-12",
     "date": "2026-11-18",
@@ -633,7 +633,7 @@
       "test/app.js": "da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
-      "test/task2-i18n.js": "a39215691955471b09195cb2d30dbbe75cf88becec36915f64573f7899d74f79",
+      "test/task2-i18n.js": "1214b7571b2c1cbb2011cd131e4bee52db62948c8327bed06ebed4cd1993c0e5",
       "test/task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
       "test/task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
       "test/carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",

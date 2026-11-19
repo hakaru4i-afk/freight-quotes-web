@@ -15,6 +15,41 @@ const locales=[['ru','Русский','Изменения и инструкци�
 
 export async function remainingDisplay({page,actor,sessions,rec,report,evidenceDir,phase}, openCabinet) {
   const api=await createRemainingClient(sessions,report.calls);
+  if(phase==='weekly'){
+    assert.equal(actor,'carrierA');
+    const order=modes.find(([mode])=>mode==='air')[1];
+    const detail=await api(actor,'/api/task2',{order});
+    assert.ok(detail.json.state.actual_departure,'Fixture must have an actual departure');
+    await openCabinet(page,'approved-shipments');
+    await page.locator('#t2-select').selectOption(order);
+    const entries=[];
+    const weekly=page.locator('[data-t2-weekly-summary]');
+    let expectedInstant;
+    for(const [lang,option,label] of [
+      ['ru','Русский','Следующий срок'],['en','English','Next deadline'],['zh','中文','下次截止时间']
+    ]){
+      await page.setViewportSize(viewportSizes[0]);
+      await page.getByRole('button',{name:option,exact:true}).first().click();
+      await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
+      await weekly.getByText(label,{exact:true}).waitFor({timeout:12000});
+      const time=weekly.locator('time[data-t2-deadline]');
+      const instant=await time.getAttribute('datetime');
+      assert.ok(Number.isFinite(Date.parse(instant)));
+      expectedInstant??=instant;
+      assert.equal(instant,expectedInstant);
+      const expected=new Intl.DateTimeFormat({ru:'ru-RU',en:'en-GB',zh:'zh-CN'}[lang],{
+        timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'
+      }).format(new Date(instant));
+      for(const viewport of viewportSizes){
+        await page.setViewportSize(viewport);
+        assert.equal(await time.innerText(),expected);
+        await weekly.getByText(label,{exact:true}).waitFor({state:'visible'});
+        entries.push({lang,viewport,label,instant,displayed:expected});
+      }
+    }
+    rec.remaining={order,requestId:detail.requestId,entries};
+    return;
+  }
   if(phase==='menus'){
     const profile=(await api(actor,'/api/session')).json;
     assert.equal(profile.authenticated,true);
@@ -138,9 +173,9 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
           }
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
         }
-        for(const [lang,label,controls,weeklyLabel] of [
-          ['en','English',['3D globe','2D map','Shipment distance'],'Next deadline'],
-          ['zh','中文',['3D 地球','2D 地图','运输距离'],'下次截止时间']
+        for(const [lang,label,controls] of [
+          ['en','English',['3D globe','2D map','Shipment distance']],
+          ['zh','中文',['3D 地球','2D 地图','运输距离']]
         ]){
           await page.getByRole('button',{name:label,exact:true}).first().click({timeout:12000});
           await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
@@ -148,15 +183,7 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
           await map.getByRole('button',{name:controls[1],exact:true}).click();
           await map.getByRole('heading',{name:controls[2],exact:true}).waitFor();
           await page.waitForFunction(()=>document.querySelector('#task2-root global-route-view')?.dataset.mode==='2d');
-          const capture={locale:lang,view:'2d',localizedControls:true};
-          if(process.env.QA_CARRIER124_CHECK_DEADLINE==='true'){
-            const weekly=page.locator('[data-t2-weekly-summary]');
-            await weekly.getByText(weeklyLabel,{exact:true}).waitFor({timeout:12000});
-            const time=weekly.locator('time[data-t2-deadline]');
-            assert.ok(Number.isFinite(Date.parse(await time.getAttribute('datetime'))));
-            capture.deadline={label:weeklyLabel,displayed:await time.innerText(),instant:await time.getAttribute('datetime')};
-          }
-          captures.push(capture);
+          captures.push({locale:lang,view:'2d',localizedControls:true});
         }
         entries.push({mode,order,api:detail.requestId,captures});
       }catch(error){

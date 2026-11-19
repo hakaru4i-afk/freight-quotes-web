@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "c9755e055c7a1fcbff5f",
+  "version": "4fcb1808bd0ba0e46edb",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "e9b4fef36763d6b1dd0e4327d7cfeeb91cf24d70",
+  "servedAppBlobSha": "7677c1ef174feb0e74c1307c359ce23650a5cf55",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -37,7 +37,7 @@
     "stagingBuildNote": "Staging API108 / isolated QA44: direct ESM, batched lists, one-statement VED snapshot, compact task and dashboard reads, database-region placement before transactions, direct anonymous denials. No timeout increase. Full authenticated QA required; production unchanged.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
-      "sourceSha": "8d2a6770b49b6958423acd43848506c9a480504d",
+      "sourceSha": "784d55894f6bf6cb475cf6cc7e79b939c231db6c",
       "coverage": "Static execution and addressed Logistic labels in EN/ZH; role identity derives from server capabilities, never translated labels.",
       "languages": [
         "ru",
@@ -56,8 +56,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "e9b4fef36763d6b1dd0e4327d7cfeeb91cf24d70",
-        "sha256": "fc48eb35414ecdcaf0d3d42e7f82a1d0a9c844803549f5b89f2ee91dfca4b0e9"
+        "gitBlob": "7677c1ef174feb0e74c1307c359ce23650a5cf55",
+        "sha256": "c569c7e42387758fac677a57a36223376f5ca9f90ce2ee718a3707eda0371fff"
       },
       "task2-panel.js": {
         "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
@@ -577,12 +577,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "c9755e055c7a1fcbff5f",
+  "stagingAssetBuildId": "4fcb1808bd0ba0e46edb",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "fc48eb35414ecdcaf0d3d42e7f82a1d0a9c844803549f5b89f2ee91dfca4b0e9",
+    "app.js": "c569c7e42387758fac677a57a36223376f5ca9f90ce2ee718a3707eda0371fff",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -651,7 +651,7 @@
     "task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
     "task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
     "task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
-    "task2-i18n.js": "a39215691955471b09195cb2d30dbbe75cf88becec36915f64573f7899d74f79",
+    "task2-i18n.js": "1214b7571b2c1cbb2011cd131e4bee52db62948c8327bed06ebed4cd1993c0e5",
     "task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "acac9a54b070dab22b59c8452bf7f494bc3216eea3abd39f001cc65f70a572ba",
@@ -689,7 +689,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-19T08:44:26.350Z",
+  "assetBuildRecordedAt": "2026-11-19T08:47:17.543Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,

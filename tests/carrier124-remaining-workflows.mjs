@@ -36,7 +36,7 @@ export async function remainingWorkflow({page,actor,sessions,rec,report,evidence
   if(['decline','timely','late-start','late-blocked','late-decisions','offer-edit','comparison'].includes(phase)){
     await (await import('./carrier124-remaining-offers.mjs')).remainingOffers({page,actor,sessions,rec,report,phase},openCabinet,browserCommand);
   }
-  if(phase==='locales'||phase==='modes'||phase==='menus'){
+  if(['locales','modes','menus','weekly'].includes(phase)){
     await (await import('./carrier124-remaining-display.mjs')).remainingDisplay({page,actor,sessions,rec,report,evidenceDir,phase},openCabinet);
   }
   if(phase==='documents'){

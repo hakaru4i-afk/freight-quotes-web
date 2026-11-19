@@ -265,15 +265,17 @@ Object.assign(dict,{
 });
 const originalTexts=new WeakMap();
 const originalAttributes=new WeakMap();
+const deadlineFormats=new Map();
 const language=()=>/^zh/i.test(document.documentElement.lang)?"zh":/^en/i.test(document.documentElement.lang)?"en":"ru";
 const value=(ru,lang)=>dict[ru]?.[lang==="en"?0:1]||ru;
 function update(){
  const root=document.querySelector("#task2-root");
  if(!root)return;
  const lang=language();
- const timeFormat=new Intl.DateTimeFormat({ru:"ru-RU",en:"en-GB",zh:"zh-CN"}[lang],{
+ if(!deadlineFormats.has(lang))deadlineFormats.set(lang,new Intl.DateTimeFormat({ru:"ru-RU",en:"en-GB",zh:"zh-CN"}[lang],{
   timeZone:"Europe/Minsk",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"
- });
+ }));
+ const timeFormat=deadlineFormats.get(lang);
  for(const time of root.querySelectorAll("time[data-t2-deadline]")){
   const instant=new Date(time.dateTime);
   if(Number.isNaN(instant.getTime()))continue;
