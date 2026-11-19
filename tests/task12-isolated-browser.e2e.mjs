@@ -189,6 +189,10 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    rec.requiredFieldUiValidation={numberOnlyDisabled:true,numberAndDeadlineDisabled:true,publishedUi:true};
    for(const [selector,value] of [['input[placeholder^="Что перевозим"]','Synthetic browser shipment'],['input[placeholder^="Имя, телефон"]','Synthetic QA sender'],['input[placeholder^="Страна, город, адрес склада"]',process.env.QA_NOV14_RAIL==='true'?'Китай, Нинбо':map50?'Китай, Шеньчжэнь':'Brest, Belarus'],['input[placeholder^="Например, 1250"]','1250'],['input[placeholder^="Страна, город, адрес доставки"]',map50?'Беларусь, Минск, Колядичи':'Minsk, Belarus'],['input[placeholder^="Например, 8,4"]','12.5'],['input[placeholder^="Наименование, упаковка"]','Synthetic QA cargo']])await fields.locator(selector).fill(value);
    await fields.locator('select').first().selectOption('EXW');await fields.locator('select').nth(1).selectOption('no');
+   await fields.locator('input[name="incoterm_place"]').fill('Brest warehouse · synthetic QA');
+   await fields.locator('input[name="supplier_order_number"]').fill('QA-PI-'+order);
+   assert.equal(await fields.locator('input[name="incoterm_place"]').inputValue(),'Brest warehouse · synthetic QA');
+   assert.equal(await fields.locator('input[name="supplier_order_number"]').inputValue(),'QA-PI-'+order);
    await fields.locator('input[type="date"]').fill(map50?'2026-11-01':'2026-12-05');await fields.locator('input[type="datetime-local"]').fill('2026-12-15T12:00');
    const files=panel.locator('input[type="file"]');rec.fileInputs=await files.count();
    const uploaded=page.waitForResponse(r=>r.url().includes('/api/documents')&&r.request().method()==='POST',{timeout:60000});
