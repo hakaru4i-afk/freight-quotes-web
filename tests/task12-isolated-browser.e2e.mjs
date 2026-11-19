@@ -27,7 +27,7 @@ const qaRun=process.env.QA_ISOLATED_RUN||'rc20261110';
 assert.ok(['rc20261110','carrier124nov18'].includes(qaRun),'Unapproved QA target');
 const qaFunction='freight-api-qa-'+qaRun;
 const metadata=qaRun==='carrier124nov18'
- ? {isolatedQaFunction:qaFunction,isolatedQaVersion:6,isolatedQaBundleSha256:'d9751d6441b25e16884c11f5ca1be6d4fa148b76b2ae38129ee54a2367b13360',isolatedQaSourceCommit:null}
+ ? {isolatedQaFunction:qaFunction,isolatedQaVersion:7,isolatedQaBundleSha256:'3c24b85a02fccfc167535ccdaf418c36d9abffeef5acfaa391212709e6e60b63',isolatedQaSourceCommit:'f861cbd3050e24cbb6c67098324bc85197b795e2'}
  : JSON.parse(await readFile(resolve(frozenSource,'test/build-info.json'),'utf8')).stabilizationQa20261110;
 // An isolated backend candidate can be verified before changing published metadata.
 if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
