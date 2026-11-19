@@ -58,6 +58,7 @@ jobs:
           QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
+          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Full isolated Carrier124 v6 workflow with claim and ordinary closure
         id: full_lifecycle
@@ -83,6 +84,7 @@ jobs:
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_MATRIX: 'true'
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
+          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Fail closed unless both real API and browser validation succeed
         if: always()
