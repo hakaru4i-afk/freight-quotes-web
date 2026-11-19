@@ -39,7 +39,7 @@ jobs:
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Full published railway and VED review lifecycle for 14 November
         env:
-          QA_MAP_ORDER: QA-NOV14-${{ github.run_id }}
+          QA_MAP_ORDER: QA-NOV14-${{ github.run_id }}-${{ github.run_attempt }}
           QA_NOV14_INCLUDE_ORDINARY: 'true'
         run: node tests/nov14-published-chain.e2e.mjs
       - name: Verify parallel shipment, VED document and chat reads after the full lifecycle
