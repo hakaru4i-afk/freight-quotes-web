@@ -213,6 +213,7 @@ function paintArchive(host,id){
    const facts=el('dl',null,{class:'ow-register-facts'}),fact=(label,value)=>{if(!value)return;facts.append(el('dt',label),el('dd',value));};
    fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
    card.append(facts,el('p',row.description,{class:'ow-human-description'}));
+   if(row.expected||row.impact){card.append(el('strong',['Ожидаемый результат','Expected result','预期结果'][locale()],{class:'ow-expected-title'}),el('p',row.expected||row.impact,{class:'ow-expected-result'}));}
    if(job)card.append(workMeter(job));
    const more=el('details',null,{class:'ow-record-details'});more.append(el('summary','Подробнее'));
    const details=el('dl',null,{class:'ow-register-facts'}),detail=(label,value)=>{if(value)details.append(el('dt',label),el('dd',value));};
