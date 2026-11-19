@@ -1,0 +1,52 @@
+name: Carrier124 live OIDC acceptance on isolated v5 (11 roles)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: carrier124-main-oidc-verified
+  cancel-in-progress: false
+jobs:
+  qa:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    environment: isolated-qa
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Enforce main-only, GitHub OIDC and source integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          node --check tests/carrier124-ci-oidc-bindings.mjs
+          node --check tests/carrier124-ci-auth.mjs
+          node --check tests/carrier124-ci-business.mjs
+      - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
+        run: node tests/carrier124-ci-oidc-bindings.mjs
+      - name: Authenticate 11 QA users against exact isolated Carrier124 function
+        run: node tests/carrier124-ci-auth.mjs
+      - name: Execute real owner-carrier award and take with isolated synthetic rows
+        run: node tests/carrier124-ci-business.mjs
+      - name: Log out all issued synthetic sessions
+        if: always()
+        run: node tests/carrier124-ci-auth.mjs --logout
+      - name: Disable 11 QA accounts, revoke remaining sessions and close leases
+        if: always()
+        run: node tests/carrier124-ci-oidc-bindings.mjs --finish
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carrier124-oidc-v5-redacted-evidence
+          path: |
+            reports/carrier124-ci-qa-auth.json
+            reports/carrier124-ci-business.json
+          retention-days: 14
