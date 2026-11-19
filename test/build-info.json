@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "4fcb1808bd0ba0e46edb",
+  "version": "58028b87fc0b32159696",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "7677c1ef174feb0e74c1307c359ce23650a5cf55",
+  "servedAppBlobSha": "e93ae71556a53a482350f973e1d3ad62d38bd559",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -56,8 +56,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "7677c1ef174feb0e74c1307c359ce23650a5cf55",
-        "sha256": "c569c7e42387758fac677a57a36223376f5ca9f90ce2ee718a3707eda0371fff"
+        "gitBlob": "e93ae71556a53a482350f973e1d3ad62d38bd559",
+        "sha256": "b26511d50a5a42aa5d0385395a73930bd65afbdea21f6981987a6ed9ddbc5939"
       },
       "task2-panel.js": {
         "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
@@ -577,12 +577,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "4fcb1808bd0ba0e46edb",
+  "stagingAssetBuildId": "58028b87fc0b32159696",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "c569c7e42387758fac677a57a36223376f5ca9f90ce2ee718a3707eda0371fff",
+    "app.js": "b26511d50a5a42aa5d0385395a73930bd65afbdea21f6981987a6ed9ddbc5939",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -622,10 +622,10 @@
     "offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
     "owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
     "owner-audit-explanations-20261117.mjs": "95dc1bcbeda3fade5ed918228f93ab9bd3765b89db1ea8111ab4bb579880bb6d",
-    "owner-command-center-20261108.css": "8fa40a358b77c5bd55186eb1c39281fdfd95bc4d43f5bc8da565dbf0147908a0",
-    "owner-command-center-20261108.js": "1adfcad6ea0e15c0012abb9285ed7baffbd9501745811025e3fb96cb4e4a31dc",
-    "owner-registers-20261111.css": "45ba26e21f398e4bcb1715b915b7f0ad6b307b519e15312dbc514994ff5ad111",
-    "owner-registers-20261111.js": "d9081e25f7fcaecfac2e15f7d1fbe63e471c361bcb5fc6fb11b9030c914c53e0",
+    "owner-command-center-20261108.css": "cd5de161c9f9431adf9b805667c56465391016d7011b218ed60b4a271ec5804b",
+    "owner-command-center-20261108.js": "e3b5510185f1dfe6ca4260b91a941937316c61ebcc2073fd3ac4fe12f76f0d14",
+    "owner-registers-20261111.css": "ed6c453f83b8fb010aa5ff9c0c18a361a557c31f44cdf19c6c522eba31f215de",
+    "owner-registers-20261111.js": "0b8d578049457c4eeb438f78a30a22f4e84762f19266519c62c53b0e67e5ea6b",
     "owner-team-users-20261117.css": "2b0146ed84d868d1a0b0f1bf55892b79a4d311b61db0991729720553a85c6a4c",
     "owner-team-users-20261117.js": "c6cb3aaa74aa6ce820e2a0845458a36543ba5b341ac1c6e660ac0e43d683d721",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
@@ -635,8 +635,8 @@
     "portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
     "portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
     "portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
-    "portal-release-status-20261117.css": "ee33faf917601b3b34f6667ca9afe30a62cd9a15d79e2699e3d4fba1ec0560d2",
-    "portal-release-status-20261117.js": "1e70f4c92df025599031e5ee4ab9c50e4f69c9396fab8e296f3b1e37e3537840",
+    "portal-release-status-20261117.css": "935bd66cf987466b04e6ef07a9f3089be393fb5b4d8c13529ef9a9e5f2c1bdfb",
+    "portal-release-status-20261117.js": "119b5335622e6a19ebc37b16db3f9cf2c0344aca14edb6c335e994a6f5cedf94",
     "process-editor-20261111.mjs": "3c9c037f638fb003de80d6cce66ca207057a9034dc1db2b555d3014f664f2eb9",
     "process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
@@ -689,7 +689,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-19T08:47:17.543Z",
+  "assetBuildRecordedAt": "2026-11-19T10:02:36.248Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
