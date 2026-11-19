@@ -33,10 +33,10 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "f45f88c5346ca5c81e60747f17a7d1aec02c56a2",
+  "frontendCommit": "c747bd619639811d7f51000c20bedc1ffa504b9e",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
-    ".github/workflows/carrier124-main-oidc-smoke.yml": "ca1f69a10e9d0ce27d5be937009436074d308c94ef6dbfa70d762cb37d4341c8",
+    ".github/workflows/carrier124-main-oidc-smoke.yml": "72d2893884b07fb668888388c021b386b6531a5074ae0ebb22476b6718cc35b9",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "cb11f92aa693e9a8ab7d8b11a1a01786a83def6d68dd830678fe3687116dba43",
     ".github/workflows/carrier124-reindex-candidate.yml": "5ed6c8482209f8bc4273634bd42f5404f58b8a5ad91c5468d576c05f592c03a3",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
