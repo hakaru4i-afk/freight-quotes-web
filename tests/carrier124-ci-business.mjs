@@ -8,9 +8,21 @@ const evidence={target:'freight-api-qa-carrier124nov18',source:'live Supabase is
 const call=async(actor,path,body,query={})=>{
  const url=new URL(base+path);
  for(const [key,value] of Object.entries(query))url.searchParams.set(key,value);
- const r=await fetch(url,{method:body===undefined?'GET':'POST',redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+ const method=body===undefined?'GET':'POST';
+ let r;
+ for(let attempt=1;attempt<=(method==='GET'?3:1);attempt++){
+   try{
+     r=await fetch(url.toString(),{method,redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+     break;
+   }catch(err){
+     const cause=String(err?.cause?.code||err?.cause?.name||err?.code||err?.name||'NETWORK_ERROR').replace(/[^A-Z0-9_]/gi,'').slice(0,60);
+     evidence.checks.push({actor:actor||'anonymous',path,method,attempt,status:'transport_error',cause});
+     if(attempt===(method==='GET'?3:1))throw Error('API_TRANSPORT_FAILED_'+path+'_'+cause);
+     await new Promise(resolve=>setTimeout(resolve,250*attempt));
+   }
+ }
  const data=await r.json().catch(()=>({}));
- evidence.checks.push({actor:actor||'anonymous',path,method:body===undefined?'GET':'POST',status:r.status});
+ evidence.checks.push({actor:actor||'anonymous',path,method,status:r.status});
  return{status:r.status,data};
 };
 try{
