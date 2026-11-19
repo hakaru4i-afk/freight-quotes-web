@@ -1,6 +1,6 @@
 {
   "version": "20261118-logic-12",
-  "modelSha256": "8b1f7c8b065b99691a3c4b210ade27b08e617e86d649b1f6a7c56df68adaef10",
+  "modelSha256": "a3f3bafa9460fffb8ac246387083e3de7b9783eec6c7bd4037d9e7a0b76fd318",
   "modelSnapshot": {
     "version": "20261118-logic-12",
     "date": "2026-11-18",
@@ -630,7 +630,7 @@
       "test/owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
       "test/offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
-      "test/app.js": "1d24b8995fc4e7afa0129ec1a2b3033d527f11cd6c6bd7f49d8afb7312cefef2",
+      "test/app.js": "c3e90de5ead3f907664377cb7aaaf3da6252b91ba0d88f962e66a5cac27ebb34",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "5fff77486699878062069ba97c0e8dd276005b8169a008b305d5c10979a0ea65",
       "test/task2-i18n.js": "49c47a8fcca0fcc452e9d9e840397184a63c734ad84c302b78ae2cb56dd47d99",
@@ -653,9 +653,9 @@
       "test/owner-command-center-20261108.js": "1adfcad6ea0e15c0012abb9285ed7baffbd9501745811025e3fb96cb4e4a31dc",
       "test/owner-registers-20261111.js": "d9081e25f7fcaecfac2e15f7d1fbe63e471c361bcb5fc6fb11b9030c914c53e0",
       "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-      "test/global-view/view.mjs": "0f684fd50477581426d98594e9f334b8f92f546a599e580c0343421eb1a146ee",
+      "test/global-view/view.mjs": "b0490ef5a0cc20f7b85b89725b499d52cd69ae63006f36aa88d522bff2c08d48",
       "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
-      "test/lw-pending-tasks-all-roles-20261109.js": "aacb915e66ce6616dfd0499f70ace6aa78183987f43e7e93dc7f76a28bbb85a8",
+      "test/lw-pending-tasks-all-roles-20261109.js": "c5e4755db86c4dd4213ee6dd7878143bce7bb55b0c55cebf4b686d483be8082b",
       "test/lw-ved-shared-chat-20261109.js": "62ea0b58922086afdb31516ff767710992cf6e00d3b6c65a570e8211d9063111",
       "test/process-editor-20261111.mjs": "7234dc54b09d8dd1bdbc334cf90fac4195c457a3ce282935d4f89166cf611a6d",
       "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
