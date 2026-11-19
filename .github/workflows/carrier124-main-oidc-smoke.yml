@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       full_suite:
-        description: 'Run additional isolated Carrier124 v9 railway/claims/Map50 and language-matrix checks'
+        description: 'Run the pinned SH59 lifecycle and role matrix in the isolated QA environment'
         type: boolean
         required: false
         default: false
@@ -21,6 +21,9 @@ jobs:
     timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -37,6 +40,35 @@ jobs:
           node --check tests/carrier124-ci-auth.mjs
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
+      - name: Bind frozen Git assets and the isolated API before requesting credentials
+        run: |
+          node scripts/check-staging-alignment.mjs --source-only
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {execFileSync} from 'node:child_process';
+          import {appendFileSync,readFileSync,writeFileSync} from 'node:fs';
+          const manifest=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
+          const qa=manifest.sh59IsolatedQa;
+          assert.equal(qa?.businessVersion,'SH-01.30.59 v');
+          assert.equal(qa.sourceCommit,manifest.backendSourceCommit);
+          const api=new URL('https://'+qa.projectRef+'.supabase.co/functions/v1/'+qa.function+'/health');
+          const response=await fetch(api,{redirect:'error',signal:AbortSignal.timeout(15000)});
+          assert.equal(response.status,200);
+          const health=await response.json();
+          assert.equal(health.release,qa.businessVersion);
+          assert.equal(health.qaRun,'carrier124nov18');
+          assert.equal(health.projectRef,qa.projectRef);
+          assert.equal(health.environment,'staging');
+          const pair={
+            function:qa.function,version:qa.version,bundle:qa.providerBundleSha256,
+            backendSource:qa.sourceCommit,match:true,readbackCount:qa.sourceFilesVerified,
+            frontendSource:manifest.frontendCommit,frontendMetadata:process.env.GITHUB_SHA,
+            frontendTestTree:execFileSync('git',['rev-parse','HEAD:test'],{encoding:'utf8'}).trim()
+          };
+          const path=process.env.RUNNER_TEMP+'/sh59-isolated-pair.json';
+          writeFileSync(path,JSON.stringify(pair),{mode:0o600});
+          appendFileSync(process.env.GITHUB_ENV,'QA_CARRIER124_PAIR_FILE='+path+'\nQA_CARRIER124_CANDIDATE=true\nQA_BROWSER_PUBLISHED=false\n');
+          NODE
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
       - name: Authenticate 11 QA users against exact isolated Carrier124 v9 function
@@ -45,17 +77,16 @@ jobs:
         id: business
         continue-on-error: true
         run: node tests/carrier124-ci-business.mjs
-      - name: Install Chromium for real published-assets browser E2E
+      - name: Install Chromium for real pinned-asset browser E2E
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           test -s node_modules/axe-core/axe.min.js
           npx playwright install --with-deps chromium
-      - name: Open all 11 actual role cabinets against isolated v9 (published /test bytes)
+      - name: Open all 11 actual role cabinets against SH59 using pinned Git assets
         id: browser
         continue-on-error: true
         env:
           QA_ISOLATED_RUN: carrier124nov18
-          QA_BROWSER_PUBLISHED: 'true'
           QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
@@ -67,7 +98,6 @@ jobs:
         continue-on-error: true
         env:
           QA_ISOLATED_RUN: carrier124nov18
-          QA_BROWSER_PUBLISHED: 'true'
           QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_MAP_ORDER: QA-C124-REV-${{ github.run_id }}-${{ github.run_attempt }}
@@ -80,7 +110,6 @@ jobs:
         continue-on-error: true
         env:
           QA_ISOLATED_RUN: carrier124nov18
-          QA_BROWSER_PUBLISHED: 'true'
           QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_MATRIX: 'true'
