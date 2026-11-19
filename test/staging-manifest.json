@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "63aeaf21e85d2cad56e786bb314008cf7d225976",
+  "frontendCommit": "edca895b4f39bf976e5b9c76da0fb72a8acd5110",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -108,7 +108,7 @@
     "test/build-info.json": "15131c41351aa0d122a084436fe4a8cf7c757c47fef0c5c6839c0a6252c9b972",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "a13b6a2b57eea28606c0fd99cacedad2c011782f1af04e17ea360bb76e96c8b9",
-    "test/business-process-model.json": "2cca68ec2e138a66fe241b53d326410c9aee956dd6838ed605e56923b99338e3",
+    "test/business-process-model.json": "63a5ab020facf1697871962c72a1a99971df4f60b92f6d0a049b988054501618",
     "test/carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "test/carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -195,7 +195,7 @@
     "test/portal-release-status-20261117.css": "ee33faf917601b3b34f6667ca9afe30a62cd9a15d79e2699e3d4fba1ec0560d2",
     "test/portal-release-status-20261117.js": "1e70f4c92df025599031e5ee4ab9c50e4f69c9396fab8e296f3b1e37e3537840",
     "test/process-editor-20261111.mjs": "3c9c037f638fb003de80d6cce66ca207057a9034dc1db2b555d3014f664f2eb9",
-    "test/process-map.html": "46929f11b54a4d62a2644c1a1ac96789c4066ab8bce6a24bcbf3f67725b85092",
+    "test/process-map.html": "fef2671e4617f0afcfbc150e3ad6a83a7d7a557ee72d8a7f20e30caa606519c2",
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "test/protocol-font.ttf": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
@@ -415,7 +415,9 @@
     "tests/ved-navigation-dom.test.mjs": "0b199d063b43ee45db8b57a7cbf32dfc51e48a6dfb9811e96877127d631b917f",
     "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa",
     "tests/carrier124-owner-request-fields.test.mjs": "9f4b32b0dbd7bde8c9e102c0c0a94e82d136287da6a7e297db4aaa01182e1877",
-    ".github/workflows/carrier124-stamp-source-only.yml": "3b0e34a3cd20a12805a3896ebd8769725e468ce4f81ecce2c57ea0f6d9cd7409"
+    ".github/workflows/carrier124-stamp-source-only.yml": "3b0e34a3cd20a12805a3896ebd8769725e468ce4f81ecce2c57ea0f6d9cd7409",
+    "test/processes/manifest.json": "f48f1daab67af8bd9ca2914af4492f6b9ab35b237becb2d4bb1445f089578411",
+    ".github/workflows/carrier124-process-map-candidate-refresh.yml": "5444bf76c05006e2ebe6d69ee31afa6daef9936e57961501a9c8b7b10e495986"
   },
   "roleHelpSha256": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
   "apiVersion": 115,
