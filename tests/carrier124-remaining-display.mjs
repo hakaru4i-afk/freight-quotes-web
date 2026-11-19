@@ -150,7 +150,12 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
         for(const viewport of viewportSizes){
           await page.setViewportSize(viewport);
           for(const view of ['3d','2d']){
-            await map.getByRole('button',{name:view==='3d'?'3D-глобус':'2D-карта',exact:true}).click({timeout:10000});
+            // A refreshed tracking panel can remount the map while preserving its mode.
+            // Do not click a selected mode: still verify the mounted route snapshot below.
+            const modeButton=map.getByRole('button',{name:view==='3d'?'3D-глобус':'2D-карта',exact:true});
+            await modeButton.waitFor({state:'visible',timeout:10000});
+            if(await map.getAttribute('data-mode')!==view)
+              await modeButton.click({timeout:10000});
             const snapshotHandle=await page.waitForFunction(({mode,view})=>{
               const element=document.querySelector('#task2-root global-route-view');
               return element?.dataset.mode===view&&element.routeSnapshot?.mode===mode&&element.routeSnapshot;
@@ -179,8 +184,13 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
         ]){
           await page.getByRole('button',{name:label,exact:true}).first().click({timeout:12000});
           await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
-          await map.getByRole('button',{name:controls[0],exact:true}).click();
-          await map.getByRole('button',{name:controls[1],exact:true}).click();
+          const globeButton=map.getByRole('button',{name:controls[0],exact:true});
+          const flatButton=map.getByRole('button',{name:controls[1],exact:true});
+          await globeButton.waitFor({state:'visible',timeout:10000});
+          if(await map.getAttribute('data-mode')!=='3d')await globeButton.click({timeout:10000});
+          await page.waitForFunction(()=>document.querySelector('#task2-root global-route-view')?.dataset.mode==='3d');
+          await flatButton.waitFor({state:'visible',timeout:10000});
+          if(await map.getAttribute('data-mode')!=='2d')await flatButton.click({timeout:10000});
           await map.getByRole('heading',{name:controls[2],exact:true}).waitFor();
           await page.waitForFunction(()=>document.querySelector('#task2-root global-route-view')?.dataset.mode==='2d');
           captures.push({locale:lang,view:'2d',localizedControls:true});
