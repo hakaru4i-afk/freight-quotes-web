@@ -53,3 +53,4 @@ jobs:
           git diff --cached --name-only | grep -Fx 'test/staging-manifest.json'
           git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+# 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
