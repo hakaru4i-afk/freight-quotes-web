@@ -95,3 +95,6 @@
 #ow-workspace .ow-active-item>div{flex:1;min-width:0}
 #ow-workspace .ow-active-item .ow-task-progress{min-width:min(100%,190px)}
 @media(prefers-reduced-motion:reduce){#ow-workspace .ow-task-progress-fill{transition:none}}
+
+#ow-workspace .ow-expected-title{display:block;color:#1a425b;font-size:12px;margin-top:7px}
+#ow-workspace .ow-expected-result{margin:4px 0 10px;color:#244257;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
