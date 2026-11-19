@@ -19,3 +19,16 @@ test('Owner supplier order is independent from substitution order and Bitrix',()
  assert.match(owner,/"sender_contact","origin","weight","destination","waypoints","cargo","volume","ready_date","incoterm","incoterm_place","supplier_order_number"/);
  assert.match(owner,/body:JSON\.stringify\(\{order:i,summary:y,deadline:w,bitrixTask:c,logistics:g/);
 });
+
+test('Carrier shipment panel displays inherited Incoterms and supplier order, without inventing a value',()=>{
+ assert.match(script,/className:"logistics-facts"/);
+ assert.match(script,/d\.incoterm\?\[d\.incoterm,d\.incoterm_place\]\.filter\(Boolean\)\.join/);
+ assert.match(script,/d\.supplier_order_number/);
+});
+test('New request field labels, descriptions and placeholders have English and Chinese equivalents',()=>{
+ for(const phrase of ['Место поставки по Incoterms','Номер заказа поставщика','Номер заказа по проформе поставщика','Условия Incoterms']){
+  assert.ok(script.includes(JSON.stringify(phrase)+':['),phrase+' missing translation dictionary');
+ }
+ assert.ok(script.includes('Supplier order number'));
+ assert.ok(script.includes('Incoterms 指定交货地点'));
+});
