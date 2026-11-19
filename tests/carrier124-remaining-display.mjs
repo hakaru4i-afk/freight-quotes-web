@@ -60,7 +60,8 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
         const data=detail.json;
         const target=data.state.status==='completed'?'archive':'active';
         const filter=page.locator('[data-t2-filter="'+target+'"]');
-        if(await filter.count())await filter.click({timeout:10000});
+        if(await filter.isVisible()&&await filter.getAttribute('aria-pressed')!=='true')
+          await filter.click({timeout:10000});
         await page.locator('#t2-select').selectOption(order,{timeout:14000});
         await page.waitForFunction(({order,mode})=>document.querySelector('#t2-select')?.value===order
           &&document.querySelector('#task2-root global-route-view')?.routeSnapshot?.mode===mode,{order,mode},{timeout:14000});
@@ -92,10 +93,23 @@ export async function remainingDisplay({page,actor,sessions,rec,report,evidenceD
           }
           assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));
         }
+        for(const [lang,label,controls] of [
+          ['en','English',['3D globe','2D map','Shipment distance']],
+          ['zh','中文',['3D 地球','2D 地图','运输距离']]
+        ]){
+          await page.getByRole('button',{name:label,exact:true}).first().click({timeout:12000});
+          await page.waitForFunction(lang=>document.documentElement.lang.startsWith(lang),lang);
+          await map.getByRole('button',{name:controls[0],exact:true}).click();
+          await map.getByRole('button',{name:controls[1],exact:true}).click();
+          await map.getByRole('heading',{name:controls[2],exact:true}).waitFor();
+          await page.waitForFunction(()=>document.querySelector('#task2-root global-route-view')?.dataset.mode==='2d');
+          captures.push({locale:lang,view:'2d',localizedControls:true});
+        }
         entries.push({mode,order,api:detail.requestId,captures});
       }catch(error){
         entries.push({mode,order,error:String(error.message).slice(0,550)});
       }
     }
+    assert.ok(entries.length&&entries.every(entry=>!entry.error),'A map mode did not finish');
   }
 }

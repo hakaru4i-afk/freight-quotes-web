@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {createRemainingClient, deadlineMinsk, sha256} from './carrier124-remaining-api.mjs';
 
-const order='QA-N26-DOCS-1';
+const order=process.env.QA_CARRIER124_DOCUMENT_ORDER||'QA-N26-DOCS-1';
+assert.match(order,/^QA-N26-[A-Z0-9-]+$/);
 const prefix='Synthetic continuation';
 const logistics={sender_contact:prefix+' contact',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:prefix+' cargo',weight:'1250',
   volume:'12.5',ready_date:'2099-12-01',incoterm:'EXW',dangerous_goods:'no'};
 const pair={a:'qa-n26-alpha.txt',b:'qa-n26-beta.txt'};
 const bytes=name=>Buffer.from(prefix+' '+name+'\n');
+const place='QA named delivery gate';
+const supplierNumber='QA-SUP-00017-中文';
 
 export async function remainingDocuments({page,actor,sessions,rec,report}, openCabinet) {
   const api=await createRemainingClient(sessions,report.calls);
@@ -31,6 +34,8 @@ export async function remainingDocuments({page,actor,sessions,rec,report}, openC
     ];
     for(const [selector,val] of values)await fields.locator(selector).fill(val);
     await fields.locator('select').first().selectOption('EXW');
+    await fields.locator('[name="incoterm_place"]').fill(place+' draft');
+    await fields.locator('[name="supplier_order_number"]').fill(supplierNumber+'-draft');
     await fields.locator('select').nth(1).selectOption('no');
     await fields.locator('input[type="date"]').fill(logistics.ready_date);
     await fields.locator('input[type="datetime-local"]').fill(deadlineMinsk(Date.now()+86400000));
@@ -61,6 +66,8 @@ export async function remainingDocuments({page,actor,sessions,rec,report}, openC
     await page.waitForFunction(()=>document.querySelector('.cabinet-panel[data-section="create-request"] input[placeholder^="Наименование, упаковка"]')?.value?.startsWith('Synthetic continuation cargo'));
     await cargo.fill(prefix+' cargo revised');
     await fields.locator('select').first().selectOption('FCA');
+    await fields.locator('[name="incoterm_place"]').fill(place);
+    await fields.locator('[name="supplier_order_number"]').fill(supplierNumber);
     const editResponse=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST'
       &&r.request().postDataJSON()?.action==='save_logistics',{timeout:25000});
     await edit.click();
@@ -76,23 +83,29 @@ export async function remainingDocuments({page,actor,sessions,rec,report}, openC
     assert.equal(readback.cargo,prefix+' cargo revised');
     assert.match(readback.registration_no,/^TR-/);
     assert.deepEqual(readback.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910083','910084']);
-    assert.equal(await panel.getByLabel(/номер заказа поставщика/i).count(),0);
-    rec.remaining.edit={roundPreserved:true,reopened:true,incoterm:'FCA',supplierOrderControl:false,
-      supplierOrderApiField:['supplier_order_no','supplier_order_number','supplierOrderNo'].some(k=>Object.hasOwn(readback,k))};
+    assert.equal(await panel.locator('[name="incoterm_place"]').inputValue(),place);
+    assert.equal(await panel.locator('[name="supplier_order_number"]').inputValue(),supplierNumber);
+    assert.equal(readback.incoterm_place,place);
+    assert.equal(readback.supplier_order_number,supplierNumber);
+    rec.remaining.edit={roundPreserved:true,reopened:true,incoterm:'FCA',incotermPlace:place,supplierOrderNumber:supplierNumber,
+      registrationNo:readback.registration_no,bitrix:readback.bitrix_task};
     const remains=panel.locator('.request-documents .doc-row');
     await remains.filter({hasText:pair.a}).waitFor();
     const download=page.waitForEvent('download',{timeout:15000});
     await remains.filter({hasText:pair.a}).getByRole('link').click();
     const downloaded=await download;
     assert.equal(sha256(await readFile(await downloaded.path())),sha256(bytes(pair.a)));
-    const remove=page.waitForResponse(r=>r.url().includes('/api/documents')&&r.request().method()==='POST'
-      &&r.request().postDataJSON()?.action==='remove',{timeout:20000});
-    await panel.getByRole('button',{name:'Удалить документ '+pair.b}).click();
-    assert.equal((await remove).status(),200);
+    if(await remains.filter({hasText:pair.b}).count()) {
+      const remove=page.waitForResponse(r=>r.url().includes('/api/documents')&&r.request().method()==='POST'
+        &&r.request().postDataJSON()?.action==='remove',{timeout:20000});
+      await panel.getByRole('button',{name:'Удалить документ '+pair.b}).click();
+      assert.equal((await remove).status(),200);
+      rec.remaining.removedSecondDocument=true;
+    }
     await remains.filter({hasText:pair.b}).waitFor({state:'detached'});
     const docs=(await api('owner','/api/documents',{order})).json.files;
     assert.deepEqual(docs.map(f=>f.name),[pair.a]);
-    rec.remaining.documents={batched:2,downloadSha256:sha256(bytes(pair.a)),verifiedDeletion:true};
+    rec.remaining.documents={downloadSha256:sha256(bytes(pair.a)),remainingFiles:docs.map(f=>f.name)};
   } else {
     await openCabinet(page,'carrier-orders');
     const card=page.locator('article.carrier-request').filter({hasText:order}).first();
@@ -100,13 +113,15 @@ export async function remainingDocuments({page,actor,sessions,rec,report}, openC
     const data=(await api(actor,'/api/requests',{order})).json.request;
     const open=card.locator('a[href*="quote"]').first();
     await open.click();
-    const expected=[data.origin,data.destination,data.cargo,pair.a];
+    const expected=[data.origin,data.destination,data.cargo,pair.a,place,supplierNumber];
     const seen=[];
     for(const label of expected){
       await page.getByText(label,{exact:false}).first().waitFor({timeout:10000});
       seen.push(label);
     }
     assert.equal(data.incoterm,'FCA');
+    assert.equal(data.incoterm_place,place);
+    assert.equal(data.supplier_order_number,supplierNumber);
     assert.equal(data.sender_contact,logistics.sender_contact);
     assert.equal(Number(data.weight),Number(logistics.weight));
     assert.equal(Number(data.volume),Number(logistics.volume));

@@ -170,6 +170,7 @@
      else if(!total)html+='<div role="status" style="padding:12px;margin:12px 0;border:1px solid #d5a544;border-radius:9px;background:#fff8e9;color:#533d13"><strong>Срок доставки не указан</strong><p>Уточните срок утверждённой ставки для еженедельного графика.</p></div>';
    }
    html+='<div class="t2-context">'+readonly("Рег. №",stagingReg(o.registration_no)||"не присвоен")+readonly("Заказ",o.order_code)+readonly("№ Bitrix — все связанные",o.bitrix_task||"—")+
+     (o.supplier_order_number?readonly("Номер заказа поставщика",o.supplier_order_number):"")+
      readonly("Выбранный перевозчик",o.carrier_login)+
      readonly("Статус исполнения",x.status==="completed"?"Завершено":!started?"Ожидает принятия":"В работе")+'</div>';
    if(!started){

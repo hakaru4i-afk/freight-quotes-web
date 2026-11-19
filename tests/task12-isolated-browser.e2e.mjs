@@ -2,7 +2,7 @@ import{map50Scenario}from'./map50-real-scenario.mjs';
 import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
-import {carrier124, carrier124Base, carrier124ContainerAssets, assertCandidateCheckout, isolatedBrowserApiPath, isolatedApiUrl} from './carrier124-isolated-target.mjs';
+import {carrier124, carrier124Base, readCandidateAsset, assertCandidateCheckout, isolatedBrowserApiPath, isolatedApiUrl} from './carrier124-isolated-target.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -17,7 +17,6 @@ import {createHash} from 'node:crypto';
 async function revealForm(form){await form.waitFor({state:'attached',timeout:60000});const summary=form.locator('xpath=ancestor::details[1]/summary');if(await summary.count()&&await form.isHidden())await summary.click();}
 const evidenceDir=process.env.QA_BROWSER_EVIDENCE_DIR||'reports/isolated-rc';
 const map50=process.env.QA_MAP50==='true';
-const containerFix=process.env.QA_CARRIER124_CONTAINER_FIX==='true';
 const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const loginFor=actor=>(exactCandidate?carrier124.run:'rc20261110')+'-'+actor.toLowerCase();
@@ -31,12 +30,9 @@ if(exactCandidate){
 assert.equal(execFileSync('git',['diff','--name-only','--diff-filter=U'],{encoding:'utf8'}).trim(),'','Resolve merge conflicts before QA');
 const sourceTreeDirty=execFileSync('git',['diff','HEAD','--name-only','--','test'],{encoding:'utf8'}).trim().length>0;
 if(published)assert.equal(sourceTreeDirty,false,'Commit runtime source before published QA');
-const frozenSource=await mkdtemp('/tmp/freight-browser-source-');
-await cp(resolve('test'),resolve(frozenSource,'test'),{recursive:true});
-if(exactCandidate){
- const pinnedManifest=execFileSync('git',['show',carrier124.frontendMetadata+':test/staging-manifest.json']);
- await writeFile(resolve(frozenSource,'test/staging-manifest.json'),pinnedManifest);
-}
+const frozenSource=exactCandidate?null:await mkdtemp('/tmp/freight-browser-source-');
+if(frozenSource)await cp(resolve('test'),resolve(frozenSource,'test'),{recursive:true});
+const readAsset=async name=>exactCandidate?readCandidateAsset(name):readFile(resolve(frozenSource,name));
 const metadata=exactCandidate?{
  isolatedQaFunction:carrier124.function,isolatedQaVersion:carrier124.version,
  isolatedQaBundleSha256:carrier124.bundle,isolatedQaSourceCommit:carrier124.backendSource
@@ -55,17 +51,17 @@ const ownerFieldsDenied=exactCandidate&&process.env.QA_BROWSER_OWNER_FIELDS_DENI
 const loserArchive=exactCandidate&&process.env.QA_BROWSER_LOSER_ARCHIVE==='true';
 const remainingPhase=exactCandidate&&process.env.QA_BROWSER_REMAINING;
 const phase=remainingPhase?'remaining-'+remainingPhase:loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
-const root=frozenSource,base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
+const root=frozenSource||process.cwd(),base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
-const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
+const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readAsset(file.slice(root.length+1)));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
-const launchArgs=map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[];
-const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree,...(containerFix?{verifiedContainerAssetHashes:carrier124ContainerAssets}:{} )}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+const launchArgs=map50||phase==='remaining-modes'?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[];
+const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
-const html=await readFile(resolve(root,'test/index.html'),'utf8');
-for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile(resolve(root,'test',name))).digest('hex');}
+const html=(await readAsset('test/index.html')).toString('utf8');
+for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readAsset('test/'+name)).digest('hex');}
 
 try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification').split(',')){
  const rec={actor,status:'RUNNING',viewports:[]};report.roles.push(rec);
@@ -205,7 +201,10 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const readback=await fetch(base+'/api/requests?order='+order+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions.owner}});assert.equal(readback.status,200);const stored=(await readback.json()).request;assert.match(stored.registration_no,/TR-/);assert.deepEqual(stored.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910001','910002']);rec.publication.registrationNumber=stored.registration_no;rec.publication.bitrixNumbers=2;
   }
   if(process.env.QA_BROWSER_BID==='true'&&['carrierA','carrierB'].includes(actor)){
-   const previous=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;
+   const targetOrder=exactCandidate&&process.env.QA_CARRIER124_BID_ORDER;
+   if(targetOrder)assert.match(targetOrder,/^QA-N26-[A-Z0-9-]+$/);
+   const order=targetOrder||JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0].createdOrder;
+   rec.bidOrder=order;
    await page.locator('.cabinet-sidebar nav a[href="#carrier-orders"]').first().evaluate(el=>el.click());
    if(exactCandidate&&process.env.QA_CARRIER124_LATE_SUBMIT==='true'){
     await page.locator('#late-bid-controls-carrier').getByRole('button',{name:'Подать позднюю ставку по заявке '+order}).click({timeout:20000});
@@ -437,4 +436,4 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await writeFile(evidenceDir+'/'+actor+'-'+phase+'-failure.txt',(await page.locator('body').innerText()).slice(0,20000));
    rec.errorStack=redact(e.stack||'').slice(0,5000);rec.status='FAIL';rec.pageErrors=errors;rec.consoleErrors=consoleErrors.slice(0,20);rec.error=redact(e.message).slice(0,600);console.log('REAL_BROWSER_FAIL',actor,rec.error);if(rec.cabinetMatrixFailures)console.log('QA_MATRIX_FAILURES',JSON.stringify(rec.cabinetMatrixFailures.map(f=>({lang:f.lang,screen:f.screen,width:f.width,error:f.error?.slice(0,120),violations:f.violations?.map(v=>({id:v.id,impact:v.impact,targets:v.nodes?.map(n=>n.target)}))}))));console.log('QA_FAILURE_CONTEXT',JSON.stringify({phase,pageErrors:errors,apiCalls:report.calls.filter(c=>c.actor===actor).slice(-12).map(({path,method,status,error})=>({path,method,status,error}))}));process.exitCode=1;}
  await context.close();
-}}finally{await browser.close();await new Promise(done=>server.close(done));await rm(frozenSource,{recursive:true,force:true});report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile(evidenceDir+'/browser-results-'+actorName+'.json',bytes);await writeFile(evidenceDir+'/browser-results-'+actorName+'-'+phase+'.json',bytes);}
+}}finally{await browser.close();await new Promise(done=>server.close(done));if(frozenSource)await rm(frozenSource,{recursive:true,force:true});report.completedAt=new Date().toISOString();const actorName=(process.env.QA_BROWSER_ACTORS||'all').replaceAll(',','-');report.scenario=phase;const bytes=JSON.stringify(report,null,2);if(actorName!=='owner'||['create','select'].includes(phase))await writeFile(evidenceDir+'/browser-results-'+actorName+'.json',bytes);await writeFile(evidenceDir+'/browser-results-'+actorName+'-'+phase+'.json',bytes);}
