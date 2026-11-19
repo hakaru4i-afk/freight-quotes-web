@@ -30,3 +30,5 @@ jobs:
 # Main-only OIDC pinned to isolated Carrier124 v6; production API v46 never touched by this dispatch.
 
 # Uses original broker-allowlisted workflow_ref; full_suite is opt-in on main; no trust policy changes.
+
+# Re-run with actual isolated QA v7 source and regression fix f861cbd; preserves main-only GitHub OIDC, no production writes.
