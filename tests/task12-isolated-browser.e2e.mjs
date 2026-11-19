@@ -207,7 +207,11 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const payload=await readback.json(),stored=payload.request;
    assert.equal(stored?.order_code,order,'GET /api/requests returned a different request');
    assert.equal(stored.round_id,result.round,'GET /api/requests returned a different publication round');
-   assert.ok(typeof stored.registration_no==='string','API_CONTRACT_REGISTRATION_MISSING: canonical GET /api/requests must return the trigger-assigned number, not a client-generated placeholder');
+   assert.ok(typeof stored?.registration_no==='string'&&stored.registration_no.trim(),
+     'API_CONTRACT_REGISTRATION_MISSING: GET /api/requests must return the trigger-assigned number; '+
+     'responseShape='+JSON.stringify({topLevelKeys:Object.keys(payload||{}).sort(),requestKeys:Object.keys(stored||{}).sort(),
+       registrationType:typeof stored?.registration_no,postRoundType:typeof result?.round,
+       readbackRequestId:readback.headers.get('x-freight-request-id')}));
    assert.match(stored.registration_no,/^TR-\d{2}-\d{6}$/,'GET /api/requests returned an invalid canonical registration number');
    assert.deepEqual(stored.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910001','910002']);
    rec.publication.registrationNumber=stored.registration_no;rec.publication.registrationReadbackRequestId=readback.headers.get('x-freight-request-id');rec.publication.bitrixNumbers=2;
