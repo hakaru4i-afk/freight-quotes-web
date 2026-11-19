@@ -1,0 +1,66 @@
+name: Carrier124 live served release/rollback readback (anonymous, no deployment)
+on:
+  push:
+    branches: ['fix/carrier-dashboard-124']
+    paths: ['.github/workflows/carrier124-served-release-readback.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readback:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Compare truly served production and staging bytes to actual API health
+        env:
+          NODE_OPTIONS: '--no-warnings'
+        run: |
+          node --input-type=module <<'JS'
+          import {createHash} from 'node:crypto';
+          import {mkdirSync,writeFileSync} from 'node:fs';
+          const root='https://hakaru4i-afk.github.io/freight-quotes-web/';
+          const prod='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api';
+          const stage='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
+          const isolated='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-carrier124nov18';
+          const urls={prodWeb:root+'build-info.json',prodStatus:root+'site-status.json',
+            stageWeb:root+'test/build-info.json',stageManifest:root+'test/staging-manifest.json',
+            prodApi:prod+'/health',stageApi:stage+'/health',isolatedApi:isolated+'/health'};
+          const receipt={checkedAt:new Date().toISOString(),scope:'anonymous GET-only, production intact',responses:{},gates:[]};
+          for(const [id,url] of Object.entries(urls)){
+            try{
+              const r=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(18000)});
+              const bytes=Buffer.from(await r.arrayBuffer());
+              const sha256=createHash('sha256').update(bytes).digest('hex');
+              let body={};try{body=JSON.parse(bytes.toString('utf8'));}catch{}
+              const picked=Object.fromEntries(['environment','projectRef','releaseVersion','primaryBusinessVersion','releaseStatus','publicationState','ownerAccepted','release','build','version','qaRun','ok'].filter(k=>Object.hasOwn(body,k)).map(k=>[k,body[k]]));
+              receipt.responses[id]={status:r.status,sha256,bytes:bytes.length,picked};
+            }catch(err){
+              receipt.responses[id]={status:null,error:String(err?.cause?.code||err?.name||'NETWORK_ERROR').slice(0,55)};
+            }
+          }
+          const v=id=>receipt.responses[id]?.picked||{};
+          const status=id=>receipt.responses[id]?.status;
+          for(const id of Object.keys(urls))if(status(id)!==200)receipt.gates.push('READBACK_MISSING_'+id);
+          if(status('prodApi')===200&&status('prodWeb')===200&&v('prodApi').release!==v('prodWeb').releaseVersion)
+            receipt.gates.push('PRODUCTION_VERSION_MISMATCH');
+          if(status('stageApi')===200&&status('stageWeb')===200&&v('stageApi').release!==v('stageWeb').releaseVersion)
+            receipt.gates.push('STAGING_VERSION_MISMATCH');
+          if(v('isolatedApi').qaRun!=='carrier124nov18')receipt.gates.push('ISOLATED_QA_SCOPE_MISMATCH');
+          if(v('stageManifest').publicationState==='CANDIDATE_NOT_RELEASED')
+            receipt.gates.push('CANDIDATE_NOT_RELEASED');
+          receipt.status=receipt.gates.length?'RELEASE_BLOCKED':'PUBLIC_VERSION_PREFLIGHT_PASS';
+          mkdirSync('reports',{recursive:true});
+          writeFileSync('reports/carrier124-served-release-readback.json',JSON.stringify(receipt,null,2)+'\n');
+          console.log('CARRIER124_SERVed_READBACK',JSON.stringify(receipt));
+          if(receipt.gates.length)process.exitCode=1;
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carrier124-served-release-readback
+          path: reports/carrier124-served-release-readback.json
+          retention-days: 14
