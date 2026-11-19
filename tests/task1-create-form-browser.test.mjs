@@ -136,6 +136,9 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Груз").fill("QA packaged cargo");
  await input(page,"Ставки принимаются до").fill("2027-06-15T12:00");
  const publish=page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"});
+ // Named Incoterms location became mandatory in T1-04. Do not weaken validation.
+ assert.equal(await publish.isEnabled(),false,"Incoterms named place must be required");
+ await page.locator('fieldset.request-owner-fields input[name="incoterm_place"]').fill("Yiwu, China — QA warehouse");
  await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
  assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
  await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
@@ -149,6 +152,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  assert.equal(p.logistics.destination,"Minsk, Belarus");
  assert.equal(p.logistics.ready_date,"2027-06-05");
  assert.equal(p.logistics.incoterm,"EXW");
+ assert.equal(p.logistics.incoterm_place,"Yiwu, China — QA warehouse");
  assert.equal(p.logistics.cargo,"QA packaged cargo");
  assert.equal(p.logistics.volume,"12.5");
  assert.equal(p.logistics.dangerous_goods,"yes");
