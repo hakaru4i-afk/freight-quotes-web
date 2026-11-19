@@ -115,7 +115,15 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const publish=panel.getByRole('button',{name:/Опубликовать и уведомить/});
    const saved=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST',{timeout:60000});await publish.click({timeout:60000});
    const r=await saved;assert.equal(r.status(),200);const result=await r.json();assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
-   const readback=await fetch(base+'/api/requests?order='+order+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions.owner}});assert.equal(readback.status,200);const stored=(await readback.json()).request;assert.match(stored.registration_no,/TR-/);assert.deepEqual(stored.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910001','910002']);rec.publication.registrationNumber=stored.registration_no;rec.publication.bitrixNumbers=2;
+   const readback=await fetch(base+'/api/requests?order='+encodeURIComponent(order)+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions.owner},redirect:'error',signal:AbortSignal.timeout(30000)});
+    assert.equal(readback.status,200,'POST publication must be readable through the same isolated API');
+    const payload=await readback.json(),stored=payload.request;
+    assert.equal(stored?.order_code,order,'GET /api/requests returned a different request');
+    assert.equal(stored.round_id,result.round,'GET /api/requests returned a different publication round');
+    assert.ok(typeof stored.registration_no==='string','API_CONTRACT_REGISTRATION_MISSING: canonical GET /api/requests must return the trigger-assigned number, not a client-generated placeholder');
+    assert.match(stored.registration_no,/^TR-\d{2}-\d{6}$/,'GET /api/requests returned an invalid canonical registration number');
+    assert.deepEqual(stored.bitrix_task.split(/[,;\s]+/).filter(Boolean),['910001','910002']);
+    rec.publication.registrationNumber=stored.registration_no;rec.publication.registrationReadbackRequestId=readback.headers.get('x-freight-request-id');rec.publication.bitrixNumbers=2;
   }
   if(process.env.QA_BROWSER_BID==='true'&&['carrierA','carrierB'].includes(actor)){
    const previous=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8'));const order=previous.roles[0].createdOrder;rec.bidOrder=order;
