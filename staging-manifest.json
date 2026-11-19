@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "9e5b1f498f62bfa817c117fbc970dba7c3368c2b",
+  "frontendCommit": "ee4fb6c11aeb887728746ce1aaf51c6af20cb8e3",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -143,10 +143,10 @@
     "test/global-view/three.module.min.js": "06552c54e4071fbc7305117aafe6765d92c5d2a2a83507d4f05b9bf4f3d4d463",
     "test/global-view/topojson.js": "25cd02ae486cc5063e0215a4e4cfb15de83700c87ac48bac4d57dc6aaf3ebb89",
     "test/global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "test/global-view/view.mjs": "d188fc0d4896221859c13ae574c28369060266fdf548366450ef39ad82fcad79",
+    "test/global-view/view.mjs": "befe46e0c999bf1abb0388fc97e640e853ae71645910f8e892b853b27f37280b",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "0f236f3ac11d1f201bef4707f8e5c65cd2d43039c521054e6478cb3155a0deeb",
+    "test/index.html": "b3ca5bc2e899eb6b01157abe4ca1e8794585b02e6bc87fd2dd11dc06552eda3c",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
     "test/late-bid-staging.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
