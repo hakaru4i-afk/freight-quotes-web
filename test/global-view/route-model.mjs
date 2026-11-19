@@ -1,7 +1,7 @@
 const normal = value => String(value ?? '').normalize('NFKC').toLowerCase()
   .replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
 const clean = value => typeof value === 'string' ? value.trim() : '';
-const split = value => clean(value).split(/\s*(?:\r?\n|→|->|;|\s+[–—-]\s+)\s*/).filter(Boolean);
+const split = value => clean(value).split(/\s*(?:\r?\n|→|->|[;|]|\s+[–—-]\s+)\s*/).filter(Boolean);
 
 const aliases = {
   'Шэньчжэнь': 'Shenzhen', 'Шенчжень': 'Shenzhen', '深圳': 'Shenzhen', '深圳市': 'Shenzhen',

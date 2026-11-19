@@ -508,21 +508,6 @@
      }
      const res=await call(payload,files);
      if(action==="request_docs")pendingRequests.delete(requestKey);
-     let routeNote="";
-     if(action==="save"&&fields.fields?.location&&state.detail?.shipment){
-       const o=state.detail.shipment,mode=String(o.mode||"").toLowerCase();
-       if(/авто|auto|road/.test(mode)&&o.origin&&o.destination){
-         try{
-           const mid=String(o.waypoints||"").split(/[;,\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6);
-           const addresses=[o.origin,...mid,o.destination];
-           const first=await fetch("/api/route-distance",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({transport:"Авто",addresses})});
-           const route=await first.json();
-           if(!first.ok)throw Error(route.error||"Не удалось рассчитать маршрут");
-           const km=await call({action:"route_metrics",order:state.selected,routeKey:route.key});
-           routeNote=" Авто: "+km.remainingKm+" км осталось из "+km.totalKm+" км ("+km.source+").";
-         }catch(e){routeNote=" Километраж пока не рассчитан: "+e.message;}
-       }
-     }
      let result=res;
      if(res.needsContainerDecision){
        const yes=window.confirm("Номер контейнера не указан. Отправить перевозчику запрос на заполнение?\nОК = Да, отправить запрос.\nОтмена = Нет, завершить без номера.");
@@ -532,6 +517,17 @@
      try{await loadList({force:true});}catch(e){
        if(action!=="request_docs")throw e;
        refreshError=e.message||"Ошибка обновления";
+     }
+     let routeNote="";
+     if(action==="save"&&fields.fields?.location&&state.detail?.shipment?.order_code===payload.order){
+       const checkpoint=state.detail.points?.find(point=>point.location_text===fields.fields.location&&
+         Date.parse(point.observed_at)===Date.parse(fields.fields.location_date));
+       const metrics=state.detail.route;
+       if(checkpoint?.route_calculation_status==="verified"&&metrics&&!metrics.estimated){
+         routeNote=" Авто: "+checkpoint.remaining_km+" км осталось из "+metrics.total_km+" км ("+metrics.source+").";
+       }else if(checkpoint?.route_calculation_status==="unavailable"){
+         routeNote=" Километраж пока не рассчитан.";
+       }
      }
      const message=action==="request_docs"
        ?("Запрос отправлен ВЭД. Создана задача"+(result.task?.id?" № "+String(result.task.id).slice(0,8):"")+(refreshError?". Список не обновился: "+refreshError:"")+".")

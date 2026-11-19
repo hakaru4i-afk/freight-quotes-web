@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "90b9ed9ae8740a3b2142",
+  "version": "7824739d96a0c46bf6d0",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.59 v candidate; source locked, publication and acceptance blocked.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "04e20fcb11345672edf9462993a7edb2f882a061",
+  "servedAppBlobSha": "f99efa9df3d7e44f68f4a82eabeaf684f3821720",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -21,7 +21,7 @@
     "backendFunction": "freight-api",
     "backendVersion": 117,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
-    "frontendSha": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
+    "frontendSha": "5c29481ada38109edb89c1f0bae9dde624893417",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
     "guidanceSha": "82523edbcef7cf00945e1152b06a7ac9db06b346",
     "tablesApplied": true,
@@ -57,12 +57,12 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "04e20fcb11345672edf9462993a7edb2f882a061",
-        "sha256": "5dc7dffdbfdc07c52071efcd5f2d8bfb534494d93b8fa86a07cd1343f2831fdf"
+        "gitBlob": "f99efa9df3d7e44f68f4a82eabeaf684f3821720",
+        "sha256": "fcf2af46c5e291ca5dbb05fed7afa5753e2fd3d6f090a04abc1fcd0baec8fad2"
       },
       "task2-panel.js": {
-        "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
-        "sha256": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61"
+        "gitBlob": "5c29481ada38109edb89c1f0bae9dde624893417",
+        "sha256": "91e7e5ca50adce62c9315614cc95566b823333342cde9b8bb4990dc5744b0586"
       },
       "task2-guidance.js": {
         "gitBlob": "82523edbcef7cf00945e1152b06a7ac9db06b346",
@@ -587,12 +587,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "90b9ed9ae8740a3b2142",
+  "stagingAssetBuildId": "7824739d96a0c46bf6d0",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "ad03d1b4a06e08278ac7c391ea789d2358cd3a9dc491bf3a36b51911c0eb405c",
-    "app.js": "5dc7dffdbfdc07c52071efcd5f2d8bfb534494d93b8fa86a07cd1343f2831fdf",
+    "app.js": "fcf2af46c5e291ca5dbb05fed7afa5753e2fd3d6f090a04abc1fcd0baec8fad2",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -604,12 +604,12 @@
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
     "current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
     "global-view/distance.mjs": "e5cb93fe7833008feb861c43d1beb0396f3c4e2824ed84769acf2d0353de60a1",
-    "global-view/globe.mjs": "da97f19fdf84779f169f0a8ab059f6f7732397e1faa8e39dd537848f22f4e458",
+    "global-view/globe.mjs": "5e02e6d857dd7a1625ec6a5c9d6ff6b3b1e8ebbb769391af0b9855af9031b4ac",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
-    "global-view/map.mjs": "5a1bff28855697ba37a42a260e9829d90396d9c7561844957d0ddd435851e5cc",
-    "global-view/route-model.mjs": "9a626149ba321a00aa1f46d8facd0131dc58cb8fd492a0ea51eb889d88ea4b5a",
+    "global-view/map.mjs": "03167d60433987edcb7b848828b76061919ff52482650a8036d9b524a0031645",
+    "global-view/route-model.mjs": "6b48b1f83f31dba3da5f408e437b021febe7722f5159016e9844f464b1ebe2b0",
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "global-view/view.mjs": "5967cd4638a605d8f29be8c279f1aaace2c3a8a76aa034a1b154f2c2e0b4cbd6",
+    "global-view/view.mjs": "56e18c41b89eb206abd3746ace32b3e100750b84c36f168a33d0e6fec8dc61c6",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -662,7 +662,7 @@
     "task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
     "task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
     "task2-i18n.js": "1214b7571b2c1cbb2011cd131e4bee52db62948c8327bed06ebed4cd1993c0e5",
-    "task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
+    "task2-panel-sidebar-only-20261107.js": "91e7e5ca50adce62c9315614cc95566b823333342cde9b8bb4990dc5744b0586",
     "task2-process-split-20261107.css": "6a56af4c7fa8def2c568a50ec339d4cd8ec0594594a7ea7298f5eb89d43739d0",
     "task2.css": "acac9a54b070dab22b59c8452bf7f494bc3216eea3abd39f001cc65f70a572ba",
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
@@ -699,7 +699,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-19T19:37:18.695Z",
+  "assetBuildRecordedAt": "2026-11-19T19:51:44.302Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
@@ -790,7 +790,7 @@
     "apiProjectionVersion": 1,
     "scope": "assigned_requests",
     "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
-    "backendSourceCommit": "829dca16619060f38bab421a381e225b48514091",
+    "backendSourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
   },
@@ -813,11 +813,11 @@
     "businessVersion": "SH-01.30.59 v",
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api-qa-carrier124nov18",
-    "version": 12,
+    "version": 13,
     "schema": "freight_qa_carrier124nov18",
-    "sourceCommit": "829dca16619060f38bab421a381e225b48514091",
-    "sourceTree": "2ab44c65ec995922eeeb0077be2200942d6f1a39",
-    "providerBundleSha256": "481213694869270f680abca88767f82932da58cd23dfb86321a267002f0bb514",
+    "sourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
+    "sourceTree": "2866ee67077329e84db80b0d12b16e969f4352d2",
+    "providerBundleSha256": "26fd3b399ec301776402889bcd2f33728fb5b5758bda56b3bb31a01272d69575",
     "sourceFilesVerified": 25,
     "qaSchemaMigration": "20261118161830",
     "observedStagingLedger": "20261119163433",

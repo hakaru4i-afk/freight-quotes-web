@@ -1,5 +1,5 @@
 import { calculateMapDistances } from './distance.mjs?v=42ea24b3c9cd';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=0b8aaba43845';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=12e3ce36f01f';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -94,7 +94,7 @@ class GlobalRouteView extends HTMLElement {
       const unresolved=wanted.filter(label=>!allRecords.some(p=>
         (p.original_text===label||p.label===label)&&p.status==='resolved'&&
         Number.isFinite(p.lat)&&Number.isFinite(p.lon)));
-      if(unresolved.length>0&&wanted.length<=8){
+      if(unresolved.length>0&&wanted.length<=10){
         try{
           const response=await fetch('/api/route-distance',{method:'POST',headers:{'Content-Type':'application/json'},
             body:JSON.stringify({action:'geocode_points',addresses:wanted}),signal});
@@ -281,8 +281,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=12feed2fbe8a')).createGlobe
-            : (await import('./map.mjs?v=7c13b8f78828')).createMap;
+            ? (await import('./globe.mjs?v=5c8ea12c074c')).createGlobe
+            : (await import('./map.mjs?v=feacd8fed0e1')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;

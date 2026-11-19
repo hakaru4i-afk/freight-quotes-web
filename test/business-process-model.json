@@ -629,7 +629,7 @@
     "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
     "test/app.js": "da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
-    "test/task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
+    "test/task2-panel-sidebar-only-20261107.js": "91e7e5ca50adce62c9315614cc95566b823333342cde9b8bb4990dc5744b0586",
     "test/task2-i18n.js": "1214b7571b2c1cbb2011cd131e4bee52db62948c8327bed06ebed4cd1993c0e5",
     "test/task2-help-i18n.js": "60198419ce308e0f3f9fd778a1f7deab341e446e1a15694cf74c86e137e8d605",
     "test/task2-guidance-42dc6ccc8a20.js": "bd0b912a22e47af04dfa4e80637eb47dbba91c91f51c0dfe767449095b8312ea",
@@ -650,7 +650,7 @@
     "test/owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
     "test/owner-registers-20261111.js": "e763828fc4e81a27bdff763ec7b2f7cd5e401d927d92734baa0ed6e9f643dbec",
     "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-    "test/global-view/view.mjs": "ea9c877ce0232610c4e4bc1a8500b14c1aefd92f5e5f9412d7272ab1b7ab2fee",
+    "test/global-view/view.mjs": "13dd27bed02f4701dc44e2acc6f9ab4eef5db463c3c777a08910d3128f3fff2a",
     "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
     "test/lw-pending-tasks-all-roles-20261109.js": "c5e4755db86c4dd4213ee6dd7878143bce7bb55b0c55cebf4b686d483be8082b",
     "test/lw-ved-shared-chat-20261109.js": "141e45e95201602725acecc5d529ff5ed3dde3916b7060ad8d608ef34f3e24e0",
@@ -664,13 +664,13 @@
     "test/offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
     "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
-    "test/task2-panel.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
-    "test/global-view/route-model.mjs": "9a626149ba321a00aa1f46d8facd0131dc58cb8fd492a0ea51eb889d88ea4b5a",
+    "test/task2-panel.js": "91e7e5ca50adce62c9315614cc95566b823333342cde9b8bb4990dc5744b0586",
+    "test/global-view/route-model.mjs": "6b48b1f83f31dba3da5f408e437b021febe7722f5159016e9844f464b1ebe2b0",
     "test/global-view/distance.mjs": "e5cb93fe7833008feb861c43d1beb0396f3c4e2824ed84769acf2d0353de60a1",
-    "test/global-view/globe.mjs": "da97f19fdf84779f169f0a8ab059f6f7732397e1faa8e39dd537848f22f4e458",
-    "test/global-view/map.mjs": "5a1bff28855697ba37a42a260e9829d90396d9c7561844957d0ddd435851e5cc"
+    "test/global-view/globe.mjs": "5e02e6d857dd7a1625ec6a5c9d6ff6b3b1e8ebbb769391af0b9855af9031b4ac",
+    "test/global-view/map.mjs": "03167d60433987edcb7b848828b76061919ff52482650a8036d9b524a0031645"
   },
-  "reviewedBackendSourceCommit": "829dca16619060f38bab421a381e225b48514091",
+  "reviewedBackendSourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
   "previousVersion": "20261113-logic-11",
   "technicalContext": "Кандидат FE PR129 / backend PR102, source bec4fa5596a32cfdba01253388f3039ad5ebdd42. Проверены 276 backend tests и PostgreSQL; UI Owner/Carrier и RU/EN/ZH проверены отдельно. Это не hosted authenticated E2E. Published FE main1e1e4fb, production API46, staging API115, QA44; source binding shared115 не подтверждён. Полная приёмка и публикация остаются RELEASE_BLOCKED."
 }
