@@ -1,6 +1,12 @@
 name: Carrier124 live OIDC acceptance on isolated v6 (11 roles)
 on:
   workflow_dispatch:
+    inputs:
+      full_suite:
+        description: 'Run additional isolated Carrier124 v6 railway/claims/Map50 and language-matrix checks'
+        type: boolean
+        required: false
+        default: false
 permissions:
   contents: read
   id-token: write
@@ -12,7 +18,7 @@ jobs:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 55
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -53,12 +59,41 @@ jobs:
           QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Full isolated Carrier124 v6 workflow with claim and ordinary closure
+        id: full_lifecycle
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        env:
+          QA_ISOLATED_RUN: carrier124nov18
+          QA_BROWSER_PUBLISHED: 'true'
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+          QA_MAP_ORDER: QA-C124-REV-${{ github.run_id }}-${{ github.run_attempt }}
+          QA_NOV14_INCLUDE_ORDINARY: 'true'
+          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
+        run: node tests/nov14-published-chain.e2e.mjs
+      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated v6
+        id: full_matrix
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        env:
+          QA_ISOLATED_RUN: carrier124nov18
+          QA_BROWSER_PUBLISHED: 'true'
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_MATRIX: 'true'
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Fail closed unless both real API and browser validation succeed
         if: always()
         shell: bash
         run: |
           test '${{ steps.business.outcome }}' = success
           test '${{ steps.browser.outcome }}' = success
+          if [ '${{ inputs.full_suite }}' = 'true' ]; then
+            test '${{ steps.full_lifecycle.outcome }}' = success
+            test '${{ steps.full_matrix.outcome }}' = success
+          fi
       - name: Log out all issued synthetic sessions
         if: always()
         run: node tests/carrier124-ci-auth.mjs --logout
@@ -73,4 +108,7 @@ jobs:
             reports/carrier124-ci-qa-auth.json
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
+            reports/carrier124-full-roles/
+            reports/nov14-published/
+            reports/nov14-ordinary/
           retention-days: 14
