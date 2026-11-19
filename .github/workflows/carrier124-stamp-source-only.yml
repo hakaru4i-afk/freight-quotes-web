@@ -47,3 +47,5 @@ jobs:
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
 
 # 2026-11-19 QA-only source stamp for translated supplier/Incoterms fields; no deployment.
+
+# 2026-11-19 QA-only source stamp for role-scoped development notices; no deployment.
