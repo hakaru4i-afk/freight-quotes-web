@@ -30,12 +30,25 @@ jobs:
           node --check tests/carrier124-ci-oidc-bindings.mjs
           node --check tests/carrier124-ci-auth.mjs
           node --check tests/carrier124-ci-business.mjs
+          node --check tests/task12-isolated-browser.e2e.mjs
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
       - name: Authenticate 11 QA users against exact isolated Carrier124 function
         run: node tests/carrier124-ci-auth.mjs
       - name: Execute real owner-carrier award and take with isolated synthetic rows
         run: node tests/carrier124-ci-business.mjs
+      - name: Install Chromium for real published-assets browser E2E
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
+          npx playwright install --with-deps chromium
+      - name: Open all 11 actual role cabinets against isolated v5 (published /test bytes)
+        env:
+          QA_ISOLATED_RUN: carrier124nov18
+          QA_BROWSER_PUBLISHED: 'true'
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Log out all issued synthetic sessions
         if: always()
         run: node tests/carrier124-ci-auth.mjs --logout
@@ -49,4 +62,5 @@ jobs:
           path: |
             reports/carrier124-ci-qa-auth.json
             reports/carrier124-ci-business.json
+            reports/carrier124-published-browser/
           retention-days: 14
