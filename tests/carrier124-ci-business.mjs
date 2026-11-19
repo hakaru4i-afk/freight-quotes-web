@@ -12,7 +12,7 @@ const call=async(actor,path,body,query={})=>{
  let r;
  for(let attempt=1;attempt<=(method==='GET'?3:1);attempt++){
    try{
-     r=await fetch(url.toString(),{method,redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+     r=await fetch(url.toString(),{method,redirect:'follow',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
      break;
    }catch(err){
      const cause=String(err?.cause?.code||err?.cause?.name||err?.code||err?.name||'NETWORK_ERROR').replace(/[^A-Z0-9_]/gi,'').slice(0,60);
@@ -21,6 +21,7 @@ const call=async(actor,path,body,query={})=>{
      await new Promise(resolve=>setTimeout(resolve,250*attempt));
    }
  }
+ if(new URL(r.url).hostname!=='ibclzdkxiozbzmniiygv.supabase.co')throw Error('QA_API_REDIRECT_OUTSIDE_STAGING');
  const data=await r.json().catch(()=>({}));
  evidence.checks.push({actor:actor||'anonymous',path,method,status:r.status});
  return{status:r.status,data};
