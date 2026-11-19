@@ -41,3 +41,5 @@ jobs:
           if git diff --cached --name-only | grep -Ev '^test/(business-process-model\.json|business-process-current\.(svg|drawio)|process-map\.html|processes/[^/]+\.(svg|mmd|json))$'; then echo 'INVALID_OUTPUT_SET'; exit 2; fi
           git commit -m 'build(staging): candidate process source receipts and maps, release blocked [skip ci]'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+
+# 2026-11-19 refresh source map for translated Owner and carrier request fields.
