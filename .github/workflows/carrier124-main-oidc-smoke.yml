@@ -1,9 +1,9 @@
-name: Carrier124 live OIDC acceptance on isolated v6 (11 roles)
+name: Carrier124 live OIDC acceptance on isolated v9 (11 roles)
 on:
   workflow_dispatch:
     inputs:
       full_suite:
-        description: 'Run additional isolated Carrier124 v6 railway/claims/Map50 and language-matrix checks'
+        description: 'Run additional isolated Carrier124 v9 railway/claims/Map50 and language-matrix checks'
         type: boolean
         required: false
         default: false
@@ -39,7 +39,7 @@ jobs:
           node --check tests/task12-isolated-browser.e2e.mjs
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
-      - name: Authenticate 11 QA users against exact isolated Carrier124 v6 function
+      - name: Authenticate 11 QA users against exact isolated Carrier124 v9 function
         run: node tests/carrier124-ci-auth.mjs
       - name: Execute real owner-carrier award and take with isolated synthetic rows
         id: business
@@ -49,7 +49,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           npx playwright install --with-deps chromium
-      - name: Open all 11 actual role cabinets against isolated v6 (published /test bytes)
+      - name: Open all 11 actual role cabinets against isolated v9 (published /test bytes)
         id: browser
         continue-on-error: true
         env:
@@ -60,7 +60,7 @@ jobs:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
-      - name: Full isolated Carrier124 v6 workflow with claim and ordinary closure
+      - name: Full isolated Carrier124 v9 workflow with claim and ordinary closure
         id: full_lifecycle
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
@@ -73,7 +73,7 @@ jobs:
           QA_NOV14_INCLUDE_ORDINARY: 'true'
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/nov14-published-chain.e2e.mjs
-      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated v6
+      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated v9
         id: full_matrix
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
@@ -105,7 +105,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: carrier124-oidc-v5-redacted-evidence
+          name: carrier124-oidc-v9-redacted-evidence
           path: |
             reports/carrier124-ci-qa-auth.json
             reports/carrier124-ci-business.json
