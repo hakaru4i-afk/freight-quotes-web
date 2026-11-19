@@ -43,3 +43,4 @@ jobs:
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
 
 # 2026-11-19 refresh source map for translated Owner and carrier request fields.
+# 2026-11-19 reviewed role-scoped progress UI sources (candidate only, no owner approval or deploy).
