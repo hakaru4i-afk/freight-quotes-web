@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "bed43dce9abc1573aca719bc0e839f439e2ca5af",
+  "frontendCommit": "4088a4888cbfb4781f23faac97d4bb219578c01c",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "72d2893884b07fb668888388c021b386b6531a5074ae0ebb22476b6718cc35b9",
@@ -112,7 +112,7 @@
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "test/app.js": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa",
-    "test/build-info.json": "fc1b2a5265aa4d953459ccae7285ea98f65370dac5c3e2cc0917a8516932a1c9",
+    "test/build-info.json": "eb43e2e67d686d42f3d8a65c00aa30fdd7cc961e7edc59c744f454abb1f2245c",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "a13b6a2b57eea28606c0fd99cacedad2c011782f1af04e17ea360bb76e96c8b9",
     "test/business-process-model.json": "cad87e946c1ed088570e1bfd012ab89c2b8f34b66aa90b6a5ca8fcc115dffce9",
