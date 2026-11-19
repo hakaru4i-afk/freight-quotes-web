@@ -1,0 +1,54 @@
+name: Carrier124 candidate source reindex (no deployment)
+on:
+  push:
+    branches: ['fix/carrier-dashboard-124']
+    paths: ['.github/workflows/carrier124-reindex-candidate.yml']
+permissions:
+  contents: write
+jobs:
+  reindex:
+    if: github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reindex committed candidate sources only, preserve release denial
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          import {createHash} from 'node:crypto';
+          const path='test/staging-manifest.json';
+          const m=JSON.parse(readFileSync(path));
+          if(m.releaseStatus!=='RELEASE_BLOCKED'||m.ownerAccepted!==false||
+             m.qaEvidence?.fullGroupsPassed!==0||m.apiSourceCommit!==null||m.apiBundleSha256!==null)
+            throw Error('CANDIDATE_MUST_REMAIN_UNRELEASED');
+          const tracked=execFileSync('git',['ls-files','test','docs','scripts','tests','.github/workflows'],{encoding:'utf8'}).trim().split('\n');
+          const ignored=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
+          const allowed=p=>/\.(?:js|mjs|css|html|json|md|yml|png|jpe?g|svg|webp|woff2?|ttf|otf)$/.test(p)
+            &&!ignored.has(p)&&!p.split('/').some(a=>['process-history','processes'].includes(a));
+          const indexed=tracked.filter(allowed);
+          for(const p of indexed){if(!existsSync(p))throw Error('MISSING_TRACKED_SOURCE:'+p);}
+          m.assetHashes=Object.fromEntries(indexed.sort().map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')]));
+          m.frontendCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+          writeFileSync(path,JSON.stringify(m,null,2)+'\n');
+          console.log('REINDEXED_UNRELEASED_CANDIDATE',indexed.length,m.frontendCommit);
+          JS
+          node scripts/build-process-maps.mjs --check
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/check-staging-alignment.mjs --source-only
+      - name: Commit manifest only to candidate branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- test/staging-manifest.json
+          if git diff --cached --quiet; then echo 'NO_MANIFEST_CHANGES'; exit 0; fi
+          git diff --cached --name-only | grep -Fx 'test/staging-manifest.json'
+          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
+          git push origin HEAD:refs/heads/fix/carrier-dashboard-124
