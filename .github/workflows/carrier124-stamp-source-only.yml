@@ -1,0 +1,47 @@
+name: Carrier124 candidate stamp on isolated PR branch (no deploy)
+on:
+  push:
+    branches:
+      - 'fix/carrier-dashboard-124'
+    paths:
+      - '.github/workflows/carrier124-stamp-source-only.yml'
+permissions:
+  contents: write
+jobs:
+  stamp:
+    if: github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Generate and verify staging candidate metadata only
+        run: |
+          set -euo pipefail
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/check-staging-alignment.mjs --source-only || true
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const x=JSON.parse(readFileSync('test/staging-manifest.json'));
+          if(x.releaseStatus!=='RELEASE_BLOCKED'||x.ownerAccepted!==false)throw Error('RELEASE_BOUNDARY');
+          const info=JSON.parse(readFileSync('test/build-info.json'));
+          if(info.primaryBusinessVersion!=='SH-01.30.59 v')throw Error('UNAUTHORIZED_BUSINESS_VERSION');
+          console.log('STAMP_SOURCE_ONLY_READY; RELEASE_BLOCKED');
+          JS
+      - name: Commit generated test assets to same candidate branch only
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -u -- test
+          if git diff --cached --quiet; then echo 'NO_STAMP_CHANGES'; exit 0; fi
+          if git diff --cached --name-only | grep -Ev '^test/(app\.js|index\.html|build-info\.json|site-status\.json|process-(model-graph|model-diff)\.mjs|global-view/(globe|map|view)\.mjs)$'; then
+            echo 'UNEXPECTED_STAMPED_FILES'; exit 2
+          fi
+          git commit -m 'build(staging): regenerate candidate-only asset version (release blocked) [skip ci]'
+          git push origin HEAD:refs/heads/fix/carrier-dashboard-124
