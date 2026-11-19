@@ -55,3 +55,4 @@ jobs:
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
 # 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
 # 2026-11-19 reindex after verified process-map source refresh for role-scoped notices.
+# 2026-11-19 reindex after owner-progress CI verification, source-only, RELEASE_BLOCKED.
