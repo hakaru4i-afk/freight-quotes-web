@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "ee4fb6c11aeb887728746ce1aaf51c6af20cb8e3",
+  "frontendCommit": "1cd05b85c02ca6842d579c2ef608e961b2f07969",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
@@ -104,7 +104,7 @@
     "scripts/wait-staging-publication.mjs": "5924064c53aa72c318ac2d5fea4301077656b83f883ebf9b53ed995b1e0e8ac2",
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
-    "test/app.js": "59d2a4f5f8d650592338dd4fcff2ce68f9cdeb4c6677228f425e0c725321c414",
+    "test/app.js": "3db4f5d4d5c0f42c3d7dc0870fe865b2eb1c6af28830e93874d6c06131f957a4",
     "test/build-info.json": "987e23dc02b55ff01f10d690be7addf7bf428593923c6c01c772a3c277e3ceb8",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "a13b6a2b57eea28606c0fd99cacedad2c011782f1af04e17ea360bb76e96c8b9",
@@ -146,7 +146,7 @@
     "test/global-view/view.mjs": "befe46e0c999bf1abb0388fc97e640e853ae71645910f8e892b853b27f37280b",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "b3ca5bc2e899eb6b01157abe4ca1e8794585b02e6bc87fd2dd11dc06552eda3c",
+    "test/index.html": "204f82c02ecaf354221f9e05bb79bada227376d488cf4607accc816ec4a032fe",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
     "test/late-bid-staging.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -413,7 +413,8 @@
     "tests/task2-request-coalescing.test.mjs": "3f7118bc58406a19dbfd36344c00e89c5a08197fd76c8c488347b4d21b442f20",
     "tests/transport-mode-real-scenarios.mjs": "413c0f92d8f408e9c9207bc52bcec5f300685863c3802e19e10cf766c7a7f49b",
     "tests/ved-navigation-dom.test.mjs": "0b199d063b43ee45db8b57a7cbf32dfc51e48a6dfb9811e96877127d631b917f",
-    "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa"
+    "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa",
+    "tests/carrier124-owner-request-fields.test.mjs": "9f4b32b0dbd7bde8c9e102c0c0a94e82d136287da6a7e297db4aaa01182e1877"
   },
   "roleHelpSha256": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
   "apiVersion": 115,
