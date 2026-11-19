@@ -5,11 +5,11 @@
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
   "projectRef": "ibclzdkxiozbzmniiygv",
-  "build": "SH-01.30.50 v",
+  "build": "53c1ff1f95609e1febc0",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
   "sourceCommit": "81ff5c0ff7ff547606c0f59bdab72b1831254310",
-  "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
+  "stagingPatch": "SH-01.30.59 v candidate; source locked, publication and acceptance blocked.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
   "servedAppBlobSha": "d6b3c44a86e9adfabe2efcd54cfbefa89cbd39c4",
@@ -30,8 +30,8 @@
     "fullTaskCompleted": false,
     "csvFix": "preserves negative amounts, quoted/multiline CSV, validates all fields before importing; field hint deduplication",
     "containerClosureFeedbackFix": true,
-    "backendSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
-    "backendSourceSha": "a70797666cb58d4e939bf776ea771acd6e609f21",
+    "backendSourceCommit": null,
+    "backendSourceSha": null,
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
     "stagingBuildNote": "Shared Edge v117 is observed without source attestation. SH59 QA uses the separately pinned isolated Edge in sh59IsolatedQa.",
@@ -50,9 +50,10 @@
     "lastObservedBackendVersion": 117,
     "backendDeploymentStatus": "SHARED_STAGING_API_V117_ACTIVE",
     "backendCandidate": {
-      "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
-      "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
-      "sha256": "9291932c59c5d76902f5c862a452c2f2b8f66965ae5b5791d26676719db7302b"
+      "scope": "VERIFIED_SH59_ISOLATED_SOURCE_NOT_SHARED_API",
+      "sourceCommit": "09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c",
+      "gitBlob": "203f1ef550b79abb1cb1fcc3b3e8ce3c02d58e01",
+      "sha256": "67b2e2f2ff4a6c3f53def2cbb374c54dc55efdcf1d42a8ff2489e24b6cf16354"
     },
     "frontendCandidateComponents": {
       "app.js": {
@@ -93,7 +94,7 @@
     "actRevisionGuard": true,
     "lifecycleGuard": true,
     "isolatedQaBundleSha256": "8fb292ad67a380300b145abba6646bde50525431e48a528b2cc993bae2c70d94",
-    "backendBuild": "SH-01.30.52 v",
+    "backendBuild": "SH-01.30.59 v",
     "backendBundleSHA256": "93122465092a668897c3ca1b46d8552bfd39b159d55be2f0955b588a482a0da6",
     "backendActiveBundleSha256": "93122465092a668897c3ca1b46d8552bfd39b159d55be2f0955b588a482a0da6",
     "slPenaltyRetention": {
@@ -173,6 +174,15 @@
       "backendBundleSHA256": "14123b2abde4e7379bcd6739b99a575193752fa803818a408d0a588c8bea0cb6",
       "backendActiveBundleSha256": "fab91cd7c93f72ae08d3f67faedae87d31c0a0340b1ad4162ff55b11b8768f1d",
       "backendBuildMeaning": "API /health reports original build identifier; v68 contains formal export patch, verified by active code digest"
+    },
+    "historicalBackendSource": {
+      "commit": "fba3d5a566f931906e834f55b65143b1552f6abb",
+      "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
+      "candidate": {
+        "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
+        "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
+        "sha256": "9291932c59c5d76902f5c862a452c2f2b8f66965ae5b5791d26676719db7302b"
+      }
     }
   },
   "lateBidUiSha": "447b037d674dc38b2d2608a95a4e014501322ecf",
@@ -811,5 +821,7 @@
     "sourceFilesVerified": 25,
     "qaSchemaMigration": "20261118161830",
     "observedStagingLedger": "20261119163433"
-  }
+  },
+  "historicalTask1Build": "SH-01.30.50 v",
+  "historicalTask1StagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open."
 }
