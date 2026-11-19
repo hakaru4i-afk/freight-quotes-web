@@ -8,6 +8,7 @@ const evidence={target:'freight-api-qa-carrier124nov18',source:'live Supabase is
 const call=async(actor,path,body,query={})=>{
  const url=new URL(base+path);
  for(const [key,value] of Object.entries(query))url.searchParams.set(key,value);
+ url.searchParams.set('forceFunctionRegion','eu-central-1');
  const method=body===undefined?'GET':'POST';
  const multipart=body instanceof FormData;
  let r;
@@ -45,6 +46,8 @@ try{
  const attachment=new FormData();
  attachment.set('order',order);
  attachment.append('files',new Blob(['Isolated OIDC acceptance '+order+'\n'],{type:'text/plain'}),'qa-control.txt');
+ assert.equal(attachment.get('order'),order);
+ assert.equal(attachment.getAll('files').length,1);
  const uploaded=await call('owner','/api/documents',attachment);
  assert.equal(uploaded.status,200,'isolated QA attachment failed HTTP '+uploaded.status+' '+String(uploaded.data.error||''));
  const publish=await call('owner','/api/requests',{order,deadline,summary:'Isolated QA OIDC '+order,bitrixTask:'910083,910084',logistics});
