@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "58028b87fc0b32159696",
+  "version": "53c1ff1f95609e1febc0",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "e93ae71556a53a482350f973e1d3ad62d38bd559",
+  "servedAppBlobSha": "d6b3c44a86e9adfabe2efcd54cfbefa89cbd39c4",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -56,8 +56,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "e93ae71556a53a482350f973e1d3ad62d38bd559",
-        "sha256": "b26511d50a5a42aa5d0385395a73930bd65afbdea21f6981987a6ed9ddbc5939"
+        "gitBlob": "d6b3c44a86e9adfabe2efcd54cfbefa89cbd39c4",
+        "sha256": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa"
       },
       "task2-panel.js": {
         "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
@@ -577,12 +577,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "58028b87fc0b32159696",
+  "stagingAssetBuildId": "53c1ff1f95609e1febc0",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "b26511d50a5a42aa5d0385395a73930bd65afbdea21f6981987a6ed9ddbc5939",
+    "app.js": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -622,10 +622,10 @@
     "offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
     "owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
     "owner-audit-explanations-20261117.mjs": "95dc1bcbeda3fade5ed918228f93ab9bd3765b89db1ea8111ab4bb579880bb6d",
-    "owner-command-center-20261108.css": "cd5de161c9f9431adf9b805667c56465391016d7011b218ed60b4a271ec5804b",
-    "owner-command-center-20261108.js": "e3b5510185f1dfe6ca4260b91a941937316c61ebcc2073fd3ac4fe12f76f0d14",
-    "owner-registers-20261111.css": "ed6c453f83b8fb010aa5ff9c0c18a361a557c31f44cdf19c6c522eba31f215de",
-    "owner-registers-20261111.js": "0b8d578049457c4eeb438f78a30a22f4e84762f19266519c62c53b0e67e5ea6b",
+    "owner-command-center-20261108.css": "b0c2a7b468be7d6b967698115d2e5c91e5166a8c42232f386b332837c1355cd3",
+    "owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
+    "owner-registers-20261111.css": "3e001f6a07af5e79ad665d070f56afb2927a93659f5e377d8063f5733e92c5d9",
+    "owner-registers-20261111.js": "e763828fc4e81a27bdff763ec7b2f7cd5e401d927d92734baa0ed6e9f643dbec",
     "owner-team-users-20261117.css": "2b0146ed84d868d1a0b0f1bf55892b79a4d311b61db0991729720553a85c6a4c",
     "owner-team-users-20261117.js": "c6cb3aaa74aa6ce820e2a0845458a36543ba5b341ac1c6e660ac0e43d683d721",
     "owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
@@ -689,7 +689,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-19T10:02:36.248Z",
+  "assetBuildRecordedAt": "2026-11-19T10:07:05.074Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
