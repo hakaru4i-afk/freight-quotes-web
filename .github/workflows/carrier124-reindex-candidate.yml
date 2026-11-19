@@ -56,3 +56,5 @@ jobs:
 # 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
 # 2026-11-19 reindex after verified process-map source refresh for role-scoped notices.
 # 2026-11-19 reindex after owner-progress CI verification, source-only, RELEASE_BLOCKED.
+
+# 2026-11-19 reindex T1-01 browser test after required Incoterms place was added; source-only, no deployment.
