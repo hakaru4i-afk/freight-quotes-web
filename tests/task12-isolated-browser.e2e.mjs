@@ -52,6 +52,16 @@ const loserArchive=exactCandidate&&process.env.QA_BROWSER_LOSER_ARCHIVE==='true'
 const remainingPhase=exactCandidate&&process.env.QA_BROWSER_REMAINING;
 const phase=remainingPhase?'remaining-'+remainingPhase:loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=frozenSource||process.cwd(),base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
+if(exactCandidate){
+ const manifest=JSON.parse(await readAsset('test/staging-manifest.json'));
+ if(manifest.sh59IsolatedQa?.receiptPath){
+  const r=await fetch(base+'/health?forceFunctionRegion=eu-central-1',{redirect:'error',signal:AbortSignal.timeout(15000)});
+  assert.equal(r.status,200);
+  const health=await r.json();
+  assert.equal(health.qaRun,carrier124.run);
+  assert.equal(health.edgeVersion,carrier124.version,'ISOLATED_EDGE_VERSION_DRIFT');
+ }
+}
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readAsset(file.slice(root.length+1)));}catch{res.writeHead(404).end();}});
@@ -201,7 +211,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    assert.equal((await uploaded).status(),200,'Real browser file upload failed');
    const publish=panel.getByRole('button',{name:/Опубликовать и уведомить/});
    const saved=page.waitForResponse(r=>r.url().includes('/api/requests')&&r.request().method()==='POST',{timeout:60000});await publish.click({timeout:60000});
-   const r=await saved;assert.equal(r.status(),200);const result=await r.json();assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
+   const r=await saved;const result=await r.json();assert.equal(r.status(),200,JSON.stringify({error:result.error,fields:result.fields,requestId:r.headers()["x-freight-request-id"]}));assert.equal(result.recipients,2);rec.publication={http:200,round:result.round,recipients:2};
    const readback=await fetch(base+'/api/requests?order='+encodeURIComponent(order)+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions.owner},redirect:'error',signal:AbortSignal.timeout(30000)});
    assert.equal(readback.status,200,'POST publication must be readable through the same isolated API');
    const payload=await readback.json(),stored=payload.request;

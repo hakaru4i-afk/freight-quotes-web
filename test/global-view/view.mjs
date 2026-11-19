@@ -1,5 +1,5 @@
-import { calculateMapDistances } from './distance.mjs?v=850df59b95e2';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=1d87195c17c6';
+import { calculateMapDistances } from './distance.mjs?v=42ea24b3c9cd';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=0b8aaba43845';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -118,8 +118,9 @@ class GlobalRouteView extends HTMLElement {
         return {lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id};
       // Historical unresolved server records must not conceal a verified gazetteer city-center preview.
       // The preview is never a confirmed facility or a valid source for operational VED thresholds.
-      const preview=serverPoints.get(label)||localPlace(label);
-      return preview?{...preview,approximate:true,precision:'city',confirmed:false}:null;
+      const serverPoint=serverPoints.get(label);
+      if(serverPoint)return serverPoint;
+      return localPlace(label);
     };
     const correction=(record,source)=>{
       const canChange=request.viewerRole==='owner'||request.viewerRole==='carrier'&&source!=='owner';
@@ -186,6 +187,12 @@ class GlobalRouteView extends HTMLElement {
     }
     activities.append(list);
     if (trackingHistory) activities.append(trackingHistory);
+    if ([...route.stops, ...route.deferred].some(stop => stop.position?.provider === 'stadia-maps') ||
+        tracking?.some(entry => entry.geocode?.provider === 'stadia-maps')) {
+      const credit = node('a', '', t('Геоданные © Stadia Maps и поставщики', 'Geocoding © Stadia Maps and data providers', '地理编码 © Stadia Maps 及数据供应商'));
+      credit.href = 'https://docs.stadiamaps.com/attribution/';
+      activities.append(credit);
+    }
     if (route.deferred.length) {
       activities.append(node('h4', 'gv-unordered-title', 'Порядок не указан'));
       const unordered = node('ul', 'gv-unordered');
@@ -235,6 +242,7 @@ class GlobalRouteView extends HTMLElement {
         const label = result.geodesicMinimum && leg.km!=null ? 'не менее '+leg.km.toLocaleString('ru-RU')+' км по прямой (не маршрут)' : leg.status === 'calculated' ? leg.km.toLocaleString('ru-RU') + ' км' + (leg.estimated ? ' (по центрам городов)' : '') : ({
           COORDINATES_MISSING: 'нет координат',
           EXACT_ADDRESS_REQUIRED: 'требуется точный адрес',
+          PRIVATE_ROUTER_REQUIRED: 'требуется доверенный маршрутизатор',
           LEG_MODES_REQUIRED: 'укажите транспорт каждого участка',
           NETWORK_ROUTER_REQUIRED: 'нет источника расчёта для этого транспорта',
           ROUTER_UNAVAILABLE: 'сервис маршрутизации недоступен'
@@ -273,8 +281,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=e76bce4b88fb')).createGlobe
-            : (await import('./map.mjs?v=83f24022cd29')).createMap;
+            ? (await import('./globe.mjs?v=12feed2fbe8a')).createGlobe
+            : (await import('./map.mjs?v=7c13b8f78828')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;

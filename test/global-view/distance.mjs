@@ -22,8 +22,8 @@ export async function calculateMapDistances(route,{signal,fetchImpl=fetch}={}){
  let knownMeters=0;
  for(let i=0;i<legs.length;i++){
   const a=stops[i].position,b=stops[i+1].position;
-  if(a?.queryScope==='configured-private'||b?.queryScope==='configured-private'){legs[i].reason='PRIVATE_ROUTER_REQUIRED';continue}
   if(!valid(a)||!valid(b)){legs[i].reason='COORDINATES_MISSING';continue}
+  if(a.queryScope!=='public-place-only'||b.queryScope!=='public-place-only'){legs[i].reason='PRIVATE_ROUTER_REQUIRED';continue}
   if(a.lat===b.lat&&a.lng===b.lng){legs[i]={...legs[i],status:'calculated',km:0,reason:null,estimated:!!(a.approximate||b.approximate),source:'identical coordinates'};continue}
   try{
    const coords=`${a.lng},${a.lat};${b.lng},${b.lat}`;
@@ -35,7 +35,7 @@ export async function calculateMapDistances(route,{signal,fetchImpl=fetch}={}){
   }catch(error){if(signal?.aborted)throw error;legs[i].reason='ROUTER_UNAVAILABLE'}
  }
  const complete=legs.every(x=>x.status==='calculated');
- if(!complete&&minimumKm!==null)return provisional('ROAD_NETWORK_UNAVAILABLE');
+ if(!complete&&minimumKm!==null)return provisional(legs.some(leg=>leg.reason==='PRIVATE_ROUTER_REQUIRED')?'PRIVATE_ROUTER_REQUIRED':'ROAD_NETWORK_UNAVAILABLE');
  return {status:complete?mode==='unknown'?'provisional':'complete':'partial',
    estimated:mode==='unknown'||legs.some(x=>x.estimated),
    provisionalMode:mode==='unknown',geodesicMinimum:false,

@@ -62,7 +62,7 @@
           "role": "system",
           "title": "Проверить и опубликовать",
           "status": "published / 400",
-          "detail": "При ошибке вернуться к форме без публикации Сохранить исходные точки и результат геокодирования; сбой координат не теряет заявку."
+          "detail": "При ошибке вернуться к форме без публикации Сохранить исходные точки и результат геокодирования; сбой координат не теряет заявку. Частные детали остаются в портале. При отказе геокодера сохранять исходные точки и статус недоступности."
         },
         {
           "id": "P01-5",
@@ -125,7 +125,7 @@
           "role": "system",
           "title": "Сохранить и показать владельцу",
           "status": "submitted",
-          "detail": "Повтор с тем же request ID не дублирует Сохранить порт/станцию Incoterm и все точки маршрута именно этой ставки с привязкой bid/round."
+          "detail": "Повтор с тем же request ID не дублирует Сохранить порт/станцию Incoterm и все точки маршрута именно этой ставки с привязкой bid/round. Подтвердить страну и публичный объект по ответу серверного геокодера. Изменение последовательности точек требует нового расчёта."
         }
       ]
     },
@@ -251,7 +251,7 @@
           "role": "system",
           "title": "Проверить расстояние",
           "status": "verified / unavailable",
-          "detail": "Никаких вымышленных километров"
+          "detail": "Никаких вымышленных километров Дорожная сеть применяется только для авто. Центр города даёт ориентир. Для ЖД, моря и авиа не подставлять автомобильный расчёт."
         },
         {
           "id": "P05-manual",
@@ -650,7 +650,7 @@
     "test/owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
     "test/owner-registers-20261111.js": "e763828fc4e81a27bdff763ec7b2f7cd5e401d927d92734baa0ed6e9f643dbec",
     "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-    "test/global-view/view.mjs": "b0490ef5a0cc20f7b85b89725b499d52cd69ae63006f36aa88d522bff2c08d48",
+    "test/global-view/view.mjs": "ea9c877ce0232610c4e4bc1a8500b14c1aefd92f5e5f9412d7272ab1b7ab2fee",
     "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
     "test/lw-pending-tasks-all-roles-20261109.js": "c5e4755db86c4dd4213ee6dd7878143bce7bb55b0c55cebf4b686d483be8082b",
     "test/lw-ved-shared-chat-20261109.js": "141e45e95201602725acecc5d529ff5ed3dde3916b7060ad8d608ef34f3e24e0",
@@ -665,12 +665,12 @@
     "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/task2-panel.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
-    "test/global-view/route-model.mjs": "9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2",
-    "test/global-view/distance.mjs": "5afbc5bce74f0145f7cbbdbf92cd451c34392e2ffaad998cdf53c3ddde3f7297",
-    "test/global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
-    "test/global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13"
+    "test/global-view/route-model.mjs": "9a626149ba321a00aa1f46d8facd0131dc58cb8fd492a0ea51eb889d88ea4b5a",
+    "test/global-view/distance.mjs": "e5cb93fe7833008feb861c43d1beb0396f3c4e2824ed84769acf2d0353de60a1",
+    "test/global-view/globe.mjs": "da97f19fdf84779f169f0a8ab059f6f7732397e1faa8e39dd537848f22f4e458",
+    "test/global-view/map.mjs": "5a1bff28855697ba37a42a260e9829d90396d9c7561844957d0ddd435851e5cc"
   },
-  "reviewedBackendSourceCommit": "09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c",
+  "reviewedBackendSourceCommit": "829dca16619060f38bab421a381e225b48514091",
   "previousVersion": "20261113-logic-11",
   "technicalContext": "Кандидат FE PR129 / backend PR102, source bec4fa5596a32cfdba01253388f3039ad5ebdd42. Проверены 276 backend tests и PostgreSQL; UI Owner/Carrier и RU/EN/ZH проверены отдельно. Это не hosted authenticated E2E. Published FE main1e1e4fb, production API46, staging API115, QA44; source binding shared115 не подтверждён. Полная приёмка и публикация остаются RELEASE_BLOCKED."
 }

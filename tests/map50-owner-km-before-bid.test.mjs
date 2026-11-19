@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {placeIndex,routeModel} from '../global-view/route-model.mjs';
-import {calculateMapDistances} from '../global-view/distance.mjs';
+import {placeIndex,routeModel} from '../test/global-view/route-model.mjs';
+import {calculateMapDistances} from '../test/global-view/distance.mjs';
 
-const lookup=placeIndex(JSON.parse(readFileSync(new URL('../global-view/places.json',import.meta.url),'utf8')));
+const lookup=placeIndex(JSON.parse(readFileSync(new URL('../test/global-view/places.json',import.meta.url),'utf8')));
 const origin='QINGDAO Linyi shandong 山东省临沂市费县梁丘镇郝家村';
 const request={origin,destination:'Минск'};
 const router=async()=>({ok:true,json:async()=>({code:'Ok',routes:[{distance:5623400}]})});
@@ -45,4 +45,15 @@ test('Rail shipment never presents road OSRM as rail kilometer result',async()=>
  assert.equal(result.status,'provisional');
  assert.ok(result.totalKm>0);
  assert.match(result.source,/Geographical lower bound/);
+});
+
+test('private and unverified coordinate pairs never leave the browser for public OSRM',async()=>{
+ for(const scope of ['configured-private',undefined]){
+  const route=routeModel(request,{mode:'Авто'},lookup);
+  route.stops[0].position={...route.stops[0].position,queryScope:scope};
+  const result=await calculateMapDistances(route,{fetchImpl:()=>assert.fail('private point must not leave the portal')});
+  assert.equal(result.status,'provisional');
+  assert.equal(result.geodesicMinimum,true);
+  assert.equal(result.legs[0].reason,'PRIVATE_ROUTER_REQUIRED');
+ }
 });

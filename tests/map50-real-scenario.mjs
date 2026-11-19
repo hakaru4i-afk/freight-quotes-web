@@ -2,18 +2,28 @@ import assert from'node:assert/strict';import{readFile,writeFile}from'node:fs/pr
 import {setTimeout as delay} from 'node:timers/promises';
 export async function map50Scenario({page,actor,base,sessions,rec,report,evidenceDir}){
  const owner=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0],order=owner.createdOrder,winner=owner.selection.winnerActor;rec.mapOrder=order;
- async function api(who,path,body){const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',...(who?{Authorization:'Bearer '+sessions[who]}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});return{status:r.status,data:await r.json()};}
+ async function api(who,path,body){const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',...(who?{Authorization:'Bearer '+sessions[who]}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});return{status:r.status,data:await r.json(),requestId:r.headers.get('x-freight-request-id')};}
+ function assertValidProviderPoint(point){
+  assert.equal(point.provider,'stadia-maps');
+  assert.equal(point.status,'resolved');
+  assert.ok(point.candidateId&&Number.isFinite(Date.parse(point.geocodedAt)));
+  assert.ok(Number.isFinite(point.lat)&&Number.isFinite(point.lon));
+  assert.ok(['city','facility','address'].includes(point.precision));
+  if(point.precision==='city')assert.equal(point.confirmed,false);
+ }
  const detail=async who=>api(who,'/api/task2?order='+encodeURIComponent(order));let d=(await detail(actor)).data;
  await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());await page.locator('#t2-select').selectOption(order,{timeout:60000});const map=page.locator('global-route-view').first();await map.waitFor({state:'visible',timeout:60000});
  if(actor==='owner'){
   rec.ownerGeocodeRetries=[];
   for(const point of d.plannedGeocodes.owner.filter(p=>p.status==='unavailable')){
    let state=point;
-   // Match the resolver's 30-second provider circuit. Retry at most twice and
-   // still require persisted coordinates below. Ambiguity needs confirmation.
+   if(state.reason==='PROVIDER_CREDENTIALS_MISSING')continue;
+   // Respect the server's bounded retry timestamp and require persisted
+   // coordinates below. Ambiguity needs confirmation.
    for(let attempt=1;attempt<=2&&state.status==='unavailable';attempt++){
-    const elapsed=Date.now()-Date.parse(state.geocodedAt);
-    await delay(Number.isFinite(elapsed)?Math.min(31000,Math.max(0,31000-elapsed)):31000);
+    const retryAt=Date.parse(state.retryAt||'');
+    const resume=Number.isFinite(retryAt)?retryAt:Date.parse(state.geocodedAt)+30000;
+    await delay(Number.isFinite(resume)?Math.min(301000,Math.max(0,resume-Date.now()+1000)):31000);
     const form=page.locator('.gv-geocode-form[data-geo-id="'+point.id+'"]');
     if(!await form.isVisible())await form.locator('..').locator('summary').click();
     const response=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.action==='geocode_retry'&&r.request().postDataJSON()?.pointId===point.id,{timeout:60000});
@@ -34,10 +44,32 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   d=(await detail(actor)).data;
   const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(({id,status,reason})=>({id,status,reason}));
   assert.deepEqual(unresolved,[],'MAP50 unresolved after the real provider retry');
+  assert.ok(d.plannedGeocodes.owner.length>=2);
+  for(const point of d.plannedGeocodes.owner)assertValidProviderPoint(point);
   const p=d.plannedGeocodes.owner[0],before=p.original_text;
   for(const[body,status]of [[{queryText:'Беларусь, Шэньчжэнь',reason:'Synthetic country conflict for MAP50',confirmed:true},'not_found'],[{},'resolved']]){const r=await api('owner','/api/task2',{action:'geocode_retry',order,pointId:p.id,...body});assert.equal(r.status,200);assert.equal(r.data.result.status,status);}
   const checked=(await detail('owner')).data.plannedGeocodes.owner.find(q=>q.id===p.id);assert.equal(checked.original_text,before);
-  rec.ownerGeocodes={count:d.plannedGeocodes.owner.length,allResolved:true,wrongCountryRejected:true,originalPreserved:true};return;
+  rec.ownerGeocodes={count:d.plannedGeocodes.owner.length,allResolved:true,wrongCountryRejected:true,originalPreserved:true};
+  // A separate short, public route exercises the real road network even if
+  // the shipment crosses a border without a routable international connection.
+  const direct=['Беларусь, Минск','Беларусь, Брест'];
+  const via=[direct[0],'Беларусь, Могилёв',direct[1]];
+  const distance=async (addresses,transport='Авто')=>api('owner','/api/route-distance',{addresses,transport});
+  const first=await distance(direct),changed=await distance(via);
+  for(const [result,pointCount] of [[first,2],[changed,3]]){
+   assert.equal(result.status,200,JSON.stringify(result));
+   const {km,points,source,estimated}=result.data;
+   assert.ok(Number.isFinite(km)&&km>0);
+   assert.equal(source,'OSRM / OpenStreetMap');
+   assert.equal(estimated,true,'City centroids do not verify an exact road distance');
+   assert.equal(points.length,pointCount);
+   for(const point of points)assertValidProviderPoint(point);
+  }
+  assert.notEqual(first.data.key,changed.data.key);
+  assert.ok(changed.data.km>first.data.km);
+  for(const mode of ['ЖД','Море','Авиа'])assert.equal((await distance(via,mode)).status,422);
+  rec.roadDistance={direct:{km:first.data.km,requestId:first.requestId},via:{km:changed.data.km,requestId:changed.requestId},cityEstimated:true,nonRoadDenied:true};
+  return;
  }
  if(actor==='ved'){assert.equal(await map.locator('.gv-geocode-form').count(),0);await page.waitForFunction(()=>document.querySelector('global-route-view')?.routeSnapshot?.markers?.filter(p=>p.tracking).length===2);rec.map50ReadOnly={result:'PASS',points:d.points.length,mutationsAllowed:false};return;}
  assert.equal(actor,winner);if(!d.state.actual_departure){const form=page.locator('[data-t2-form="actual"]');await form.locator('[name="actual_departure"]').fill('2026-11-02T06:00');const saved=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.fields?.actual_departure,{timeout:60000});await form.getByRole('button',{name:'Сохранить',exact:true}).click();assert.equal((await saved).status(),200);await page.waitForFunction(()=>document.querySelector('#task2-root')?.getAttribute('aria-busy')==='false');}
@@ -49,6 +81,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   const first=(await detail(actor)).data.points;assert.equal(first.length,index+1);const retry=await api(actor,'/api/task2',response.request().postDataJSON());assert.equal(retry.status,200);const after=(await detail(actor)).data.points;assert.deepEqual(after.map(p=>p.id),first.map(p=>p.id),'Replay must preserve tracking identities');
  }
  d=(await detail(actor)).data;assert.equal(d.points.length,2);assert.ok(d.points.every(p=>p.geocode.status==='resolved'&&Number.isFinite(p.geocode.lat)&&Number.isFinite(p.geocode.lon)));assert.ok(d.plannedGeocodes.owner.every(p=>p.status==='resolved'));assert.ok(d.plannedGeocodes.offer.every(p=>p.status==='resolved'));assert.ok(d.plannedGeocodes.offer.some(p=>p.precision==='facility'));assert.ok(d.plannedGeocodes.offer.some(p=>p.original_text===(actor==='carrierA'?'Китай, Шанхай':'Китай, Нинбо')));assert.ok(!d.plannedGeocodes.offer.some(p=>p.original_text===(actor==='carrierA'?'Китай, Нинбо':'Китай, Шанхай')));
+ for(const point of [...d.plannedGeocodes.owner,...d.plannedGeocodes.offer,...d.points.map(p=>p.geocode)])assertValidProviderPoint(point);
 
  for(const[who,body,expected]of [[actor,{action:'location',location:'',date:d.points[1].observed_at},400],['owner',{action:'location',location:'Беларусь, Брест',date:d.points[1].observed_at},403],['ved',{action:'location',location:'Беларусь, Брест',date:d.points[1].observed_at},403],[actor,{action:'geocode_retry',pointId:d.points[1].geocode.geoPointId,queryText:'China, Shenzhen',confirmed:false,reason:'Synthetic missing confirmation'},400]]){const r=await api(who,'/api/task2',{order,...body});assert.equal(r.status,expected);}
  const own=d.points[1].geocode.geoPointId,ownerPoint=d.plannedGeocodes.owner[0].id;

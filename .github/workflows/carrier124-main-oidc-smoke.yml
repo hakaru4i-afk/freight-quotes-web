@@ -1,4 +1,4 @@
-name: Carrier124 live OIDC acceptance on isolated v9 (11 roles)
+name: Carrier124 live OIDC acceptance on isolated SH59 (11 roles)
 on:
   workflow_dispatch:
     inputs:
@@ -57,6 +57,7 @@ jobs:
           const health=await response.json();
           assert.equal(health.release,qa.businessVersion);
           assert.equal(health.qaRun,'carrier124nov18');
+          if(qa.receiptPath)assert.equal(health.edgeVersion,qa.version,'ISOLATED_EDGE_VERSION_DRIFT');
           assert.equal(health.projectRef,qa.projectRef);
           assert.equal(health.environment,'staging');
           const pair={
@@ -71,7 +72,7 @@ jobs:
           NODE
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
-      - name: Authenticate 11 QA users against exact isolated Carrier124 v9 function
+      - name: Authenticate 11 QA users against exact isolated Carrier124 SH59 function
         run: node tests/carrier124-ci-auth.mjs
       - name: Execute real owner-carrier award and take with isolated synthetic rows
         id: business
@@ -92,7 +93,7 @@ jobs:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
-      - name: Full isolated Carrier124 v9 workflow with claim and ordinary closure
+      - name: Full isolated Carrier124 SH59 workflow with claim and ordinary closure
         id: full_lifecycle
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
@@ -104,7 +105,7 @@ jobs:
           QA_NOV14_INCLUDE_ORDINARY: 'true'
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/nov14-published-chain.e2e.mjs
-      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated v9
+      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated SH59
         id: full_matrix
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
@@ -116,6 +117,39 @@ jobs:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Run MAP50 with real provider and pinned isolated assets
+        id: map50
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        env:
+          QA_ISOLATED_RUN: carrier124nov18
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-map50
+          QA_MAP50: 'true'
+          QA_MAP_ORDER: QA-MAP50-${{ github.run_id }}-${{ github.run_attempt }}
+          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {carrier124Base} from './tests/carrier124-isolated-target.mjs';
+          const r=await fetch(carrier124Base+'/health',{redirect:'error',signal:AbortSignal.timeout(15000)});
+          assert.equal(r.status,200);
+          const {shipmentGeocoder}=await r.json();
+          assert.equal(shipmentGeocoder?.provider,'stadia-maps');
+          assert.equal(shipmentGeocoder?.configured,true,'BLOCKED_PROVIDER_CREDENTIALS');
+          NODE
+          QA_BROWSER_ACTORS=owner QA_BROWSER_CREATE=true node tests/task12-isolated-browser.e2e.mjs
+          QA_BROWSER_ACTORS=carrierA,carrierB QA_BROWSER_BID=true node tests/task12-isolated-browser.e2e.mjs
+          QA_BROWSER_ACTORS=owner QA_BROWSER_SELECT=true node tests/task12-isolated-browser.e2e.mjs
+          winner=$(node -p "require('./reports/carrier124-map50/browser-results-owner.json').roles[0].selection.winnerActor")
+          test "$winner" = carrierA || test "$winner" = carrierB
+          QA_BROWSER_ACTORS="$winner" QA_BROWSER_ACCEPT=true node tests/task12-isolated-browser.e2e.mjs
+          QA_BROWSER_ACTORS=owner QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
+          QA_BROWSER_ACTORS="$winner" QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
+          QA_BROWSER_ACTORS=ved QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
       - name: Fail closed unless both real API and browser validation succeed
         if: always()
         shell: bash
@@ -125,6 +159,7 @@ jobs:
           if [ '${{ inputs.full_suite }}' = 'true' ]; then
             test '${{ steps.full_lifecycle.outcome }}' = success
             test '${{ steps.full_matrix.outcome }}' = success
+            test '${{ steps.map50.outcome }}' = success
           fi
       - name: Log out all issued synthetic sessions
         if: always()
@@ -135,12 +170,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: carrier124-oidc-v9-redacted-evidence
+          name: carrier124-oidc-sh59-redacted-evidence
           path: |
             reports/carrier124-ci-qa-auth.json
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
             reports/carrier124-full-roles/
+            reports/carrier124-map50/
             reports/nov14-published/
             reports/nov14-ordinary/
           retention-days: 14

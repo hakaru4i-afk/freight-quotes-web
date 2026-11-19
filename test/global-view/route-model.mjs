@@ -45,7 +45,7 @@ export function placeIndex(rows) {
     for (const name of names) {
       for (const key of [normal(name), ...(country ? [normal(name + ' ' + country)] : [])]) {
         const points = index.get(key) ?? new Map();
-        points.set(lat + ',' + lng, { lat, lng, approximate: true });
+        points.set(lat + ',' + lng, { lat, lng, approximate: true, queryScope: 'public-place-only' });
         index.set(key, points);
       }
     }
@@ -55,7 +55,7 @@ export function placeIndex(rows) {
   // NEVER claim that these are the coordinates of the supplier's warehouse or Mazhu Road.
   for (const name of ['Yuyao', '余姚', '余姚市']) {
     const pts = new Map();
-    pts.set('30.0403,121.1501', {lat:30.0403,lng:121.1501,approximate:true,precision:'city',confirmed:false,source:'OSM Yuyao city centre'});
+    pts.set('30.0403,121.1501', {lat:30.0403,lng:121.1501,approximate:true,precision:'city',confirmed:false,queryScope:'public-place-only',source:'OSM Yuyao city centre'});
     index.set(normal(name),pts);
     index.set(normal(name+' CN'),pts);
   }

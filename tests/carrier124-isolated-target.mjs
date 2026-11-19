@@ -29,6 +29,13 @@ export function assertCandidateCheckout() {
   assert.equal(manifest.publicationState,'CANDIDATE_NOT_RELEASED');
   assert.equal(manifest.frontendCommit,pair.frontendSource);
   assert.equal(manifest.backendSourceCommit,pair.backendSource);
+  if(manifest.sh59IsolatedQa){
+    const qa=manifest.sh59IsolatedQa;
+    assert.equal(qa.function,pair.function,'Unexpected isolated function');
+    assert.equal(qa.version,pair.version,'Unexpected isolated version');
+    assert.equal(qa.providerBundleSha256,pair.bundle,'Unexpected isolated bundle');
+    assert.equal(qa.sourceFilesVerified,pair.readbackCount,'Unexpected provider file count');
+  }
   const git = args => execFileSync('git', args, {encoding: 'utf8'}).trim();
   assert.equal(git(['rev-parse', carrier124.frontendMetadata + ':test']), carrier124.frontendTestTree, 'Unexpected frontend candidate');
   git(['diff','--exit-code',carrier124.frontendMetadata,'HEAD','--','test',':(exclude)test/staging-manifest.json']);
