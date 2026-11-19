@@ -46,8 +46,17 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
    const form=page.locator('.gv-geocode-form[data-geo-id="'+p.id+'"]');await form.locator('..').locator('summary').click();await form.locator('[name="candidateId"]').selectOption(candidate.candidateId);await form.locator('[name="reason"]').fill('Synthetic confirmed station selection for MAP50');await form.locator('[name="confirmed"]').check();const saved=page.waitForResponse(r=>r.url().includes('/api/task2')&&r.request().method()==='POST'&&r.request().postDataJSON()?.candidateId===candidate.candidateId);await form.getByRole('button',{name:'Сохранить уточнение',exact:true}).click();assert.equal((await saved).status(),200);await page.waitForTimeout(500);
   }
   d=(await detail(actor)).data;
-  const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(({id,status,reason})=>({id,status,reason}));
-  assert.deepEqual(unresolved,[],'MAP50 unresolved after the real provider retry');
+  // Keep diagnostics privacy-safe: no raw addresses, candidate labels, or tokens.
+  // A successful HTTP 200 does not imply that a provider resolved the point.
+  const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(p=>({
+   id:p.id,status:p.status,reason:p.reason||null,
+   retryAt:p.retryAt||null,geocodedAt:p.geocodedAt||null,
+   candidateCount:Array.isArray(p.candidates)?p.candidates.length:0,
+   hasFiniteCoordinates:Number.isFinite(p.lat)&&Number.isFinite(p.lon)
+  }));
+  rec.ownerGeocodeReadback={total:d.plannedGeocodes.owner.length,unresolved,retries:rec.ownerGeocodeRetries};
+  await writeFile(evidenceDir+'/map50-owner-geocode-readback.json',JSON.stringify(rec.ownerGeocodeReadback,null,2));
+  assert.deepEqual(unresolved,[],'MAP50 unresolved after the real provider retry; see map50-owner-geocode-readback.json');
   assert.ok(d.plannedGeocodes.owner.length>=2);
   for(const point of d.plannedGeocodes.owner)assertValidProviderPoint(point);
   const p=d.plannedGeocodes.owner[0],before=p.original_text;
