@@ -1,4 +1,4 @@
-name: Carrier124 live OIDC acceptance on isolated v5 (11 roles)
+name: Carrier124 live OIDC acceptance on isolated v6 (11 roles)
 on:
   workflow_dispatch:
 permissions:
@@ -33,7 +33,7 @@ jobs:
           node --check tests/task12-isolated-browser.e2e.mjs
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
-      - name: Authenticate 11 QA users against exact isolated Carrier124 function
+      - name: Authenticate 11 QA users against exact isolated Carrier124 v6 function
         run: node tests/carrier124-ci-auth.mjs
       - name: Execute real owner-carrier award and take with isolated synthetic rows
         id: business
@@ -43,7 +43,7 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           npx playwright install --with-deps chromium
-      - name: Open all 11 actual role cabinets against isolated v5 (published /test bytes)
+      - name: Open all 11 actual role cabinets against isolated v6 (published /test bytes)
         id: browser
         continue-on-error: true
         env:
