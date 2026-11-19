@@ -23,3 +23,4 @@ jobs:
           if [ "$status" != 204 ]; then echo "OIDC_QA_DISPATCH_BLOCKED_HTTP_$status";exit 1;fi
           echo 'CARRIER124_MAIN_ONLY_OIDC_V5_WORKFLOW_DISPATCHED; NOT_A_RELEASE'
 # Retry isolated v5 after same-region multipart routing patch 8e330e9; no production data writes.
+# 2026-11-19 OIDC v6 exact-provider recheck after reviewed geo failover; isolated accounts only, main-only workflow.
