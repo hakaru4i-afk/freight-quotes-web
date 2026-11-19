@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
-import {randomUUID} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
 
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-carrier124nov18';
 const sessions=JSON.parse(await readFile('/tmp/freight-carrier124-ci/sessions.json','utf8'));
-const evidence={target:'freight-api-qa-carrier124nov18',source:'live Supabase isolated QA v5',checks:[],timestamp:new Date().toISOString()};
+const evidence={target:'freight-api-qa-carrier124nov18',businessVersion:'SH-01.30.59 v',checks:[],timestamp:new Date().toISOString()};
 const call=async(actor,path,body,query={})=>{
  const url=new URL(base+path);
  for(const [key,value] of Object.entries(query))url.searchParams.set(key,value);
@@ -14,7 +14,7 @@ const call=async(actor,path,body,query={})=>{
  let r;
  for(let attempt=1;attempt<=(method==='GET'?3:1);attempt++){
    try{
-     r=await fetch(url.toString(),{method,redirect:'follow',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+     r=await fetch(url.toString(),{method,redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
      break;
    }catch(err){
      const cause=String(err?.cause?.code||err?.cause?.name||err?.code||err?.name||'NETWORK_ERROR').replace(/[^A-Z0-9_]/gi,'').slice(0,60);
@@ -25,8 +25,9 @@ const call=async(actor,path,body,query={})=>{
  }
  if(new URL(r.url).hostname!=='ibclzdkxiozbzmniiygv.supabase.co')throw Error('QA_API_REDIRECT_OUTSIDE_STAGING');
  const data=await r.json().catch(()=>({}));
- evidence.checks.push({actor:actor||'anonymous',path,method,status:r.status});
- return{status:r.status,data};
+ const requestId=r.headers.get('x-freight-request-id');
+ evidence.checks.push({actor:actor||'anonymous',path,method,status:r.status,requestId});
+ return{status:r.status,data,requestId};
 };
 try{
  const health=await call(null,'/health');
@@ -34,12 +35,13 @@ try{
  assert.equal(health.data.qaRun,'carrier124nov18');
  assert.equal(health.data.projectRef,'ibclzdkxiozbzmniiygv');
  assert.equal(health.data.environment,'staging');
+ assert.equal(health.data.release,evidence.businessVersion);
  assert.ok([401,403].includes((await call(null,'/api/carrier')).status));
  const a=await call('carrierA','/api/carrier'),b=await call('carrierB','/api/carrier');
  assert.equal(a.status,200);assert.equal(b.status,200);
  assert.ok(Array.isArray(a.data.notifications));assert.ok(Array.isArray(b.data.notifications));
- const order='QA-N26-OIDC-'+process.env.GITHUB_RUN_ID;
- assert.match(order,/^QA-N26-OIDC-[0-9]+$/);
+ const order='QA-N26-OIDC-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
+ assert.match(order,/^QA-N26-OIDC-[0-9]+-[0-9]+$/);
  const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Minsk',dateStyle:'short',timeStyle:'short'});
  const deadline=fmt.format(Date.now()+86400000).replace(' ','T');
  const logistics={sender_contact:'OIDC synthetic owner',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'E2E synthetic freight',weight:'1250',volume:'12.5',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Synthetic Brest gate',dangerous_goods:'no'};
@@ -53,9 +55,21 @@ try{
  const publish=await call('owner','/api/requests',{order,deadline,summary:'Isolated QA OIDC '+order,bitrixTask:'910083,910084',logistics});
  assert.equal(publish.status,200,'owner request create failed HTTP '+publish.status+' '+String(publish.data.error||publish.data.message||''));
  evidence.order=order;
+ const owner=await call('owner','/api/requests',undefined,{order});
+ assert.equal(owner.status,200);
+ const stored=owner.data.request;
+ assert.equal(stored?.order_code,order);
+ assert.match(publish.data.round,/^[0-9a-f-]{36}$/);
+ assert.equal(stored.round_id,publish.data.round);
+ assert.match(stored.registration_no,/^TR-\d{2}-\d{6}$/);
+ assert.ok(owner.requestId,'The registration readback must have a real request ID');
+ const readback={order,round:stored.round_id,registrationNo:stored.registration_no,requestId:owner.requestId};
+ evidence.registration={...readback,sha256:createHash('sha256').update(JSON.stringify(readback)).digest('hex')};
  const carrier=await call('carrierA','/api/requests',undefined,{order});
  assert.equal(carrier.status,200);
  assert.equal(carrier.data.request.order_code,order);
+ assert.equal(carrier.data.request.round_id,stored.round_id);
+ assert.equal(carrier.data.request.registration_no,stored.registration_no);
  const bidRequest=randomUUID();
  const offer=await call('carrierA','/api/quote',{order,carrier:'Synthetic carrier A',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2099-12-05',days:21,insurance:'Включено',includes:'QA transport',extras:'No extras',validUntil:'2099-12-20',incotermPlace:'Synthetic Brest gate',dangerousGoods:'no',requestId:bidRequest}]});
  assert.equal(offer.status,200);

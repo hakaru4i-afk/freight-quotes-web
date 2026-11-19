@@ -19,7 +19,7 @@
     "issue": 47,
     "mode": "staging-candidate",
     "backendFunction": "freight-api",
-    "backendVersion": 115,
+    "backendVersion": 117,
     "frontendScript": "task2-panel-sidebar-only-20261107.js",
     "frontendSha": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
     "guidanceScript": "task2-guidance-42dc6ccc8a20.js",
@@ -34,7 +34,7 @@
     "backendSourceSha": "a70797666cb58d4e939bf776ea771acd6e609f21",
     "backendIsolation": "Private isolated QA schema and bucket; shared staging and production remain separate.",
     "lateBidApi": "freight-api v61",
-    "stagingBuildNote": "Staging API108 / isolated QA44: direct ESM, batched lists, one-statement VED snapshot, compact task and dashboard reads, database-region placement before transactions, direct anonymous denials. No timeout increase. Full authenticated QA required; production unchanged.",
+    "stagingBuildNote": "Shared Edge v117 is observed without source attestation. SH59 QA uses the separately pinned isolated Edge in sh59IsolatedQa.",
     "legacyCsvIntegrity": "strict quoted CSV/TSV, BOM, full-field validation, negative numbers preserved; PR #8 regression CI PASS",
     "i18n": {
       "sourceSha": "784d55894f6bf6cb475cf6cc7e79b939c231db6c",
@@ -47,8 +47,8 @@
       "customerDataTranslated": false,
       "status": "STATIC_CI_PASS; COMPLETE_CONTENT_AUDIT_PENDING"
     },
-    "lastObservedBackendVersion": 115,
-    "backendDeploymentStatus": "SHARED_STAGING_API_V115_ACTIVE",
+    "lastObservedBackendVersion": 117,
+    "backendDeploymentStatus": "SHARED_STAGING_API_V117_ACTIVE",
     "backendCandidate": {
       "sourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
       "gitBlob": "a70797666cb58d4e939bf776ea771acd6e609f21",
@@ -229,7 +229,7 @@
   },
   "stagingUiHotfixCommit": "e2683a6c0a19e7da05736e196f0965444c121018",
   "stagingCandidateRelease": "1.19.9",
-  "releaseVersionMeaning": "releaseVersion is the previously published production baseline; stagingCandidateRelease is the planned test candidate",
+  "releaseVersionMeaning": "Current candidate business version. For served production use the approved manifest and independent runtime readback.",
   "stagingExcelDateHotfix": {
     "issue": 47,
     "scope": "XLSX/WPS quote form date import",
@@ -710,7 +710,7 @@
     "backendBundleSha256": "ae329b9b328f039817217114aebb50c75d6930b01f70d2b0e367889a4c7d5b67",
     "qaBundleSha256": "f7a1ceaf863ff403ced301e376d660d0ed9a11c7eb17d07bcc5dff45ee1ae159"
   },
-  "backendMetadataSemantics": "task2/backendVersion and lastObservedBackendVersion identify the provider-observed active Edge version. observedBackendDeployment source remains UNVERIFIED. sourceBoundBackendReference and stabilizationQa20261110/backendSourceCommit preserve the historical source-bound baseline; they do not establish API115 source. carrierDashboard124 binds the separately verified unpublished code candidate. Per-feature introduction versions remain historical.",
+  "backendMetadataSemantics": "Observed shared Edge v117 is not the candidate runtime. The SH59 isolated pair is pinned under sh59IsolatedQa. Older sourceBoundBackendReference and stabilizationQa20261110 remain historical.",
   "qa20261114": {
     "status": "SOURCE_QA_VERIFIED; PUBLICATION_STATUS_IN_RECEIPT",
     "sourcePr": 71,
@@ -780,7 +780,7 @@
     "apiProjectionVersion": 1,
     "scope": "assigned_requests",
     "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
-    "backendSourceCommit": "f861cbd3050e24cbb6c67098324bc85197b795e2",
+    "backendSourceCommit": "09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
   },
@@ -792,11 +792,24 @@
   "observedBackendDeployment": {
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api",
-    "version": 115,
-    "observedOn": "2026-11-18",
+    "version": 117,
+    "observedOn": "2026-11-19",
     "sourceCommit": null,
     "sourceBindingStatus": "UNVERIFIED",
-    "providerBundleSha256": "23bb527d1281a7a0240f9d933213d93f7f48400d34349493a5928787198ae6ee",
+    "providerBundleSha256": "b2cf13476c81ef7e3867255a035e840ca542e344505539843de4a949cc27228e",
     "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/101"
+  },
+  "sh59IsolatedQa": {
+    "businessVersion": "SH-01.30.59 v",
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "function": "freight-api-qa-carrier124nov18",
+    "version": 9,
+    "schema": "freight_qa_carrier124nov18",
+    "sourceCommit": "09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c",
+    "sourceTree": "2f95d405f0e10e6e7bf20b012b016d0d026badc4",
+    "providerBundleSha256": "b938d85da685f5ab931877647483a5e209cdc021aef2550e7265fd4ce83e91db",
+    "sourceFilesVerified": 25,
+    "qaSchemaMigration": "20261118161830",
+    "observedStagingLedger": "20261119163433"
   }
 }

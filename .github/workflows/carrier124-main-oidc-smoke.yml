@@ -48,6 +48,7 @@ jobs:
       - name: Install Chromium for real published-assets browser E2E
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
+          test -s node_modules/axe-core/axe.min.js
           npx playwright install --with-deps chromium
       - name: Open all 11 actual role cabinets against isolated v9 (published /test bytes)
         id: browser

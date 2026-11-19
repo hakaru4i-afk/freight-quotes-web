@@ -1,6 +1,6 @@
 {
   "version": "20261118-logic-12",
-  "modelSha256": "f6caab9dff70ea2cb8772b6392eb49dc6f3bca4fff427d29c353b1d53872c9be",
+  "modelSha256": "7812e7cf143f21195b90b822b5faabce5e88ba7a2cc080f6a74c06d1a1406b77",
   "modelSnapshot": {
     "version": "20261118-logic-12",
     "date": "2026-11-18",
@@ -673,7 +673,7 @@
       "test/global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
       "test/global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13"
     },
-    "reviewedBackendSourceCommit": "f861cbd3050e24cbb6c67098324bc85197b795e2",
+    "reviewedBackendSourceCommit": "09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c",
     "previousVersion": "20261113-logic-11",
     "technicalContext": "Кандидат FE PR129 / backend PR102, source bec4fa5596a32cfdba01253388f3039ad5ebdd42. Проверены 276 backend tests и PostgreSQL; UI Owner/Carrier и RU/EN/ZH проверены отдельно. Это не hosted authenticated E2E. Published FE main1e1e4fb, production API46, staging API115, QA44; source binding shared115 не подтверждён. Полная приёмка и публикация остаются RELEASE_BLOCKED."
   },
