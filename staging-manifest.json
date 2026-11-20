@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "99c946a9ccdcbd1845aa726979774fea5d8bbe24",
+  "frontendCommit": "16067e5684517becb968fcc2fcd9a73618945398",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
@@ -112,7 +112,7 @@
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "test/app.js": "38bb5a5b0bac9298d9ea6f34a957c57dd2e9cbeaf1a50a48290b0860e7611712",
-    "test/build-info.json": "2a0a3a35cd22aada09ecb02e8fcb15063ad8d7a596a6732d698e6cdb0c3c3d9b",
+    "test/build-info.json": "0bbd30a951297d7ba5b65ee0931b79e9959cdfc6a65e1697e40282465937a894",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "a13b6a2b57eea28606c0fd99cacedad2c011782f1af04e17ea360bb76e96c8b9",
     "test/business-process-model.json": "ee67de3f1ee3fb508a495fcc4d9249dff37b09c97de4976a6c14f3ddb14ff8bc",
@@ -153,7 +153,7 @@
     "test/global-view/view.mjs": "6369f2e936f63ded3663568b8605b14470b46f40be71201ca4cd8c59ce6a1ef2",
     "test/incoterms-explanations.js": "31da954899a0aea1ec0ecfddb534d8b4eaf0bccac96da2b20ad1837b68a28743",
     "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "test/index.html": "13134ab4f1357d1842a45de31582954fce3e87dfcedd10acd5fde61277caabef",
+    "test/index.html": "dd1b9a6026fada3e9a2958d2355217aaf7f9bb95c340a1214bfc5010549ffdcd",
     "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
     "test/late-bid-staging.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
