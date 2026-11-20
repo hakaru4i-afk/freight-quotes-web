@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "53dc13ac2b0c3f7aa04a60d84be0db45cf836a92",
+  "frontendCommit": "0afe09d209030d34525a4e1a6c1fa5ee9f80bb6b",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
@@ -105,7 +105,7 @@
     "docs/qa/STAGING-REGION-PERFORMANCE.md": "6efe7a1ddd6c18be3d0c1ac39fd8d019eb8ccf7148ba9d11551c0d0f648a3a6b",
     "docs/qa/THREE-CABINET-JOURNEY.md": "66ab0769148888219066ccbe5fa24b83765f1a199e56b49cfb889953d7e5ce00",
     "scripts/approve-ui-process-provenance.mjs": "89f8f4b077f5b057023821a049a55553ebbfee769fd3dfaed6665ba86a710d71",
-    "scripts/assess-authenticated-acceptance.mjs": "525e714e4063bc4a80c8daf0c0b42cf5ba68f7dadfa9f8d93f99b35ae22c2b8a",
+    "scripts/assess-authenticated-acceptance.mjs": "dd837f12cd6303483a473e96b06161eff4fb06e25449f436f0fbb5b29e40ac2b",
     "scripts/build-issue17-assets.mjs": "5c882580d18d289e16afc8c98687f837f0cae8750d0b842f0d8ef1a03df17fbc",
     "scripts/build-process-maps.mjs": "e92e22dfa702fece959819ea58358806d25fae0f62004c7cd67d14389035a9ac",
     "scripts/check-canonical-db-targets.mjs": "211fbfb11161b6c84731a3e28a42ceaccbaf3fcf0403357ac390f056b9650107",
