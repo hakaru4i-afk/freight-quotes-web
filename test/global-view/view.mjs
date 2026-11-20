@@ -281,8 +281,8 @@ class GlobalRouteView extends HTMLElement {
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=5c8ea12c074c')).createGlobe
-            : (await import('./map.mjs?v=feacd8fed0e1')).createMap;
+            ? (await import('./globe.mjs?v=ff44baab9f0f')).createGlobe
+            : (await import('./map.mjs?v=c28558fdd8fb')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;
