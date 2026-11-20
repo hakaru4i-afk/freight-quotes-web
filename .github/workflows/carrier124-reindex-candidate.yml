@@ -49,3 +49,5 @@ jobs:
           if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest[.]json$'; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
           git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+
+# 2026-11-20: source reindex after MAP50 five-module parity alignment (candidate only).
