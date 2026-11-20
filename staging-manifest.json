@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "d954ed9ffa6cae35482cad4d619a943a97dbb75e",
+  "frontendCommit": "53dc13ac2b0c3f7aa04a60d84be0db45cf836a92",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
@@ -312,13 +312,14 @@
     "tests/carrier124-isolated-target.mjs": "e78688c6b62b3c04775cb76f4b30c37e7d2ad9fcfb34fc11acdaedfa8392dd53",
     "tests/carrier124-owner-request-fields.test.mjs": "e7215b368e5f674630882e8842e3442224e949bf703ba584a87a54803bf54179",
     "tests/carrier124-refresh-parity.test.mjs": "192ecd849e5a2ca1c63c20db66cb2133af7d6f2323a96f9b2cc7552815f4fac7",
-    "tests/carrier124-remaining-api.mjs": "63b37af8ef49ebfe1bb1a659a8ea03bb9b6f89eed467f35d66612bed7dcdee9d",
+    "tests/carrier124-remaining-api.mjs": "09d469a776f92bf810730498f6efd11c70bad4a87ea9883b84922769278295a7",
     "tests/carrier124-remaining-display.mjs": "6d7d507f81b797990d18cfe5f5c833cfb23d62cb024f8f3890567be071408cde",
     "tests/carrier124-remaining-documents.mjs": "05e9ebc0d44600182848e4be74e0ba91f640672874d116c9be5c02907d8a15b9",
     "tests/carrier124-remaining-fixtures.e2e.mjs": "0eea178a0845cfe65c248b5c2d175643f9f824c485d29391ab843b6090a22949",
     "tests/carrier124-remaining-offers.mjs": "c812cf81383fe4dae72f0f8a206608305aa7f8b7647b2db0dbbdab05416841ac",
     "tests/carrier124-remaining-security.e2e.mjs": "2e76037dba56ebb924acbd4c1e12f9986ae001a7eb5aef8304ec09e0140e598c",
     "tests/carrier124-remaining-workflows.mjs": "b4d94e5ed5496cf5010e1f513f6d9a7aa807b6892caad541058c9aec73a294f4",
+    "tests/carrier124-service-recovery.test.mjs": "3a29adce980d236a056f4c4cd8627883f899bf75ed16e6a6233f9540af505108",
     "tests/chat-unread-contrast.test.mjs": "1ff45915393ed3d9f32fa6a02832146d7cf41bd56ee643b98380bcf04cde8da0",
     "tests/current-workspace-help.test.mjs": "43ea31dd6f600b43d3b2c90b78796582042e98e8e31041b08193b0e3bfd61a82",
     "tests/global-view-route.test.mjs": "bad0665fe01121f4d44e6e1429a92621a718eaaf985fe77500e64a81c458348d",
@@ -420,7 +421,7 @@
     "tests/staging-asset-contract.test.mjs": "a1f4b4b758ba1c18d9e47e9317e8367fd891c69338010f9a701a951eb01a1d50",
     "tests/task1-create-form-browser.test.mjs": "75f44c91d6349225e26e40576b654cb72c023736151009ecc791112087641f6a",
     "tests/task12-authenticated-readonly.e2e.mjs": "c48e2609827b9c547f1aff456eeac984ae1508a4560f998db812fd90a86af996",
-    "tests/task12-business-api.e2e.mjs": "13555573c3aaa5a748bfe9b0088aff6690c010365be1000449750828aa685c6d",
+    "tests/task12-business-api.e2e.mjs": "00c9d89d17cd6fadbc6fd9488eb0a763ed41a978b66925792364c910d7dee4b9",
     "tests/task12-ci-auth.mjs": "9127239df6b045e63ac0ddeb3352ac048912228eb3ba3b13547d000072a1360d",
     "tests/task12-ci-auth.test.mjs": "68f4d311728cfda9732853d4690cde90e1603f1f9cfd8c0ccc8f0f667370ee1c",
     "tests/task12-ci-environment-policy.mjs": "308caba5c8ce9833b6e44bef1ecc4e5ec06e1a378298f59eff2e1e90d67fd29b",
