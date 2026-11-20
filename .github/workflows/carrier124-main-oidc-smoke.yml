@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes-web
-          ref: 63fa0ec90301d67ec7c184a9463d8fadc8dc75e7
+          ref: 439a6102ed59a788811f5aef01f43c16591ae54d
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -36,7 +36,7 @@ jobs:
           test "$GITHUB_REF" = refs/heads/main
           test "$GITHUB_EVENT_NAME" = workflow_dispatch
           test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
-          test "$(git rev-parse HEAD)" = '63fa0ec90301d67ec7c184a9463d8fadc8dc75e7'
+          test "$(git rev-parse HEAD)" = '439a6102ed59a788811f5aef01f43c16591ae54d'
           test "$(git status --porcelain --untracked-files=all)" = ''
           test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
           test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
