@@ -18,10 +18,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          body='{"ref":"main","inputs":{"full_suite":true}}'
+          body='{"ref":"main","inputs":{"full_suite":false}}'
           status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}'             --request POST             -H "Authorization: Bearer $GH_TOKEN"             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             -H 'Content-Type: application/json'             --data "$body"             https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/actions/workflows/carrier124-main-oidc-smoke.yml/dispatches)
           if [ "$status" != 204 ]; then echo "OIDC_QA_DISPATCH_BLOCKED_HTTP_$status";exit 1;fi
-          echo 'CARRIER124_FULL_MAIN_ONLY_OIDC_QA_DISPATCHED; NOT_A_RELEASE'
+          echo 'CARRIER124_TARGETED_OIDC_QA_DISPATCHED; NOT_A_RELEASE'
 # Retry isolated v5 after same-region multipart routing patch 8e330e9; no production data writes.
 # 2026-11-19 OIDC v6 exact-provider recheck after reviewed geo failover; isolated accounts only, main-only workflow.
 
@@ -40,3 +40,5 @@ jobs:
 # 2026-11-20: retry protected OIDC v18 after source-only alignment/QA-overlay order fix 45cbeed; immutable app/API bytes, main-only access, no release.
 # 2026-11-20: rerun main-only protected SH59/API-v18 after PR133 screenshot-path and SHA256 fail-closed fix 8cc8f4c; no production writes.
 # 2026-11-20: protected main-only OIDC SH59/v18 after QA Chromium install PR134 SHA 3b288519 and screenshot integrity PR133; no production writes.
+
+# 2026-11-20: one targeted main-only acceptance for T1-09/T2-02/T2-24 from reviewed QA-only PR135; full_suite=false prevents redundant 20min matrix.
