@@ -1,0 +1,43 @@
+name: SH59 MAP50 one-time OSM station provenance verification
+on:
+  push:
+    branches: [fix/carrier-dashboard-124]
+    paths: [.github/workflows/sh59-map50-osm-source-verify.yml]
+permissions:
+  contents: read
+jobs:
+  verify-single-public-station:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify one OSM station revision against OSM public read-only source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import urllib.request,xml.etree.ElementTree as ET,json,datetime
+          url='https://api.openstreetmap.org/api/0.6/node/269996666'
+          req=urllib.request.Request(url,headers={'User-Agent':'FreightQuotesMap50Audit/1.0 (github.com/hakaru4i-afk/freight-quotes-web)','Accept':'application/xml'})
+          with urllib.request.urlopen(req,timeout=25) as response:
+              assert response.status==200
+              data=response.read(100000)
+          root=ET.fromstring(data)
+          nodes=root.findall('node')
+          assert len(nodes)==1
+          node=nodes[0]
+          assert node.attrib['id']=='269996666' and node.attrib.get('visible','true')=='true'
+          lat=float(node.attrib['lat']);lon=float(node.attrib['lon'])
+          assert abs(lat-39.90112)<0.002 and abs(lon-116.42101)<0.002,'OSM_COORDINATE_DRIFT'
+          tags={tag.attrib['k']:tag.attrib['v'] for tag in node.findall('tag')}
+          assert tags.get('railway')=='station','OSM_ENTITY_NOT_RAIL_STATION'
+          names=' '.join(tags.get(x,'') for x in ['name','name:en','name:zh']).lower()
+          assert '北京' in names or 'beijing' in names,'OSM_NAME_NOT_BEIJING_STATION'
+          stamp=node.attrib['timestamp']
+          parsed=datetime.datetime.fromisoformat(stamp.replace('Z','+00:00'))
+          assert parsed.tzinfo is not None and parsed.year>=2000
+          result={'status':'OSM_NODE_ATTESTED','id':'osm:node:269996666','entity':'Beijing Railway Station',
+              'revision':int(node.attrib['version']),'sourceRevision':stamp,'latitude':lat,'longitude':lon,
+              'license':'© OpenStreetMap contributors / ODbL 1.0','publicSourceUrl':url,'productionChanged':False}
+          print('OSM_MAP50_PUBLIC_SOURCE_ATTESTATION',json.dumps(result,ensure_ascii=False))
+          PY
