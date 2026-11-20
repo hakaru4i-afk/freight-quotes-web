@@ -25,3 +25,14 @@ jobs:
         run: node --test tests/portal-release-cache-browser.test.mjs
       - name: Verify Owner work progress in pure Node CI
         run: node --test tests/owner-development-progress.test.mjs
+      - name: Diagnose Owner request T1-01 with actual Chromium and mocked isolated API
+        run: |
+          mkdir -p reports
+          node --test tests/task1-create-form-browser.test.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owner-t101-isolated-form-diagnostic
+          path: reports/t1-01-*.png
+          retention-days: 7
+          if-no-files-found: ignore
