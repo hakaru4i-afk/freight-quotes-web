@@ -1,5 +1,9 @@
 name: Carrier124 live OIDC acceptance on isolated SH59 (11 roles)
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/carrier124-main-oidc-smoke.yml'
+      - '.github/workflows/sh59-protected-37-audit.yml'
   workflow_dispatch:
     inputs:
       full_suite:
@@ -9,19 +13,46 @@ on:
         default: false
 permissions:
   contents: read
-  id-token: write
-concurrency:
-  group: carrier124-main-oidc-verified
-  cancel-in-progress: false
+env:
+  # Change this immutable pin only in the protected workflow review.
+  FREIGHT_PROTECTED_CANDIDATE: e9f54374078d53ec34e9ff3764290da1edad775d
 jobs:
+  candidate-preflight:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.FREIGHT_PROTECTED_CANDIDATE }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check the frozen SH59 v20 candidate and OIDC regressions without credentials
+        run: |
+          test "$(git rev-parse HEAD)" = "$FREIGHT_PROTECTED_CANDIDATE"
+          node scripts/check-staging-alignment.mjs --source-only
+          node scripts/check-isolated-api-pair.mjs
+          node --test tests/carrier124-ci-oidc-bindings.test.mjs
   qa:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: carrier124-main-oidc-verified
+      cancel-in-progress: false
     runs-on: ubuntu-24.04
     timeout-minutes: 55
     env:
-      # Change this immutable pin only in the protected workflow review.
-      FREIGHT_PROTECTED_CANDIDATE: a4c9d97427442692629c2d58c29d9cda8d93f71f
+      QA_ISOLATED_RUN: carrier124nov18
+      QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+      QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+      QA_CARRIER124_PRIVATE_DIR: /tmp/freight-carrier124-ci
+      AXE_CORE_PATH: node_modules/axe-core/axe.min.js
     steps:
       - uses: actions/checkout@v4
         with:
@@ -48,7 +79,6 @@ jobs:
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
       - name: Bind frozen Git assets and the isolated API before requesting credentials
-        id: pair
         run: |
           node scripts/check-staging-alignment.mjs --source-only
           node --input-type=module <<'NODE'
@@ -59,13 +89,16 @@ jobs:
           const qa=manifest.sh59IsolatedQa;
           assert.equal(qa?.businessVersion,'SH-01.30.59 v');
           assert.equal(qa.sourceCommit,manifest.backendSourceCommit);
+          assert.equal(qa.version,20);
+          assert.equal(qa.sourceFilesVerified,26);
+          assert.match(qa.sourceReceiptSha256,/^[a-f0-9]{64}$/);
           const api=new URL('https://'+qa.projectRef+'.supabase.co/functions/v1/'+qa.function+'/health');
           const response=await fetch(api,{redirect:'error',signal:AbortSignal.timeout(15000)});
           assert.equal(response.status,200);
           const health=await response.json();
           assert.equal(health.release,qa.businessVersion);
           assert.equal(health.qaRun,'carrier124nov18');
-          if(qa.receiptPath)assert.equal(health.edgeVersion,qa.version,'ISOLATED_EDGE_VERSION_DRIFT');
+          assert.equal(health.edgeVersion,qa.version,'ISOLATED_EDGE_VERSION_DRIFT');
           assert.equal(health.projectRef,qa.projectRef);
           assert.equal(health.environment,'staging');
           const pair={
@@ -73,45 +106,27 @@ jobs:
             backendSource:qa.sourceCommit,match:true,readbackCount:qa.sourceFilesVerified,
             frontendSource:manifest.frontendCommit,frontendMetadata:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),protectedWorkflowSha:process.env.GITHUB_SHA,
             frontendTestTree:execFileSync('git',['rev-parse','HEAD:test'],{encoding:'utf8'}).trim(),
-            sqlMigrationVersion:qa.catalogMigrationVersion||manifest.sqlMigrationVersion,workflowRunId:process.env.GITHUB_RUN_ID
+            sqlMigrationVersion:qa.catalogMigrationVersion||manifest.sqlMigrationVersion,workflowRunId:process.env.GITHUB_RUN_ID,workflowRunAttempt:process.env.GITHUB_RUN_ATTEMPT
           };
           assert.equal(pair.frontendMetadata,process.env.FREIGHT_PROTECTED_CANDIDATE);
-          const attested=Boolean(qa.sourceReceiptSha256);
-          if(attested)execFileSync(process.execPath,['scripts/check-isolated-api-pair.mjs'],{stdio:'inherit'});
+          execFileSync(process.execPath,['scripts/check-isolated-api-pair.mjs'],{stdio:'inherit'});
           const path=process.env.RUNNER_TEMP+'/sh59-isolated-pair.json';
           writeFileSync(path,JSON.stringify(pair),{mode:0o600});
           mkdirSync('reports',{recursive:true});
           writeFileSync('reports/carrier124-ci-pair.json',JSON.stringify(pair,null,2)+'\n');
           appendFileSync(process.env.GITHUB_ENV,'QA_CARRIER124_PAIR_FILE='+path+'\nQA_CARRIER124_CANDIDATE=true\nQA_BROWSER_PUBLISHED=false\n');
-          appendFileSync(process.env.GITHUB_OUTPUT,'source_receipt='+attested+'\n');
           NODE
-      # Source-only integrity must validate the unchanged frozen tree BEFORE a test-only overlay.
-      # Overlay one narrowly scoped test fixture correction; runtime/frontend assets remain frozen.
-      # This test's immutable Git blob was reviewed in PR #129 and is independently verified.
-      - name: Pin reviewed MAP50 exact-facility fixture correction
-        if: steps.pair.outputs.source_receipt == 'false'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --no-tags origin 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1
-          git show 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1:tests/carrier124-ci-business.mjs > tests/carrier124-ci-business.mjs
-          test "$(git hash-object tests/carrier124-ci-business.mjs)" = '15bdaaa1f1761b4ccf4ecbe9fc0039fbacd8d4a1'
-          node --check tests/carrier124-ci-business.mjs
-          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
-      - name: Pin verified broadcast-accurate role-isolation QA scenario
-        if: steps.pair.outputs.source_receipt == 'false'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch --no-tags origin 034bc020994326a616022fe9b66aea403bb7ef30
-          git show 034bc020994326a616022fe9b66aea403bb7ef30:tests/carrier124-remaining-security.e2e.mjs > tests/carrier124-remaining-security.e2e.mjs
-          test "$(git hash-object tests/carrier124-remaining-security.e2e.mjs)" = '97a94656e7529d370723083bd97888f004b7db09'
-          node --check tests/carrier124-remaining-security.e2e.mjs
-          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
+        id: issued
         run: node tests/carrier124-ci-oidc-bindings.mjs
       - name: Authenticate 11 QA users against exact isolated Carrier124 SH59 function
+        id: authenticated
         run: node tests/carrier124-ci-auth.mjs
+      - name: Recover the interrupted synthetic Service Level fixture before business tests
+        id: fixture_recovery
+        env:
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
+        run: node tests/carrier124-remaining-fixtures.e2e.mjs recover-sl
       - name: Execute real owner-carrier award and take with isolated synthetic rows
         id: business
         continue-on-error: true
@@ -121,23 +136,12 @@ jobs:
         continue-on-error: true
         shell: bash
         env:
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
         run: |
           set -euo pipefail
           node tests/carrier124-remaining-security.e2e.mjs carrierA
           node tests/carrier124-remaining-security.e2e.mjs carrierB
           node tests/carrier124-remaining-security.e2e.mjs verify
-      - name: Authorized Service Level policy boundaries (T2-24)
-        id: sl_bounds
-        continue-on-error: true
-        shell: bash
-        env:
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
-          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
-        run: |
-          set -euo pipefail
-          node tests/carrier124-remaining-fixtures.e2e.mjs sl
       - name: Install Chromium for real pinned-asset browser E2E
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
@@ -146,39 +150,31 @@ jobs:
           # --with-deps unnecessarily apt-installs optional font packages that are unavailable on some mirrors.
           # Browser E2E below is the fail-closed runtime validation.
           npx playwright install chromium
+          if [ '${{ inputs.full_suite }}' = 'true' ] && ! command -v pdftotext >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y --no-install-recommends poppler-utils
+          fi
       - name: Open all 11 actual role cabinets against SH59 using pinned Git assets
         id: browser
         continue-on-error: true
         env:
-          QA_ISOLATED_RUN: carrier124nov18
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
-          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
-          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Full isolated Carrier124 SH59 workflow with claim and ordinary closure
         id: full_lifecycle
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
         env:
-          QA_ISOLATED_RUN: carrier124nov18
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
-          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_MAP_ORDER: QA-C124-REV-${{ github.run_id }}-${{ github.run_attempt }}
           QA_NOV14_INCLUDE_ORDINARY: 'true'
-          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/nov14-published-chain.e2e.mjs
       - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated SH59
         id: full_matrix
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
         env:
-          QA_ISOLATED_RUN: carrier124nov18
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
-          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_MATRIX: 'true'
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
-          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify multilingual matrix screenshot hashes are present before archiving
         id: matrix_screenshots
@@ -210,13 +206,9 @@ jobs:
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
         env:
-          QA_ISOLATED_RUN: carrier124nov18
-          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
-          QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-map50
           QA_MAP50: 'true'
           QA_MAP_ORDER: QA-MAP50-${{ github.run_id }}-${{ github.run_attempt }}
-          AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         shell: bash
         run: |
           set -euo pipefail
@@ -240,37 +232,124 @@ jobs:
           QA_BROWSER_ACTORS=owner QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
           QA_BROWSER_ACTORS="$winner" QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
           QA_BROWSER_ACTORS=ved QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
-      - name: Verify required fields, late rates, tender and session policy through the pinned API
-        id: full_business_api
-        if: ${{ inputs.full_suite == true && steps.pair.outputs.source_receipt == 'true' }}
+      - name: Verify Owner archives, support and process editor in the real browser
+        id: alignment_owner
+        if: ${{ inputs.full_suite == true }}
         continue-on-error: true
         env:
-          QA_CARRIER124_PRIVATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_ALIGNMENT: 'true'
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify all ten non-Owner roles are denied private archives
+        id: alignment_denials
+        if: ${{ inputs.full_suite == true && steps.alignment_owner.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          QA_BROWSER_ALIGNMENT: 'true'
+          QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify addressed Logistic upload, completion and VED separation
+        id: logistic_security
+        if: ${{ inputs.full_suite == true && steps.map50.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          QA_BROWSER_LOGISTIC_SECURITY: 'true'
+          QA_BROWSER_ACTORS: logistic
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify the previous UI can read the new API for rollback
+        id: rollback_ui
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        run: node tests/production-previous-ui-compatibility.e2e.mjs
+      - name: Verify required fields, late rates, tender and session policy through the pinned API
+        id: full_business_api
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        env:
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
         run: node tests/task12-business-api.e2e.mjs
-      - name: Fail closed unless both real API and browser validation succeed
-        if: always()
-        shell: bash
-        run: |
-          test '${{ steps.business.outcome }}' = success
-          test '${{ steps.auth_isolation.outcome }}' = success
-          test '${{ steps.sl_bounds.outcome }}' = success
-          test '${{ steps.browser.outcome }}' = success
-          if [ '${{ inputs.full_suite }}' = 'true' ]; then
-            test '${{ steps.full_lifecycle.outcome }}' = success
-            test '${{ steps.full_matrix.outcome }}' = success
-            test '${{ steps.matrix_screenshots.outcome }}' = success
-            test '${{ steps.map50.outcome }}' = success
-            if [ '${{ steps.pair.outputs.source_receipt }}' = 'true' ]; then
-              test '${{ steps.full_business_api.outcome }}' = success
-            fi
-          fi
+      - name: Verify live cross-role security against isolated requests
+        id: security
+        if: ${{ inputs.full_suite == true && steps.full_business_api.outcome == 'success' }}
+        continue-on-error: true
+        run: node tests/security-gate-real.e2e.mjs
+      - name: Verify sea, air and multimodal tracking in the real browser
+        id: transport_modes
+        if: ${{ inputs.full_suite == true && steps.full_business_api.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          QA_BROWSER_MODE_MATRIX: 'true'
+          QA_BROWSER_ACTORS: carrierA
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Download the finalized tender PDF and validate the exact server values
+        id: tender_pdf
+        if: ${{ inputs.full_suite == true && steps.full_business_api.outcome == 'success' }}
+        continue-on-error: true
+        env:
+          QA_BROWSER_TENDER: 'true'
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Authorized Service Level policy boundaries (T2-24)
+        id: sl_bounds
+        continue-on-error: true
+        env:
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
+        run: node tests/carrier124-remaining-fixtures.e2e.mjs sl
       - name: Log out all issued synthetic sessions
         if: always()
         run: node tests/carrier124-ci-auth.mjs --logout
       - name: Disable 11 QA accounts, revoke remaining sessions and close leases
+        id: cleanup
         if: always()
+        continue-on-error: true
         run: node tests/carrier124-ci-oidc-bindings.mjs --finish
+      - name: Resume cleanup for the leases the broker has not confirmed
+        id: cleanup_resume
+        if: always() && steps.cleanup.outcome == 'failure'
+        run: node tests/carrier124-ci-oidc-bindings.mjs --finish
+      - name: Fail closed unless real API, browser and credential cleanup all succeed
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          require_pass() {
+            if [ "$2" != success ]; then
+              echo "::error::$1 returned $2"
+              failed=1
+            fi
+          }
+
+          require_pass issued '${{ steps.issued.outcome }}'
+          require_pass authenticated '${{ steps.authenticated.outcome }}'
+          require_pass fixture_recovery '${{ steps.fixture_recovery.outcome }}'
+          require_pass business '${{ steps.business.outcome }}'
+          require_pass auth_isolation '${{ steps.auth_isolation.outcome }}'
+          require_pass browser '${{ steps.browser.outcome }}'
+          require_pass sl_bounds '${{ steps.sl_bounds.outcome }}'
+          if [ '${{ steps.cleanup.outcome }}' != success ]; then
+            require_pass cleanup_resume '${{ steps.cleanup_resume.outcome }}'
+          fi
+
+          if [ '${{ inputs.full_suite }}' = true ]; then
+            require_pass full_lifecycle '${{ steps.full_lifecycle.outcome }}'
+            require_pass full_matrix '${{ steps.full_matrix.outcome }}'
+            require_pass matrix_screenshots '${{ steps.matrix_screenshots.outcome }}'
+            require_pass map50 '${{ steps.map50.outcome }}'
+            require_pass alignment_owner '${{ steps.alignment_owner.outcome }}'
+            require_pass alignment_denials '${{ steps.alignment_denials.outcome }}'
+            require_pass logistic_security '${{ steps.logistic_security.outcome }}'
+            require_pass rollback_ui '${{ steps.rollback_ui.outcome }}'
+            require_pass full_business_api '${{ steps.full_business_api.outcome }}'
+            require_pass security '${{ steps.security.outcome }}'
+            require_pass transport_modes '${{ steps.transport_modes.outcome }}'
+            require_pass tender_pdf '${{ steps.tender_pdf.outcome }}'
+          fi
+          test "$failed" = 0
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -278,6 +357,7 @@ jobs:
           path: |
             reports/carrier124-ci-pair.json
             reports/carrier124-ci-qa-auth.json
+            reports/carrier124-ci-cleanup.json
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
             reports/carrier124-full-roles/
@@ -286,4 +366,6 @@ jobs:
             reports/carrier124-map50/
             reports/nov14-published/
             reports/nov14-ordinary/
+            !reports/**/*-failure.txt
+            !reports/**/*-failure.png
           retention-days: 14
