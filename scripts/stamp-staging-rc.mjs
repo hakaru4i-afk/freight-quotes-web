@@ -41,7 +41,7 @@ collectVisual();visualAssets.sort();
 const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
 // HTML order affects styling and execution even when every asset byte is unchanged.
-const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[a-zA-Z0-9-]+/g,'$1'));
+const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'\s>]+/g,'$1'));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
 if(process.argv.includes('--write')){
