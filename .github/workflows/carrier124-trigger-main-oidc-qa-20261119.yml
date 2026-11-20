@@ -35,3 +35,4 @@ jobs:
 # 2026-11-20 protected SH59 v18 OIDC full_suite dispatch after workflow-only main pin 8dc5663; no release.
 # 2026-11-20 repeat full protected SH59 v18 QA after Nov14 4-to-5 route-stop test correction, main workflow pin 60d8a915; production unchanged.
 # 2026-11-20 request protected v18 full-suite rerun with strict automatic exact-km facility fixture, main pin 994e365f; production untouched.
+# 2026-11-20 strict AUTO-KM verified rail-facility fixture candidate 2e11f465, protected workflow 0e1693ae, no release.
