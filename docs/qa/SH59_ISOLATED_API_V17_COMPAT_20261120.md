@@ -22,7 +22,7 @@
 | В live `index.ts` присутствуют `/api/carrier`, `/api/route-distance`, `/api/portal-feedback`, `/health` | PASS: наличие маршрутов в исходнике; не выполнение запросов со всеми ролями |
 | Live `projectCarrierDashboard` содержит `version:1`, `scope:'assigned_requests'`, `items`, `counts`, `order_code`, `round_id`, `stage`, `filters` | PASS: форма контракта исходника |
 | Frontend source test `tests/carrier124-refresh-parity.test.mjs` проверяет серверный валидатор | PASS: тест присутствует; текущий запуск на паре v17 не произведён |
-| FE `test/build-info.json` и `test/staging-manifest.json` закрепляют v17 | **FAIL**: оба `sh59IsolatedQa` всё ещё закрепляют старую v13, 25 файлов, source `12eee66c...` |
+| FE `test/build-info.json` и `test/staging-manifest.json` закрепляют v17 | **PASS после исправления:** в обоих v17, 26 файлов, source `f8bb38ca...`; Mac run 44699102424 проверил исходники и health, без авторизованных E2E |
 | Полный authenticated frontend ↔ isolated API v17 E2E, MAP50 и 37/37 | **NOT_VERIFIED** |
 
 Это **source contract / provenance check**, не подтверждение работы всей фронтенд-сборки через настоящий вход.
@@ -35,7 +35,7 @@
 
 ## Оставшийся барьер перед подтверждением пары
 
-Пересобрать и перепроверить единый frontend manifest + `test/build-info.json` с честными v17 SHA/source и текущим FE commit (не подменяя version stamp), затем выполнить на той же зафиксированной паре защищённый authenticated Owner/Carrier/MAP50/E2E и readback. Пока в FE остаётся v13, **exact pair = FAIL/NOT_VERIFIED**. Не менять production, shared staging, реальные заявки, SQL, RLS/OIDC-политику; не использовать платные API или Codex.
+**V17 manifest pin исправлен и source-check подтверждён.** Следующий барьер — защищённый authenticated Owner/Carrier/MAP50/37 E2E на зафиксированной паре и независимый restore, затем served-byte readback после разрешённой публикации. OIDC сейчас main-only/github-hosted: бесплатный Mac source-run не доказывает авторизацию. **Runtime exact-pair acceptance = NOT_VERIFIED; RELEASE_BLOCKED.** Не менять production, shared staging, реальные заявки, SQL, RLS/OIDC-политику; не использовать платные API или Codex.
 
 Каноническая запись: [единый релиз в backend PR #102](https://github.com/hakaru4i-afk/freight-quotes/blob/fix/carrier-dashboard-124/docs/releases/STAB-20261117/UNIFIED_RELEASE_20261119.md).
 
