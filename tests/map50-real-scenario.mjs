@@ -29,7 +29,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   // Keep diagnostics privacy-safe: no raw addresses, candidate labels, or tokens.
   // A successful HTTP 200 does not imply that the local catalog resolved the point.
   const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved'||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)).map(p=>({
-   id:p.id,status:p.status,reason:/^(NOT_IN_LOCAL_CATALOG|LOCAL_CATALOG_NOT_READY|LOCAL_CATALOG_QUERY_ERROR|LOCAL_CATALOG_INVALID_RESPONSE|COUNTRY_MISMATCH|PLACE_REQUIRED|INVALID_PUBLIC_TOPONYM|FACILITY_NAME_REQUIRED|NOT_FOUND|AMBIGUOUS)$/.test(String(p.reason||''))?p.reason:'REDACTED',
+   id:p.id,status:['unavailable','ambiguous','not_found','pending','resolved','error'].includes(p.status)?p.status:'other',reason:/^(NOT_IN_LOCAL_CATALOG|LOCAL_CATALOG_NOT_READY|LOCAL_CATALOG_QUERY_ERROR|LOCAL_CATALOG_INVALID_RESPONSE|COUNTRY_MISMATCH|PLACE_REQUIRED|INVALID_PUBLIC_TOPONYM|FACILITY_NAME_REQUIRED|NOT_FOUND|AMBIGUOUS)$/.test(String(p.reason||''))?p.reason:'REDACTED',
    geocodedAt:p.geocodedAt||null,
    candidateCount:Array.isArray(p.candidates)?p.candidates.length:0,
    hasFiniteCoordinates:Number.isFinite(p.lat)&&Number.isFinite(p.lon)
