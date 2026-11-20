@@ -7,7 +7,7 @@ export async function nov14Scenario({page,actor,base,sessions,rec,report,evidenc
  assert.equal(base,carrier124?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110');
  const source=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0];
  const ordinary=process.env.QA_NOV14_ORDINARY==='true';
- const order=source.createdOrder,winner=source.selection.winnerActor,loser=winner==='carrierA'?'carrierB':'carrierA';assert.match(order,carrier124?/^(?:QA-UI-[0-9]+|QA-NOV14-[A-Z0-9-]+|QA-CI-[0-9A-F]+-SEA-[0-9A-F]+)$/:/^QA-NOV14-/);
+ const order=source.createdOrder,winner=source.selection.winnerActor,loser=winner==='carrierA'?'carrierB':'carrierA';assert.match(order,carrier124?/^(?:QA-UI-[0-9]+|QA-NOV14-[A-Z0-9-]+|QA-CI-[0-9A-F]+-SEA-[0-9A-F]+|QA-C124-REV-[0-9]+-[0-9]+)$/:/^QA-NOV14-/);
  const recent=minutes=>new Date(Date.now()-minutes*60000).toISOString();
  rec.createdOrder=order;rec.selection=source.selection;
  const api=async(who,path,body)=>{const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',...(carrier124?{redirect:'error'}:{}),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[who],...(body instanceof FormData?{}:{'Content-Type':'application/json'})},body:body instanceof FormData?body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});report.calls.push({actor:who,path,method:body?'POST':'GET',status:r.status,requestId:r.headers.get('x-freight-request-id')});return{status:r.status,data:await r.json()};};
