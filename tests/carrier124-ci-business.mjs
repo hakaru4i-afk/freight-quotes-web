@@ -119,8 +119,15 @@ try{
  const exactNotification=exactCarrier.data.notifications.find(x=>x.order_code===exactOrder);assert.ok(exactNotification,'Exact fixture notification');
  assert.equal((await call('owner','/api/offer-selection',{id:exactNotification.id,bidId:exactBid.id,requestId:randomUUID(),revision:0,reason:'',expected:exactBid})).status,200,'Exact fixture award');
  assert.equal((await call('carrierA','/api/task2',{action:'take',order:exactOrder})).status,200,'Exact fixture take');
- assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{actual_departure:'2099-12-06T06:00'}})).status,200,'Exact fixture departure');
- assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{location:exactFrom,location_date:'2099-12-07T06:00'}})).status,200,'Exact fixture tracked checkpoint');
+ // Actual events are historical facts. A 2099 actual departure is correctly
+ // rejected by the server, even when the quote's planned pickup is in 2099.
+ const futureActual=new Date(Date.now()+24*60*60*1000).toISOString().slice(0,16);
+ assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{actual_departure:futureActual}})).status,400,
+  'Future actual departure must remain forbidden');
+ const pastActual=new Date(Date.now()-48*60*60*1000).toISOString().slice(0,16);
+ const pastObserved=new Date(Date.now()-24*60*60*1000).toISOString().slice(0,16);
+ assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{actual_departure:pastActual}})).status,200,'Exact fixture departure');
+ assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{location:exactFrom,location_date:pastObserved}})).status,200,'Exact fixture tracked checkpoint');
  const metric=await call('carrierA','/api/task2',undefined,{order:exactOrder});assert.equal(metric.status,200,'Exact fixture readback');
  assert.equal(metric.data.points.length,1);
  const point=metric.data.points[0],route=metric.data.route;
