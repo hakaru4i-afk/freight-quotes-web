@@ -1,68 +1,85 @@
 #!/usr/bin/env python3
-"""Single source of truth: site-status.json -> both release manifests, histories and HTML cache keys."""
+"""Plan release metadata per environment; never approve or publish a release."""
+import argparse
+import hashlib
 import json
 import re
-import sys
 from pathlib import Path
 from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[1]
-source = json.loads((ROOT / 'site-status.json').read_text(encoding='utf-8'))
-active = source['release']
-version = active['version']
-if not re.fullmatch(r'SH-\d{2}\.\d{2}\.\d{2} v', version):
-    raise SystemExit('Invalid SH version in site-status.json')
-if not active.get('title') or not active.get('changes'):
-    raise SystemExit('Release title and changes are mandatory')
-if source['releases'][0]['version'] != version:
-    raise SystemExit('Put the new release at the start of site-status.json releases')
-owner = json.loads((ROOT/'release-status.json').read_text(encoding='utf-8')).get('ownerVersion', '')
-if not re.fullmatch(r'OW-\d{2}\.\d{2}\.\d{2} v', owner):
-    raise SystemExit('Invalid OW version in release-status.json')
 
-def write(path, value):
-    contents = json.dumps(value, ensure_ascii=False, indent=2)+'\n'
-    if not path.exists() or path.read_text(encoding='utf-8') != contents:
-        path.write_text(contents, encoding='utf-8')
-        print('SYNC:',path.relative_to(ROOT))
+def plan(root):
+    pending = {}
+    def load(name):
+        return json.loads((root / name).read_text(encoding='utf-8'))
+    def put(name, value):
+        pending[name] = json.dumps(value, ensure_ascii=False, indent=2) + '\n'
+    for prefix, environment, project in [('', 'production', 'ooclsrndeygojtofuyte'), ('test/', 'staging', 'ibclzdkxiozbzmniiygv')]:
+        status = load(prefix + 'site-status.json')
+        active = status['release']
+        version = active['version']
+        if not re.fullmatch(r'SH-\d{2}\.\d{2}\.\d{2} v', version):
+            raise ValueError('INVALID_BUSINESS_VERSION:' + environment)
+        if not active.get('title') or not active.get('changes') or status['releases'][0]['version'] != version:
+            raise ValueError('STALE_RELEASE_NOTES:' + environment)
+        state = status.get('releaseStatus', 'checking')
+        if state not in ('updating', 'checking', 'released', 'failed'):
+            raise ValueError('INVALID_PUBLICATION_STATE:' + environment)
+        owner = load(prefix + 'release-status.json').get('ownerVersion', '')
+        if not re.fullmatch(r'OW-\d{2}\.\d{2}\.\d{2} v', owner):
+            raise ValueError('INVALID_OWNER_VERSION:' + environment)
+        info = load(prefix + 'build-info.json')
+        if info.get('environment') != environment or info.get('projectRef') != project:
+            raise ValueError('UNSAFE_ENVIRONMENT_IDENTITY:' + environment)
+        if info.get('primaryBusinessVersion', version) != version:
+            raise ValueError('UNREVIEWED_PRIMARY_BUSINESS_VERSION:' + environment)
+        if environment == 'production':
+            manifest = load('production-release-manifest.json')
+            if manifest.get('businessVersion') != version or manifest.get('frontendBuild') != info.get('build'):
+                raise ValueError('PUBLISHED_MANIFEST_MISMATCH:production')
+        put(prefix + 'release-status.json', {'version': version, 'ownerVersion': owner,
+            'status': state, 'date': active['date'], 'changes': active['changes']})
+        # PUBLISHED is a publication fact, never an automatic QA/Owner approval.
+        # Preserve both environments' own notes, state, and historical build pins.
+        info['releaseVersion'] = version
+        info['ownerReleaseVersion'] = owner
+        put(prefix + 'build-info.json', info)
+        name = prefix + 'index.html'
+        contents = (root / name).read_text(encoding='utf-8')
+        updated, count = re.subn(r'(portal-release-status-20261117\.js\?v=)[^"]+',
+            lambda _: 'portal-release-status-20261117.js?v=' + quote(version, safe='') + '&rev=unified', contents)
+        if count != 1:
+            raise ValueError('MISSING_OR_REPEATED_RELEASE_SCRIPT:' + environment)
+        pending[name] = updated
+    changes = {name: text for name, text in pending.items()
+               if (root / name).read_text(encoding='utf-8') != text}
+    # An approved asset cannot be re-stamped independently of its release packet.
+    approved_assets = load('production-release-manifest.json').get('assets', {})
+    for name, text in changes.items():
+        if name in approved_assets and hashlib.sha256(text.encode('utf-8')).hexdigest() != approved_assets[name]:
+            raise ValueError('IMMUTABLE_PRODUCTION_ASSET_REQUIRES_RELEASE:' + name)
+    return changes
 
-state=source.get('releaseStatus','checking')
-if state not in ('updating','checking','released','failed'):
-    raise SystemExit('Invalid release status')
-# A build explicitly marked PUBLISHED for this release must not be shown as still checking.
-production_info=json.loads((ROOT/'build-info.json').read_text(encoding='utf-8'))
-if (production_info.get('releaseStatus') == 'PUBLISHED'
-        and production_info.get('releaseVersion') == version
-        and state in ('updating','checking')):
-    state='released'
-    source['releaseStatus']=state
-    write(ROOT/'site-status.json',source)
-manifest = {'version':version,'ownerVersion':owner,'status':state,
-            'date':active['date'],'changes':active['changes']}
-for path in [ROOT/'release-status.json', ROOT/'test/release-status.json']:
-    write(path,manifest)
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--check', action='store_true', help='Read only; default')
+    mode.add_argument('--write', action='store_true', help='Apply the fully validated plan locally; never deploy')
+    args = parser.parse_args()
+    try:
+        changes = plan(ROOT)
+    except (ValueError, KeyError, OSError) as error:
+        print(json.dumps({'status': 'BLOCKED', 'reason': str(error), 'written': []}))
+        return 1
+    if not args.write:
+        print(json.dumps({'status': 'STALE' if changes else 'CURRENT', 'changes': list(changes), 'written': []}))
+        return int(bool(changes))
+    # Validate *all* inputs before the first write, including the second HTML page.
+    for name, text in changes.items():
+        (ROOT / name).write_text(text, encoding='utf-8')
+    print(json.dumps({'status': 'SYNCHRONIZED', 'written': list(changes)}))
+    return 0
 
-staging = ROOT/'test/site-status.json'
-test_data=json.loads(staging.read_text(encoding='utf-8'))
-test_data['release']=active
-test_data['releaseStatus']=state
-test_data['releases']=[active]+[x for x in test_data['releases'] if x['version']!=version]
-write(staging,test_data)
-
-for build_path in [ROOT/'build-info.json', ROOT/'test/build-info.json']:
-    info=json.loads(build_path.read_text(encoding='utf-8'))
-    info['releaseVersion']=version
-    info['ownerReleaseVersion']=owner
-    write(build_path,info)
-
-for page in [ROOT/'index.html',ROOT/'test/index.html']:
-    contents=page.read_text(encoding='utf-8')
-    pat=r'(portal-release-status-20261117\.js\?v=)[^"]+'
-    replacement=r'\g<1>'+quote(version,safe='')+'&rev=unified'
-    updated,count=re.subn(pat,lambda _: 'portal-release-status-20261117.js?v='+quote(version,safe='')+'&rev=unified',contents)
-    if count!=1:
-        raise SystemExit('Missing or repeated release script in '+str(page))
-    if updated!=contents:
-        page.write_text(updated,encoding='utf-8')
-        print('SYNC:',page.relative_to(ROOT))
-print('Validated single release',version,'owner',owner)
+if __name__ == '__main__':
+    raise SystemExit(main())
