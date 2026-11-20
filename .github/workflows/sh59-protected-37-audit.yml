@@ -1,5 +1,11 @@
 name: SH59 strict 37-of-37 protected E2E audit (QA only)
 on:
+  workflow_dispatch:
+    inputs:
+      protected_run:
+        description: 'Re-evaluate saved evidence from a completed protected QA run on main'
+        required: true
+        type: string
   workflow_run:
     workflows: ["Carrier124 live OIDC acceptance on isolated SH59 (11 roles)"]
     branches: [main]
@@ -11,7 +17,10 @@ permissions:
   attestations: write
 jobs:
   evaluate-protected-37:
-    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' }}
+    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main')) }}
+    env:
+      PROTECTED_RUN: ${{ inputs.protected_run || github.event.workflow_run.id }}
+      EVALUATOR_SOURCE: df5045dcf79086269fa5d45e7523500aa32ad939
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
@@ -27,10 +36,10 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PROTECTED_RUN: ${{ github.event.workflow_run.id }}
-          PROTECTED_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
           set -euo pipefail
+          [[ "$PROTECTED_RUN" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$PROTECTED_RUN" > "$RUNNER_TEMP/protected-run-gh.json"
           gh run view "$PROTECTED_RUN" -R hakaru4i-afk/freight-quotes-web \
             --json databaseId,headSha,headBranch,workflowName,event,status,conclusion,url,jobs \
             > "$RUNNER_TEMP/protected-run.json"
@@ -39,6 +48,14 @@ jobs:
           import {readFileSync,writeFileSync} from 'node:fs';
           const path=process.env.RUNNER_TEMP+'/protected-run.json';
           const r=JSON.parse(readFileSync(path));
+          const metadata=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/protected-run-gh.json'));
+          assert.equal(metadata.id,r.databaseId);
+          assert.equal(metadata.path,'.github/workflows/carrier124-main-oidc-smoke.yml');
+          assert.equal(metadata.head_repository.full_name,'hakaru4i-afk/freight-quotes-web');
+          assert.equal(metadata.head_branch,'main');
+          assert.equal(metadata.head_sha,r.headSha);
+          assert.equal(metadata.conclusion,'success');
+          assert.ok(Number.isSafeInteger(metadata.run_attempt)&&metadata.run_attempt>0);
           assert.equal(r.databaseId,Number(process.env.PROTECTED_RUN));
           assert.equal(r.event,'workflow_dispatch');
           assert.equal(r.headBranch,'main');
@@ -50,28 +67,28 @@ jobs:
           ]);
           // The frozen evaluator expects only the job holding OIDC credentials.
           const protectedJob=r.jobs.find(job=>job.name==='qa');
-          writeFileSync(path,JSON.stringify({...r,jobs:[protectedJob]}),{mode:0o600});
+          writeFileSync(path,JSON.stringify({...r,runAttempt:String(metadata.run_attempt),jobs:[protectedJob]}),{mode:0o600});
           console.log('PROTECTED_OIDC_RUN_REVIEWED',r.databaseId,r.conclusion);
           JS
       - name: Download and assess protected browser/API receipts against frozen SH59 v20
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          PROTECTED_RUN: ${{ github.event.workflow_run.id }}
-          PROTECTED_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: |
           set -euo pipefail
           mkdir -p reports/verified-authenticated
           gh run download "$PROTECTED_RUN" -R hakaru4i-afk/freight-quotes-web \
             --name carrier124-oidc-sh59-redacted-evidence --dir reports/verified-authenticated
-          node scripts/assess-authenticated-acceptance.mjs \
+          git show "$EVALUATOR_SOURCE:scripts/assess-authenticated-acceptance.mjs" > "$RUNNER_TEMP/assess-authenticated-acceptance.mjs"
+          node "$RUNNER_TEMP/assess-authenticated-acceptance.mjs" \
             reports/verified-authenticated "$RUNNER_TEMP/protected-run.json" test/staging-manifest.json reports
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           const a=JSON.parse(readFileSync('reports/private-authenticated-e2e.json','utf8'));
           const pair=JSON.parse(readFileSync('reports/verified-authenticated/carrier124-ci-pair.json','utf8'));
-          assert.equal(pair.workflowRunAttempt,process.env.PROTECTED_ATTEMPT);
+          const run=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/protected-run.json','utf8'));
+          assert.equal(pair.workflowRunAttempt,run.runAttempt);
           assert.equal(a.scenarios.length,37);
           assert.equal(a.scenarios.filter(s=>s.status==='PASS').length,37);
           console.log('FULL_AUTHENTICATED_37_OF_37_PROVENANCE_PASS_NOT_A_PRODUCTION_RELEASE');
