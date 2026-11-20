@@ -10,7 +10,18 @@ try{
  if(!process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN||!process.env.ACTIONS_ID_TOKEN_REQUEST_URL)throw Error('GITHUB_OIDC_PERMISSION_REQUIRED');
  for(const actor of target){
   const url=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);if(url.protocol!=='https:')throw Error('HTTPS_IDENTITY_REQUIRED');url.searchParams.set('audience','freight-isolated-qa-credentials');
-  const identityResponse=await fetch(url,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},signal:AbortSignal.timeout(30000)});if(!identityResponse.ok)throw Error('GITHUB_IDENTITY_UNAVAILABLE');const {value:identity}=await identityResponse.json();if(!identity)throw Error('GITHUB_IDENTITY_EMPTY');
+  // GitHub's identity endpoint may throttle successive single-actor requests,
+  // especially during cleanup after a long browser suite. Never skip an actor
+  // or reuse another workflow's identity: retry only transient HTTP failures.
+  let identity='',lastCode=0;
+  for(let attempt=0;attempt<5;attempt++){
+   const identityResponse=await fetch(url,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},signal:AbortSignal.timeout(30000)});
+   lastCode=identityResponse.status;
+   if(identityResponse.ok){({value:identity}=await identityResponse.json());break;}
+   if(![429,500,502,503,504].includes(lastCode))throw Error('GITHUB_IDENTITY_HTTP_'+lastCode);
+   if(attempt<4)await new Promise(resolve=>setTimeout(resolve,[5000,10000,20000,40000][attempt]));
+  }
+  if(!identity)throw Error('GITHUB_IDENTITY_UNAVAILABLE_'+lastCode);
   const r=await fetch(endpoint,{method:'POST',headers:{Authorization:'Bearer '+identity,'Content-Type':'application/json'},body:JSON.stringify({action:finish?'finish':'issue',actor}),signal:AbortSignal.timeout(45000)}),data=await r.json();
   if(!r.ok||!data.ok)throw Error('QA_BROKER_'+r.status+'_'+String(data.error||'UNAVAILABLE').replace(/[^A-Z_]/g,'').slice(0,60));
   if(!finish){
