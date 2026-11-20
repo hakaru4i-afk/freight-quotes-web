@@ -67,3 +67,4 @@ jobs:
 # 2026-11-20 Nov14 v18 route now has five distinct stops with explicit Incoterms + carrier station; source-only reindex, no deploy.
 # 2026-11-20 reindex candidate-only exact AUTO-KM authenticated fixture from verified public facility coordinates, no deployment.
 # 2026-11-20 only confirmed catalog rail-facility points in exact AUTO-KM fixture; Yantian port explicitly remains approximate.
+# 2026-11-20 SH59 production/test stylesheet source order aligned; refresh hash manifest only after QA-only authentication enhancements (no deploy).
