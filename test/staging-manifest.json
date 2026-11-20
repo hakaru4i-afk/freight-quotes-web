@@ -33,10 +33,10 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "f598042d97638b0601e2e68cb077cd8cbed08b43",
+  "frontendCommit": "99c946a9ccdcbd1845aa726979774fea5d8bbe24",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
-    ".github/workflows/carrier124-main-oidc-smoke.yml": "1f97dc73c2e04e53a15069654fb0f62e99b6d62aedde713244e7b456347fde5c",
+    ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "cb11f92aa693e9a8ab7d8b11a1a01786a83def6d68dd830678fe3687116dba43",
     ".github/workflows/carrier124-reindex-candidate.yml": "5ed6c8482209f8bc4273634bd42f5404f58b8a5ad91c5468d576c05f592c03a3",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
@@ -427,7 +427,7 @@
     "tests/ved-navigation-dom.test.mjs": "0b199d063b43ee45db8b57a7cbf32dfc51e48a6dfb9811e96877127d631b917f",
     "tests/ved-shared-chat-and-requests.test.mjs": "e25c7531219639cb29664e8e8604dec6b83cfaa74f151d1f670dbc6abae19caa",
     ".github/workflows/guarded-branch-cleanup.yml": "e58d8c3f91b80d3dfda0f430a842d32f38775c8e3f62b9d60600d519d33a99d9",
-    "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md": "3a9436378206291b904285208747634ba2b5f219b1f9c86a2d5cd1e56bfbb3df",
+    "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md": "aa1559b6f3481704c1c4cac8db5626318f337707e35ea2a74ecb22622adad44d",
     "scripts/check-canonical-db-targets.mjs": "211fbfb11161b6c84731a3e28a42ceaccbaf3fcf0403357ac390f056b9650107",
     "scripts/ops/prune-merged-branches.mjs": "87a2fac69758e669c67fe57d7b50c6b657d1c097d9e5380774d7ea7739521898",
     "tests/branch-cleanup.test.mjs": "70fb879da0511d02e2944784f64068b5b650e5f94fbf09ca7af0f87b45bff7ed",
