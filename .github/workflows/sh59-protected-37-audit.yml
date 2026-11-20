@@ -1,0 +1,72 @@
+name: SH59 strict 37-of-37 protected E2E audit (QA only)
+on:
+  workflow_run:
+    workflows: ["Carrier124 live OIDC acceptance on isolated SH59 (11 roles)"]
+    branches: [main]
+    types: [completed]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  evaluate-protected-37:
+    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 370c016a57f05cd1e3afde3db698953d640a4d71
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact protected-run provenance without trusting job labels
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROTECTED_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          gh run view "$PROTECTED_RUN" -R hakaru4i-afk/freight-quotes-web \
+            --json databaseId,headSha,headBranch,workflowName,event,status,conclusion,url,jobs \
+            > "$RUNNER_TEMP/protected-run.json"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const r=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/protected-run.json'));
+          assert.equal(r.databaseId,Number(process.env.PROTECTED_RUN));
+          assert.equal(r.event,'workflow_dispatch');
+          assert.equal(r.headBranch,'main');
+          assert.equal(r.workflowName,'Carrier124 live OIDC acceptance on isolated SH59 (11 roles)');
+          assert.equal(r.status,'completed');
+          console.log('PROTECTED_OIDC_RUN_REVIEWED',r.databaseId,r.conclusion);
+          JS
+      - name: Download and assess protected browser/API receipts against frozen SH59 v20
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROTECTED_RUN: ${{ github.event.workflow_run.id }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports/verified-authenticated
+          gh run download "$PROTECTED_RUN" -R hakaru4i-afk/freight-quotes-web \
+            --name carrier124-oidc-sh59-redacted-evidence --dir reports/verified-authenticated
+          node scripts/assess-authenticated-acceptance.mjs \
+            reports/verified-authenticated "$RUNNER_TEMP/protected-run.json" test/staging-manifest.json reports
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const a=JSON.parse(readFileSync('reports/private-authenticated-e2e.json','utf8'));
+          assert.equal(a.scenarios.length,37);
+          assert.equal(a.scenarios.filter(s=>s.status==='PASS').length,37);
+          console.log('FULL_AUTHENTICATED_37_OF_37_PROVENANCE_PASS_NOT_A_PRODUCTION_RELEASE');
+          JS
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sh59-protected-37-audit-summary
+          path: |
+            reports/private-authenticated-e2e.json
+          if-no-files-found: ignore
+          retention-days: 14
