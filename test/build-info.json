@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.59 v candidate; source locked, publication and acceptance blocked.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "f99efa9df3d7e44f68f4a82eabeaf684f3821720",
+  "servedAppBlobSha": "63ee41255441c2713f8a52da6f5471c430cf50d7",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
