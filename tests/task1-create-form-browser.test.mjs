@@ -142,7 +142,20 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
  assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
  await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
- assert.equal(await publish.isEnabled(),true,"Complete request must enable publication");
+ const publishEnabled=await publish.isEnabled();
+ if(!publishEnabled){
+  const inputs=await page.locator('.cabinet-panel[data-section="create-request"] fieldset.request-owner-fields').evaluate(fieldset=>
+   [...fieldset.querySelectorAll('input,select')].map(el=>({
+    name:el.name||'',placeholder:el.getAttribute('placeholder')||'',
+    type:el.type||'',filled:Boolean(String(el.value||'').trim()),disabled:Boolean(el.disabled)
+   }))
+  );
+  throw Error('T1-01_VALID_SHIPMENT_STILL_DISABLED '+JSON.stringify({
+   orderFilled:Boolean((await order.inputValue()).trim()),
+   fields:inputs
+  }).slice(0,3600));
+ }
+ assert.equal(publishEnabled,true,"Complete request must enable publication");
  await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
  await page.waitForFunction(()=>!!document.querySelector(".cabinet-panel[data-section='create-request'] .notice")?.textContent.includes("Опубликовано"),null,{timeout:12000}).catch(()=>{});
