@@ -36,7 +36,9 @@ async function supplierFixture(actor){
 if(Object.hasOwn(keys,mode)){
   await check(mode,async()=>{
     const fixture=await publishFixture(api,keys[mode]);
-    assert.equal(fixture.published.recipients,1);
+    // The current Owner request contract broadcasts to every eligible carrier (two QA carriers).
+    // Carrier-to-carrier denial is only valid for truly unassigned orders, not this shared round.
+    assert.equal(fixture.published.recipients,2,'Default publication must reach both eligible QA carriers');
     return {order:fixture.order,round:fixture.published.round};
   });
 }else if(mode==='verify'||mode==='supplier'){
@@ -48,18 +50,27 @@ if(Object.hasOwn(keys,mode)){
     }
     const checks=[];
     for(const [actor,order] of Object.entries(keys)){
-      const other=actor==='carrierA'?'carrierB':'carrierA', foreign=keys[other];
+      const other=actor==='carrierA'?'carrierB':'carrierA', shared=keys[other];
       const own=await api(actor,'/api/requests',{order});
       assert.equal(own.json.request.order_code,order);
       const receipt=await api(actor,'/api/documents/file',docs[actor]);
       assert.equal(sha256(receipt.bytes),digest(order));
-      await api(actor,'/api/requests',{order:foreign},undefined,deny);
-      await api(actor,'/api/documents',{order:foreign,access:docs[other].access},undefined,deny);
-      await api(actor,'/api/documents/file',docs[other],undefined,deny);
+      // Both carriers were explicitly notified by the broadcast contract:
+      // it would be wrong to assert that an assigned carrier is unauthorized.
+      const second=await api(actor,'/api/requests',{order:shared});
+      assert.equal(second.json.request.order_code,shared);
+      const secondFile=await api(actor,'/api/documents/file',docs[other]);
+      assert.equal(sha256(secondFile.bytes),digest(shared));
       const list=await api(actor,'/api/carrier');
-      assert.ok(list.json.notifications.some(n=>n.order_code===order));
-      excluded(list,[foreign,docs[other].id]);
-      checks.push({actor,ownFileSha256:digest(order),ownOrder:order,foreignOrder:foreign});
+      for(const code of Object.values(keys))assert.ok(list.json.notifications.some(n=>n.order_code===code),'Missing broadcast recipient '+code);
+      // Test an actual authorization boundary: anonymous users and suppliers,
+      // who are not participants in either transport request, must be denied.
+      for(const outsider of [null,'supplier','supplierB']){
+        await api(outsider,'/api/requests',{order},undefined,deny);
+        await api(outsider,'/api/documents',{order,access:docs[actor].access},undefined,deny);
+        await api(outsider,'/api/documents/file',docs[actor],undefined,deny);
+      }
+      checks.push({actor,ownFileSha256:digest(order),assignedOrders:[order,shared],deniedRoles:['anonymous','supplier','supplierB']});
     }
     return {checks};
   });
