@@ -99,10 +99,10 @@ try{
  assert.equal(direct.data.points.length,2);
  for(const p of direct.data.points){assert.equal(p.status,'resolved');assert.equal(p.precision,'facility');assert.equal(p.confirmed,true);assert.ok(Number.isFinite(p.lat)&&Number.isFinite(p.lon));}
  const exactOrder='QA-MAP50-EXACT-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
- const exactLogistics={...logistics,origin:exactFrom,destination:exactTo,incoterm_place:exactFrom,ready_date:'2026-11-01'};
+ const exactLogistics={...logistics,origin:exactFrom,destination:exactTo,incoterm_place:exactFrom,ready_date:'2099-12-01'};
  await publishFixture(publicationCall,exactOrder,{deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',geography:exactLogistics,filename:'qa-map50-control.txt'});
  const exactBidRequest=randomUUID();
- assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2026-11-02',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
+ assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2099-12-05',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
  const exactData=await call('owner','/api/data');assert.equal(exactData.status,200);
  const exactBid=exactData.data.bids.find(x=>x.request_id===exactBidRequest);assert.ok(exactBid,'Exact fixture quote readback');
  assert.equal((await call('owner','/api/review',{id:exactBid.id,decision:'accepted'})).status,200,'Exact fixture review');
