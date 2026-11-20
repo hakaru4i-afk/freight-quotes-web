@@ -6,6 +6,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {join} from 'node:path';
 import {carrier124,carrier124Base,assertCandidateCheckout} from './carrier124-isolated-target.mjs';
+import {qaDocumentFetch,withQaUploadId} from './helpers/qa-document-transport.mjs';
 const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const root=exactCandidate?process.env.QA_CARRIER124_PRIVATE_DIR:'/tmp/freight-ci-qa';
@@ -36,7 +37,8 @@ for(const id of expectedActors){
 }
 assert.equal(new Set(expectedActors.map(id=>sessions[id])).size,expectedActors.length);
 const runId=process.env.GITHUB_RUN_ID||null;
-const fixtureRun=exactCandidate?randomUUID().slice(0,8).toUpperCase():runId;
+assert.match(runId??'',/^\d{1,18}$/);
+const fixtureRun=runId;
 const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,frontendSha:exactCandidate?carrier124.frontendMetadata:process.env.GITHUB_SHA,
  ...(exactCandidate?{frontendSource:carrier124.frontendSource,backendSourceCommit:carrier124.backendSource,
   backendVersion:carrier124.version,backendBundle:carrier124.bundle,sqlMigrationVersion:candidate.sh59IsolatedQa?.catalogMigrationVersion||candidate.sqlMigrationVersion}:{}),
@@ -44,7 +46,8 @@ const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,fronte
 const selected=exactCandidate?new Set((process.env.QA_CARRIER124_CASES||'').split(',').filter(Boolean)):new Set();
 async function call(actor,path,body,method){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
- const r=await fetch(url,{...(exactCandidate?{redirect:'error'}:{}),method:method||(body?'POST':'GET'),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});
+ if(exactCandidate)withQaUploadId(path,body);
+ const r=await qaDocumentFetch(url,{...(exactCandidate?{redirect:'error'}:{}),method:method||(body?'POST':'GET'),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,},{timeout:60000,onTransportRetry:()=>report.calls.push({actor,path:path.split('?')[0],method:'POST',retry:'document_upload_transport'})});
  report.calls.push({actor,path:path.split('?')[0],method:method||(body?'POST':'GET'),status:r.status,requestId:r.headers.get('x-freight-request-id')});return {status:r.status,data:await r.json()};
 }
 const ok=r=>{assert.equal(r.status,200);return r.data;};

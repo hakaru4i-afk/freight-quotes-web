@@ -4,6 +4,8 @@ import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {carrier124, carrier124Base, isolatedApiUrl, assertCandidateCheckout} from './carrier124-isolated-target.mjs';
 
+import {qaDocumentFetch,withQaUploadId} from './helpers/qa-document-transport.mjs';
+
 export const sha256 = data => createHash('sha256').update(data).digest('hex');
 export const deadlineMinsk = time => new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Minsk', dateStyle:'short', timeStyle:'short'}).format(time).replace(' ', 'T');
 
@@ -20,13 +22,13 @@ export async function createRemainingClient(sessions, log) {
     for (const [key, value] of Object.entries(query)) url.searchParams.set(key,value);
     if (actor) assert.match(sessions[actor] || '', /^[a-f0-9]{64}$/, 'Missing fixture session: ' + actor);
     const multipart = data instanceof FormData;
-    const r = await fetch(url, {
+    withQaUploadId(path,data);
+    const r = await qaDocumentFetch(url, {
       redirect:'error', method:data===undefined?'GET':'POST',
       headers:{Origin:'https://hakaru4i-afk.github.io', ...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),
         ...(data!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},
       body:data===undefined?undefined:multipart?data:JSON.stringify(data),
-      signal:AbortSignal.timeout(30000)
-    });
+    },{timeout:30000,onTransportRetry:()=>log.push({actor,path,method:'POST',retry:'document_upload_transport'})});
     const requestId = r.headers.get('x-freight-request-id');
     log.push({actor:actor||'anonymous',path,method:data===undefined?'GET':'POST',status:r.status,requestId});
     const allowed = Array.isArray(expected)?expected:[expected];
@@ -79,17 +81,85 @@ export async function loadRemainingRun() {
     save:(name,data)=>writeFile(join(evidenceDir,name),JSON.stringify(data,null,2)+'\n',{mode:0o600})};
 }
 
-export async function verifyServiceBoundaries(api,onBoundary=async()=>{},boundaries=[76,75,51,50]) {
-  const login='carrier124nov18-carrierb';
+const serviceLogin='carrier124nov18-carrierb';
+const serviceQuery={login:serviceLogin};
+const serviceSupportOrder='SL-SUPPORT-'+serviceLogin.toUpperCase();
+const restorationFiles=['n26-guarantee.txt','n26-result.txt'];
+
+async function serviceEvidence(api,{allowUpload=false}={}){
+  async function find(){
+    const {json}=await api('owner','/api/documents',{order:serviceSupportOrder});
+    const verified=[];
+    for(const name of restorationFiles){
+      const expected=sha256(Buffer.from('Synthetic SL restoration proof '+name));
+      let matching;
+      for(const file of json.files.filter(row=>row.name===name)){
+        const response=await api('owner','/api/documents/file',{id:file.id});
+        if(sha256(response.bytes)===expected){matching=file.id;break;}
+      }
+      if(!matching)return null;
+      verified.push(matching);
+    }
+    return {guaranteeId:verified[0],resultId:verified[1]};
+  }
+  const existing=await find();
+  if(existing)return existing;
+  assert.ok(allowUpload,'No verified synthetic Service Level restoration files found');
+  const form=new FormData();
+  form.set('order',serviceSupportOrder);
+  for(const name of restorationFiles)form.append('files',new Blob(['Synthetic SL restoration proof '+name]),name);
+  await api('owner','/api/documents',{},form);
+  const evidence=await find();
+  assert.ok(evidence,'Uploaded restoration evidence was not readable with the known digest');
+  return evidence;
+}
+
+async function restoreServiceScore(api,score,files,reason){
+  const action=body=>api('owner','/api/service-level',{}, {login:serviceLogin,...body});
+  let current=(await api('owner','/api/service-level',serviceQuery)).json;
+  if(current.policy.blocked){
+    await action({action:'unlock',reason,...files});
+    current=(await api('owner','/api/service-level',serviceQuery)).json;
+    assert.equal(current.policy.blocked,false);
+  }
+  if(current.policy.score!==score){
+    await action({action:'set_score',value:score,reason,expectedRevision:current.revision,requestId:randomUUID()});
+  }
+  const restored=(await api('owner','/api/service-level',serviceQuery)).json.policy;
+  assert.equal(restored.score,score);
+  assert.equal(restored.blocked,false);
+  return {score:restored.score,blocked:restored.blocked};
+}
+
+export async function recoverInterruptedCarrierBoundary(api){
+  const current=(await api('owner','/api/service-level',serviceQuery)).json;
+  if(!current.policy.blocked)return {recoveryRequired:false,score:current.policy.score};
+  // The single observed interrupted run left five identifiable synthetic
+  // corrections. Do not reset any other account, revision or business penalty.
+  assert.equal(current.revision,26,'Unrecognized blocked synthetic Carrier B fixture');
+  assert.equal(current.policy.score,50);
+  const history=current.corrections.slice(-5);
+  assert.deepEqual(history.map(row=>Number(row.revision)),[22,23,24,25,26]);
+  assert.deepEqual(history.map(row=>Number(row.value)),[79,76,75,51,50]);
+  assert.ok(history.every(row=>row.action==='set_score'&&row.actor==='carrier124nov18-owner'&&
+    row.reason==='Controlled synthetic QA score for the acceptance boundary'));
+  const restored=await restoreServiceScore(api,79,await serviceEvidence(api),
+    'Restore synthetic Carrier B score after interrupted Actions run 44789205566');
+  return {recoveryRequired:true,interruptedRun:'44789205566',...restored};
+}
+
+export async function verifyServiceBoundaries(api,onBoundary=async()=>{},boundaries=[76,75,51,50]){
   const order='QA-N26-SEC-B1';
-  const query={login};
-  const original=(await api('owner','/api/service-level',query)).json;
+  const original=(await api('owner','/api/service-level',serviceQuery)).json;
   assert.equal(original.policy.blocked,false);
-  const action=(body,status=200)=>api('owner','/api/service-level',{}, {login,...body},status);
+  // Keep the recovery path available before any test can lock this fixture.
+  const files=await serviceEvidence(api,{allowUpload:true});
   const scores=[];
   async function setScore(value){
-    const current=(await api('owner','/api/service-level',query)).json;
-    return action({action:'set_score',value,reason:'Controlled synthetic QA score for the acceptance boundary',expectedRevision:current.revision,requestId:randomUUID()});
+    const current=(await api('owner','/api/service-level',serviceQuery)).json;
+    return api('owner','/api/service-level',{}, {login:serviceLogin,action:'set_score',value,
+      reason:'Controlled synthetic QA score for the acceptance boundary',
+      expectedRevision:current.revision,requestId:randomUUID()});
   }
   try{
     for(const value of boundaries){
@@ -102,20 +172,7 @@ export async function verifyServiceBoundaries(api,onBoundary=async()=>{},boundar
       scores.push({value,mode:r.mode});
     }
   }finally{
-    const current=(await api('owner','/api/service-level',query)).json;
-    if(current.policy.blocked){
-      const files=new FormData();
-      const support='SL-SUPPORT-'+login.toUpperCase();
-      files.set('order',support);
-      for(const name of ['n26-guarantee.txt','n26-result.txt'])files.append('files',new Blob(['Synthetic SL restoration proof '+name]),name);
-      await api('owner','/api/documents',{},files);
-      const docs=(await api('owner','/api/documents',{order:support})).json.files;
-      await action({action:'unlock',reason:'Restore simulated Carrier B after acceptance test',guaranteeId:docs.find(d=>d.name==='n26-guarantee.txt').id,resultId:docs.find(d=>d.name==='n26-result.txt').id});
-    }
-    await setScore(original.policy.score);
-    const restored=(await api('owner','/api/service-level',query)).json.policy;
-    assert.equal(restored.score,original.policy.score);
-    assert.equal(restored.blocked,false);
+    await restoreServiceScore(api,original.policy.score,files,'Restore simulated Carrier B after acceptance test');
   }
   return scores;
 }

@@ -3,6 +3,7 @@ import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
 import {carrier124, carrier124Base, readCandidateAsset, assertCandidateCheckout, isolatedBrowserApiPath, isolatedApiUrl} from './carrier124-isolated-target.mjs';
+import {qaDocumentFetch} from './helpers/qa-document-transport.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -85,7 +86,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   if(path){
    if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
-   let r;try{r=await fetch(exactCandidate?isolatedApiUrl(path,url.search):base+path+url.search,{...(exactCandidate?{redirect:'error'}:{}),method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
+   let r;try{r=await qaDocumentFetch(exactCandidate?isolatedApiUrl(path,url.search):base+path+url.search,{...(exactCandidate?{redirect:'error'}:{}),method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),},{timeout:60000,onTransportRetry:()=>report.calls.push({actor,path,method:req.method(),retry:'document_upload_transport'})});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
    const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,durationMs:Date.now()-start,requestId:r.headers.get('x-freight-request-id'),requestedRegion:url.searchParams.get('forceFunctionRegion'),actualRegion:r.headers.get('x-sb-edge-region')});
    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
    await route.fulfill({status:r.status,headers:out,body});return;
@@ -410,11 +411,29 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
   if(process.env.QA_BROWSER_TENDER==='true'&&actor==='owner'){
    await page.locator('.cabinet-sidebar nav a[href="#tender-hub"]').first().evaluate(el=>el.click());
    const tender=page.locator('.cabinet-panel[data-section="tender-hub"]');await tender.waitFor({state:'visible'});
-   const button=tender.getByRole('button',{name:/Скачать итоговый протокол PDF/}).first();await button.waitFor({timeout:60000});
+   let expectedTender;
+   if(exactCandidate){
+    const apiEvidence=JSON.parse(await readFile('reports/isolated-rc/business-api-real.json','utf8'));
+    assert.equal(apiEvidence.runId,process.env.GITHUB_RUN_ID);
+    assert.equal(apiEvidence.backendBundle,carrier124.bundle);
+    const fixture=apiEvidence.checks.find(c=>c.id==='competitive_tender_step_final_protocol_and_role_guard');
+    assert.equal(fixture?.status,'PASS');
+    expectedTender=fixture.evidence;
+   }
+   const buttons=tender.getByRole('button',{name:/Скачать итоговый протокол PDF/});
+   const button=expectedTender
+     ? buttons.and(tender.locator('article').filter({has:page.getByText(expectedTender.order,{exact:true})}).getByRole('button'))
+     : buttons.first();
+   await button.waitFor({timeout:60000});
    const downloaded=page.waitForEvent('download',{timeout:60000});
-   const protocolResponse=page.waitForResponse(r=>r.url().includes('/api/tenders?protocol='),{timeout:60000});
+   const protocolResponse=page.waitForResponse(r=>{
+    const url=new URL(r.url());
+    return url.pathname.endsWith('/api/tenders')&&url.searchParams.has('protocol')&&
+      (!expectedTender||url.searchParams.get('protocol')===expectedTender.id);
+   },{timeout:60000});
    await button.click();const download=await downloaded;const response=await protocolResponse;
    assert.equal(response.status(),200);const protocol=await response.json();assert.equal(protocol.final,true);
+   if(expectedTender)assert.equal(protocol.protocol.tender.order_code,expectedTender.order);
    const path=await download.path();const bytes=await readFile(path);assert.equal(bytes.subarray(0,5).toString(),'%PDF-');
    const text=execFileSync('pdftotext',['-layout',path,'-'],{encoding:'utf8'});
    for(const value of [protocol.protocol.tender.protocol,protocol.protocol.tender.order_code,'1480','Synthetic QA price tender'])assert.ok(text.includes(value),'PDF missing '+value);
@@ -443,7 +462,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await page.setViewportSize(viewport);await page.waitForTimeout(1200);
    const layout=await page.evaluate(()=>({width:innerWidth,scroll:document.documentElement.scrollWidth,text:document.body.innerText.length,role:document.querySelector('[data-cabinet-role]')?.getAttribute('data-cabinet-role')}));
    assert.ok(layout.text>100,'Blank cabinet');assert.ok(layout.scroll<=viewport.width+4,'Horizontal overflow: '+JSON.stringify(layout));
-   const file=evidenceDir+'/'+actor+'-'+phase+'-'+viewport.width+'.png';await page.screenshot({path:file,fullPage:false,animations:"disabled",timeout:60000});rec.viewports.push({...viewport,...layout,screenshot:file,screenshotSha256:createHash('sha256').update(await readFile(file)).digest('hex')});
+   const file=evidenceDir+'/'+actor+'-'+phase+'-'+viewport.width+'.png';await page.screenshot({path:file,fullPage:false,animations:"disabled",timeout:60000,mask:phase==='alignment'?[page.locator('#ow-workspace')]:[]});rec.viewports.push({...viewport,...layout,screenshot:file,screenshotSha256:createHash('sha256').update(await readFile(file)).digest('hex')});
   }
   if(loginSmoke){
    const logout=page.waitForResponse(r=>r.url().includes('/api/auth')&&r.request().method()==='POST'&&r.request().postDataJSON()?.action==='logout');

@@ -3,13 +3,20 @@ import{spawnSync}from'node:child_process';import{readFileSync}from'node:fs';
 process.env.QA_MAP_ORDER||='QA-NOV14-'+Date.now();
 const ordinary=process.env.QA_NOV14_ORDINARY==='true';
 const evidence=process.env.QA_NOV14_EVIDENCE_DIR||(ordinary?'reports/nov14-ordinary':'reports/nov14-published');
-function run(actors,flag,value='true'){
+function run(actors,flag,value='true',extra={}){
  const env={...process.env,QA_MAP50:'true',QA_NOV14_RAIL:'true',QA_BROWSER_EVIDENCE_DIR:evidence,QA_BROWSER_ACTORS:actors};
  for(const key of ['QA_BROWSER_CREATE','QA_BROWSER_BID','QA_BROWSER_SELECT','QA_BROWSER_ACCEPT','QA_MAP_GEOCODES','QA_NOV14_PHASE','QA_BROWSER_VED_WORK','QA_BROWSER_LOGISTIC_DOCUMENT','QA_BROWSER_VED_VERIFY','QA_OWNER_REGISTERS'])delete env[key];
- env[flag]=value;
+ Object.assign(env,{[flag]:value},extra);
  const r=spawnSync(process.execPath,['tests/task12-isolated-browser.e2e.mjs'],{env,stdio:'inherit',timeout:360000});if(r.error)throw r.error;if(r.status!==0)throw Error('NOV14 phase failed: '+flag+' '+value+' '+actors);
 }
-run('owner','QA_BROWSER_CREATE');run('carrierA,carrierB','QA_BROWSER_BID');run('owner','QA_BROWSER_SELECT');
+run('owner','QA_BROWSER_CREATE');
+if(process.env.QA_CARRIER124_CANDIDATE==='true'&&!ordinary){
+ run('carrierA','QA_BROWSER_BID','true',{QA_BROWSER_IMPORT:'csv'});
+ run('carrierB','QA_BROWSER_BID','true',{QA_BROWSER_IMPORT:'xlsx'});
+}else{
+ run('carrierA,carrierB','QA_BROWSER_BID');
+}
+run('owner','QA_BROWSER_SELECT');
 const winner=JSON.parse(readFileSync(evidence+'/browser-results-owner.json')).roles[0].selection.winnerActor;
 if(!['carrierA','carrierB'].includes(winner))throw Error('Invalid winner');
 run(winner,'QA_BROWSER_ACCEPT');run('owner','QA_MAP_GEOCODES');run(winner,'QA_NOV14_PHASE','carrier');
