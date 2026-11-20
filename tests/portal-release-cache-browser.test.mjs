@@ -65,3 +65,28 @@ test('role-scoped progress displays title, expected result, status and collapsib
   }
  }finally{await browser.close()}
 });
+
+
+test('Owner sees actual production SH59/SH52 API drift even when the status JSON claims released',async()=>{
+ const browser=await chromium.launch({headless:true});
+ try{
+  for(const [apiVersion,expectWarning] of [['SH-01.30.52 v',true],['SH-01.30.59 v',false]]){
+   const page=await browser.newPage();
+   const errors=[];page.on('pageerror',e=>errors.push(e.message));
+   await page.route('https://hakaru4i-afk.github.io/**',route=>{
+    const url=new URL(route.request().url());
+    if(url.pathname==='/freight-quotes-web/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:'<html lang="ru"><body><div id="root"><div class="cabinet-app" data-cabinet-role="owner"></div></div><script src="/freight-quotes-web/portal-release-status-20261117.js?businessVersion=SH-01.30.59+v"></script></body></html>'});
+    if(url.pathname.endsWith('.js'))return route.fulfill({contentType:'text/javascript; charset=utf-8',body:source});
+    if(url.pathname.endsWith('release-status.json'))return route.fulfill({contentType:'application/json',body:JSON.stringify({status:'released',version:'SH-01.30.59 v',changes:[]})});
+    return route.fulfill({status:404});
+   });
+   await page.route('https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/health',route=>route.fulfill({contentType:'application/json',body:JSON.stringify({projectRef:'ooclsrndeygojtofuyte',release:apiVersion,ok:true})}));
+   await page.goto('https://hakaru4i-afk.github.io/freight-quotes-web/fixture',{waitUntil:'networkidle'});
+   await page.waitForFunction(warning=>document.querySelector('#lw-release-status')?.dataset.state===(warning?'failed':'released'),expectWarning);
+   assert.equal(await page.locator('#lw-release-status').isVisible(),expectWarning);
+   if(expectWarning){assert.match(await page.locator('#lw-release-status').innerText(),/SH-01\.30\.52 v/);assert.match(await page.locator('#lw-release-status').innerText(),/Обновление требует проверки/);}
+   assert.deepEqual(errors,[]);
+   await page.close();
+  }
+ }finally{await browser.close();}
+});
