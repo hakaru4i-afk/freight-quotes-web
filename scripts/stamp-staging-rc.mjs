@@ -45,6 +45,16 @@ const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'\s>]+/g,'
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
 if(process.argv.includes('--write')){
+ // Validate cache-key multiplicity before writing app.js or any build metadata.
+ // Otherwise a malformed HTML entry can leave a partially stamped working tree.
+ for(const name of critical){
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\if(process.argv.includes('--write')){
+ if(meta.stagingAssetBuildId');
+  const re=new RegExp('(?:\\./'+escaped+')(?=\\?v=|["\\'])','g');
+  if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);
+ }
+}
+if(process.argv.includes('--write')){
  if(meta.stagingAssetBuildId!==buildId||!meta.assetBuildRecordedAt)meta.assetBuildRecordedAt=new Date().toISOString();
  app=app.replace(pattern,'currentVersion:"'+buildId+'"');write('app.js',app);
  for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[^"\\s&>]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
