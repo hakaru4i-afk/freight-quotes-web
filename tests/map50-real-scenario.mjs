@@ -37,7 +37,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
     const body=await saved.json();
     state=body.result;
     assert.ok(state?.status,'Provider retry returned no point status');
-    rec.ownerGeocodeRetries.push({pointId:point.id,attempt,status:state.status,reason:state.reason||null,requestId:saved.headers()['x-freight-request-id']});
+    rec.ownerGeocodeRetries.push({pointId:point.id,attempt,status:state.status,reasonCode:/^(PROVIDER_[A-Z0-9_]+|NOT_FOUND|AMBIGUOUS)$/.test(String(state.reason||''))?state.reason:'REDACTED',requestId:saved.headers()['x-freight-request-id']});
    }
   }
   d=(await detail(actor)).data;
@@ -49,7 +49,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   // Keep diagnostics privacy-safe: no raw addresses, candidate labels, or tokens.
   // A successful HTTP 200 does not imply that a provider resolved the point.
   const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(p=>({
-   id:p.id,status:p.status,reason:p.reason||null,
+   id:p.id,status:p.status,reason:/^(PROVIDER_[A-Z0-9_]+|NOT_FOUND|AMBIGUOUS)$/.test(String(p.reason||''))?p.reason:'REDACTED',
    retryAt:p.retryAt||null,geocodedAt:p.geocodedAt||null,
    candidateCount:Array.isArray(p.candidates)?p.candidates.length:0,
    hasFiniteCoordinates:Number.isFinite(p.lat)&&Number.isFinite(p.lon)
