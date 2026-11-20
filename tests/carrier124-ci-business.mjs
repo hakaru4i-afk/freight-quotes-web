@@ -106,7 +106,8 @@ try{
  const exactUploaded=await call('owner','/api/documents',exactAttachment);
  assert.equal(exactUploaded.status,200,'Exact fixture attachment failed HTTP '+exactUploaded.status+' '+String(exactUploaded.data.error||''));
  const exactPublished=await call('owner','/api/requests',{order:exactOrder,deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',logistics:exactLogistics});
- assert.equal(exactPublished.status,200,'Exact fixture request failed HTTP '+exactPublished.status+' '+String(exactPublished.data.error||exactPublished.data.message||''));
+ const exactFailureCode=String(exactPublished.data?.code||exactPublished.data?.error_code||'unknown').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
+ assert.equal(exactPublished.status,200,'Exact fixture request failed HTTP '+exactPublished.status+' code='+exactFailureCode+' responseKeys='+Object.keys(exactPublished.data||{}).filter(k=>/^(code|error|error_code|field|details|message|reason)$/.test(k)).join(','));
  const exactBidRequest=randomUUID();
  assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2026-11-02',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
  const exactData=await call('owner','/api/data');assert.equal(exactData.status,200);
