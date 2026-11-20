@@ -790,7 +790,7 @@
     "apiProjectionVersion": 1,
     "scope": "assigned_requests",
     "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
-    "backendSourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
+    "backendSourceCommit": "f8bb38ca1d55b7aceb529a89526abbb0c3253ecd",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
   },
@@ -813,15 +813,17 @@
     "businessVersion": "SH-01.30.59 v",
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api-qa-carrier124nov18",
-    "version": 13,
+    "version": 17,
     "schema": "freight_qa_carrier124nov18",
-    "sourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
-    "sourceTree": "2866ee67077329e84db80b0d12b16e969f4352d2",
-    "providerBundleSha256": "26fd3b399ec301776402889bcd2f33728fb5b5758bda56b3bb31a01272d69575",
-    "sourceFilesVerified": 25,
+    "sourceCommit": "f8bb38ca1d55b7aceb529a89526abbb0c3253ecd",
+    "providerBundleSha256": "a61aafa1d30a6b0d8a1526a80c1aea8cd67b662d505f35d98359650cfd532c0a",
+    "sourceFilesVerified": 26,
     "qaSchemaMigration": "20261118161830",
     "observedStagingLedger": "20261119163433",
-    "receiptPath": "docs/releases/STAB-20261117/SH59_MAP50_403_RECEIPT_20261119.json"
+    "receiptPath": "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md",
+    "runtimeVerification": "SOURCE_READBACK_26_OF_26_HEALTH_AND_ANON_DENIAL_PASS_AUTH_E2E_PENDING",
+    "frontendCompatibility": "SOURCE_CONTRACT_PASS_AUTH_E2E_NOT_VERIFIED",
+    "promotionBlocked": true
   },
   "historicalTask1Build": "SH-01.30.50 v",
   "historicalTask1StagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open."
