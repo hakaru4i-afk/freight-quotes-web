@@ -56,6 +56,16 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   }));
   rec.ownerGeocodeReadback={total:d.plannedGeocodes.owner.length,unresolved,retries:rec.ownerGeocodeRetries};
   await writeFile(evidenceDir+'/map50-owner-geocode-readback.json',JSON.stringify(rec.ownerGeocodeReadback,null,2));
+  // Emit only allowlisted machine-readable status codes to CI logs. Provider
+  // reason text may contain an address or URL and stays in the private artifact.
+  if(unresolved.length){
+   const safeStatuses=new Set(['unavailable','ambiguous','not_found','pending','resolved','error']);
+   const summary=unresolved.map(p=>({status:safeStatuses.has(p.status)?p.status:'other',
+    provider403:/\b403\b|PROVIDER_HTTP_403/.test(String(p.reason||'')),
+    circuitOpen:/PROVIDER_CIRCUIT_OPEN/.test(String(p.reason||'')),
+    hasFiniteCoordinates:p.hasFiniteCoordinates,candidateCount:p.candidateCount}));
+   console.error('MAP50_OWNER_UNRESOLVED_SAFE_SUMMARY '+JSON.stringify({total:d.plannedGeocodes.owner.length,unresolved:summary}));
+  }
   assert.deepEqual(unresolved,[],'MAP50 unresolved after the real provider retry; see map50-owner-geocode-readback.json');
   assert.ok(d.plannedGeocodes.owner.length>=2);
   for(const point of d.plannedGeocodes.owner)assertValidProviderPoint(point);
