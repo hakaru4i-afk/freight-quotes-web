@@ -12,7 +12,7 @@ const pair=pairFile?JSON.parse(readFileSync(pairFile,'utf8')):null;
 if(pair){
   assert.equal(pair.function,target.function,'Only the assigned QA function is allowed');
   assert.equal(pair.match,true,'Provider file readback is required');
-  assert.equal(pair.readbackCount,25);
+  assert.equal(pair.readbackCount,pair.version>=17?26:25,'Isolated provider file count must match the deployed Edge generation');
   assert.ok(Number.isInteger(pair.version)&&pair.version>0);
   assert.match(pair.bundle,/^[a-f0-9]{64}$/);
   for(const key of ['backendSource','frontendSource','frontendMetadata','frontendTestTree'])assert.match(pair[key],/^[a-f0-9]{40}$/,key);
