@@ -1,6 +1,6 @@
 # SH-01.30.59 v · изолированный API v17 и совместимость frontend
 
-Дата проверки: 2026-11-20. Состояние: **SOURCE_CONTRACT_PASS / METADATA_PIN_MISMATCH / AUTH_E2E_NOT_VERIFIED / RELEASE_BLOCKED**.
+Дата проверки: 2026-11-20. Текущее состояние: **SOURCE_CONTRACT_PASS / V17_METADATA_PIN_PASS / MAC_SOURCE_16_OF_16_PASS / AUTH_E2E_NOT_VERIFIED / RELEASE_BLOCKED**. Ранее обнаруженное несоответствие v13 исправлено в том же PR; разделы ниже сохраняют историю проверки.
 
 ## Фактический текущий тестовый API
 
@@ -38,3 +38,11 @@
 Пересобрать и перепроверить единый frontend manifest + `test/build-info.json` с честными v17 SHA/source и текущим FE commit (не подменяя version stamp), затем выполнить на той же зафиксированной паре защищённый authenticated Owner/Carrier/MAP50/E2E и readback. Пока в FE остаётся v13, **exact pair = FAIL/NOT_VERIFIED**. Не менять production, shared staging, реальные заявки, SQL, RLS/OIDC-политику; не использовать платные API или Codex.
 
 Каноническая запись: [единый релиз в backend PR #102](https://github.com/hakaru4i-afk/freight-quotes/blob/fix/carrier-dashboard-124/docs/releases/STAB-20261117/UNIFIED_RELEASE_20261119.md).
+
+## 20.11.2026 · Дальнейшее исправление после первоначального отчёта
+
+- Оба JSON (`test/build-info.json`, `test/staging-manifest.json`) **фактически закрепляют isolated v17**, SHA-256 `a61aafa1d30a6b0d8a1526a80c1aea8cd67b662d505f35d98359650cfd532c0a`, `sourceFilesVerified:26`, backendSourceCommit `f8bb38ca1d55b7aceb529a89526abbb0c3253ecd`. `staging-manifest.json` в корне совпадает по isolated pin с test. Ранее зафиксированная v13 больше не является текущей привязкой PR.
+- [Mac source-candidate run 44699102424](https://github.com/hakaru4i-afk/freight-quotes/actions/runs/44699102424): job `source-candidate` **SUCCESS**; лог содержит `CANDIDATE_SOURCE_ALIGNMENT_PASS; RELEASE_BLOCKED`, `SH59_V17_FRONTEND_SOURCE_AND_MANIFEST_PASS` и `SH59_V17_LIVE_QA_HEALTH_PASS`. Согласно отдельному gate ledger: 16/16 source checks, 399 indexed assets. Это **не** авторизованные E2E.
+- [Mac served-readback run 44691436607](https://github.com/hakaru4i-afk/freight-quotes/actions/runs/44691436607) (повторный job readback 20.11 07:56 UTC) вернул `CARRIER_CANDIDATE_NOT_PUBLISHED_ON_TEST` и `PRODUCTION_VERSION_DRIFT`: shared Pages /test/ ещё обслуживает другой frontend commit `c918c133...`, production frontend SH59, production API SH52. Это **не исправляется заменой label**.
+- Полные 37/37 authenticated E2E и проверка MAP50 на окончательной паре **не выполнялись / NOT_VERIFIED**. OIDC protected workflow требует main и GitHub-hosted runner; нельзя заменять его неавторизованным Mac smoke или ослаблять политику ради PASS.
+
