@@ -33,3 +33,4 @@ jobs:
 
 # Re-run with actual isolated QA v7 source and regression fix f861cbd; preserves main-only GitHub OIDC, no production writes.
 # 2026-11-20 protected SH59 v18 OIDC full_suite dispatch after workflow-only main pin 8dc5663; no release.
+# 2026-11-20 repeat full protected SH59 v18 QA after Nov14 4-to-5 route-stop test correction, main workflow pin 60d8a915; production unchanged.
