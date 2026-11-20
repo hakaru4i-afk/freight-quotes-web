@@ -20,37 +20,50 @@ jobs:
           node-version: '24'
       - name: Reindex committed candidate sources only, preserve release denial
         run: |
-          node --input-type=module <<'JS'
-          import {readFileSync,writeFileSync,existsSync} from 'node:fs';
-          import {execFileSync} from 'node:child_process';
-          import {createHash} from 'node:crypto';
-          const path='test/staging-manifest.json';
-          const m=JSON.parse(readFileSync(path));
-          if(m.releaseStatus!=='RELEASE_BLOCKED'||m.ownerAccepted!==false||
-             m.qaEvidence?.fullGroupsPassed!==0||m.apiSourceCommit!==null||m.apiBundleSha256!==null)
-            throw Error('CANDIDATE_MUST_REMAIN_UNRELEASED');
-          const tracked=execFileSync('git',['ls-files','test','docs','scripts','tests','.github/workflows'],{encoding:'utf8'}).trim().split('\n');
-          const ignored=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
-          const allowed=p=>/\.(?:js|mjs|css|html|json|md|yml|png|jpe?g|svg|webp|woff2?|ttf|otf)$/.test(p)
-            &&!ignored.has(p)&&!p.split('/').some(a=>['process-history','processes'].includes(a));
-          const indexed=tracked.filter(allowed);
-          for(const p of indexed){if(!existsSync(p))throw Error('MISSING_TRACKED_SOURCE:'+p);}
-          m.assetHashes=Object.fromEntries(indexed.sort().map(p=>[p,createHash('sha256').update(readFileSync(p)).digest('hex')]));
-          m.frontendCommit=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-          writeFileSync(path,JSON.stringify(m,null,2)+'\n');
-          console.log('REINDEXED_UNRELEASED_CANDIDATE',indexed.length,m.frontendCommit);
-          JS
+          set -euo pipefail
+          # Use the shared, reviewed dependency enumerator (including config/)
+          # instead of a second Git ls-files implementation that omits files.
+          node scripts/reindex-staging-manifest.mjs --candidate --source-commit="$(git rev-parse HEAD)" --write
           node scripts/build-process-maps.mjs --check
           node scripts/stamp-staging-rc.mjs --check
           node scripts/check-staging-alignment.mjs --source-only
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const m=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
+          if(m.releaseStatus!=='RELEASE_BLOCKED' || m.publicationState!=='CANDIDATE_NOT_RELEASED' ||
+             m.ownerAccepted!==false || m.runtimePairStatus!=='UNVERIFIED' ||
+             m.apiSourceCommit!==null || m.apiBundleSha256!==null ||
+             m.qaEvidence?.fullGroupsPassed!==0)
+            throw Error('RELEASE_GATE_MUST_REMAIN_BLOCKED');
+          if(readFileSync('test/staging-manifest.json','utf8')!==readFileSync('staging-manifest.json','utf8'))
+            throw Error('ROOT_AND_TEST_MANIFEST_DIFFER');
+          console.log('REINDEXED_UNRELEASED_CANDIDATE',Object.keys(m.assetHashes).length,m.frontendCommit);
+          JS
       - name: Commit manifest only to candidate branch
         run: |
           set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- test/staging-manifest.json
+          git add -- test/staging-manifest.json staging-manifest.json
           if git diff --cached --quiet; then echo 'NO_MANIFEST_CHANGES'; exit 0; fi
-          git diff --cached --name-only | grep -Fx 'test/staging-manifest.json'
+          if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest\\.json          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
+          git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+# 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
+# 2026-11-19 reindex after verified process-map source refresh for role-scoped notices.
+# 2026-11-19 reindex after owner-progress CI verification, source-only, RELEASE_BLOCKED.
+
+# 2026-11-19 reindex T1-01 browser test after required Incoterms place was added; source-only, no deployment.
+# 2026-11-19 reindex candidate with reviewed backend source 194fb3ff, source-only and release blocked.
+# 2026-11-19 final source-only reindex after scoped v6 QA trigger; maintain unchanged production root.
+
+# Reindex source provenance after safe main merge dcc9692, no deploy; 19 Nov 2026.
+# 2026-11-20 reindex v18 source/manifest after successful process provenance refresh; release blocked.
+# 2026-11-20 final source-only reindex after v18 QA protocol addendum; never releases production.
+# 2026-11-20 Nov14 v18 route now has five distinct stops with explicit Incoterms + carrier station; source-only reindex, no deploy.
+# 2026-11-20 reindex candidate-only exact AUTO-KM authenticated fixture from verified public facility coordinates, no deployment.
+# 2026-11-20 only confirmed catalog rail-facility points in exact AUTO-KM fixture; Yantian port explicitly remains approximate.
+# 2026-11-20 SH59 production/test stylesheet source order aligned; refresh hash manifest only after QA-only authentication enhancements (no deploy).
+; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
           git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
 # 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
