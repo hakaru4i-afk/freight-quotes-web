@@ -44,6 +44,17 @@ jobs:
           node --check tests/carrier124-ci-auth.mjs
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
+      # Overlay one narrowly scoped test fixture correction; runtime/frontend assets remain frozen.
+      # This test's immutable Git blob was reviewed in PR #129 and is independently verified.
+      - name: Pin reviewed MAP50 exact-facility fixture correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1
+          git show 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1:tests/carrier124-ci-business.mjs > tests/carrier124-ci-business.mjs
+          test "$(git hash-object tests/carrier124-ci-business.mjs)" = '15bdaaa1f1761b4ccf4ecbe9fc0039fbacd8d4a1'
+          node --check tests/carrier124-ci-business.mjs
+          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
       - name: Bind frozen Git assets and the isolated API before requesting credentials
         run: |
           node scripts/check-staging-alignment.mjs --source-only
