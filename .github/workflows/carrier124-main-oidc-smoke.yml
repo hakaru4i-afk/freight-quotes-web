@@ -98,7 +98,10 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           test -s node_modules/axe-core/axe.min.js
-          npx playwright install --with-deps chromium
+          # GitHub's Ubuntu runner already ships browser runtime libraries.
+          # --with-deps unnecessarily apt-installs optional font packages that are unavailable on some mirrors.
+          # Browser E2E below is the fail-closed runtime validation.
+          npx playwright install chromium
       - name: Open all 11 actual role cabinets against SH59 using pinned Git assets
         id: browser
         continue-on-error: true
