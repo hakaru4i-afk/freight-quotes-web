@@ -36,7 +36,11 @@ async function publicationCall(actor,path,query,body) {
  const {status,data,requestId}=await call(actor,path,body,query);
  const code=String(data.code||data.error_code||'unknown').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
  const keys=Object.keys(data).filter(key=>/^(code|error|error_code|field|details|message|reason)$/.test(key));
- assert.equal(status,200,`${path} HTTP ${status} request=${requestId} code=${code} responseKeys=${keys.join(',')}`);
+ // Field names only: never emit server messages, field values, addresses, or tokens.
+ const fields=[data.field,...(Array.isArray(data.details)?data.details.map(item=>item?.field):[])]
+   .filter(value=>typeof value==='string'&&/^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$/.test(value))
+   .slice(0,8);
+ assert.equal(status,200,`${path} HTTP ${status} request=${requestId} code=${code} fields=${fields.join(',')} responseKeys=${keys.join(',')}`);
  return {json:data};
 }
 
