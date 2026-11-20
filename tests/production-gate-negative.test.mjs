@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {inspectProductionGate} from '../scripts/release/production-gate.mjs';
+import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {spawnSync} from 'node:child_process';
 
 const WEB='a'.repeat(40),API='b'.repeat(40),BUNDLE='c'.repeat(64),BACKUP='d'.repeat(64);
 const ownerText='APPROVE SH59 FRONTEND='+WEB+' BACKEND='+API;
@@ -32,3 +36,20 @@ test('approval for different SHA by other person blocks',()=>{const x=valid();x.
 test('branch push is not authorization',()=>{const x=valid();x.context.event='push';assert.ok(inspectProductionGate(x).blockers.includes('MANUAL_OWNER_MAIN_ONLY'))});
 test('missing backend run fails closed',()=>{const x=valid();delete x.runs.backend;assert.ok(inspectProductionGate(x).blockers.includes('VERIFIED_GITHUB_RUN_BACKEND'))});
 test('old production manifest blocks',()=>{const x=valid();x.manifest.businessVersion='SH-01.30.52 v';assert.ok(inspectProductionGate(x).blockers.includes('SH59_PRODUCTION_IDENTITY'))});
+
+test('actual release gate CLI rejects a mismatched API SHA with exit code 1',()=>{
+  const dir=mkdtempSync(join(tmpdir(),'sh59-reject-'));
+  try {
+    const packet=valid();
+    packet.target.backendSha='e'.repeat(40);
+    const file=join(dir,'candidate.json');
+    writeFileSync(file,JSON.stringify(packet));
+    const attempt=spawnSync(process.execPath,['scripts/release/production-gate.mjs',file],{cwd:process.cwd(),encoding:'utf8'});
+    assert.equal(attempt.status,1,'A mismatched release must never return success');
+    assert.match(attempt.stdout,/RELEASE_BLOCKED/);
+    assert.match(attempt.stdout,/VERIFIED_GITHUB_RUN_BACKEND/);
+    assert.match(attempt.stdout,/PROVENANCE_PAIR/);
+  } finally {
+    rmSync(dir,{recursive:true,force:true});
+  }
+});
