@@ -48,7 +48,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   d=(await detail(actor)).data;
   // Keep diagnostics privacy-safe: no raw addresses, candidate labels, or tokens.
   // A successful HTTP 200 does not imply that a provider resolved the point.
-  const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved').map(p=>({
+  const unresolved=d.plannedGeocodes.owner.filter(p=>p.status!=='resolved'||!Number.isFinite(p.lat)||!Number.isFinite(p.lon)).map(p=>({
    id:p.id,status:p.status,reason:/^(PROVIDER_[A-Z0-9_]+|NOT_FOUND|AMBIGUOUS)$/.test(String(p.reason||''))?p.reason:'REDACTED',
    retryAt:p.retryAt||null,geocodedAt:p.geocodedAt||null,
    candidateCount:Array.isArray(p.candidates)?p.candidates.length:0,
