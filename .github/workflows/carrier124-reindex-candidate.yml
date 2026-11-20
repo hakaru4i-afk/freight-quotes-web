@@ -2,7 +2,7 @@ name: Carrier124 candidate source reindex (no deployment)
 on:
   push:
     branches: ['fix/carrier-dashboard-124']
-    paths: ['.github/workflows/carrier124-reindex-candidate.yml']
+    paths: ['.github/workflows/carrier124-reindex-candidate.yml', '.github/workflows/staging-alignment.yml']
 permissions:
   contents: write
 jobs:
