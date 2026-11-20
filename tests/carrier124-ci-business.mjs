@@ -87,8 +87,8 @@ try{
  assert.equal(taken.status,200);
 
  // Independent real automatic remaining-km gate: exact facilities only, no city-centroid estimate.
- const exactFrom='Китай, Пекин, станция Beijing Railway Station';
- const exactTo='Китай, Шэньчжэнь, порт Яньтянь';
+ const exactFrom='Россия, Забайкальск, станция Забайкальск';
+ const exactTo='Беларусь, Минск, Колядичи';
  const direct=await call('owner','/api/route-distance',{addresses:[exactFrom,exactTo],transport:'Авто'});
  assert.equal(direct.status,200,'Exact-facility road network must actually calculate');
  assert.equal(direct.data.estimated,false,'Estimated route can never replace verified AUTO-KM');
