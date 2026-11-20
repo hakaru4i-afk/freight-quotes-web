@@ -33,12 +33,12 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "366331739106b6be7cfccefc1604248430b2307c",
+  "frontendCommit": "b2ec2af63998e8610a3a46720c7279b4bf48583c",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "50ca2b84abd0c3322d181e6075e459b1b8a1bc623ab88d3f19d67b1950cf9e27",
+    ".github/workflows/carrier124-reindex-candidate.yml": "85dd5688c904df6e5abe245ac76124c8906a32421d4a21e39aa47c235c0e2c2f",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
     ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "c83c3b1e3fcba067f95b4b46e044a27241769dc4ee937e1fe15a2ce8da7f583c",
