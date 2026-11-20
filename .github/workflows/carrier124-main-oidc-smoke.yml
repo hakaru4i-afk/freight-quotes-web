@@ -15,7 +15,7 @@ permissions:
   contents: read
 env:
   # Change this immutable pin only in the protected workflow review.
-  FREIGHT_PROTECTED_CANDIDATE: fa7238d621ca331eddf2d5c3e0f4729dcb65e9d9
+  FREIGHT_PROTECTED_CANDIDATE: 6e0a465b2b031558989f62b38dc7939797434686
 jobs:
   candidate-preflight:
     if: github.event_name == 'pull_request'

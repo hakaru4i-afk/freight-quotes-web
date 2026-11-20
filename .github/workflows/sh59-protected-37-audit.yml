@@ -20,13 +20,13 @@ jobs:
     if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main')) }}
     env:
       PROTECTED_RUN: ${{ inputs.protected_run || github.event.workflow_run.id }}
-      EVALUATOR_SOURCE: df5045dcf79086269fa5d45e7523500aa32ad939
+      EVALUATOR_SOURCE: 6e0a465b2b031558989f62b38dc7939797434686
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fa7238d621ca331eddf2d5c3e0f4729dcb65e9d9
+          ref: 6e0a465b2b031558989f62b38dc7939797434686
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
