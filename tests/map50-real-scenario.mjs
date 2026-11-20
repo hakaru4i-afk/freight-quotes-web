@@ -10,7 +10,7 @@ export async function map50Scenario({page,actor,base,sessions,rec,report,evidenc
   // A mapped OSM port area is a useful *approximate* 2D/3D marker, but is
   // not a verified berth and must never count as an exact AUTO-KM facility.
   const approximatePort=point.precision==='approximate'&&point.objectType==='sea_port'&&
-    /^osm:way:\\d+$/.test(point.candidateId)&&point.confirmed===false;
+    /^osm:way:\d+$/.test(point.candidateId)&&point.confirmed===false;
   assert.ok(['city','facility'].includes(point.precision)||approximatePort,
     'Only verified facility/city or clearly unverified OSM port area may be drawn');
   if(point.precision==='city'||point.precision==='approximate')assert.equal(point.confirmed,false);

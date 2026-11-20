@@ -1,7 +1,18 @@
 // Real API-created sea/air/multimodal shipments, shown by actual portal components.
 import assert from'node:assert/strict';import{readFile}from'node:fs/promises';import{createHash}from'node:crypto';
+import {carrier124,carrier124Base} from './carrier124-isolated-target.mjs';
 export async function transportModeScenarios({page,actor,base,sessions,rec,report}){
- assert.equal(actor,'carrierA');assert.ok(base.endsWith('/freight-api-qa-rc20261110'));const evidence=JSON.parse(await readFile('reports/isolated-rc/business-api-real.json','utf8'));assert.equal(evidence.runId,process.env.GITHUB_RUN_ID);assert.equal(evidence.modeShipments?.length,3);rec.modeMatrix=[];
+ const exact=process.env.QA_CARRIER124_CANDIDATE==='true';
+ assert.equal(actor,'carrierA');
+ assert.equal(base,exact?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110');
+ const evidence=JSON.parse(await readFile('reports/isolated-rc/business-api-real.json','utf8'));
+ assert.equal(evidence.runId,process.env.GITHUB_RUN_ID);
+ assert.equal(evidence.modeShipments?.length,3);
+ if(exact){
+  assert.equal(evidence.frontendSha,carrier124.frontendMetadata);
+  assert.equal(evidence.backendBundle,carrier124.bundle);
+ }
+ rec.modeMatrix=[];
  const detail=async order=>{const r=await fetch(base+'/api/task2?order='+order+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]},signal:AbortSignal.timeout(60000)});assert.equal(r.status,200);return r.json();};
  const expected={SEA:'sea',AIR:'air',MULTI:'multi'};
  for(const fixture of evidence.modeShipments){assert.ok(fixture.order.startsWith('QA-CI-'+process.env.GITHUB_RUN_ID+'-'));assert.ok(expected[fixture.tag]);const d=await detail(fixture.order);assert.equal(d.shipment.mode,fixture.mode);await page.setViewportSize({width:1440,height:900});await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());await page.locator('#t2-select').selectOption(fixture.order);await page.waitForFunction(({order,mode})=>document.querySelector('#t2-select')?.value===order&&document.querySelector('global-route-view')?.routeSnapshot?.mode===mode,{order:fixture.order,mode:expected[fixture.tag]});

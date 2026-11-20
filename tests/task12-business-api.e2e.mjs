@@ -6,6 +6,7 @@ import {randomUUID,createHash} from 'node:crypto';
 import {setTimeout as delay} from 'node:timers/promises';
 import {join} from 'node:path';
 import {carrier124,carrier124Base,assertCandidateCheckout} from './carrier124-isolated-target.mjs';
+import {qaDocumentFetch,withQaUploadId} from './helpers/qa-document-transport.mjs';
 const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const root=exactCandidate?process.env.QA_CARRIER124_PRIVATE_DIR:'/tmp/freight-ci-qa';
@@ -36,7 +37,8 @@ for(const id of expectedActors){
 }
 assert.equal(new Set(expectedActors.map(id=>sessions[id])).size,expectedActors.length);
 const runId=process.env.GITHUB_RUN_ID||null;
-const fixtureRun=exactCandidate?randomUUID().slice(0,8).toUpperCase():runId;
+assert.match(runId??'',/^\d{1,18}$/);
+const fixtureRun=runId;
 const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,frontendSha:exactCandidate?carrier124.frontendMetadata:process.env.GITHUB_SHA,
  ...(exactCandidate?{frontendSource:carrier124.frontendSource,backendSourceCommit:carrier124.backendSource,
   backendVersion:carrier124.version,backendBundle:carrier124.bundle,sqlMigrationVersion:candidate.sh59IsolatedQa?.catalogMigrationVersion||candidate.sqlMigrationVersion}:{}),
@@ -44,7 +46,8 @@ const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,fronte
 const selected=exactCandidate?new Set((process.env.QA_CARRIER124_CASES||'').split(',').filter(Boolean)):new Set();
 async function call(actor,path,body,method){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
- const r=await fetch(url,{...(exactCandidate?{redirect:'error'}:{}),method:method||(body?'POST':'GET'),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});
+ if(exactCandidate)withQaUploadId(path,body);
+ const r=await qaDocumentFetch(url,{...(exactCandidate?{redirect:'error'}:{}),method:method||(body?'POST':'GET'),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,},{timeout:60000,onTransportRetry:()=>report.calls.push({actor,path:path.split('?')[0],method:'POST',retry:'document_upload_transport'})});
  report.calls.push({actor,path:path.split('?')[0],method:method||(body?'POST':'GET'),status:r.status,requestId:r.headers.get('x-freight-request-id')});return {status:r.status,data:await r.json()};
 }
 const ok=r=>{assert.equal(r.status,200);return r.data;};
@@ -52,7 +55,28 @@ async function check(id,run){if(selected.size&&!selected.has(id))return;const en
 const makeOrder=kind=>'QA-CI-'+fixtureRun+'-'+kind+'-'+randomUUID().slice(0,8).toUpperCase();
 const logistics={sender_contact:'Synthetic QA sender',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'Synthetic QA pallets',volume:'12.5',weight:'1250',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Brest warehouse',dangerous_goods:'no'};
 async function upload(order,name,bytes){const f=new FormData();f.set('order',order);f.append('files',new Blob([bytes]),name);return ok(await call('owner','/api/documents',f));}
-async function create(order,sourceLogistics=logistics,deadline='2099-12-15T12:00'){await upload(order,'qa-required.txt','Synthetic QA attachment');const data=ok(await call('owner','/api/requests',{order,summary:'Synthetic API business acceptance',deadline,bitrixTask:'910001,910002',logistics:sourceLogistics}));assert.equal(data.recipients,2);return data;}
+async function publish(order,sourceLogistics,deadline){const data=ok(await call('owner','/api/requests',{order,summary:'Synthetic API business acceptance',deadline,bitrixTask:'910001,910002',logistics:sourceLogistics}));assert.equal(data.recipients,2);return data;}
+async function create(order,sourceLogistics=logistics,deadline='2099-12-15T12:00'){
+ await upload(order,'qa-required.txt','Synthetic QA attachment');
+ return publish(order,sourceLogistics,deadline);
+}
+async function settleSyntheticLatePenalty(order){
+ assert.match(order,new RegExp('^QA-CI-'+runId+'-LATE-[A-F0-9]{8}$'));
+ const login=actors.carrierA.login;
+ const path='/api/service-level?login='+encodeURIComponent(login);
+ const ledger=ok(await call('owner',path));
+ const penalties=ledger.events.filter(event=>event.order_code===order&&event.kind==='no_response');
+ assert.ok(penalties.length<=1);
+ const event=penalties[0];
+ if(!event||event.corrected)return;
+ assert.equal(event.source_kind,'request');
+ assert.equal(event.actor,'system');
+ assert.equal(Number(event.requested_delta),-3);
+ ok(await call('owner','/api/service-level',{login,action:'void_event',eventId:event.id,
+  expectedRevision:ledger.revision,requestId:randomUUID(),reason:'Close isolated QA late-bid fixture '+order}));
+ const readback=ok(await call('owner',path));
+ assert.ok(readback.events.some(row=>row.id===event.id&&row.corrected),'Synthetic penalty correction must persist');
+}
 const variant=(amount=1500)=>({mode:'Авто',currency:'USD',amount,pickup:'2099-12-05',days:21,insurance:'Включено',includes:'Transport and documents',extras:'No extras',validUntil:'2099-12-20',incotermPlace:'Brest warehouse',dangerousGoods:'no',note:'Synthetic isolated QA offer',requestId:randomUUID()});
 try{
  await check('required_fields_server_negatives',async()=>{const order=makeOrder('REQUIRED');await upload(order,'qa-validation.txt','Synthetic negative validation');const fields=['sender_contact','origin','destination','cargo','volume','ready_date','incoterm','dangerous_goods'];for(const field of fields){const r=await call('owner','/api/requests',{order,deadline:'2099-12-15T12:00',logistics:{...logistics,[field]:field==='dangerous_goods'?'unknown':''}});assert.equal(r.status,400);assert.ok(r.data.fields.includes(field));}return{rejectedFields:fields,serverRejectsMissingFields:true};});
@@ -67,18 +91,24 @@ try{
  });
  await check('late_preparation_blocks_winner_and_submitted_offer_stays_reviewable',async()=>{
   const order=makeOrder('LATE');
+  await upload(order,'qa-required.txt','Synthetic QA attachment');
   const deadlineMs=Math.ceil((Date.now()+60000)/60000)*60000;
-  const deadline=exactCandidate?new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Minsk',dateStyle:'short',timeStyle:'short'}).format(deadlineMs).replace(' ','T'):undefined;
-  await create(order,logistics,deadline);const b=variant(1400);ok(await call('carrierB','/api/quote',{order,carrier:'Synthetic timely carrier',contact:'Synthetic QA contact',variants:[b]}));
-  if(exactCandidate){
-   await delay(Math.max(0,deadlineMs-Date.now()+2000));
-  }else{
-   const identityUrl=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);assert.equal(identityUrl.protocol,'https:');identityUrl.searchParams.set('audience','freight-isolated-qa-credentials');const identityResponse=await fetch(identityUrl,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},signal:AbortSignal.timeout(30000)});assert.equal(identityResponse.status,200);const identity=(await identityResponse.json()).value;assert.ok(identity);
-   const expire=await fetch('https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-qa-credential-broker',{method:'POST',headers:{Authorization:'Bearer '+identity,'Content-Type':'application/json'},body:JSON.stringify({action:'expire_fixture_deadline',actor:'owner',order}),signal:AbortSignal.timeout(45000)});assert.equal(expire.status,200);assert.equal((await expire.json()).fixtureExpired,true);
+  const deadline=exactCandidate?new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Minsk',dateStyle:'short',timeStyle:'short'}).format(deadlineMs).replace(' ','T'):'2099-12-15T12:00';
+  await publish(order,logistics,deadline);
+  try{
+   const b=variant(1400);ok(await call('carrierB','/api/quote',{order,carrier:'Synthetic timely carrier',contact:'Synthetic QA contact',variants:[b]}));
+   if(exactCandidate){
+    await delay(Math.max(0,deadlineMs-Date.now()+2000));
+   }else{
+    const identityUrl=new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);assert.equal(identityUrl.protocol,'https:');identityUrl.searchParams.set('audience','freight-isolated-qa-credentials');const identityResponse=await fetch(identityUrl,{headers:{Authorization:'Bearer '+process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN},signal:AbortSignal.timeout(30000)});assert.equal(identityResponse.status,200);const identity=(await identityResponse.json()).value;assert.ok(identity);
+    const expire=await fetch('https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-qa-credential-broker',{method:'POST',headers:{Authorization:'Bearer '+identity,'Content-Type':'application/json'},body:JSON.stringify({action:'expire_fixture_deadline',actor:'owner',order}),signal:AbortSignal.timeout(45000)});assert.equal(expire.status,200);assert.equal((await expire.json()).fixtureExpired,true);
+   }
+   const n=ok(await call('carrierA','/api/carrier')).notifications.find(x=>x.order_code===order);assert.ok(n);const prepare={action:'start',order,notificationId:n.id};ok(await call('carrierA','/api/late-bid-drafts',prepare));ok(await call('carrierA','/api/late-bid-drafts',prepare));const before=ok(await call('carrierA','/api/service-level'));assert.ok(Number.isFinite(Number(before.policy.score)));assert.equal(before.events.filter(e=>e.order_code===order).length,1);
+   let bid=ok(await call('owner','/api/data')).bids.find(x=>x.order_code===order&&x.request_id===b.requestId);assert.ok(bid);ok(await call('owner','/api/review',{id:bid.id,decision:'accepted'}));bid=ok(await call('owner','/api/data')).bids.find(x=>x.id===bid.id);const notice=ok(await call('carrierB','/api/carrier')).notifications.find(x=>x.order_code===order);const select={id:notice.id,bidId:bid.id,requestId:randomUUID(),revision:0,reason:'',expected:bid};const blocked=await call('owner','/api/offer-selection',select);assert.equal(blocked.status,409);assert.match(blocked.data.error,/подготов|поздн/i);
+   const a=variant(1700),a2=variant(1800);ok(await call('carrierA','/api/quote',{order,carrier:'Synthetic late carrier',contact:'Synthetic QA contact',variants:[a,a2]}));const late=ok(await call('owner','/api/data')).bids.filter(x=>x.order_code===order&&[a.requestId,a2.requestId].includes(x.request_id));assert.equal(late.length,2);for(const row of late){assert.equal(Number(row.late),1);assert.equal(row.decision,'pending');}for(const [i,row]of late.entries())ok(await call('owner','/api/review',{id:row.id,decision:i?'rejected':'accepted',reason:'Synthetic explicit late-offer review'}));const after=ok(await call('carrierA','/api/service-level'));assert.equal(after.policy.score,before.policy.score,'A late bid must not restore the missed-deadline penalty');const events=after.events.filter(e=>e.order_code===order);assert.equal(events.filter(e=>e.kind==='no_response').length,1,'The missed deadline is penalized once');assert.equal(events.filter(e=>e.kind==='late_response_after_no_response').length,1,'The later submission has one separate informational audit');assert.equal(events.find(e=>e.kind==='late_response_after_no_response').delta,0);assert.equal(events.reduce((sum,e)=>sum+Number(e.delta),0),before.events.filter(e=>e.order_code===order).reduce((sum,e)=>sum+Number(e.delta),0),'The informational audit must not change the penalty');ok(await call('owner','/api/offer-selection',select));return{order,fixtureDeadlineOnly:true,applicationClockUnchanged:true,deadlineMethod:exactCandidate?'elapsed-minsk-deadline':'protected-fixture-broker',activePreparationWinnerStatus:409,lateVariants:2,explicitOwnerDecisions:['accepted','rejected'],winnerSelectedAfterSubmission:true,lateBidDoesNotRestoreScore:true,onePenaltyEvent:true};
+  }finally{
+   if(exactCandidate)await settleSyntheticLatePenalty(order);
   }
-  const n=ok(await call('carrierA','/api/carrier')).notifications.find(x=>x.order_code===order);assert.ok(n);const prepare={action:'start',order,notificationId:n.id};ok(await call('carrierA','/api/late-bid-drafts',prepare));ok(await call('carrierA','/api/late-bid-drafts',prepare));const before=ok(await call('carrierA','/api/service-level'));assert.ok(Number.isFinite(Number(before.policy.score)));assert.equal(before.events.filter(e=>e.order_code===order).length,1);
-  let bid=ok(await call('owner','/api/data')).bids.find(x=>x.order_code===order&&x.request_id===b.requestId);assert.ok(bid);ok(await call('owner','/api/review',{id:bid.id,decision:'accepted'}));bid=ok(await call('owner','/api/data')).bids.find(x=>x.id===bid.id);const notice=ok(await call('carrierB','/api/carrier')).notifications.find(x=>x.order_code===order);const select={id:notice.id,bidId:bid.id,requestId:randomUUID(),revision:0,reason:'',expected:bid};const blocked=await call('owner','/api/offer-selection',select);assert.equal(blocked.status,409);assert.match(blocked.data.error,/подготов|поздн/i);
-  const a=variant(1700),a2=variant(1800);ok(await call('carrierA','/api/quote',{order,carrier:'Synthetic late carrier',contact:'Synthetic QA contact',variants:[a,a2]}));const late=ok(await call('owner','/api/data')).bids.filter(x=>x.order_code===order&&[a.requestId,a2.requestId].includes(x.request_id));assert.equal(late.length,2);for(const row of late){assert.equal(Number(row.late),1);assert.equal(row.decision,'pending');}for(const [i,row]of late.entries())ok(await call('owner','/api/review',{id:row.id,decision:i?'rejected':'accepted',reason:'Synthetic explicit late-offer review'}));const after=ok(await call('carrierA','/api/service-level'));assert.equal(after.policy.score,before.policy.score,'A late bid must not restore the missed-deadline penalty');const events=after.events.filter(e=>e.order_code===order);assert.equal(events.filter(e=>e.kind==='no_response').length,1,'The missed deadline is penalized once');assert.equal(events.filter(e=>e.kind==='late_response_after_no_response').length,1,'The later submission has one separate informational audit');assert.equal(events.find(e=>e.kind==='late_response_after_no_response').delta,0);assert.equal(events.reduce((sum,e)=>sum+Number(e.delta),0),before.events.filter(e=>e.order_code===order).reduce((sum,e)=>sum+Number(e.delta),0),'The informational audit must not change the penalty');ok(await call('owner','/api/offer-selection',select));return{order,fixtureDeadlineOnly:true,applicationClockUnchanged:true,deadlineMethod:exactCandidate?'elapsed-minsk-deadline':'protected-fixture-broker',activePreparationWinnerStatus:409,lateVariants:2,explicitOwnerDecisions:['accepted','rejected'],winnerSelectedAfterSubmission:true,lateBidDoesNotRestoreScore:true,onePenaltyEvent:true};
  });
  await check('sea_air_multimodal_shipments_retain_actual_tracking_without_guessed_coordinates',async()=>{
   const shipments=[];for(const item of[{tag:'SEA',mode:'Море',origin:'Китай, Нинбо',destination:'Россия, Владивосток',location:'Китай, Нинбо, порт Ningbo Zhoushan Port'},{tag:'AIR',mode:'Авиа',origin:'Китай, Пекин',destination:'Германия, Франкфурт-на-Майне',location:'Германия, Франкфурт-на-Майне, аэропорт Frankfurt Airport'},{tag:'MULTI',mode:'Мультимодальная',origin:'Китай, Нинбо',destination:'Беларусь, Минск',location:'Россия, Забайкальск, станция Забайкальск'}]){

@@ -130,7 +130,31 @@ async function loadNotices(){
  finally{noticeLoading=false;paintNotices();}
 }
 
-let tick=false;new MutationObserver(()=>{if(tick)return;tick=true;requestAnimationFrame(()=>{tick=false;const role=signed()?(owner()?'owner':'staff'):'guest';if(role!==currentRole){paint();paintNotices();if(role!=='guest'){void loadNotices();if(role==='owner')void checkApiRelease();}}})}).observe(document.documentElement,{subtree:true,childList:true});
-function start(){document.body.append(root,noticeRoot);load();void loadNotices();setInterval(load,60000);setInterval(()=>{if(!document.hidden)void loadNotices()},30000);setInterval(()=>{if(!document.hidden&&owner())void checkApiRelease()},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){load();void loadNotices();}});}
+function placeNotices(){
+ const workspace=owner()?document.querySelector('.cabinet-app[data-cabinet-role="owner"] #ow-workspace'):null;
+ const docked=Boolean(workspace?.getClientRects().length);
+ noticeRoot.classList.toggle('is-docked',docked);
+ if(docked){
+  if(noticeRoot.nextElementSibling!==workspace)workspace.before(noticeRoot);
+ }else if(noticeRoot.parentNode!==document.body){
+  document.body.append(noticeRoot);
+ }
+}
+
+let tick=false;
+new MutationObserver(()=>{
+ if(tick)return;
+ tick=true;
+ requestAnimationFrame(()=>{
+  tick=false;
+  placeNotices();
+  const role=signed()?(owner()?'owner':'staff'):'guest';
+  if(role!==currentRole){
+   paint();paintNotices();
+   if(role!=='guest'){void loadNotices();if(role==='owner')void checkApiRelease();}
+  }
+ });
+}).observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
+function start(){document.body.append(root,noticeRoot);placeNotices();load();void loadNotices();setInterval(load,60000);setInterval(()=>{if(!document.hidden)void loadNotices()},30000);setInterval(()=>{if(!document.hidden&&owner())void checkApiRelease()},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden){load();void loadNotices();}});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();

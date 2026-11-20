@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {createRemainingClient, loadRemainingRun, verifyServiceBoundaries} from './carrier124-remaining-api.mjs';
+import {createRemainingClient, loadRemainingRun, verifyServiceBoundaries, recoverInterruptedCarrierBoundary} from './carrier124-remaining-api.mjs';
 
 const {sessions, save}=await loadRemainingRun();
 const calls=[];
@@ -38,6 +38,10 @@ try{
     assert.equal(readback.claim.state,'disputed');
     await command('owner','claim_close',{},409);
     await command('carrierA','claim_close',{},403);
+  }else if(mode==='recover-sl'){
+    const restored=await recoverInterruptedCarrierBoundary(api);
+    await save('sl-recovery.json',{...restored,calls});
+    console.log('QA_SYNTHETIC_SERVICE_LEVEL_RECOVERY',JSON.stringify(restored));
   }else if(mode==='sl'){
     const scores=await verifyServiceBoundaries(api);
     await save('sl-bounds.json',{scores,calls});

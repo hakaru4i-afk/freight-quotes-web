@@ -4,6 +4,8 @@ import {readFile,mkdir,writeFile} from 'node:fs/promises';
 import {carrier124,carrier124Base} from './carrier124-isolated-target.mjs';
 import {deadlineMinsk,publishFixture} from './carrier124-remaining-api.mjs';
 
+import {qaDocumentFetch,withQaUploadId} from './helpers/qa-document-transport.mjs';
+
 const base=carrier124Base;
 const sessions=JSON.parse(await readFile('/tmp/freight-carrier124-ci/sessions.json','utf8'));
 const evidence={target:carrier124.function,businessVersion:'SH-01.30.59 v',checks:[],timestamp:new Date().toISOString()};
@@ -13,10 +15,11 @@ const call=async(actor,path,body,query={})=>{
  url.searchParams.set('forceFunctionRegion','eu-central-1');
  const method=body===undefined?'GET':'POST';
  const multipart=body instanceof FormData;
+ withQaUploadId(path,body);
  let r;
  for(let attempt=1;attempt<=(method==='GET'?3:1);attempt++){
    try{
-     r=await fetch(url.toString(),{method,redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),signal:AbortSignal.timeout(35000)});
+     r=await qaDocumentFetch(url.toString(),{method,redirect:'error',headers:{Origin:'https://hakaru4i-afk.github.io',...(actor?{Authorization:'Bearer '+sessions[actor]}:{}),...(body!==undefined&&!multipart?{'Content-Type':'application/json'}:{})},body:body===undefined?undefined:multipart?body:JSON.stringify(body),},{timeout:35000,onTransportRetry:()=>evidence.checks.push({actor,path,method,status:'document_upload_transport_retry'})});
      break;
    }catch(err){
      const cause=String(err?.cause?.code||err?.cause?.name||err?.code||err?.name||'NETWORK_ERROR').replace(/[^A-Z0-9_]/gi,'').slice(0,60);

@@ -1,10 +1,13 @@
 import assert from'node:assert/strict';import{readFile,writeFile}from'node:fs/promises';import{randomUUID,createHash}from'node:crypto';
+import {carrier124,carrier124Base} from './carrier124-isolated-target.mjs';
 export async function addressedLogisticScenario({page,rec,base,sessions}){
+ const exact=process.env.QA_CARRIER124_CANDIDATE==='true';
+ assert.equal(base,exact?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110');
  const dir=process.env.QA_SCENARIO_STATE_DIR||'/tmp/freight-rc20261110-private',path=dir+'/security-logistic-ui.json';let state={requestId:randomUUID()};try{state=JSON.parse(await readFile(path,'utf8'));}catch{}
- const save=()=>writeFile(path,JSON.stringify(state),{mode:0o600});await save();const original=JSON.parse(await readFile('reports/isolated-rc/browser-results-owner.json','utf8')).roles[0],order=original.createdOrder;
- async function api(actor,path,body){const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return{status:r.status,data:await r.json()};}
+ const save=()=>writeFile(path,JSON.stringify(state),{mode:0o600});await save();const original=JSON.parse(await readFile((exact?'reports/carrier124-map50/browser-results-owner-create.json':'reports/isolated-rc/browser-results-owner.json'),'utf8')).roles[0],order=original.createdOrder;
+ async function api(actor,path,body){const r=await fetch(base+path+(path.includes('?')?'&':'?')+'forceFunctionRegion=eu-central-1',{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(45000)});return{status:r.status,data:await r.json()};}
  const before=await api('ved','/api/task2?order='+order);assert.equal(before.status,200);const pto=before.data.state.pto_checked_at;
- const requested=await api('ved','/api/task2',{order,action:'request_logistic_docs',assignedLogin:'rc20261110-logistic',description:'Synthetic SECURITY-GATE addressed Logistic document handoff.',types:['Упаковочный лист'],requestId:state.requestId});assert.equal(requested.status,200);const task=requested.data.task;state.taskId=task.id;await save();
+ const requested=await api('ved','/api/task2',{order,action:'request_logistic_docs',assignedLogin:(exact?carrier124.run:'rc20261110')+'-logistic',description:'Synthetic SECURITY-GATE addressed Logistic document handoff.',types:['Упаковочный лист'],requestId:state.requestId});assert.equal(requested.status,200);const task=requested.data.task;state.taskId=task.id;await save();
  assert.equal((await api('ved','/api/task2',{order,action:'complete_task',taskId:task.id})).status,403);
  await page.reload({waitUntil:'domcontentloaded'});await page.getByText(/^(Выйти|Sign out|退出)$/).first().waitFor({timeout:60000});await page.locator('.cabinet-sidebar nav a[href="#approved-shipments"]').first().evaluate(el=>el.click());await page.locator('#t2-select').selectOption(order,{timeout:60000});
  const bytes=Buffer.from('Synthetic addressed private Logistic file '+order+'\n');

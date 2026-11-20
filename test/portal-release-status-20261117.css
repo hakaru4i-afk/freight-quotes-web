@@ -40,3 +40,7 @@
 #lw-dev-notices:has(>[data-dev-expand]){padding:8px}
 @media(max-width:520px){#lw-dev-notices{top:58px;right:10px;width:calc(100vw - 20px);max-height:38vh;padding:11px}}
 @media(prefers-reduced-motion:reduce){#lw-dev-notices .lw-dev-track span{transition:none}}
+
+/* Keep progress visible in the Owner workspace without covering its controls. */
+#lw-dev-notices.is-docked{position:relative;inset:auto;z-index:auto;width:100%;max-height:min(38vh,360px);margin:0 0 12px}
+#lw-dev-notices.is-docked:has(>[data-dev-expand]){width:fit-content;max-width:100%}

@@ -90,3 +90,50 @@ test('Owner sees actual production SH59/SH52 API drift even when the status JSON
   }
  }finally{await browser.close();}
 });
+
+test('development notices leave Owner cooperation controls clickable on desktop and mobile',async()=>{
+ const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE});
+ try{
+  const page=await browser.newPage();
+  const style=readFileSync('test/portal-release-status-20261117.css','utf8');
+  await page.route('**/*',route=>{
+   const url=new URL(route.request().url());
+   if(url.hostname!=='qa.test')return route.abort();
+   if(url.pathname==='/fixture')return route.fulfill({contentType:'text/html; charset=utf-8',body:`
+    <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>${style}</style></head><body>
+    <div id="root"><main class="cabinet-app" data-cabinet-role="owner" style="padding-top:72px"></main></div>
+    <script src="/portal-release-status-20261117.js?businessVersion=SH-01.30.59+v"></script></body></html>`});
+   if(url.pathname.endsWith('.js'))return route.fulfill({contentType:'text/javascript; charset=utf-8',body:source});
+   if(url.pathname==='/api/portal-feedback')return route.fulfill({json:{ok:true,items:[
+    {title:'Синтетическое уведомление',expectedResult:'Проверить кнопку обновления',stage:4,status:'in_progress'}
+   ]}});
+   return route.fulfill({json:{status:'released',version:'SH-01.30.59 v',changes:[]}});
+  });
+  await page.goto('https://qa.test/fixture');
+  const notice=page.locator('#lw-dev-notices');
+  await notice.getByRole('progressbar').waitFor();
+  await page.locator('main').evaluate(main=>{
+   const workspace=document.createElement('section');
+   workspace.id='ow-workspace';
+   workspace.style.textAlign='right';
+   const button=document.createElement('button');
+   button.dataset.lwRefresh='';
+   button.textContent='Обновить';
+   button.addEventListener('click',()=>button.textContent='Обновлено');
+   workspace.append(button);
+   main.append(workspace);
+  });
+  await page.locator('#lw-dev-notices.is-docked + #ow-workspace').waitFor();
+  for(const width of [1440,390]){
+   await page.setViewportSize({width,height:840});
+   const refresh=page.locator('[data-lw-refresh]');
+   await refresh.evaluate(button=>button.textContent='Обновить');
+   await refresh.click({timeout:3000});
+   assert.equal(await refresh.textContent(),'Обновлено');
+   assert.ok(await notice.getByRole('progressbar').isVisible());
+  }
+  await page.locator('#ow-workspace').evaluate(el=>el.remove());
+  await page.locator('body > #lw-dev-notices:not(.is-docked)').waitFor();
+ }finally{await browser.close();}
+});
