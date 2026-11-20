@@ -42,3 +42,4 @@ jobs:
 # 2026-11-20: protected main-only OIDC SH59/v18 after QA Chromium install PR134 SHA 3b288519 and screenshot integrity PR133; no production writes.
 
 # 2026-11-20: one targeted main-only acceptance for T1-09/T2-02/T2-24 from reviewed QA-only PR135; full_suite=false prevents redundant 20min matrix.
+# 2026-11-20: authorized T1-09/T2-02 + SL short retry after correcting two-recipient broadcast fixture in trusted PR136 6aa4475; no production write.
