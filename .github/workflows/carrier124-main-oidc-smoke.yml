@@ -133,6 +133,31 @@ jobs:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify multilingual matrix screenshot hashes are present before archiving
+        id: matrix_screenshots
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFileSync} from 'node:fs';
+          const result=JSON.parse(readFileSync('reports/carrier124-full-roles/browser-results-all.json','utf8'));
+          let checked=0;
+          for(const role of result.roles||[]){
+            assert.equal(role.status,'PASS','Role cabinet not PASS: '+role.actor);
+            for(const row of role.cabinetMatrix||[]){
+              assert.ok(row.screenshot?.startsWith('reports/isolated-rc/'),'Unexpected screenshot path: '+row.screenshot);
+              const digest=createHash('sha256').update(readFileSync(row.screenshot)).digest('hex');
+              assert.equal(digest,row.screenshotSha256,'Screenshot hash mismatch: '+row.screenshot);
+              checked++;
+            }
+          }
+          assert.ok(checked>=96,'Missing multilingual matrix screenshot evidence: '+checked+' < 96');
+          console.log('ROLE_MATRIX_SCREENSHOT_SHA256_PASS count='+checked);
+          NODE
       - name: Run MAP50 with real provider and pinned isolated assets
         id: map50
         if: ${{ inputs.full_suite == true }}
@@ -177,6 +202,7 @@ jobs:
           if [ '${{ inputs.full_suite }}' = 'true' ]; then
             test '${{ steps.full_lifecycle.outcome }}' = success
             test '${{ steps.full_matrix.outcome }}' = success
+            test '${{ steps.matrix_screenshots.outcome }}' = success
             test '${{ steps.map50.outcome }}' = success
           fi
       - name: Log out all issued synthetic sessions
@@ -194,6 +220,7 @@ jobs:
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
             reports/carrier124-full-roles/
+            reports/isolated-rc/
             reports/carrier124-map50/
             reports/nov14-published/
             reports/nov14-ordinary/
