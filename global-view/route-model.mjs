@@ -174,7 +174,8 @@ export function placeIndex(rows) {
 export function routeModel(request, offer, resolve) {
   const origin = clean(request.origin);
   const destination = clean(request.destination);
-  const departure = clean(offer?.departure_station) || clean(offer?.incoterm_place);
+  const incoterm = clean(offer?.incoterm_place);
+  const departure = clean(offer?.departure_station) || incoterm;
   const arrival = clean(offer?.destination_station);
   const carrier = split(clean(offer?.waypoints) || offer?.route);
   const owner = split(request.waypoints);
@@ -187,6 +188,7 @@ export function routeModel(request, offer, resolve) {
     }
   };
   push(origin, 'Погрузка · владелец');
+  push(incoterm, 'Incoterms · перевозчик');
   push(departure, 'Станция / порт отправления · перевозчик');
   for (const label of carrier.length ? carrier : owner) {
     push(label, carrier.length ? 'Маршрут ставки · перевозчик' : 'Промежуточный пункт · владелец');
