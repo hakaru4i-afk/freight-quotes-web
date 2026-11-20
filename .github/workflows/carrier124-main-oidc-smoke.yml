@@ -194,6 +194,7 @@ jobs:
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
             reports/carrier124-full-roles/
+            reports/isolated-rc/
             reports/carrier124-map50/
             reports/nov14-published/
             reports/nov14-ordinary/
