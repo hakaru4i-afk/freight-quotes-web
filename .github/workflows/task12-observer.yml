@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -99,32 +99,7 @@ jobs:
             lw2-mobile-qa.png
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish redacted public 37-case report for QA observer (staging only)
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f reports/task12-robot-matrix.json || exit 0
-          git config user.name task12-qa-bot
-          git config user.email 'task12-qa-bot@users.noreply.github.com'
-          for attempt in 1 2 3; do
-            git fetch origin main
-            git checkout -B qa-report-publisher origin/main
-            cp reports/task12-robot-matrix.json test/qa-robot-latest.json
-            git add test/qa-robot-latest.json
-            if git diff --cached --quiet; then
-              echo 'QA report identical to deployed report'
-              break
-            fi
-            git commit -m "qa(staging): publish robot results for run ${GITHUB_RUN_ID}"
-            if git push origin HEAD:main; then
-              echo 'Published robot report for dashboard'
-              break
-            fi
-            if [ "$attempt" -eq 3 ]; then
-              echo "::warning::Could not publish report on main; uploaded artifact remains available."
-            fi
-          done
+      # QA reports stay in GitHub Actions artifacts: never push status into the Pages source.
       - name: Fail robot job if a check found error (no false green)
         if: always()
         env:
@@ -233,7 +208,7 @@ jobs:
     timeout-minutes: 12
     permissions:
       actions: read
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -259,24 +234,7 @@ jobs:
           path: reports/task12-release-readiness.json
           retention-days: 30
           if-no-files-found: warn
-      - name: Publish redacted release status to staging QA observer
-        if: always()
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ ! -f reports/task12-release-readiness.json ]; then exit 0; fi
-          git config user.name task12-qa-bot
-          git config user.email 'task12-qa-bot@users.noreply.github.com'
-          for attempt in 1 2 3; do
-            git fetch origin main
-            git checkout -B qa-release-status-publisher origin/main
-            cp reports/task12-release-readiness.json test/qa-release-readiness.json
-            git add test/qa-release-readiness.json
-            if git diff --cached --quiet; then break; fi
-            git commit -m "qa(staging): publish release readiness decision from run ${GITHUB_RUN_ID}"
-            if git push origin HEAD:main; then break; fi
-            if [ "$attempt" -eq 3 ]; then echo "::warning::Report publishing failed; artifact remains."; fi
-          done
+      # Readiness evidence remains an artifact; no content push to main.
       - name: Make release readiness visibly fail when incomplete
         if: always()
         env:

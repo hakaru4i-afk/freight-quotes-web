@@ -1,107 +1,23 @@
-name: Reconcile staging provenance without promoting production
+name: Staging provenance audit (read-only, no production updates)
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'test/**'
-      - '*.js'
-      - '*.mjs'
-      - '*.css'
-      - 'index.html'
-      - 'build-info.json'
-      - 'site-status.json'
-      - 'production-release-manifest.json'
-      - 'global-view/**'
-      - 'scripts/stamp-staging-rc.mjs'
-      - 'scripts/reindex-staging-manifest.mjs'
-      - 'scripts/**'
-      - 'tests/**'
-      - 'docs/**'
-      - '.github/workflows/**'
   workflow_dispatch:
-concurrency:
-  group: staging-provenance-repair
-  cancel-in-progress: false
 permissions:
-  contents: write
+  contents: read
 jobs:
-  reindex:
+  audit:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Require isolated environments and matching runtime UI assets
+      - name: Check existing provenance without writing to main
         run: |
-          node --check scripts/reindex-staging-manifest.mjs
-          node --check scripts/check-runtime-parity.mjs
-          node scripts/check-runtime-parity.mjs --allow-staging-candidate
-      - name: Skip re-stamping when all source, business and visual checks already pass
-        id: preflight
-        shell: bash
-        run: |
-          if node scripts/check-staging-alignment.mjs && node scripts/stamp-staging-rc.mjs --check && node scripts/build-process-maps.mjs --check; then
-            echo "noop=true" >> "$GITHUB_OUTPUT"
-            echo "STAGING_ALREADY_COHERENT"
-          else
-            echo "noop=false" >> "$GITHUB_OUTPUT"
-            echo "STAGING_REBUILD_REQUIRED"
-          fi
-      - name: Regenerate cache keys and version hashes for staging only
-        if: steps.preflight.outputs.noop != 'true'
-        run: |
-          node scripts/stamp-staging-rc.mjs --write
+          node scripts/check-staging-alignment.mjs --source-only
           node scripts/stamp-staging-rc.mjs --check
-      - name: Review exactly the already approved cosmetic source delta and regenerate process snapshots
-        if: steps.preflight.outputs.noop != 'true'
-        run: |
-          node --check scripts/approve-ui-process-provenance.mjs
-          node scripts/approve-ui-process-provenance.mjs --write
-          node scripts/build-process-maps.mjs
-          node scripts/stamp-staging-rc.mjs --write
           node scripts/build-process-maps.mjs --check
-          node scripts/stamp-staging-rc.mjs --check
-      - name: Commit independently reproducible staging assets
-        if: steps.preflight.outputs.noop != 'true'
-        run: |
-          set -euo pipefail
-          git config user.name "staging-coherence-bot"
-          git config user.email "staging-coherence-bot@users.noreply.github.com"
-          git add test
-          if ! git diff --cached --quiet; then
-            git commit -m "build(staging): stamp canonical frontend and cache hashes"
-          fi
-      - name: Re-index all protected staging sources against committed build
-        if: steps.preflight.outputs.noop != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          SHA="$(git rev-parse HEAD)"
-          node scripts/reindex-staging-manifest.mjs --write "--source-commit=$SHA"
-          node scripts/check-staging-alignment.mjs
-          node scripts/stamp-staging-rc.mjs --check
-          node scripts/check-runtime-parity.mjs --allow-staging-candidate
-          git add test/staging-manifest.json staging-manifest.json
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(staging): pin exact candidate source commit and asset hashes"
-          fi
-      - name: Fast-forward only; never overwrite other changes or alter production data
-        if: steps.preflight.outputs.noop != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git fetch origin main
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            echo "::error::New commits arrived; refusing to overwrite. Re-run on current HEAD."
-            exit 1
-          fi
-          git push origin HEAD:main
-      - name: Report that process review and authenticated QA remain separate gates
-        run: |
-          echo "STAGING_METADATA_AND_RUNTIME_PARITY_PASS"
-          echo "No production migration, API deployment, backend data write or release approval performed."
+      - name: Declare candidate audit never approves a release
+        run: echo "SOURCE_AUDIT_ONLY; production publication requires gated manual workflow"
