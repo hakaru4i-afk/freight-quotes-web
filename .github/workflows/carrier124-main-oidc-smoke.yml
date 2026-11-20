@@ -19,11 +19,14 @@ jobs:
     environment: isolated-qa
     runs-on: ubuntu-24.04
     timeout-minutes: 55
+    env:
+      # Change this immutable pin only in the protected workflow review.
+      FREIGHT_PROTECTED_CANDIDATE: 370c016a57f05cd1e3afde3db698953d640a4d71
     steps:
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes-web
-          ref: 2e11f4656217cf2e8f72dd13668fe2336dea8e65
+          ref: ${{ env.FREIGHT_PROTECTED_CANDIDATE }}
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -36,7 +39,7 @@ jobs:
           test "$GITHUB_REF" = refs/heads/main
           test "$GITHUB_EVENT_NAME" = workflow_dispatch
           test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
-          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
+          test "$(git rev-parse HEAD)" = "$FREIGHT_PROTECTED_CANDIDATE"
           test "$(git status --porcelain --untracked-files=all)" = ''
           test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
           test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
@@ -45,12 +48,13 @@ jobs:
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
       - name: Bind frozen Git assets and the isolated API before requesting credentials
+        id: pair
         run: |
           node scripts/check-staging-alignment.mjs --source-only
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
           import {execFileSync} from 'node:child_process';
-          import {appendFileSync,readFileSync,writeFileSync} from 'node:fs';
+          import {appendFileSync,mkdirSync,readFileSync,writeFileSync} from 'node:fs';
           const manifest=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
           const qa=manifest.sh59IsolatedQa;
           assert.equal(qa?.businessVersion,'SH-01.30.59 v');
@@ -68,16 +72,24 @@ jobs:
             function:qa.function,version:qa.version,bundle:qa.providerBundleSha256,
             backendSource:qa.sourceCommit,match:true,readbackCount:qa.sourceFilesVerified,
             frontendSource:manifest.frontendCommit,frontendMetadata:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),protectedWorkflowSha:process.env.GITHUB_SHA,
-            frontendTestTree:execFileSync('git',['rev-parse','HEAD:test'],{encoding:'utf8'}).trim()
+            frontendTestTree:execFileSync('git',['rev-parse','HEAD:test'],{encoding:'utf8'}).trim(),
+            sqlMigrationVersion:qa.catalogMigrationVersion||manifest.sqlMigrationVersion,workflowRunId:process.env.GITHUB_RUN_ID
           };
+          assert.equal(pair.frontendMetadata,process.env.FREIGHT_PROTECTED_CANDIDATE);
+          const attested=Boolean(qa.sourceReceiptSha256);
+          if(attested)execFileSync(process.execPath,['scripts/check-isolated-api-pair.mjs'],{stdio:'inherit'});
           const path=process.env.RUNNER_TEMP+'/sh59-isolated-pair.json';
           writeFileSync(path,JSON.stringify(pair),{mode:0o600});
+          mkdirSync('reports',{recursive:true});
+          writeFileSync('reports/carrier124-ci-pair.json',JSON.stringify(pair,null,2)+'\n');
           appendFileSync(process.env.GITHUB_ENV,'QA_CARRIER124_PAIR_FILE='+path+'\nQA_CARRIER124_CANDIDATE=true\nQA_BROWSER_PUBLISHED=false\n');
+          appendFileSync(process.env.GITHUB_OUTPUT,'source_receipt='+attested+'\n');
           NODE
       # Source-only integrity must validate the unchanged frozen tree BEFORE a test-only overlay.
       # Overlay one narrowly scoped test fixture correction; runtime/frontend assets remain frozen.
       # This test's immutable Git blob was reviewed in PR #129 and is independently verified.
       - name: Pin reviewed MAP50 exact-facility fixture correction
+        if: steps.pair.outputs.source_receipt == 'false'
         shell: bash
         run: |
           set -euo pipefail
@@ -87,6 +99,7 @@ jobs:
           node --check tests/carrier124-ci-business.mjs
           test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
       - name: Pin verified broadcast-accurate role-isolation QA scenario
+        if: steps.pair.outputs.source_receipt == 'false'
         shell: bash
         run: |
           set -euo pipefail
@@ -227,6 +240,14 @@ jobs:
           QA_BROWSER_ACTORS=owner QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
           QA_BROWSER_ACTORS="$winner" QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
           QA_BROWSER_ACTORS=ved QA_MAP_GEOCODES=true node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify required fields, late rates, tender and session policy through the pinned API
+        id: full_business_api
+        if: ${{ inputs.full_suite == true && steps.pair.outputs.source_receipt == 'true' }}
+        continue-on-error: true
+        env:
+          QA_CARRIER124_PRIVATE_DIR: /tmp/freight-carrier124-ci
+          QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
+        run: node tests/task12-business-api.e2e.mjs
       - name: Fail closed unless both real API and browser validation succeed
         if: always()
         shell: bash
@@ -240,6 +261,9 @@ jobs:
             test '${{ steps.full_matrix.outcome }}' = success
             test '${{ steps.matrix_screenshots.outcome }}' = success
             test '${{ steps.map50.outcome }}' = success
+            if [ '${{ steps.pair.outputs.source_receipt }}' = 'true' ]; then
+              test '${{ steps.full_business_api.outcome }}' = success
+            fi
           fi
       - name: Log out all issued synthetic sessions
         if: always()
@@ -252,6 +276,7 @@ jobs:
         with:
           name: carrier124-oidc-sh59-redacted-evidence
           path: |
+            reports/carrier124-ci-pair.json
             reports/carrier124-ci-qa-auth.json
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
