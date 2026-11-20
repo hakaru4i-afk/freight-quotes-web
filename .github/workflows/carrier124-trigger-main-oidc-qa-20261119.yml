@@ -32,3 +32,4 @@ jobs:
 # Uses original broker-allowlisted workflow_ref; full_suite is opt-in on main; no trust policy changes.
 
 # Re-run with actual isolated QA v7 source and regression fix f861cbd; preserves main-only GitHub OIDC, no production writes.
+# 2026-11-20 protected SH59 v18 OIDC full_suite dispatch after workflow-only main pin 8dc5663; no release.
