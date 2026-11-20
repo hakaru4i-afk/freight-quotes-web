@@ -1,7 +1,7 @@
 const normal = value => String(value ?? '').normalize('NFKC').toLowerCase()
   .replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
 const clean = value => typeof value === 'string' ? value.trim() : '';
-const split = value => clean(value).split(/\s*(?:\r?\n|→|->|;|\s+[–—-]\s+)\s*/).filter(Boolean);
+const split = value => clean(value).split(/\s*(?:\r?\n|→|->|[;|]|\s+[–—-]\s+)\s*/).filter(Boolean);
 
 const aliases = {
   'Шэньчжэнь': 'Shenzhen', 'Шенчжень': 'Shenzhen', '深圳': 'Shenzhen', '深圳市': 'Shenzhen',
@@ -45,7 +45,7 @@ export function placeIndex(rows) {
     for (const name of names) {
       for (const key of [normal(name), ...(country ? [normal(name + ' ' + country)] : [])]) {
         const points = index.get(key) ?? new Map();
-        points.set(lat + ',' + lng, { lat, lng, approximate: true });
+        points.set(lat + ',' + lng, { lat, lng, approximate: true, queryScope: 'public-place-only' });
         index.set(key, points);
       }
     }
@@ -55,7 +55,7 @@ export function placeIndex(rows) {
   // NEVER claim that these are the coordinates of the supplier's warehouse or Mazhu Road.
   for (const name of ['Yuyao', '余姚', '余姚市']) {
     const pts = new Map();
-    pts.set('30.0403,121.1501', {lat:30.0403,lng:121.1501,approximate:true,precision:'city',confirmed:false,source:'OSM Yuyao city centre'});
+    pts.set('30.0403,121.1501', {lat:30.0403,lng:121.1501,approximate:true,precision:'city',confirmed:false,queryScope:'public-place-only',source:'OSM Yuyao city centre'});
     index.set(normal(name),pts);
     index.set(normal(name+' CN'),pts);
   }
@@ -91,10 +91,17 @@ export function placeIndex(rows) {
     if (/(?:монголия|蒙古国|(?:^|\W)(?:mongolia|mn)(?:$|\W))/iu.test(text)) return 'mn';
     return '';
   };
+  const addressCountry = label => {
+    const text=normal(label),known=countryIn(text);
+    const codes=[...new Set(text.split(/[,，]/).map(x=>x.trim()).filter(x=>/^[a-z]{2}$/.test(x)))];
+    if(codes.length>1||(codes[0]&&known&&codes[0]!==known))return null;
+    return codes[0]||known;
+  };
   const candidateNames = [...new Set([...index.keys(),...aliasesWithTargets.map(([name])=>name)])]
     .filter(name=>name.length>=2 && !/ (?:[a-z]{2})$/.test(name));
   const knownAddress = label => {
-    const haystack=normal(label),country=countryIn(haystack),found=[];
+    const haystack=normal(label),country=addressCountry(label),found=[];
+    if(country===null)return null;
     for(const name of candidateNames){
       if(!hasName(haystack,name))continue;
       const target=aliasIndex.get(name)||name;
@@ -116,6 +123,7 @@ export function placeIndex(rows) {
       source:'gazetteer locality parsed from mixed-language address'};
   };
   return label => {
+    if(addressCountry(label)===null)return null;
     const coordinate = label.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
     if (coordinate) {
       const [, lat, lng] = coordinate.map(Number);
@@ -157,14 +165,17 @@ export function placeIndex(rows) {
     const [city, country] = countryCode(parts[0]) ? [...parts].reverse() : parts;
     const cityName = city.replace(/^(?:г\.|город|city of)\s*/, '');
     const code = countryCode(country);
-    return (code ? lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code) : null) || knownAddress(label);
+    // An explicit ISO country is a constraint, never a hint that may be dropped.
+    if (code) return lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code);
+    return knownAddress(label);
   };
 }
 
 export function routeModel(request, offer, resolve) {
   const origin = clean(request.origin);
   const destination = clean(request.destination);
-  const departure = clean(offer?.departure_station) || clean(offer?.incoterm_place);
+  const incoterm = clean(offer?.incoterm_place);
+  const departure = clean(offer?.departure_station) || incoterm;
   const arrival = clean(offer?.destination_station);
   const carrier = split(clean(offer?.waypoints) || offer?.route);
   const owner = split(request.waypoints);
@@ -177,6 +188,7 @@ export function routeModel(request, offer, resolve) {
     }
   };
   push(origin, 'Погрузка · владелец');
+  push(incoterm, 'Incoterms · перевозчик');
   push(departure, 'Станция / порт отправления · перевозчик');
   for (const label of carrier.length ? carrier : owner) {
     push(label, carrier.length ? 'Маршрут ставки · перевозчик' : 'Промежуточный пункт · владелец');

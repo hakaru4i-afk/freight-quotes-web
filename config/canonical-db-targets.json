@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Canonical, isolated database targets for all *published* runtime entry points. QA functions are test-only and must never replace these base URLs.",
+  "production": {
+    "pagePath": "/",
+    "projectRef": "ooclsrndeygojtofuyte",
+    "apiFunction": "freight-api",
+    "apiBase": "https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api"
+  },
+  "staging": {
+    "pagePath": "/test/",
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "apiFunction": "freight-api",
+    "apiBase": "https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api"
+  },
+  "isolation": {
+    "productionDatabaseMustNotContainQASchema": true,
+    "stagingMustNeverUseProductionProject": true,
+    "neverFallbackToOtherEnvironment": true,
+    "qaEdgeFunctions": "test-only, explicit isolated fixtures",
+    "backupAndRealShipmentsProtected": true
+  },
+  "isolatedQa": {
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "run": "carrier124nov18",
+    "contract": "carrier-remedy-v1"
+  }
+}

@@ -4,6 +4,8 @@ import {readFileSync,existsSync} from 'node:fs';
 import {createHash} from 'node:crypto';
 import {resolve} from 'node:path';
 import assert from 'node:assert/strict';
+import {normalizeModuleCacheImports} from './staging-asset-cache.mjs';
+import {auditRepository as auditCanonicalDatabaseTargets} from './check-canonical-db-targets.mjs';
 const root=resolve(import.meta.dirname,'..');
 const read=p=>readFileSync(resolve(root,p),'utf8');
 const hash=s=>createHash('sha256').update(s).digest('hex');
@@ -25,7 +27,7 @@ function normalizeMainApp(text){
 function normalize(file,text,stage){
  if(file==='app.js')return normalizeMainApp(text);
  if(file==='process-editor-20261111.mjs'||file==='global-view/view.mjs')
-  return text.replace(/\?v=[a-z0-9]+/g,'?v=<cache>');
+  return normalizeModuleCacheImports(text);
  if(!stage)return text;
  const stripGuard=s=>s.split('\n').map(line=>/\bif\s*\(!location\.pathname\.includes\("\/test\/"\)\)\s*return;/.test(line)?line.match(/^[ \t]*/)[0]:line).join('\n');
  switch(file){
@@ -49,6 +51,8 @@ function normalize(file,text,stage){
  }
 }
 export function verify(){
+ // Stop release immediately if any live runtime asset references an obsolete or opposite database.
+ auditCanonicalDatabaseTargets();
  const pr=JSON.parse(read('build-info.json')),st=JSON.parse(read('test/build-info.json'));
  assert.equal(pr.environment,'production');assert.equal(st.environment,'staging');
  assert.equal(pr.projectRef,prodProject);assert.equal(st.projectRef,testProject);
@@ -103,4 +107,14 @@ export function verify(){
  if(mismatches.length&&!approvedCandidate)process.exitCode=1;
  return output;
 }
-if(process.argv[1]===import.meta.filename)verify();
+export function verifyModuleParity(files){
+ assert.ok(files.length,'Specify shared modules');
+ for(const file of files){
+  assert.match(file,/^global-view\/(?:view|globe|map|distance|route-model)\.mjs$/);
+  assert.equal(normalizeModuleCacheImports(read(file)),normalizeModuleCacheImports(read('test/'+file)),file+': shared module logic differs');
+ }
+ console.log('SHARED_MODULE_PARITY_PASS',files.length);
+}
+if(process.argv[1]===import.meta.filename){
+ if(process.argv[2]==='--modules')verifyModuleParity(process.argv.slice(3));else verify();
+}

@@ -300,7 +300,7 @@
        readonly("Общая длина маршрута, км",d.route?.total_km??"не рассчитано")+readonly("Осталось по маршруту, км",d.route?.remaining_km??"не рассчитано")+'</div>';
      const mapRoute=[
        {origin:o.owner_origin,destination:o.owner_destination,waypoints:o.owner_waypoints,transport:o.mode,orderCode:o.order_code,viewerRole:d.role},
-       {departure_station:o.incoterm_place,destination_station:o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
+       {incoterm_place:o.incoterm_place,departure_station:o.origin||o.departure_station,destination_station:o.destination||o.destination_station,waypoints:o.waypoints,route:o.route,mode:o.mode},
        pts.map(({id,location_text,observed_at,recorded_at,geocode})=>({id,location_text,observed_at,recorded_at,geocode})),
        {
          total:d.route?.source&&!d.route.estimated ? d.route.total_km : null,

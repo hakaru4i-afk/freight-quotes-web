@@ -1,0 +1,45 @@
+name: Carrier124 trigger trusted full v6 main-only OIDC acceptance
+on:
+  push:
+    branches: ['fix/carrier-dashboard-124']
+    paths: ['.github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml']
+permissions:
+  contents: read
+  actions: write
+jobs:
+  dispatch:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Start already-approved main branch OIDC isolated QA workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          body='{"ref":"main","inputs":{"full_suite":false}}'
+          status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}'             --request POST             -H "Authorization: Bearer $GH_TOKEN"             -H 'Accept: application/vnd.github+json'             -H 'X-GitHub-Api-Version: 2022-11-28'             -H 'Content-Type: application/json'             --data "$body"             https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/actions/workflows/carrier124-main-oidc-smoke.yml/dispatches)
+          if [ "$status" != 204 ]; then echo "OIDC_QA_DISPATCH_BLOCKED_HTTP_$status";exit 1;fi
+          echo 'CARRIER124_TARGETED_OIDC_QA_DISPATCHED; NOT_A_RELEASE'
+# Retry isolated v5 after same-region multipart routing patch 8e330e9; no production data writes.
+# 2026-11-19 OIDC v6 exact-provider recheck after reviewed geo failover; isolated accounts only, main-only workflow.
+
+# 2026-11-19 SH59 exact package 3710faedf1e8c70b201e verified; run full protected QA acceptance, no production writes.
+
+# Main-only OIDC pinned to isolated Carrier124 v6; production API v46 never touched by this dispatch.
+
+# Uses original broker-allowlisted workflow_ref; full_suite is opt-in on main; no trust policy changes.
+
+# Re-run with actual isolated QA v7 source and regression fix f861cbd; preserves main-only GitHub OIDC, no production writes.
+# 2026-11-20 protected SH59 v18 OIDC full_suite dispatch after workflow-only main pin 8dc5663; no release.
+# 2026-11-20 repeat full protected SH59 v18 QA after Nov14 4-to-5 route-stop test correction, main workflow pin 60d8a915; production unchanged.
+# 2026-11-20 request protected v18 full-suite rerun with strict automatic exact-km facility fixture, main pin 994e365f; production untouched.
+# 2026-11-20 strict AUTO-KM verified rail-facility fixture candidate 2e11f465, protected workflow 0e1693ae, no release.
+# 2026-11-20: protected main-only v18 full-suite rerun after QA fixture-only merge 54933514 (PR132); order-scoped MAP50 attachment; no production runtime changes.
+# 2026-11-20: retry protected OIDC v18 after source-only alignment/QA-overlay order fix 45cbeed; immutable app/API bytes, main-only access, no release.
+# 2026-11-20: rerun main-only protected SH59/API-v18 after PR133 screenshot-path and SHA256 fail-closed fix 8cc8f4c; no production writes.
+# 2026-11-20: protected main-only OIDC SH59/v18 after QA Chromium install PR134 SHA 3b288519 and screenshot integrity PR133; no production writes.
+
+# 2026-11-20: one targeted main-only acceptance for T1-09/T2-02/T2-24 from reviewed QA-only PR135; full_suite=false prevents redundant 20min matrix.
+# 2026-11-20: authorized T1-09/T2-02 + SL short retry after correcting two-recipient broadcast fixture in trusted PR136 6aa4475; no production write.

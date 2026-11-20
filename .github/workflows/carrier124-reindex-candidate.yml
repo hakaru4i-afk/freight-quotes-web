@@ -1,0 +1,55 @@
+name: Carrier124 candidate source reindex (no deployment)
+on:
+  push:
+    branches: ['fix/carrier-dashboard-124']
+    paths: ['.github/workflows/carrier124-reindex-candidate.yml', '.github/workflows/staging-alignment.yml']
+permissions:
+  contents: write
+jobs:
+  reindex:
+    if: github.ref == 'refs/heads/fix/carrier-dashboard-124'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reindex committed candidate sources only, preserve release denial
+        run: |
+          set -euo pipefail
+          # Use the shared, reviewed dependency enumerator (including config/)
+          # instead of a second Git ls-files implementation that omits files.
+          node scripts/reindex-staging-manifest.mjs --candidate --source-commit="$(git rev-parse HEAD)" --write
+          node scripts/build-process-maps.mjs --check
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/check-staging-alignment.mjs --source-only
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const m=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
+          if(m.releaseStatus!=='RELEASE_BLOCKED' || m.publicationState!=='CANDIDATE_NOT_RELEASED' ||
+             m.ownerAccepted!==false || m.runtimePairStatus!=='UNVERIFIED' ||
+             m.apiSourceCommit!==null || m.apiBundleSha256!==null ||
+             m.qaEvidence?.fullGroupsPassed!==0)
+            throw Error('RELEASE_GATE_MUST_REMAIN_BLOCKED');
+          if(readFileSync('test/staging-manifest.json','utf8')!==readFileSync('staging-manifest.json','utf8'))
+            throw Error('ROOT_AND_TEST_MANIFEST_DIFFER');
+          console.log('REINDEXED_UNRELEASED_CANDIDATE',Object.keys(m.assetHashes).length,m.frontendCommit);
+          JS
+      - name: Commit manifest only to candidate branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- test/staging-manifest.json staging-manifest.json
+          if git diff --cached --quiet; then echo 'NO_MANIFEST_CHANGES'; exit 0; fi
+          if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest[.]json$'; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
+          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED'
+          git push origin HEAD:refs/heads/fix/carrier-dashboard-124
+
+# 2026-11-20: source reindex after MAP50 five-module parity alignment (candidate only).
+
+# 2026-11-20: refresh reviewed immutable candidate source receipt after T1-01 diagnostic on QA-only branch; release remains blocked.

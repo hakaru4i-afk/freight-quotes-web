@@ -5,7 +5,8 @@
     "SH-01.30.49 v",
     "SH-01.30.50 v",
     "SH-01.30.52 v",
-    "SH-01.30.51 v"
+    "SH-01.30.51 v",
+    "SH-01.30.59 v"
   ],
   "roles": {
     "owner": {
@@ -17,7 +18,8 @@
         "Выберите процесс P01–P10. Перетащите блок или переместите стрелками; задайте роль, ответственного и условие. Для связи выберите источник, «Соединить», затем цель. Сохранение и откат создают черновики; «На согласование» не активирует правила.",
         "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
         "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
-        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД.",
+        "Сервер определяет координаты отправления и назначения. Если адрес содержит частные детали, внешнему геокодеру передаётся только населённый пункт. Центр города — ориентир. При недоступности провайдера исходный адрес сохраняется, геокодирование можно повторить после восстановления."
       ],
       "en": [
         "Actual departure cannot be in the future. Correct an invalid historical date with a reason and audit. Foreign trade either confirms a complete package or sends remarks to the existing shipment chat; the same task stays open. Use Shipment chats for messages and attachments. One map shows planned and dated reported points; road OSRM is not used for rail. In Owner registers, planned work starts through the explicit action; two tabs retain one task and its history.",
@@ -27,7 +29,8 @@
         "Choose P01–P10. Drag a block or use arrow keys; edit role, assignee and condition. Select a source, Connect, then its target. Saving and rollback create drafts; requesting approval does not activate rules.",
         "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
         "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
-        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests.",
+        "The server locates the origin and destination. For private addresses, only the public locality is sent to the geocoder. A city centre is approximate. The original address is kept during an outage; retry geocoding when the service recovers."
       ],
       "zh": [
         "实际发运时间不得晚于当前时间。修正历史错误日期必须填写原因并记录审计。外贸人员确认完整文件，或在原运输聊天中发送意见，原任务保持未完成。消息和附件保留在运输聊天中。统一地图显示计划和带日期的报告点，铁路不使用公路OSRM里程。货主登记册中计划工作通过明确操作开始；两个标签页保留同一任务和历史。",
@@ -37,7 +40,8 @@
         "选择P01–P10。拖动节点或用方向键移动，编辑角色、负责人及条件。选择源节点、连接、再选目标节点。保存和恢复只创建草稿，申请审批不会启用规则。",
         "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
         "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
-        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。",
+        "系统在服务器上定位起点和终点。对于私人地址，仅向地理编码服务发送公开的地名。城市中心为近似位置。服务不可用时会保留原始地址，恢复后可重试。"
       ]
     },
     "carrier": {
@@ -47,7 +51,8 @@
         "FAQ и инструкции относятся к вашей роли. Бизнес-версия, сборка приложения, API и номер TR — разные обозначения. Отложенная транспортная заявка не возвращена.",
         "Предложение сотрудничества — свободный текст и готовые файлы: до 3, по 5 МБ, всего 12 МБ. Excel-шаблоны нужны только для ставок. Владелец ведёт статусы и скачивает исходные документы в отдельном реестре.",
         "Поля и журнал сохраняют читаемость на светлых и тёмных карточках. Неизменённые согласованные правила и оформление сохранены; фокус клавиатуры обозначен рамкой.",
-        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД."
+        "Перевозчик и поставщик видят только назначенные им данные. В активном тендере допущенным перевозчикам доступны лишь обезличенные ставка, валюта, шаг и ранг; после закрытия торгов эти данные скрыты. Логист получает только адресные запросы документов ВЭД.",
+        "Указывайте публичную станцию, порт или переход вместе со страной и городом. Порядок сохраняется из ставки. Дорожный километраж учитывает промежуточные точки; для ЖД, моря и авиа автомобильный расчёт не применяется."
       ],
       "en": [
         "Actual departure cannot be in the future. Correct an invalid historical date with a reason and audit. Foreign trade either confirms a complete package or sends remarks to the existing shipment chat; the same task stays open. Use Shipment chats for messages and attachments. One map shows planned and dated reported points; road OSRM is not used for rail. In Owner registers, planned work starts through the explicit action; two tabs retain one task and its history.",
@@ -55,7 +60,8 @@
         "FAQ and instructions match your role. Business version, application build, API and TR reference are separate identifiers. The deferred transport application remains deferred.",
         "A cooperation proposal uses free text and finished files: up to3,5MB each,12MB total. Spreadsheet templates are only for freight bids. The Owner manages statuses and downloads original documents in the dedicated register.",
         "Fields and history stay readable on light and dark cards. Existing approved rules and visual design are retained; keyboard focus has a visible outline.",
-        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests."
+        "Carriers and suppliers see only assigned data. Admitted carriers in an active tender see only anonymous price, currency, step and rank; competitive data ends when trading closes. Logistics staff receive only addressed VED document requests.",
+        "Enter a public station, port or crossing with its country and locality. The point order is saved with your bid. Road distance includes intermediate stops; road routing is not used for rail, sea or air."
       ],
       "zh": [
         "实际发运时间不得晚于当前时间。修正历史错误日期必须填写原因并记录审计。外贸人员确认完整文件，或在原运输聊天中发送意见，原任务保持未完成。消息和附件保留在运输聊天中。统一地图显示计划和带日期的报告点，铁路不使用公路OSRM里程。货主登记册中计划工作通过明确操作开始；两个标签页保留同一任务和历史。",
@@ -63,7 +69,8 @@
         "常见问题与说明对应您的岗位。业务版本、应用构建、API及TR编号是不同标识。暂缓的运输申请流程未启用。",
         "合作方案使用自由文本及现成文件：最多3份，每份5MB，总计12MB。表格模板仅用于运费报价。所有者在独立登记册中管理状态并下载原文件。",
         "表单与历史在明暗卡片上保持清晰。已批准的规则与设计保持不变，键盘焦点以边框标识。",
-        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。"
+        "承运商和供应商仅可查看分配给自己的数据。活跃招标中获准承运商仅能查看匿名价格、币种、步长和排名；招标结束后停止展示竞争信息。物流人员仅处理外贸部门指定的文件请求。",
+        "请填写公共车站、港口或口岸，并注明国家和城市。报价将保存路线点顺序。公路里程包括途经点。铁路、海运和空运不采用公路里程。"
       ]
     },
     "logistic": {

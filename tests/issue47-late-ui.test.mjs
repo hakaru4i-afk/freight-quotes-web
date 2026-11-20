@@ -6,7 +6,7 @@ const panel=readFileSync("test/late-bid-staging.js","utf8");
 const html=readFileSync("test/index.html","utf8");
 const info=JSON.parse(readFileSync("test/build-info.json","utf8"));
 test("assigned carrier late offer has enabled submit and starts the verified preparation before POST",()=>{
- assert.match(js,/disabled:V\\?\\.carrierPolicy\\?\\.blocked\\|\\|x\\|\\|_\\|\\|!u\\|\\|\\(V\\?\\.role!=="carrier"&&\\(!i\\|\\|!K\\)\\)/);
+ assert.match(js,/disabled:V\?\.carrierPolicy\?\.blocked\|\|x\|\|_\|\|!u\|\|\(V\?\.role!=="carrier"&&\(!i\|\|!K\)\)/);
  assert.doesNotMatch(js,/disabled:[^,]*re&&!window\\.freightLateDraftActive/);
  assert.ok(js.includes("freightPrepareLateOnSubmit(h,source.round_id)"));
  assert.ok(js.includes('action:"start",order,notificationId:assigned.notification_id'));

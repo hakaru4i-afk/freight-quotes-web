@@ -17,11 +17,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.event.pull_request.head.sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node scripts/check-staging-alignment.mjs
+      - name: Verify the indexed source candidate without declaring runtime acceptance
+        run: node scripts/check-staging-alignment.mjs --source-only
       - run: node scripts/stamp-staging-rc.mjs --check
       - run: node scripts/build-process-maps.mjs --check
+      - run: node scripts/check-runtime-parity.mjs --modules global-view/view.mjs global-view/distance.mjs global-view/route-model.mjs global-view/globe.mjs global-view/map.mjs
+      - name: Require verified runtime provenance separately; a candidate remains blocked
+        run: node scripts/check-staging-alignment.mjs
       - run: node scripts/check-runtime-parity.mjs --allow-staging-candidate

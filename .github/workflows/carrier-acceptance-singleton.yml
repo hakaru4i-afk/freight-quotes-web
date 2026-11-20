@@ -32,7 +32,7 @@ jobs:
           grep -Fq 'function singleRoot(parent)' test/carrier-acceptance-workflow-20261107.js
           SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
           grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" test/index.html
-          ! grep -Fq 'carrier-acceptance-workflow-20261107.js' index.html
+          node --input-type=module -e 'import {readFileSync} from "node:fs"; import {assertProductionFeatureBoundary} from "./tests/helpers/production-release-boundary.mjs"; assertProductionFeatureBoundary(readFileSync("index.html","utf8"),"carrier-acceptance-workflow-20261107.js");'
   served:
     if: github.event_name != 'pull_request'
     needs: source

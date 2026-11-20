@@ -134,7 +134,7 @@ jobs:
         id: map50
         continue-on-error: true
         run: node tests/map50-published-chain.e2e.mjs
-      - name: Verify additional required fields, variants, late preparation, tender and session policy
+      - name: Verify required fields, late bids, Carrier dashboard, tender and session policy
         id: business_api
         continue-on-error: true
         run: node tests/task12-business-api.e2e.mjs

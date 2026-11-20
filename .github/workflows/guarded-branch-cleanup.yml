@@ -1,0 +1,39 @@
+name: Guarded merged-branch cleanup
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Audit only or safely prune branches fully merged to main"
+        type: choice
+        required: true
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+  schedule:
+    - cron: '17 5 * * 1'
+permissions:
+  contents: write
+  pull-requests: read
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Unit tests for no-delete guards
+        run: node --test tests/branch-cleanup.test.mjs
+      - name: Analyze/clean only safe merged heads
+        run: |
+          if [ "$MODE" = "apply" ]; then
+            node scripts/ops/prune-merged-branches.mjs --apply
+          else
+            node scripts/ops/prune-merged-branches.mjs --dry-run
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: ${{ github.event_name == 'schedule' && 'apply' || inputs.mode }}
+          CONFIRM_BRANCH_PRUNE: ${{ github.event_name == 'schedule' && 'DELETE_MERGED_BRANCHES' || (inputs.mode == 'apply' && 'DELETE_MERGED_BRANCHES' || '') }}

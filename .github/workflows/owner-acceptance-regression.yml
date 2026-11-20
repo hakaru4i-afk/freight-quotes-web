@@ -16,6 +16,8 @@ on:
       - 'index.html'
       - 'test/index.html'
       - 'tests/owner-acceptance-regression.test.mjs'
+      - 'tests/owner-development-progress.test.mjs'
+      - '.github/workflows/owner-acceptance-regression.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,5 +35,5 @@ jobs:
           node --check owner-registers-20261111.js
           node --check test/owner-registers-20261111.js
           cmp owner-registers-20261111.js test/owner-registers-20261111.js
-      - name: Acceptance workflow regression
-        run: node --test tests/owner-acceptance-regression.test.mjs
+      - name: Acceptance workflow and live task-progress integrity
+        run: node --test tests/owner-acceptance-regression.test.mjs tests/owner-development-progress.test.mjs

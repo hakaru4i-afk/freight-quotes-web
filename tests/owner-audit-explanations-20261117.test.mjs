@@ -24,6 +24,16 @@ test("logs explain other failure categories without confusing them with successf
   assert.match(event.title,needle);
  }
 });
+test("HTTP status takes priority over generic event family labels",()=>{
+ for(const [status,title] of [[400,/проверку/],[404,/найти/],[409,/Конфликт/],[429,/Слишком много/],[500,/Сбой сервера/]]){
+  for(const kind of ['validation','server_error']){
+   const event=explainAuditEvent({kind,path:'/api/quote',action:'submit',status});
+   assert.match(event.title,title,`HTTP ${status} kind ${kind}`);
+   assert.doesNotMatch(event.outcome,/подтверждено как выполненное/i);
+  }
+ }
+});
+
 test("page view is not falsely called a business action",()=>{
  const event=explainAuditEvent({kind:"page",path:"site-monitor",action:"view",status:0});
  assert.match(event.what,/открытие раздела/);

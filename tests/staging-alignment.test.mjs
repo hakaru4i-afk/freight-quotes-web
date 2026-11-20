@@ -6,6 +6,10 @@ scenario('an edited instruction blocks readiness',f=>f.put('docs/FAQ.md','Change
 scenario('an edited process model blocks readiness',f=>f.put('test/business-process-model.json',{version:'changed'}),/STALE_DEPENDENCY/);
 scenario('a new unindexed runtime module blocks readiness',f=>f.put('test/new-feature.mjs','export default 1'),/UNINDEXED_DEPENDENCY/);
 scenario('a changed workflow is also a reviewed dependency',f=>f.put('.github/workflows/check.yml','name: altered'),/STALE_DEPENDENCY/);
+scenario('a newly added environment target cannot be left out of provenance',f=>{
+ mkdirSync(join(f.root,'config'));
+ f.put('config/canonical-db-targets.json',{staging:{projectRef:'expected'}});
+},/UNINDEXED_DEPENDENCY:config\/canonical-db-targets/);
 scenario('unreviewed translated help blocks readiness',f=>f.put('test/alignment-role-help.json',{roles:{owner:{ru:['new']}}}),/STALE_ROLE_HELP/);
 scenario('a missing runtime bundle cannot be marked current',f=>{f.m.apiBundleSha256=null;f.put('test/staging-manifest.json',f.m);},/MISSING_VERIFIED_RUNTIME_PAIR/);
 scenario('version number reuse across issues blocks readiness',f=>{f.m.businessVersions.push({version:'SH-01.30.50 v',issue:999});f.put('test/staging-manifest.json',f.m);},/BUSINESS_VERSION_COLLISION/);
@@ -15,3 +19,20 @@ scenario('rewriting only the manifest cannot approve uncommitted source',f=>{f.p
 scenario('a different SQL migration blocks readiness',f=>{f.m.sqlMigrationVersion='20261111123018';f.put('test/staging-manifest.json',f.m);},/SQL_MIGRATION_VERSION_MISMATCH/);
 
 scenario('a stale primary business version blocks readiness',f=>{f.m.primaryBusinessVersion='SH-01.30.49 v';f.put('test/staging-manifest.json',f.m);},/PRIMARY_BUSINESS_VERSION_MISMATCH/);
+
+test('a committed candidate can prove source coherence without claiming a verified deployment',()=>{
+ const f=fixture();try{
+  const info=JSON.parse(readFileSync(join(f.root,'test/build-info.json'))),model=JSON.parse(readFileSync(join(f.root,'test/business-process-model.json')));
+  const source='d'.repeat(40);info.carrierDashboard124={status:'UNPUBLISHED_CANDIDATE',releaseGate:'BLOCKED',ownerAccepted:false,backendSourceCommit:source};info.observedBackendDeployment={version:92,sourceBindingStatus:'UNVERIFIED'};model.reviewedBackendSourceCommit=source;
+  f.put('test/build-info.json',info);f.put('test/business-process-model.json',model);f.put('build-info.json',{releaseVersion:info.primaryBusinessVersion});
+  f.git(['add','.']);f.git(['-c','user.name=QA','-c','user.email=qa@example.invalid','commit','-qm','Reviewed candidate source']);
+  Object.assign(f.m,{publicationState:'CANDIDATE_NOT_RELEASED',ownerAccepted:false,runtimePairStatus:'UNVERIFIED',apiSourceCommit:null,apiBundleSha256:null,backendSourceCommit:source,frontendCommit:f.git(['rev-parse','HEAD']),businessVersionSourceCommit:f.git(['rev-parse','HEAD']),canonicalHash:null,qaEvidence:{status:'BLOCKED_CURRENT_PAIR_NOT_RUN',fullGroupsPassed:0,fullGroupsTotal:37,independentRestore:'NOT_CONFIRMED_FOR_CURRENT_CANDIDATE'}});
+  for(const p of Object.keys(f.m.assetHashes))f.m.assetHashes[p]=hash(readFileSync(join(f.root,p)));f.put('test/staging-manifest.json',f.m);
+  assert.doesNotThrow(()=>checkAlignment(f.root,{sourceOnly:true}));
+  f.m.qaEvidence.independentRestore='PASS_FROM_AN_OLD_RELEASE';f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/STALE_CANDIDATE_ACCEPTANCE_EVIDENCE/);f.m.qaEvidence.independentRestore='NOT_CONFIRMED_FOR_CURRENT_CANDIDATE';f.put('test/staging-manifest.json',f.m);
+  assert.throws(()=>checkAlignment(f.root),/MISSING_VERIFIED_RUNTIME_PAIR/);
+  f.m.apiSourceCommit=source;f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/INVALID_CANDIDATE_PROVENANCE/);
+  f.m.apiSourceCommit=null;f.m.ownerAccepted=true;f.put('test/staging-manifest.json',f.m);assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/INVALID_CANDIDATE_PROVENANCE/);
+  f.m.ownerAccepted=false;f.put('test/staging-manifest.json',f.m);f.put('test/new.css','new source');assert.throws(()=>checkAlignment(f.root,{sourceOnly:true}),/UNINDEXED_DEPENDENCY/);
+ }finally{f.close();}
+});

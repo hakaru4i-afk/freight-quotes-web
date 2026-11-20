@@ -4,51 +4,89 @@ on:
     paths:
       - 'test/**'
       - 'tests/**'
-      - 'scripts/build-process-maps.mjs'
-      - 'scripts/stamp-staging-rc.mjs'
-      - '.github/workflows/release-stabilization.yml'
+      - 'scripts/**'
+      - 'config/**'
+      - 'docs/**'
+      - 'staging-manifest.json'
+      - '.github/workflows/**'
   workflow_dispatch:
+    inputs:
+      full_regression:
+        description: 'Run the complete source and browser regression'
+        type: boolean
+        default: false
+      compare_sha:
+        description: 'SHA of the previously reviewed source for quick checks'
+        type: string
+        required: false
+      protected_run_id:
+        description: 'Completed main-only OIDC run ID for the exact candidate'
+        type: string
+        required: false
+concurrency:
+  group: release-stabilization-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
   regression:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      full_acceptance: ${{ steps.quick.outputs.full_acceptance }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
-      - name: Verify metadata, independent forms, tracking and fail-closed release decision
-        run: >-
-          node --test tests/issue47-late-ui.test.mjs
-          tests/issue47-owner-optional-reason.test.mjs
-          tests/issue28-workflow-separation.test.mjs
-          tests/issue17-formal-document-ui.test.mjs
-          tests/task2-execution-robots.test.mjs
-          tests/task12-release-gate.test.mjs
-          tests/lw-pending-tasks-all-roles.test.mjs
-          tests/staging-asset-contract.test.mjs
-      - name: Verify current asset digests, cache keys and update banner build ID
-        run: node scripts/stamp-staging-rc.mjs --check
-      - name: Reject stale process diagrams
-        run: node scripts/build-process-maps.mjs --check
-      - name: Execute all 37 mapped robot groups
-        run: node tests/task12-robot-runner.mjs
-      - uses: actions/upload-artifact@v4
+      - name: Run impacted source tests and record duration
+        id: quick
+        shell: bash
+        env:
+          REVIEWED_SOURCE: ${{ inputs.compare_sha || github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          base="${REVIEWED_SOURCE:-$(git rev-parse HEAD^)}"
+          node scripts/quick-ci.mjs --base="$base" --report=reports/quick-ci.json
+          node --input-type=module <<'NODE'
+          import {appendFileSync,readFileSync} from 'node:fs';
+          const report = JSON.parse(readFileSync('reports/quick-ci.json'));
+          appendFileSync(process.env.GITHUB_OUTPUT, 'full_acceptance=' + report.fullAcceptanceRequired + '\n');
+          NODE
+      - name: Validate release assets and process diagrams
+        run: |
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/build-process-maps.mjs --check
+          node scripts/check-staging-alignment.mjs --source-only
+      - name: Check the pinned isolated API contract
+        run: |
+          if node --input-type=module -e "import {readFileSync} from 'node:fs'; process.exit(JSON.parse(readFileSync('test/staging-manifest.json')).sh59IsolatedQa?.sourceReceiptSha256 ? 0 : 1)"; then
+            node scripts/check-isolated-api-pair.mjs > reports/isolated-api-contract.json
+          fi
+      - name: Save the quick regression report
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: release-stabilization-robot-evidence
-          path: reports/
+          name: release-stabilization-quick-evidence
+          path: |
+            reports/quick-ci.json
+            reports/isolated-api-contract.json
           retention-days: 14
 
   complete-regression:
+    needs: regression
+    if: needs.regression.outputs.full_acceptance == 'true' || inputs.full_regression == true
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: actions/checkout@v4
         if: github.event_name == 'pull_request'
         with:
@@ -58,7 +96,9 @@ jobs:
         with:
           node-version: '24'
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
+      - name: Run all 37 robot groups
+        run: node tests/task12-robot-runner.mjs
       - name: Run every frontend test file, including live browser and security regressions
         env:
           QA_SERVED_EXPECTED_DIR: ${{ github.event_name == 'pull_request' && 'deployed-baseline' || '.' }}
@@ -70,4 +110,56 @@ jobs:
         with:
           name: complete-frontend-regression
           path: reports/
+          retention-days: 14
+
+  release-decision:
+    needs: [regression, complete-regression]
+    if: ${{ always() && needs.regression.result == 'success' && inputs.protected_run_id != '' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Retrieve and assess only the protected source artifact
+        id: acceptance
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PROTECTED_RUN: ${{ inputs.protected_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$PROTECTED_RUN" =~ ^[1-9][0-9]*$ ]]
+          repo=hakaru4i-afk/freight-quotes-web
+          test "$GITHUB_REPOSITORY" = "$repo"
+          path=$(gh api "repos/$repo/actions/runs/$PROTECTED_RUN" --jq .path)
+          test "$path" = .github/workflows/carrier124-main-oidc-smoke.yml
+          gh run view "$PROTECTED_RUN" -R "$repo" --json databaseId,headSha,headBranch,workflowName,event,status,conclusion,url,jobs > "$RUNNER_TEMP/protected-run.json"
+          gh run download "$PROTECTED_RUN" -R "$repo" --name carrier124-oidc-sh59-redacted-evidence --dir reports/verified-authenticated
+          node scripts/assess-authenticated-acceptance.mjs reports/verified-authenticated "$RUNNER_TEMP/protected-run.json" test/staging-manifest.json reports
+      - name: Download robot evidence for the same checkout
+        if: needs.complete-regression.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: complete-frontend-regression
+          path: reports/current-regression
+      - name: Apply release gate without publishing
+        if: always()
+        env:
+          E2E_PROTECTED_RUN_ID: ${{ inputs.protected_run_id }}
+          ROBOT_REPORT_PATH: reports/current-regression/task12-robot-matrix.json
+        run: node tests/task12-release-gate.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-stabilization-decision
+          path: |
+            reports/task12-release-readiness.json
+            reports/private-authenticated-e2e.json
           retention-days: 14

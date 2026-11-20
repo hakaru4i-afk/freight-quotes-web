@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { placeIndex } from '../test/global-view/route-model.mjs';
+import { placeIndex, routeModel } from '../test/global-view/route-model.mjs';
 
 const resolve = placeIndex([
   [['Minsk'], 'BY', 53.9, 27.56],
@@ -15,8 +15,18 @@ test('known RU/EN/ZH cities and matching ISO country codes remain approximate', 
   }
 });
 
-test('gazetteer does not discard a mismatched country or unverified address', () => {
-  for (const label of ['Minsk, CN', '深圳, BY', 'Minsk, China', 'Minsk, 10 Main Street', 'Минск, BY, улица 1', 'Springfield, US']) {
+test('gazetteer never drops an explicit country or resolves an ambiguous city', () => {
+  for (const label of ['Minsk, CN', '深圳, BY', 'Minsk, China', 'Minsk, US', 'Shenzhen, US', 'CN, Minsk', 'Minsk, US, 10 Main Street', 'Minsk, BY, CN', 'US, 深圳', 'Yuyao, Zhejiang 宁波 余姚市, US', 'Springfield, US']) {
     assert.equal(resolve(label), null, label);
   }
+});
+
+
+test('street addresses retain their original text and only a provisional city centre',()=>{
+ for(const label of ['Minsk, 10 Main Street','Минск, BY, улица 1']){
+  const point=resolve(label);
+  assert.equal(point.approximate,true);assert.equal(point.confirmed,false);assert.equal(point.precision,'city');
+  const route=routeModel({origin:label,destination:'Shenzhen'},null,resolve);
+  assert.equal(route.stops[0].label,label);assert.equal(route.stops[0].position.confirmed,false);
+ }
 });

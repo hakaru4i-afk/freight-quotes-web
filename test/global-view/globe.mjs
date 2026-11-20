@@ -1,6 +1,6 @@
 import * as T from './three.module.min.js';
 import { OrbitControls } from './orbit-controls.js';
-import { modes } from './route-model.mjs?v=1d87195c17c6';
+import { modes } from './route-model.mjs?v=313979589be1';
 
 const rad = Math.PI / 180;
 const vector = ({ lat, lng }) => new T.Vector3(
