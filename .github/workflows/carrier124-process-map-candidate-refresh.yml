@@ -48,3 +48,4 @@ jobs:
 
 # 2026-11-19 regenerate process metadata after reviewed f861cbd backend QA schema fix (not a deployment).
 # 2026-11-20 MAP50 isolated v18 source re-review, candidate only; no production deploy.
+# 2026-11-20 retry MAP50 v18 source map after successful cache stamp run 44713959475.
