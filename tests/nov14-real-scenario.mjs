@@ -37,10 +37,10 @@ export async function nov14Scenario({page,actor,base,sessions,rec,report,evidenc
   assert.ok(d.points.every(p=>p.geocode?.precision==='facility'&&p.geocode?.status==='resolved'&&Number.isFinite(p.geocode.lat)&&Number.isFinite(p.geocode.lon)));
   if(carrier124){
    const stations=[
-    {text:'Китай, Пекин, станция Beijing Railway Station',id:'osm:node:269996666',revision:'2026-02-03T13:57:55Z'},
-    {text:'Россия, Забайкальск, станция Забайкальск',id:'osm:node:3965162822',revision:'2026-11-08T03:17:14Z'},
+    {text:'Китай, Пекин, станция Beijing Railway Station',id:'osm:node:269996666',revision:'2026-02-03T13:57:55Z',lat:39.9011168,lon:116.4210134},
+    {text:'Россия, Забайкальск, станция Забайкальск',id:'osm:node:3965162822',revision:'2026-11-08T03:17:14Z',lat:49.6392281,lon:117.3318649},
    ];
-   rec.nov14.stationReadback=stations.map(({text,id,revision})=>{
+   rec.nov14.stationReadback=stations.map(({text,id,revision,lat,lon})=>{
     const checkpoint=d.points.find(p=>p.location_text===text);
     assert.ok(checkpoint,'Saved station checkpoint must be returned verbatim');
     const geo=checkpoint.geocode;
@@ -49,9 +49,13 @@ export async function nov14Scenario({page,actor,base,sessions,rec,report,evidenc
     assert.equal(geo.source,'OpenStreetMap');
     assert.equal(geo.provider,'local-gazetteer');
     assert.equal(geo.confirmed,true);
-    assert.equal(Number(checkpoint.latitude),geo.lat);
-    assert.equal(Number(checkpoint.longitude),geo.lon);
-    return {id:geo.candidateId,revision:geo.sourceRevision,precision:geo.precision,confirmed:geo.confirmed};
+    assert.equal(geo.lat,lat);
+    assert.equal(geo.lon,lon);
+    // shipment_location_history stores numeric(9,6); the catalog keeps its source precision.
+    const latitude=Number(checkpoint.latitude),longitude=Number(checkpoint.longitude);
+    assert.equal(latitude,Number(lat.toFixed(6)));
+    assert.equal(longitude,Number(lon.toFixed(6)));
+    return {id:geo.candidateId,revision:geo.sourceRevision,precision:geo.precision,confirmed:geo.confirmed,latitude,longitude};
    });
   }
   const map=page.locator('global-route-view').first();for(const size of[{width:1440,height:900},{width:390,height:844}]){await page.setViewportSize(size);for(const mode of ['3d','2d']){await map.getByRole('button',{name:mode==='3d'?'3D-глобус':'2D-карта',exact:true}).click();await page.waitForFunction(mode=>document.querySelector('global-route-view')?.dataset.mode===mode,mode);const snap=await map.evaluate(e=>e.routeSnapshot);assert.equal(snap.stops.length,5,'Owner origin, Incoterms, carrier departure, border station and destination must remain distinct');assert.ok(snap.stops.every(p=>p.position));assert.equal(snap.markers.filter(p=>p.tracking).length,2);assert.equal(snap.markers.find(p=>p.current).pointId,d.points[1].id);assert.ok((await map.innerText()).includes('ЖД')||snap.mode==='rail');const file=evidenceDir+'/rail-'+mode+'-'+size.width+'.png';await map.screenshot({path:file});(rec.nov14.screenshots??=[]).push({file,sha256:createHash('sha256').update(await readFile(file)).digest('hex')});}assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+4));}

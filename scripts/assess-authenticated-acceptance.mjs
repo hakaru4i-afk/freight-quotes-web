@@ -216,9 +216,12 @@ const rules=[
  ['T2-15','owner+carrier+ved',()=>selection().selection.notificationId&&late().onePenaltyEvent===true&&rail('ved','remarks').replayAndReloadDeduplicated===true],
  ['T2-16','carrier+ved',()=>acceptance().vedDeniedBefore===true&&acceptance().vedAvailableAfter===true&&acceptance().http===200&&rail('owner','claim-open').noticeSentWithoutFormalAct===true],
  ['T2-17','carrier+owner',()=>{map50();const x=rail(winner('nov14-published'),'carrier');assert.deepEqual(x.stationReadback,[
-  {id:'osm:node:269996666',revision:'2026-02-03T13:57:55Z',precision:'facility',confirmed:true},
-  {id:'osm:node:3965162822',revision:'2026-11-08T03:17:14Z',precision:'facility',confirmed:true}
- ]);return x.futureRejected===true&&x.fourReschedules===true&&x.weeklyRows===10&&x.stationPoints===2&&x.reloadPreserved===true&&x.mutationsAfterReload===0;}],
+  {id:'osm:node:269996666',revision:'2026-02-03T13:57:55Z',precision:'facility',confirmed:true,latitude:39.901117,longitude:116.421013},
+  {id:'osm:node:3965162822',revision:'2026-11-08T03:17:14Z',precision:'facility',confirmed:true,latitude:49.639228,longitude:117.331865}
+ ]);
+  assert.equal(x.screenshots.length,4);
+  for(const shot of x.screenshots)assert.equal(take(shot.file.replace(/^reports\//,'')).sha256,shot.sha256);
+  return x.futureRejected===true&&x.fourReschedules===true&&x.weeklyRows===10&&x.stationPoints===2&&x.reloadPreserved===true&&x.mutationsAfterReload===0;}],
  ['T2-18','owner+carrier+ved',()=>{const modes=main('carrierA','mode-matrix').modeMatrix;const a=api('sea_air_multimodal_shipments_retain_actual_tracking_without_guessed_coordinates');for(const m of modes)for(const image of m.screenshots)assert.equal(take(image.file.replace(/^reports\//,'')).sha256,image.sha256);return modes.length===3&&modes.every(m=>m.noGuessedCoordinates===true&&m.reloadPreserved===true&&m.screenshots.length===4)&&a.unchangedReplay===true&&a.roleDenials===true&&rail(winner('nov14-published'),'carrier').routeStops===5;}],
  ['T2-19','owner+carrier+ved+logistic',()=>{const v=lifecycle('ved','ved-work'),p=lifecycle('ved','ved-verify').persistence,l=lifecycle('logistic','logistic-document').documentHandoff,s=main('logistic','logistic-security').addressedSecurity;return v.sharedChat.realRecipients===3&&v.sharedChat.files===1&&v.sharedChat.loserDenied===true&&p.draftPreserved===true&&p.reloadVerified===true&&p.submissionRequests===0&&l.completed===true&&l.wrongActorDenied===true&&l.ptoReviewUnchanged===true&&s.retryDeduplicated===true&&s.ptoUnchanged===true;}],
  ['T2-20','owner+carrier+ved',()=>rail('owner','start-review').reviewTask===rail('ved','remarks').sameOpenTask&&rail('ved','remarks').sameOpenTask===rail('ved','approve').approvedTask&&rail('ved','remarks').remarksDeliveredToThreeRoles===true&&rail(winner('nov14-published'),'stages').stagesSaved===true],
