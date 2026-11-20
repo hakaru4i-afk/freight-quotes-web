@@ -35,3 +35,18 @@ jobs:
           assert.equal(info.task2.frontendCandidateComponents['app.js'].sha256,info.carrier124IncrementalStaging.appSha256);
           console.log('CAR01_STAGING_SOURCE_CONTRACT_PASS');
           NODE
+
+  browser-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install existing free Playwright browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run actual six-card browser and filter test (desktop/mobile, RU/EN/ZH)
+        run: node --test tests/carrier-dashboard-browser.test.mjs
