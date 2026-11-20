@@ -34,13 +34,18 @@ const call=async(actor,path,body,query={})=>{
 
 async function publicationCall(actor,path,query,body) {
  const {status,data,requestId}=await call(actor,path,body,query);
- const code=String(data.code||data.error_code||'unknown').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
- const keys=Object.keys(data).filter(key=>/^(code|error|error_code|field|details|message|reason)$/.test(key));
- // Field names only: never emit server messages, field values, addresses, or tokens.
- const fields=[data.field,...(Array.isArray(data.details)?data.details.map(item=>item?.field):[])]
+ const response=data&&typeof data==='object'&&!Array.isArray(data)?data:{};
+ const rawCode=typeof response.code==='string'?response.code:typeof response.error_code==='string'?response.error_code:'unknown';
+ const code=rawCode.replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
+ const keys=Object.keys(response).filter(key=>/^(code|error|error_code|field|details|message|reason|errors)$/.test(key));
+ // Field identifiers only: no error messages, submitted values, addresses or credentials.
+ // Some validation APIs return errors as an object keyed by field rather than details[].
+ const keyedErrors=response.errors&&typeof response.errors==='object'&&!Array.isArray(response.errors)?Object.keys(response.errors):[];
+ const fields=[response.field,...(Array.isArray(response.details)?response.details.map(item=>item?.field):[]),...keyedErrors]
    .filter(value=>typeof value==='string'&&/^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$/.test(value))
    .slice(0,8);
- assert.equal(status,200,`${path} HTTP ${status} request=${requestId} code=${code} fields=${fields.join(',')} responseKeys=${keys.join(',')}`);
+ const safeRequestId=typeof requestId==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(requestId)?requestId:'unavailable';
+ assert.equal(status,200,`${path} HTTP ${status} request=${safeRequestId} code=${code} fields=${fields.join(',')} responseKeys=${keys.join(',')}`);
  return {json:data};
 }
 
