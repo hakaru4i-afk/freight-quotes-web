@@ -52,7 +52,12 @@ if(process.argv.includes('--write')){
  meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;meta.version=buildId;meta.releaseVersion=primaryVersion;
  meta.currentAssetSha256=Object.fromEntries(files.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));status.version=buildId;
  for(const name of Object.keys(meta.task2.frontendCandidateComponents||{}))meta.task2.frontendCandidateComponents[name]={gitBlob:blob(name),sha256:hash(readFileSync(resolve(root,'test',name)))};
- meta.indexStructureSha256=htmlStructureSha256;meta.visualAssetSha256=visualSignature;write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
+ meta.indexStructureSha256=htmlStructureSha256;meta.visualAssetSha256=visualSignature;
+ // Fail closed if stamping changed the normalized HTML structure after buildId was computed.
+ // This protects the recorded digest from silently describing pre-write bytes.
+ const stampedStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^\"'\s>]+/g,'$1'));
+ if(stampedStructureSha256!==htmlStructureSha256)throw Error('STAMP_HTML_STRUCTURE_CHANGED:pre='+htmlStructureSha256+':post='+stampedStructureSha256);
+ write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
 }else{
  if(meta.indexStructureSha256!==htmlStructureSha256)throw Error('STALE_HTML_STRUCTURE_DIGEST:recorded='+String(meta.indexStructureSha256||'MISSING')+':computed='+htmlStructureSha256+':regenerate-with-stamp-write-and-review-diff');
  if(JSON.stringify(meta.visualAssetSha256)!==JSON.stringify(visualSignature))throw Error('STALE_VISUAL_ASSET_DIGEST');
