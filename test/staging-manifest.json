@@ -33,12 +33,12 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "e9a4b9781e24ae87f9e87cf32a7b273e81ee962e",
+  "frontendCommit": "23859d657b11c5b2e3b73cfda99a6c4f9743cdde",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "e1ce7ffd6dc2f880269775a2ce481715fdd59f6c65721c3f47ae149d2029621a",
+    ".github/workflows/carrier124-reindex-candidate.yml": "d969ec0603daa3301231de87c6088a6231b25f01576cd1e6a733177ad01dc2c6",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
     ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "c83c3b1e3fcba067f95b4b46e044a27241769dc4ee937e1fe15a2ce8da7f583c",
@@ -415,7 +415,7 @@
     "tests/staging-api-region.test.mjs": "d2f781e8c066f59cd46a2cde2c5ad4fc99e7e78e0b732ab2ced1cd8a3d4b3fa6",
     "tests/staging-asset-cache.test.mjs": "8de9a8f4501e608bcd2c3edcba9fdc92c80bbb097ba4654b5fa4063ceddf5b58",
     "tests/staging-asset-contract.test.mjs": "a1f4b4b758ba1c18d9e47e9317e8367fd891c69338010f9a701a951eb01a1d50",
-    "tests/task1-create-form-browser.test.mjs": "aa9f840a09e784c97b13a6d0e7d70fc2fa110f03f34df6aaa0c7123bc1bc9872",
+    "tests/task1-create-form-browser.test.mjs": "75f44c91d6349225e26e40576b654cb72c023736151009ecc791112087641f6a",
     "tests/task12-authenticated-readonly.e2e.mjs": "c48e2609827b9c547f1aff456eeac984ae1508a4560f998db812fd90a86af996",
     "tests/task12-business-api.e2e.mjs": "1d39aabd5eb8fb853fcfe56cf3e60998e714d2076cc9aee2c97ae73c7a9f36fb",
     "tests/task12-ci-auth.mjs": "9127239df6b045e63ac0ddeb3352ac048912228eb3ba3b13547d000072a1360d",
