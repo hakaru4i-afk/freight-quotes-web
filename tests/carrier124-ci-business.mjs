@@ -85,6 +85,44 @@ try{
  assert.equal(chosen.status,200);
  const taken=await call('carrierA','/api/task2',{action:'take',order});
  assert.equal(taken.status,200);
+
+ // Independent real automatic remaining-km gate: exact facilities only, no city-centroid estimate.
+ const exactFrom='Китай, Пекин, станция Beijing Railway Station';
+ const exactTo='Китай, Шэньчжэнь, порт Яньтянь';
+ const direct=await call('owner','/api/route-distance',{addresses:[exactFrom,exactTo],transport:'Авто'});
+ assert.equal(direct.status,200,'Exact-facility road network must actually calculate');
+ assert.equal(direct.data.estimated,false,'Estimated route can never replace verified AUTO-KM');
+ assert.equal(direct.data.source,'OSRM / OpenStreetMap');
+ assert.ok(Number.isFinite(direct.data.km)&&direct.data.km>0);
+ assert.equal(direct.data.points.length,2);
+ for(const p of direct.data.points){assert.equal(p.status,'resolved');assert.equal(p.precision,'facility');assert.equal(p.confirmed,true);assert.ok(Number.isFinite(p.lat)&&Number.isFinite(p.lon));}
+ const exactOrder='QA-MAP50-EXACT-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
+ const exactLogistics={...logistics,origin:exactFrom,destination:exactTo,incoterm_place:exactFrom,ready_date:'2026-11-01'};
+ assert.equal((await call('owner','/api/requests',{order:exactOrder,deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',logistics:exactLogistics})).status,200,'Exact fixture request');
+ const exactBidRequest=randomUUID();
+ assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2026-11-02',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
+ const exactData=await call('owner','/api/data');assert.equal(exactData.status,200);
+ const exactBid=exactData.data.bids.find(x=>x.request_id===exactBidRequest);assert.ok(exactBid,'Exact fixture quote readback');
+ assert.equal((await call('owner','/api/review',{id:exactBid.id,decision:'accepted'})).status,200,'Exact fixture review');
+ const exactCarrier=await call('carrierA','/api/carrier');assert.equal(exactCarrier.status,200);
+ const exactNotification=exactCarrier.data.notifications.find(x=>x.order_code===exactOrder);assert.ok(exactNotification,'Exact fixture notification');
+ assert.equal((await call('owner','/api/offer-selection',{id:exactNotification.id,bidId:exactBid.id,requestId:randomUUID(),revision:0,reason:'',expected:exactBid})).status,200,'Exact fixture award');
+ assert.equal((await call('carrierA','/api/task2',{action:'take',order:exactOrder})).status,200,'Exact fixture take');
+ assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{actual_departure:'2026-11-02T06:00'}})).status,200,'Exact fixture departure');
+ assert.equal((await call('carrierA','/api/task2',{action:'save',order:exactOrder,fields:{location:exactFrom,location_date:'2026-11-06T06:00'}})).status,200,'Exact fixture tracked checkpoint');
+ const metric=await call('carrierA','/api/task2',undefined,{order:exactOrder});assert.equal(metric.status,200,'Exact fixture readback');
+ assert.equal(metric.data.points.length,1);
+ const point=metric.data.points[0],route=metric.data.route;
+ assert.equal(point.geocode?.status,'resolved');assert.equal(point.geocode?.precision,'facility');assert.equal(point.geocode?.confirmed,true);
+ assert.equal(point.route_calculation_status,'verified','Saved tracking point must be AUTO-KM verified');
+ assert.ok(point.remaining_km!==null&&Number.isFinite(Number(point.remaining_km))&&Number(point.remaining_km)>=0,'Automatic point remaining_km');
+ assert.ok(route&&!route.estimated,'Persisted metric must be exact');
+ assert.equal(route.source,'OSRM / OpenStreetMap');
+ assert.ok(Number.isFinite(Number(route.total_km))&&Number(route.total_km)>0);
+ assert.ok(Math.abs(Number(route.total_km)-direct.data.km)<=0.2);
+ assert.ok(route.remaining_km!==null&&Number.isFinite(Number(route.remaining_km))&&Number(route.remaining_km)>=0&&Number(route.remaining_km)<=Number(route.total_km));
+ evidence.exactAutoKm={result:'PASS',order:exactOrder,facilityPoints:2,estimated:false,source:route.source,totalKm:Number(route.total_km),remainingKm:Number(route.remaining_km),trackingRemainingKm:Number(point.remaining_km),trackingStatus:point.route_calculation_status};
+ console.log('MAP50_EXACT_AUTO_KM_PERSISTED_PASS',JSON.stringify(evidence.exactAutoKm));
  evidence.result='PASS';evidence.acceptance='Isolated QA actual OIDC API workflow, not full 37/37 browser acceptance';
  console.log('CARRIER124_OIDC_REAL_AUTH_BUSINESS_CHAIN_PASS',JSON.stringify({order,checks:evidence.checks.length}));
 }catch(error){
