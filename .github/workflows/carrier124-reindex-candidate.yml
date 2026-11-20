@@ -47,5 +47,5 @@ jobs:
           git add -- test/staging-manifest.json staging-manifest.json
           if git diff --cached --quiet; then echo 'NO_MANIFEST_CHANGES'; exit 0; fi
           if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest[.]json$'; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
-          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
+          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
