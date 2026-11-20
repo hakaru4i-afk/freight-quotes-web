@@ -39,3 +39,4 @@ jobs:
 # 2026-11-20: protected main-only v18 full-suite rerun after QA fixture-only merge 54933514 (PR132); order-scoped MAP50 attachment; no production runtime changes.
 # 2026-11-20: retry protected OIDC v18 after source-only alignment/QA-overlay order fix 45cbeed; immutable app/API bytes, main-only access, no release.
 # 2026-11-20: rerun main-only protected SH59/API-v18 after PR133 screenshot-path and SHA256 fail-closed fix 8cc8f4c; no production writes.
+# 2026-11-20: protected main-only OIDC SH59/v18 after QA Chromium install PR134 SHA 3b288519 and screenshot integrity PR133; no production writes.
