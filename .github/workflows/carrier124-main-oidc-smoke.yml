@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 55
     env:
       # Change this immutable pin only in the protected workflow review.
-      FREIGHT_PROTECTED_CANDIDATE: 370c016a57f05cd1e3afde3db698953d640a4d71
+      FREIGHT_PROTECTED_CANDIDATE: a4c9d97427442692629c2d58c29d9cda8d93f71f
     steps:
       - uses: actions/checkout@v4
         with:
