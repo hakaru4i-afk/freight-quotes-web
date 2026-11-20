@@ -33,15 +33,15 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "76927e9ac2e5ab568fa676d54fbeab519ef33c31",
+  "frontendCommit": "16a5e4f72bb5a5cb2d7eae45c5e0df29c682b408",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "2f6e038c43043d76ae83c70f0e49cce3e90bad1c7264f7d5f8b1dc0b18eeeb71",
+    ".github/workflows/carrier124-reindex-candidate.yml": "632f83c9349de65d00418e5839e850a159cfeaa74a9a66b49785af0f8e2b5e13",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
-    ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "d22643f9824715ec9c6e8b0d22cbc16ba9f49dca51999a3d2f407c097d7a1f1e",
+    ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "f658fac67d075261de8b7e86d17143fa6d165409962c17ec9d27bb4313552dfc",
     ".github/workflows/guarded-branch-cleanup.yml": "e58d8c3f91b80d3dfda0f430a842d32f38775c8e3f62b9d60600d519d33a99d9",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
     ".github/workflows/isolated-qa-oidc-browser.yml": "12b0801411aa8895811683ad4d08bcfed9e29c636c0aa19d86aeff878c88e424",
@@ -298,7 +298,7 @@
     "tests/carrier-acceptance-singleton-browser.test.mjs": "b9ccd7f8514f1905ad4a578a7d1b571822c996b2300f16fa14c034c60074c806",
     "tests/carrier-dashboard-browser.test.mjs": "bfc82173130296ae16c85181989ad6c5c4df3075e3f01cc6c8b80257df51dbc5",
     "tests/carrier124-ci-auth.mjs": "85b9bba49e088a5693741560756124575cc108061ded58545bd48740d348ae7f",
-    "tests/carrier124-ci-business.mjs": "25cc2ef55f48318ca9704c9311cba843aa182a42fa3da06a2a5b3b4c17228ad5",
+    "tests/carrier124-ci-business.mjs": "b5eb4af4be2764a81b3149f5df9909834697af98c83f86759dc1f6a6c6f7efb8",
     "tests/carrier124-ci-oidc-bindings.mjs": "9e0ff76fd8163dddd6850c8f546025ee2f3514e6f3e24c9f015d193662debcf8",
     "tests/carrier124-isolated-target.mjs": "34070fc6c36428e458bbda3d9bf28be7e3584d4713d3a485dce573452009fa68",
     "tests/carrier124-owner-request-fields.test.mjs": "e7215b368e5f674630882e8842e3442224e949bf703ba584a87a54803bf54179",
