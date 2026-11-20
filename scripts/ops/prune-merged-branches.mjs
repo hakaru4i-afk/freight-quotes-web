@@ -49,13 +49,15 @@ async function main(){
   const commit=await request('/commits/'+encodeURIComponent(branch.commit.sha));
   const latestCommit=commit.commit?.committer?.date;
   if(!eligibleBranch({name,protectedBranch:branch.protected,openPR:false,aheadBy:compare.ahead_by,latestCommit,defaultBranch,now}))continue;
-  plan.push({branch:name,aheadBy:compare.ahead_by,behindBy:compare.behind_by,lastCommit:latestCommit});
+  plan.push({branch:name,sha:branch.commit.sha,aheadBy:compare.ahead_by,behindBy:compare.behind_by,lastCommit:latestCommit});
  }
  console.log(JSON.stringify({repo,defaultBranch,mode:apply?'APPLY':'DRY_RUN',totalBranches:branches.length,openPullRequests:pulls.length,candidates:plan},null,2));
  if(!apply)return;
  for(const row of plan){
   const branch=await request('/branches/'+row.branch.split('/').map(encodeURIComponent).join('/'));
-  if(branch.protected||openHeads.has(row.branch)||branch.commit?.sha===repoInfo.default_branch)throw Error('BRANCH_CHANGED_DURING_CLEANUP');
+  if(branch.protected||branch.commit?.sha!==row.sha)throw Error('BRANCH_CHANGED_DURING_CLEANUP');
+  const freshOpen=await list('/pulls?state=open');
+  if(freshOpen.some(p=>p.head?.repo?.full_name===repo&&p.head.ref===row.branch))throw Error('BRANCH_NOW_HAS_OPEN_PR');
   const fresh=await request('/compare/'+encodeURIComponent(defaultBranch)+'...'+row.branch.split('/').map(encodeURIComponent).join('/'));
   if(fresh.ahead_by!==0)throw Error('UNMERGED_BRANCH_REFUSED:'+row.branch);
   await request('/git/refs/heads/'+row.branch.split('/').map(encodeURIComponent).join('/'),'DELETE');
