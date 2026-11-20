@@ -132,20 +132,71 @@ async function restoreServiceScore(api,score,files,reason){
 }
 
 export async function recoverInterruptedCarrierBoundary(api){
+  const recoveryReason='Restore synthetic Carrier B score after interrupted Actions run 44789205566';
   const current=(await api('owner','/api/service-level',serviceQuery)).json;
-  if(!current.policy.blocked)return {recoveryRequired:false,score:current.policy.score};
-  // The single observed interrupted run left five identifiable synthetic
-  // corrections. Do not reset any other account, revision or business penalty.
-  assert.equal(current.revision,26,'Unrecognized blocked synthetic Carrier B fixture');
-  assert.equal(current.policy.score,50);
-  const history=current.corrections.slice(-5);
-  assert.deepEqual(history.map(row=>Number(row.revision)),[22,23,24,25,26]);
-  assert.deepEqual(history.map(row=>Number(row.value)),[79,76,75,51,50]);
-  assert.ok(history.every(row=>row.action==='set_score'&&row.actor==='carrier124nov18-owner'&&
-    row.reason==='Controlled synthetic QA score for the acceptance boundary'));
-  const restored=await restoreServiceScore(api,79,await serviceEvidence(api),
-    'Restore synthetic Carrier B score after interrupted Actions run 44789205566');
-  return {recoveryRequired:true,interruptedRun:'44789205566',...restored};
+  let carrierB={recoveryRequired:false,score:current.policy.score};
+  if(current.policy.blocked||current.policy.score<76){
+    assert.equal(current.revision,26,'Unrecognized blocked synthetic Carrier B fixture');
+    const history=current.corrections.slice(-5);
+    assert.deepEqual(history.map(row=>Number(row.revision)),[22,23,24,25,26]);
+    assert.deepEqual(history.map(row=>Number(row.value)),[79,76,75,51,50]);
+    assert.ok(history.every(row=>row.action==='set_score'&&row.actor==='carrier124nov18-owner'&&
+      row.reason==='Controlled synthetic QA score for the acceptance boundary'));
+    // Readback recalculates penalties for expired requests. Only the two
+    // observed abandoned OIDC fixtures and a partial recovery may follow rev 26.
+    const events=current.events.filter(row=>Number(row.seq)>Number(history.at(-1).after_seq));
+    const expired=new Set(['QA-N26-OIDC-44586140745','QA-N26-OIDC-44587837976']);
+    let expectedScore=50;
+    let unlocked=false;
+    for(const event of events){
+      if(event.kind==='owner_unlock'){
+        assert.equal(event.actor,'carrier124nov18-owner');
+        assert.equal(event.reason,recoveryReason);
+        assert.equal(unlocked,false);
+        assert.equal(Number(event.requested_delta),51-expectedScore);
+        expectedScore=51;
+        unlocked=true;
+      }else{
+        assert.equal(unlocked,false);
+        assert.equal(event.kind,'no_response');
+        assert.equal(event.source_kind,'request');
+        assert.equal(event.actor,'system');
+        assert.ok(expired.delete(event.order_code),'Unexpected penalty after Carrier B test revision 26');
+        assert.equal(Number(event.requested_delta),-3);
+        expectedScore-=3;
+      }
+    }
+    assert.equal(current.policy.score,expectedScore);
+    assert.equal(current.policy.blocked,!unlocked);
+    const restored=await restoreServiceScore(api,79,await serviceEvidence(api),recoveryReason);
+    carrierB={recoveryRequired:true,interruptedRun:'44789205566',...restored};
+  }
+
+  const login='carrier124nov18-carriera';
+  const query={login};
+  const other=(await api('owner','/api/service-level',query)).json;
+  assert.equal(other.policy.blocked,false,'Unexpected Carrier A block');
+  let carrierA={recoveryRequired:false,score:other.policy.score};
+  if(other.policy.score<79){
+    const abandonedOrder='QA-CI-FE0D4777-LATE-626BDF21';
+    const matches=other.events.filter(row=>row.order_code===abandonedOrder&&row.kind==='no_response'&&!row.corrected);
+    assert.equal(other.policy.score,76,'Unexpected Carrier A fixture score');
+    assert.equal(matches.length,1);
+    assert.equal(matches[0].actor,'system');
+    assert.equal(matches[0].source_kind,'request');
+    assert.equal(Number(matches[0].requested_delta),-3);
+    assert.equal(Number(matches[0].score_before),79);
+    await api('owner','/api/service-level',{}, {
+      login,action:'void_event',eventId:matches[0].id,expectedRevision:other.revision,requestId:randomUUID(),
+      reason:'Close accounting for the abandoned isolated QA late-bid fixture '+abandonedOrder
+    });
+    const restored=(await api('owner','/api/service-level',query)).json;
+    assert.equal(restored.policy.score,79);
+    assert.equal(restored.policy.blocked,false);
+    assert.ok(restored.events.some(row=>row.id===matches[0].id&&row.corrected));
+    carrierA={recoveryRequired:true,score:restored.policy.score};
+  }
+  return {carrierA,carrierB};
 }
 
 export async function verifyServiceBoundaries(api,onBoundary=async()=>{},boundaries=[76,75,51,50]){
