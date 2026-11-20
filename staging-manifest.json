@@ -33,15 +33,15 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "8304a15f6057005c52e7cdbc46b3dd1163d81cdc",
+  "frontendCommit": "76927e9ac2e5ab568fa676d54fbeab519ef33c31",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "d2daf6ff2128ba06f1164d4051cc6924a8f06cad05718932e66baa4bebb466eb",
+    ".github/workflows/carrier124-reindex-candidate.yml": "2f6e038c43043d76ae83c70f0e49cce3e90bad1c7264f7d5f8b1dc0b18eeeb71",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
-    ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "3a9abb104864995e50deb1780f1101600a68b697d898700ca49cdb8b8284cb7e",
+    ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "d22643f9824715ec9c6e8b0d22cbc16ba9f49dca51999a3d2f407c097d7a1f1e",
     ".github/workflows/guarded-branch-cleanup.yml": "e58d8c3f91b80d3dfda0f430a842d32f38775c8e3f62b9d60600d519d33a99d9",
     ".github/workflows/inspect-qa-evidence.yml": "5571fec99353422788cc7472a1c5d33a8aacad0c8583923838df2059dba21b07",
     ".github/workflows/isolated-qa-oidc-browser.yml": "12b0801411aa8895811683ad4d08bcfed9e29c636c0aa19d86aeff878c88e424",
@@ -359,7 +359,7 @@
     "tests/map50-real-scenario.mjs": "c55867db8aaab6151a5bf6ec0153151fe2c350f4952153f89e6decff8bc59f45",
     "tests/nov14-owner-registers-real.mjs": "558ac5c5e1d06fb2a77af2ed6002c22c0dcd2015862892b123c0e9139c5adeb0",
     "tests/nov14-published-chain.e2e.mjs": "776d216490d9da1d343de8447daa3909818b71ff0879f72599dfe91a4cd4ed6a",
-    "tests/nov14-real-scenario.mjs": "c57faa39849277b38977f3c0645f82e3bb4582dfecdd382ba215f1d9a183d9d9",
+    "tests/nov14-real-scenario.mjs": "dadf9f92c0fe64847c2d28846a379aaadcaa3322f999d36a67c5bbcb7854799b",
     "tests/offer-scoring-r2-nov17.test.mjs": "930883f6a0c01499e5580b8b029510e97263d70ea5625b270ea1f173ea3b0e0b",
     "tests/owner-acceptance-regression.test.mjs": "e4449b9a9e47740b77098138ffecd1aaf2c1718a651ce39cbfec44aa4f4f7dfb",
     "tests/owner-audit-explanations-20261117.test.mjs": "dac5f6ccc09c16eedfd7056329513c5a4083ec5dde0a1e0e74bda4321f4e054e",
