@@ -53,3 +53,5 @@ jobs:
 # 2026-11-20: source reindex after MAP50 five-module parity alignment (candidate only).
 
 # 2026-11-20: refresh reviewed immutable candidate source receipt after T1-01 diagnostic on QA-only branch; release remains blocked.
+
+# 2026-11-20: reindex exact SH59 v20 after verified official OSM station provenance, future-departure rejection fixture, OIDC retry and port-preview distinction.
