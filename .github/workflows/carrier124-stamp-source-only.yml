@@ -53,3 +53,4 @@ jobs:
 # 2026-11-19 re-stamp after backend source 194fb3ff and regenerated process provenance; source only.
 
 # 2026-11-19 re-stamp after source f861cbd and 956dc09 process metadata, no deploy.
+# 2026-11-20 MAP50 v18 cache stamp before process provenance update; release blocked.
