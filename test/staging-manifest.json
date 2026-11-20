@@ -33,12 +33,12 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "b2ec2af63998e8610a3a46720c7279b4bf48583c",
+  "frontendCommit": "e9a4b9781e24ae87f9e87cf32a7b273e81ee962e",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "85dd5688c904df6e5abe245ac76124c8906a32421d4a21e39aa47c235c0e2c2f",
+    ".github/workflows/carrier124-reindex-candidate.yml": "e1ce7ffd6dc2f880269775a2ce481715fdd59f6c65721c3f47ae149d2029621a",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
     ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "c83c3b1e3fcba067f95b4b46e044a27241769dc4ee937e1fe15a2ce8da7f583c",
@@ -305,7 +305,7 @@
     "tests/carrier-acceptance-singleton-browser.test.mjs": "b9ccd7f8514f1905ad4a578a7d1b571822c996b2300f16fa14c034c60074c806",
     "tests/carrier-dashboard-browser.test.mjs": "bfc82173130296ae16c85181989ad6c5c4df3075e3f01cc6c8b80257df51dbc5",
     "tests/carrier124-ci-auth.mjs": "85b9bba49e088a5693741560756124575cc108061ded58545bd48740d348ae7f",
-    "tests/carrier124-ci-business.mjs": "64c6d2f527a35295f6a62e4e1b70c0c15b728bdac56db3645686840ab7f95352",
+    "tests/carrier124-ci-business.mjs": "7328cb43ed17254406c8056d8c10265add82fb784de809791804032dc48b03db",
     "tests/carrier124-ci-oidc-bindings.mjs": "9e0ff76fd8163dddd6850c8f546025ee2f3514e6f3e24c9f015d193662debcf8",
     "tests/carrier124-isolated-target.mjs": "e78688c6b62b3c04775cb76f4b30c37e7d2ad9fcfb34fc11acdaedfa8392dd53",
     "tests/carrier124-owner-request-fields.test.mjs": "e7215b368e5f674630882e8842e3442224e949bf703ba584a87a54803bf54179",
