@@ -138,8 +138,10 @@ jobs:
           const r=await fetch(carrier124Base+'/health',{redirect:'error',signal:AbortSignal.timeout(15000)});
           assert.equal(r.status,200);
           const {shipmentGeocoder}=await r.json();
-          assert.equal(shipmentGeocoder?.provider,'stadia-maps');
-          assert.equal(shipmentGeocoder?.configured,true,'BLOCKED_PROVIDER_CREDENTIALS');
+          assert.equal(shipmentGeocoder?.provider,'local-gazetteer','REQUIRES_LOCAL_OFFLINE_CATALOG');
+          assert.equal(shipmentGeocoder?.configured,true,'LOCAL_CATALOG_NOT_CONFIGURED');
+          assert.equal(shipmentGeocoder?.requiresExternalKey,false,'UNAUTHORIZED_EXTERNAL_GEOCODER_DEPENDENCY');
+          assert.ok(['partial','complete'].includes(shipmentGeocoder?.coverage),'MISSING_CATALOG_COVERAGE_ATTESTATION');
           NODE
           QA_BROWSER_ACTORS=owner QA_BROWSER_CREATE=true node tests/task12-isolated-browser.e2e.mjs
           QA_BROWSER_ACTORS=carrierA,carrierB QA_BROWSER_BID=true node tests/task12-isolated-browser.e2e.mjs
