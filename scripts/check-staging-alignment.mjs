@@ -39,7 +39,7 @@ export function checkAlignment(root,{sourceOnly=false}={}){
     qa.businessVersion!==m.primaryBusinessVersion||qa.projectRef!==info.projectRef||
     qa.function!=='freight-api-qa-carrier124nov18'||qa.schema!=='freight_qa_carrier124nov18'||
     !Number.isSafeInteger(qa.version)||qa.version<1||!(/^[a-f0-9]{64}$/).test(qa.providerBundleSha256)||
-    qa.sourceFilesVerified!==25)throw Error('STALE_OR_INVALID_SH59_ISOLATED_PAIR');
+    qa.sourceFilesVerified!==(qa.version>=17?26:25))throw Error('STALE_OR_INVALID_SH59_ISOLATED_PAIR');
   }
  }else if(m.apiVersion!==info.task2.backendVersion||m.apiSourceCommit!==info.stabilizationQa20261110.backendSourceCommit)throw Error('VERSION_PAIR_MISMATCH');
  if(hash(read('test/alignment-role-help.json'))!==m.roleHelpSha256)throw Error('STALE_ROLE_HELP');
