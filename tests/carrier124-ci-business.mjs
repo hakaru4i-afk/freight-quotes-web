@@ -98,7 +98,15 @@ try{
  for(const p of direct.data.points){assert.equal(p.status,'resolved');assert.equal(p.precision,'facility');assert.equal(p.confirmed,true);assert.ok(Number.isFinite(p.lat)&&Number.isFinite(p.lon));}
  const exactOrder='QA-MAP50-EXACT-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
  const exactLogistics={...logistics,origin:exactFrom,destination:exactTo,incoterm_place:exactFrom,ready_date:'2026-11-01'};
- assert.equal((await call('owner','/api/requests',{order:exactOrder,deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',logistics:exactLogistics})).status,200,'Exact fixture request');
+ // Publication contract requires an attached document for EVERY new order.
+ // The ordinary OIDC attachment belongs to a different order and cannot satisfy MAP50.
+ const exactAttachment=new FormData();
+ exactAttachment.set('order',exactOrder);
+ exactAttachment.append('files',new Blob(['MAP50 exact-facility acceptance '+exactOrder+'\\n'],{type:'text/plain'}),'qa-map50-control.txt');
+ const exactUploaded=await call('owner','/api/documents',exactAttachment);
+ assert.equal(exactUploaded.status,200,'Exact fixture attachment failed HTTP '+exactUploaded.status+' '+String(exactUploaded.data.error||''));
+ const exactPublished=await call('owner','/api/requests',{order:exactOrder,deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',logistics:exactLogistics});
+ assert.equal(exactPublished.status,200,'Exact fixture request failed HTTP '+exactPublished.status+' '+String(exactPublished.data.error||exactPublished.data.message||''));
  const exactBidRequest=randomUUID();
  assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2026-11-02',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
  const exactData=await call('owner','/api/data');assert.equal(exactData.status,200);
