@@ -102,7 +102,7 @@ class GlobalRouteView extends HTMLElement {
             const payload=await response.json();
             for(const point of payload.points||[]){
               if(point.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon))
-                serverPoints.set(point.label,{lat:point.lat,lng:point.lon,approximate:point.precision==='city',
+                serverPoints.set(point.label,{lat:point.lat,lng:point.lon,approximate:point.confirmed!==true,
                   precision:point.precision,confirmed:point.confirmed,provider:point.provider,queryScope:point.queryScope});
             }
           }
@@ -115,7 +115,7 @@ class GlobalRouteView extends HTMLElement {
       const source=/владелец/.test(role)?plannedGeocodes?.owner:plannedGeocodes?.offer;
       const point=(source||[]).find(p=>p.original_text===label||p.label===label);
       if(point?.status==='resolved'&&Number.isFinite(point.lat)&&Number.isFinite(point.lon))
-        return {lat:point.lat,lng:point.lon,approximate:point.precision==='city',precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id};
+        return {lat:point.lat,lng:point.lon,approximate:point.confirmed!==true,precision:point.precision,confirmed:point.confirmed,queryScope:point.queryScope,provider:point.provider,sourceId:point.source_id};
       // Historical unresolved server records must not conceal a verified gazetteer city-center preview.
       // The preview is never a confirmed facility or a valid source for operational VED thresholds.
       const serverPoint=serverPoints.get(label);
@@ -165,8 +165,10 @@ class GlobalRouteView extends HTMLElement {
         const geo = entry.geocode;
         const located = geo?.status === 'resolved' && Number.isFinite(geo.lat) && Number.isFinite(geo.lon)
           && Math.abs(geo.lat) <= 90 && Math.abs(geo.lon) <= 180;
-        const item=node('li','',label+(located?(geo.precision==='city'?t(' · Центр города, приблизительно',' · City center, approximate',' · 城市中心（近似）'):''):' · Нет координат'));const edit=correction({...geo,id:geo?.geoPointId},'tracking');if(edit)item.append(edit);list.append(item);if(latest)hero.append(node('p','gv-current-caption',label+(located?'':t(' · Нет координат',' · No coordinates',' · 无坐标'))));
-        if (located) route.markers.push({ lat: geo.lat, lng: geo.lon, label, number: latest ? '●' : '○', endpoint: latest,tracking:true,current:latest,observed_at:entry.observed_at,pointId:entry.id });
+        const precision=located?(geo.precision==='city'?t(' · Центр города, приблизительно',' · City center, approximate',' · 城市中心（近似）'):
+          geo.confirmed!==true?t(' · Координаты предварительные',' · Approximate coordinates',' · 近似坐标'):''):t(' · Нет координат',' · No coordinates',' · 无坐标');
+        const item=node('li','',label+precision);const edit=correction({...geo,id:geo?.geoPointId},'tracking');if(edit)item.append(edit);list.append(item);if(latest)hero.append(node('p','gv-current-caption',label+precision));
+        if (located) route.markers.push({ lat: geo.lat, lng: geo.lon, label, number: latest ? '●' : '○', endpoint: latest,tracking:true,current:latest,observed_at:entry.observed_at,pointId:entry.id,approximate:geo.confirmed!==true });
       }
       this.routeSnapshot=JSON.parse(JSON.stringify(route));this.dataset.trackingCount=String(tracking.length);this.dataset.latestObservedAt=tracking.at(-1)?.observed_at||'';
       history.append(list);
@@ -179,7 +181,11 @@ class GlobalRouteView extends HTMLElement {
     for (const [index, stop] of route.stops.entries()) {
       const item = node('li', stop.position ? '' : 'gv-stop-unlocated');
       const detail = node('div', 'gv-stop-detail');
-      const status = !stop.position ? 'Нет координат' : stop.position.approximate ? 'Центр города' : stop.position.precision==='facility'?'Объект':stop.position.precision==='address'?'Точный адрес':'Координаты';
+      const status = !stop.position ? t('Нет координат','No coordinates','无坐标') :
+        stop.position.precision==='city'?t('Центр города','City center','城市中心'):
+        stop.position.approximate?t('Предварительная точка','Approximate point','近似地点'):
+        stop.position.precision==='facility'?t('Объект','Facility','设施'):
+        stop.position.precision==='address'?t('Точный адрес','Exact address','详细地址'):t('Координаты','Coordinates','坐标');
       detail.append(node('strong', '', stop.label), node('small', '', stop.role));
       const source=/владелец/.test(stop.role)?'owner':'offer',record=plannedGeocodes?.[source]?.find(p=>p.label===stop.label),edit=correction(record,source);if(record?.clarification)detail.append(node('small','',t('Уточнение: ','Clarification: ','澄清：')+record.clarification));if(edit)detail.append(edit);
       item.append(node('span', 'gv-stop-number', String(index + 1)), detail, node('span', 'gv-stop-status', status));

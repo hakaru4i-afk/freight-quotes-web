@@ -6,6 +6,10 @@ scenario('an edited instruction blocks readiness',f=>f.put('docs/FAQ.md','Change
 scenario('an edited process model blocks readiness',f=>f.put('test/business-process-model.json',{version:'changed'}),/STALE_DEPENDENCY/);
 scenario('a new unindexed runtime module blocks readiness',f=>f.put('test/new-feature.mjs','export default 1'),/UNINDEXED_DEPENDENCY/);
 scenario('a changed workflow is also a reviewed dependency',f=>f.put('.github/workflows/check.yml','name: altered'),/STALE_DEPENDENCY/);
+scenario('a newly added environment target cannot be left out of provenance',f=>{
+ mkdirSync(join(f.root,'config'));
+ f.put('config/canonical-db-targets.json',{staging:{projectRef:'expected'}});
+},/UNINDEXED_DEPENDENCY:config\/canonical-db-targets/);
 scenario('unreviewed translated help blocks readiness',f=>f.put('test/alignment-role-help.json',{roles:{owner:{ru:['new']}}}),/STALE_ROLE_HELP/);
 scenario('a missing runtime bundle cannot be marked current',f=>{f.m.apiBundleSha256=null;f.put('test/staging-manifest.json',f.m);},/MISSING_VERIFIED_RUNTIME_PAIR/);
 scenario('version number reuse across issues blocks readiness',f=>{f.m.businessVersions.push({version:'SH-01.30.50 v',issue:999});f.put('test/staging-manifest.json',f.m);},/BUSINESS_VERSION_COLLISION/);

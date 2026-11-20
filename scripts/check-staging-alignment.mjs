@@ -1,7 +1,8 @@
-import {readFileSync,readdirSync} from 'node:fs';
-import {resolve,relative} from 'node:path';
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
+import {stagingDependencyPaths,isStagingDependencyPath} from './staging-dependencies.mjs';
 export function checkAlignment(root,{sourceOnly=false}={}){
  const read=p=>readFileSync(resolve(root,p));const m=JSON.parse(read('test/staging-manifest.json'));
  if(m.environment!=='staging'||m.releaseStatus!=='RELEASE_BLOCKED')throw Error('UNAUTHORIZED_RELEASE_STATE');
@@ -18,11 +19,12 @@ export function checkAlignment(root,{sourceOnly=false}={}){
  }else if(!/^[a-f0-9]{64}$/.test(m.apiBundleSha256||'')||!/^[a-f0-9]{40}$/.test(m.apiSourceCommit||''))throw Error('MISSING_VERIFIED_RUNTIME_PAIR');
  const versions=new Map();for(const {version,issue}of m.businessVersions){if(versions.has(version)&&versions.get(version)!==issue)throw Error('BUSINESS_VERSION_COLLISION');versions.set(version,issue);}
  const hash=b=>createHash('sha256').update(b).digest('hex');
- const excluded=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
- function visit(dir){for(const e of readdirSync(resolve(root,dir),{withFileTypes:true})){if(['process-history','processes'].includes(e.name))continue;const p=dir+'/'+e.name;if(e.isDirectory())visit(p);else if(/\.(js|mjs|css|html|json|md|yml|png|jpe?g|svg|webp|woff2?|ttf|otf)$/.test(p)&&!excluded.has(p)&&!m.assetHashes[p])throw Error('UNINDEXED_DEPENDENCY:'+p);}}
- for(const d of ['test','docs','scripts','tests','.github/workflows'])visit(d);
+ for(const path of stagingDependencyPaths(root)){
+  if(!Object.hasOwn(m.assetHashes,path))throw Error('UNINDEXED_DEPENDENCY:'+path);
+ }
  for(const [path,expected]of Object.entries(m.assetHashes)){
-  const absolute=resolve(root,path);if(!absolute.startsWith(resolve(root,'test')+'/')&&!absolute.startsWith(resolve(root,'docs')+'/')&&!absolute.startsWith(resolve(root,'scripts')+'/')&&!absolute.startsWith(resolve(root,'tests')+'/')&&!absolute.startsWith(resolve(root,'.github/workflows')+'/'))throw Error('INVALID_DEPENDENCY_PATH');
+  if(!isStagingDependencyPath(path))throw Error('INVALID_DEPENDENCY_PATH:'+path);
+  const absolute=resolve(root,path);
   if(hash(readFileSync(absolute))!==expected)throw Error('STALE_DEPENDENCY:'+path);
   if(hash(execFileSync('git',['show',m.frontendCommit+':'+path],{cwd:root,maxBuffer:16*1024*1024}))!==expected)throw Error('SOURCE_COMMIT_MISMATCH:'+path);
  }
@@ -40,6 +42,12 @@ export function checkAlignment(root,{sourceOnly=false}={}){
     qa.function!=='freight-api-qa-carrier124nov18'||qa.schema!=='freight_qa_carrier124nov18'||
     !Number.isSafeInteger(qa.version)||qa.version<1||!(/^[a-f0-9]{64}$/).test(qa.providerBundleSha256)||
     qa.sourceFilesVerified!==(qa.version>=17?26:25))throw Error('STALE_OR_INVALID_SH59_ISOLATED_PAIR');
+   if(qa.sourceReceiptSha256!==undefined&&(!/^[a-f0-9]{64}$/.test(qa.sourceReceiptSha256)||
+    !/^[a-f0-9]{40}$/.test(qa.sourceTree||'')||
+    !/^docs\/releases\/STAB-20261117\/SH59_ISOLATED_API_V\d+_\d{8}\.json$/.test(qa.receiptPath||'')||
+    !Object.hasOwn(m.assetHashes,'config/canonical-db-targets.json')))throw Error('INVALID_ISOLATED_API_RECEIPT_PIN');
+   if(qa.catalogMigrationVersion!==undefined&&(!/^\d{14}$/.test(qa.catalogMigrationVersion)||
+    qa.catalogMigrationVersion!==qa.observedStagingLedger))throw Error('QA_CATALOG_MIGRATION_VERSION_MISMATCH');
   }
  }else if(m.apiVersion!==info.task2.backendVersion||m.apiSourceCommit!==info.stabilizationQa20261110.backendSourceCommit)throw Error('VERSION_PAIR_MISMATCH');
  if(hash(read('test/alignment-role-help.json'))!==m.roleHelpSha256)throw Error('STALE_ROLE_HELP');

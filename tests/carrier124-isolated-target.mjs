@@ -2,10 +2,15 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {readFileSync} from 'node:fs';
 
+const targets = JSON.parse(readFileSync(new URL('../config/canonical-db-targets.json', import.meta.url)));
+const qaTarget = targets.isolatedQa;
+assert.equal(qaTarget.projectRef, targets.staging.projectRef);
+assert.notEqual(qaTarget.projectRef, targets.production.projectRef);
+assert.equal(qaTarget.run, 'carrier124nov18');
 const target = Object.freeze({
-  run: 'carrier124nov18',
-  project: 'ibclzdkxiozbzmniiygv',
-  function: 'freight-api-qa-carrier124nov18'
+  run: qaTarget.run,
+  project: qaTarget.projectRef,
+  function: 'freight-api-qa-' + qaTarget.run
 });
 const pairFile=process.env.QA_CARRIER124_PAIR_FILE;
 const pair=pairFile?JSON.parse(readFileSync(pairFile,'utf8')):null;
@@ -37,9 +42,14 @@ export function assertCandidateCheckout() {
     assert.equal(qa.sourceFilesVerified,pair.readbackCount,'Unexpected provider file count');
   }
   const git = args => execFileSync('git', args, {encoding: 'utf8'}).trim();
+  if (manifest.sh59IsolatedQa?.sourceReceiptSha256) {
+    assert.equal(git(['rev-parse','HEAD']),carrier124.frontendMetadata,'Expected exact candidate checkout');
+    assert.equal(pair.sqlMigrationVersion,manifest.sh59IsolatedQa.catalogMigrationVersion||manifest.sqlMigrationVersion);
+  }
   assert.equal(git(['rev-parse', carrier124.frontendMetadata + ':test']), carrier124.frontendTestTree, 'Unexpected frontend candidate');
   git(['diff','--exit-code',carrier124.frontendMetadata,'HEAD','--','test',':(exclude)test/staging-manifest.json']);
   assert.equal(git(['status', '--porcelain', '--untracked-files=all', '--', 'test']), '', 'Candidate test assets must be committed');
+  return manifest;
 }
 
 export function readCandidateAsset(path) {

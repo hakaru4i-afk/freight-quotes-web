@@ -36,18 +36,19 @@ export async function createRemainingClient(sessions, log) {
   };
 }
 
-export async function publishFixture(call,order, {deadline=deadlineMinsk(Date.now()+86400000), geography={}, attach=true}={}) {
-  assert.match(order,/^QA-N26-[A-Z0-9-]+$/);
+export async function publishFixture(call,order, {deadline=deadlineMinsk(Date.now()+86400000), geography={}, attach=true,
+  summary='Synthetic QA '+order, bitrixTask='910083,910084', filename='qa-control.txt'}={}) {
+  assert.match(order,/^QA-(?:N26-[A-Z0-9-]+|MAP50-EXACT-[0-9]+-[0-9]+)$/);
   const logistics={sender_contact:'QA contact '+order,origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'QA cargo '+order,
     weight:'1250',volume:'12.5',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'QA Brest gate '+order,dangerous_goods:'no',...geography};
   const bytes=Buffer.from('Synthetic control file '+order+'\n');
   if(attach){
     const form=new FormData();
     form.set('order',order);
-    form.append('files',new Blob([bytes]),'qa-control.txt');
+    form.append('files',new Blob([bytes],{type:'text/plain'}),filename);
     await call('owner','/api/documents',{},form);
   }
-  const receipt=await call('owner','/api/requests',{}, {order,deadline,summary:'Synthetic QA '+order,bitrixTask:'910083,910084',logistics});
+  const receipt=await call('owner','/api/requests',{}, {order,deadline,summary,bitrixTask,logistics});
   return {order,logistics,deadline,published:receipt.json,sha256:sha256(bytes)};
 }
 

@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import {createHash,randomUUID} from 'node:crypto';
 import {readFile,mkdir,writeFile} from 'node:fs/promises';
+import {carrier124,carrier124Base} from './carrier124-isolated-target.mjs';
+import {deadlineMinsk,publishFixture} from './carrier124-remaining-api.mjs';
 
-const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-carrier124nov18';
+const base=carrier124Base;
 const sessions=JSON.parse(await readFile('/tmp/freight-carrier124-ci/sessions.json','utf8'));
-const evidence={target:'freight-api-qa-carrier124nov18',businessVersion:'SH-01.30.59 v',checks:[],timestamp:new Date().toISOString()};
+const evidence={target:carrier124.function,businessVersion:'SH-01.30.59 v',checks:[],timestamp:new Date().toISOString()};
 const call=async(actor,path,body,query={})=>{
  const url=new URL(base+path);
  for(const [key,value] of Object.entries(query))url.searchParams.set(key,value);
@@ -23,17 +25,26 @@ const call=async(actor,path,body,query={})=>{
      await new Promise(resolve=>setTimeout(resolve,250*attempt));
    }
  }
- if(new URL(r.url).hostname!=='ibclzdkxiozbzmniiygv.supabase.co')throw Error('QA_API_REDIRECT_OUTSIDE_STAGING');
+ if(new URL(r.url).hostname!==new URL(base).hostname)throw Error('QA_API_REDIRECT_OUTSIDE_STAGING');
  const data=await r.json().catch(()=>({}));
  const requestId=r.headers.get('x-freight-request-id');
  evidence.checks.push({actor:actor||'anonymous',path,method,status:r.status,requestId});
  return{status:r.status,data,requestId};
 };
+
+async function publicationCall(actor,path,query,body) {
+ const {status,data,requestId}=await call(actor,path,body,query);
+ const code=String(data.code||data.error_code||'unknown').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
+ const keys=Object.keys(data).filter(key=>/^(code|error|error_code|field|details|message|reason)$/.test(key));
+ assert.equal(status,200,`${path} HTTP ${status} request=${requestId} code=${code} responseKeys=${keys.join(',')}`);
+ return {json:data};
+}
+
 try{
  const health=await call(null,'/health');
  assert.equal(health.status,200);
- assert.equal(health.data.qaRun,'carrier124nov18');
- assert.equal(health.data.projectRef,'ibclzdkxiozbzmniiygv');
+ assert.equal(health.data.qaRun,carrier124.run);
+ assert.equal(health.data.projectRef,carrier124.project);
  assert.equal(health.data.environment,'staging');
  assert.equal(health.data.release,evidence.businessVersion);
  assert.ok([401,403].includes((await call(null,'/api/carrier')).status));
@@ -42,25 +53,16 @@ try{
  assert.ok(Array.isArray(a.data.notifications));assert.ok(Array.isArray(b.data.notifications));
  const order='QA-N26-OIDC-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
  assert.match(order,/^QA-N26-OIDC-[0-9]+-[0-9]+$/);
- const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Minsk',dateStyle:'short',timeStyle:'short'});
- const deadline=fmt.format(Date.now()+86400000).replace(' ','T');
+ const deadline=deadlineMinsk(Date.now()+86400000);
  const logistics={sender_contact:'OIDC synthetic owner',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'E2E synthetic freight',weight:'1250',volume:'12.5',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Synthetic Brest gate',dangerous_goods:'no'};
- const attachment=new FormData();
- attachment.set('order',order);
- attachment.append('files',new Blob(['Isolated OIDC acceptance '+order+'\n'],{type:'text/plain'}),'qa-control.txt');
- assert.equal(attachment.get('order'),order);
- assert.equal(attachment.getAll('files').length,1);
- const uploaded=await call('owner','/api/documents',attachment);
- assert.equal(uploaded.status,200,'isolated QA attachment failed HTTP '+uploaded.status+' '+String(uploaded.data.error||''));
- const publish=await call('owner','/api/requests',{order,deadline,summary:'Isolated QA OIDC '+order,bitrixTask:'910083,910084',logistics});
- assert.equal(publish.status,200,'owner request create failed HTTP '+publish.status+' '+String(publish.data.error||publish.data.message||''));
+ const {published}=await publishFixture(publicationCall,order,{deadline,summary:'Isolated QA OIDC '+order,geography:logistics});
  evidence.order=order;
  const owner=await call('owner','/api/requests',undefined,{order});
  assert.equal(owner.status,200);
  const stored=owner.data.request;
  assert.equal(stored?.order_code,order);
- assert.match(publish.data.round,/^[0-9a-f-]{36}$/);
- assert.equal(stored.round_id,publish.data.round);
+ assert.match(published.round,/^[0-9a-f-]{36}$/);
+ assert.equal(stored.round_id,published.round);
  assert.match(stored.registration_no,/^TR-\d{2}-\d{6}$/);
  assert.ok(owner.requestId,'The registration readback must have a real request ID');
  const readback={order,round:stored.round_id,registrationNo:stored.registration_no,requestId:owner.requestId};
@@ -98,16 +100,7 @@ try{
  for(const p of direct.data.points){assert.equal(p.status,'resolved');assert.equal(p.precision,'facility');assert.equal(p.confirmed,true);assert.ok(Number.isFinite(p.lat)&&Number.isFinite(p.lon));}
  const exactOrder='QA-MAP50-EXACT-'+process.env.GITHUB_RUN_ID+'-'+(process.env.GITHUB_RUN_ATTEMPT||'1');
  const exactLogistics={...logistics,origin:exactFrom,destination:exactTo,incoterm_place:exactFrom,ready_date:'2026-11-01'};
- // Publication contract requires an attached document for EVERY new order.
- // The ordinary OIDC attachment belongs to a different order and cannot satisfy MAP50.
- const exactAttachment=new FormData();
- exactAttachment.set('order',exactOrder);
- exactAttachment.append('files',new Blob(['MAP50 exact-facility acceptance '+exactOrder+'\\n'],{type:'text/plain'}),'qa-map50-control.txt');
- const exactUploaded=await call('owner','/api/documents',exactAttachment);
- assert.equal(exactUploaded.status,200,'Exact fixture attachment failed HTTP '+exactUploaded.status+' '+String(exactUploaded.data.error||''));
- const exactPublished=await call('owner','/api/requests',{order:exactOrder,deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',logistics:exactLogistics});
- const exactFailureCode=String(exactPublished.data?.code||exactPublished.data?.error_code||'unknown').replace(/[^a-zA-Z0-9_-]/g,'').slice(0,64);
- assert.equal(exactPublished.status,200,'Exact fixture request failed HTTP '+exactPublished.status+' code='+exactFailureCode+' responseKeys='+Object.keys(exactPublished.data||{}).filter(k=>/^(code|error|error_code|field|details|message|reason)$/.test(k)).join(','));
+ await publishFixture(publicationCall,exactOrder,{deadline,summary:'MAP50 exact remaining QA '+exactOrder,bitrixTask:'910081',geography:exactLogistics,filename:'qa-map50-control.txt'});
  const exactBidRequest=randomUUID();
  assert.equal((await call('carrierA','/api/quote',{order:exactOrder,carrier:'Exact QA carrier',contact:'QA contact',consent:true,variants:[{mode:'Авто',currency:'USD',amount:1400,pickup:'2026-11-02',days:21,insurance:'Включено',includes:'Road freight',extras:'No extras',validUntil:'2099-12-20',incotermPlace:exactFrom,dangerousGoods:'no',requestId:exactBidRequest}]})).status,200,'Exact fixture quote');
  const exactData=await call('owner','/api/data');assert.equal(exactData.status,200);

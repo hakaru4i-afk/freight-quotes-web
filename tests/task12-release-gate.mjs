@@ -5,10 +5,13 @@
  * No credentials are read, logged or written.
  */
 import {readFile,writeFile,mkdir} from "node:fs/promises";
+import {expectedReleasePair,exactAcceptanceRoster,isAuthenticatedCase,loadAcceptanceEvidence,matchesAcceptancePair,matchesPublishedPair} from '../scripts/release-evidence.mjs';
 const roster=JSON.parse(await readFile("test/qa-observer.json","utf8"));
 const ids=[...roster.task1.cases,...roster.task2.cases].map(x=>x.id);
 if(new Set(ids).size!==37||ids.length!==37)throw Error("Invalid acceptance roster: expected exactly 37 unique groups");
 async function readJson(path){try{return JSON.parse(await readFile(path,"utf8"))}catch{return null}}
+const manifest=await readJson("test/staging-manifest.json");
+const pair=expectedReleasePair(manifest);
 const robot=await readJson(process.env.ROBOT_REPORT_PATH||"reports/task12-robot-matrix.json");
 const e2e=await readJson("reports/private-authenticated-e2e.json");
 const restore=await readJson("reports/private-restore-evidence.json");
@@ -23,15 +26,18 @@ function gate(key,condition,note,proof){
 }
 const stamp=new Date().toISOString();
 const sha=process.env.GITHUB_SHA||null;
+const acceptanceRun=process.env.E2E_PROTECTED_RUN_ID||process.env.GITHUB_RUN_ID;
 const e2eSteps=Array.isArray(e2e?.scenarios)?e2e.scenarios:[];
 const evidences=new Map(e2eSteps.filter(x=>typeof x?.id==="string").map(x=>[x.id,x]));
-const hasRoleEvidence=x=>x&&x.status==="PASS"&&x.mode==="AUTHENTICATED_QA_API"&&typeof x.actorRole==="string"&&x.actorRole.length>0&&x.evidence&&x.evidence.method==="HTTP_AND_BROWSER"&&x.evidence.responseVerified===true&&x.evidence.traceId;
-const missing=ids.filter(id=>!hasRoleEvidence(evidences.get(id)));
-gate("E2E_37_37",!!e2e&&e2e.environment==="isolated-qa"&&e2e.authorized===true&&missing.length===0,
-  "Требуются 37 независимых авторизованных E2E-сценариев с проверенным ответом API и доказательством. Отсутствуют: "+missing.join(", "),
+const rosterMatches=exactAcceptanceRoster(ids,e2eSteps);
+const provenanceMatches=matchesAcceptancePair(e2e,pair,{frontendSha:sha,runId:acceptanceRun});
+const verifySources=loadAcceptanceEvidence(process.env.E2E_ARTIFACT_ROOT||'reports/verified-authenticated',pair,{frontendSha:sha,runId:acceptanceRun});
+const missing=ids.filter(id=>!provenanceMatches||!isAuthenticatedCase(evidences.get(id),verifySources));
+gate("E2E_37_37",rosterMatches&&provenanceMatches&&missing.length===0,
+  "Требуются 37 уникальных авторизованных сценариев на закреплённой паре с доказательствами. Отсутствуют: "+missing.join(", "),
   e2e);
-gate("E2E_RUN_PROVENANCE",!!e2e&&!!sha&&e2e.runId===process.env.GITHUB_RUN_ID&&e2e.frontendSha===sha&&typeof e2e.backendSha==="string"&&e2e.backendSha.length===40,
-  "Доказательства должны относиться именно к этой версии frontend/API и текущему автоматическому запуску.",
+gate("E2E_RUN_PROVENANCE",provenanceMatches,
+  "Артефакт запуска должен совпадать по Git SHA frontend и API, версии и SHA-256 Edge, версии SQL и идентификатору запуска.",
   e2e);
 gate("SECURITY_ROLES_AND_IDOR",security?.environment==="isolated-qa"&&security?.result==="PASS"&&security?.protectedResources===true&&security?.actorCount>=5,
   "Независимые роли Owner/CarrierA/B/ВЭД/Поставщик; запреты доступа к чужой заявке, файлам, данным и операциям подтверждены.",
@@ -42,7 +48,7 @@ gate("FILES_STORAGE_SHA",security?.fileUploadDownloadSha256==="PASS"&&security?.
 gate("VISUAL_DESKTOP_MOBILE",visual?.result==="PASS"&&visual?.viewport390===true&&visual?.desktop===true&&visual?.noHorizontalOverflow===true&&visual?.noBlockingOverlaps===true,
   "Проверка читаемости, контрастности, невидимых кнопок, перекрытий и 390×844/desktop с артефактами.",
   visual);
-gate("VERSION_AND_DEPLOYED_PARITY",deployment?.result==="PASS"&&deployment?.environment==="staging"&&deployment?.frontendSha===sha&&deployment?.backendMatchesCandidate===true&&deployment?.servedAssetsExact===true,
+gate("VERSION_AND_DEPLOYED_PARITY",matchesPublishedPair(deployment,manifest,pair,sha),
   "Фактически отданный Pages frontend и staging API должны точно соответствовать протестированной паре.",
   deployment);
 gate("ISOLATED_RESTORE",restore?.result==="PASS"&&restore?.databaseRestored===true&&restore?.storageRestored===true&&restore?.isolationVerified===true,
@@ -57,7 +63,7 @@ gate("CURRENT_ROBOT_REPORT",!!robot&&!!sha&&robot.commit===sha&&robotScenarios.l
   robotScenarios.every(x=>["PARTIAL","PASS"].includes(x.status))&&robot.checks?.FAIL===0&&robot.checks?.BLOCKED===0,
   "Требуется полный отчёт робота для текущего SHA, без FAIL/BLOCKED; публичный исторический отчёт не заменяет артефакт запуска.",robot);
 const ownerCase=evidences.get("T1-01");
-gate("T1_01_REQUIRED_FIELDS",hasRoleEvidence(ownerCase)&&ownerCase?.evidence?.negativeValidation===true&&ownerCase?.evidence?.serverRejectsMissingFields===true,
+gate("T1_01_REQUIRED_FIELDS",rosterMatches&&provenanceMatches&&!missing.includes('T1-01')&&ownerCase?.evidence?.negativeValidation===true&&ownerCase?.evidence?.serverRejectsMissingFields===true,
   "Открытый дефект T1-01: кнопка и сервер должны запрещать публикацию с пустыми обязательными полями.",
   e2e);
 gate("NO_CRITICAL_FAILURES",!!e2e&&Array.isArray(e2e.criticalDefects)&&e2e.criticalDefects.length===0&&!!robot&&robot.checks?.FAIL===0,
@@ -72,10 +78,10 @@ const summary={
  canDeployProduction:false,
  note:"Данный gate никогда не разворачивает production автоматически. Даже после READY нужно отдельное явное разрешение Владельца.",
  frontendCandidateSha:sha,
- backendCandidateSha:e2e?.backendSha||null,
+ backendCandidateSha:pair?.backendSha??null,
  robotPartialChecks:robot?.checks?.PARTIAL??null,
  robotFailures:robot?.checks?.FAIL??null,
- authenticatedE2ePassed:ids.length-missing.length,
+ authenticatedE2ePassed:rosterMatches&&provenanceMatches?ids.length-missing.length:0,
  authenticatedE2eRequired:ids.length,
  blockers:blockers.map(x=>({id:x.id,reason:x.note})),
  checks:validations,

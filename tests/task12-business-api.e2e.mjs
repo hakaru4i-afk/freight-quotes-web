@@ -10,15 +10,17 @@ const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const root=exactCandidate?process.env.QA_CARRIER124_PRIVATE_DIR:'/tmp/freight-ci-qa';
 const evidenceDir=exactCandidate?process.env.QA_BROWSER_EVIDENCE_DIR:'reports/isolated-rc';
+let candidate;
 if(exactCandidate){
  assert.ok(root&&evidenceDir,'Dedicated private state and evidence directories required');
- assertCandidateCheckout();
+ candidate=assertCandidateCheckout();
  const health=await fetch(base+'/health',{redirect:'error',signal:AbortSignal.timeout(15000)});
  assert.equal(health.status,200);
  const data=await health.json();
  assert.equal(data.qaRun,carrier124.run);
  assert.equal(data.projectRef,carrier124.project);
  assert.equal(data.environment,'staging');
+ assert.equal(data.edgeVersion,carrier124.version);
 }else{
  assert.equal(process.env.GITHUB_REPOSITORY,'hakaru4i-afk/freight-quotes-web');
  assert.equal(process.env.GITHUB_REF,'refs/heads/main');
@@ -33,9 +35,12 @@ for(const id of expectedActors){
  assert.match(sessions[id]||'',/^[a-f0-9]{64}$/,'Missing QA session for '+id);
 }
 assert.equal(new Set(expectedActors.map(id=>sessions[id])).size,expectedActors.length);
-const runId=exactCandidate?randomUUID().slice(0,8).toUpperCase():process.env.GITHUB_RUN_ID;
-const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,frontendSha:exactCandidate?carrier124.frontendSource:process.env.GITHUB_SHA,
- ...(exactCandidate?{target:carrier124}:{}),productionDataUsed:false,checks:[],calls:[]};
+const runId=process.env.GITHUB_RUN_ID||null;
+const fixtureRun=exactCandidate?randomUUID().slice(0,8).toUpperCase():runId;
+const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId,frontendSha:exactCandidate?carrier124.frontendMetadata:process.env.GITHUB_SHA,
+ ...(exactCandidate?{frontendSource:carrier124.frontendSource,backendSourceCommit:carrier124.backendSource,
+  backendVersion:carrier124.version,backendBundle:carrier124.bundle,sqlMigrationVersion:candidate.sh59IsolatedQa?.catalogMigrationVersion||candidate.sqlMigrationVersion}:{}),
+ productionDataUsed:false,checks:[],calls:[]};
 const selected=exactCandidate?new Set((process.env.QA_CARRIER124_CASES||'').split(',').filter(Boolean)):new Set();
 async function call(actor,path,body,method){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
@@ -44,7 +49,7 @@ async function call(actor,path,body,method){
 }
 const ok=r=>{assert.equal(r.status,200);return r.data;};
 async function check(id,run){if(selected.size&&!selected.has(id))return;const entry={id,status:'FAIL',mode:'AUTHENTICATED_QA_API'};report.checks.push(entry);try{entry.evidence=await run();entry.status='PASS';console.log('QA_BUSINESS_API_PASS',id);}catch(e){entry.errorType=e.code||e.name;const line=String(e.stack).match(/task12-business-api\.e2e\.mjs:(\d+:\d+)/);if(line)entry.assertionLine=line[1];for(const key of ['actual','expected'])if(['number','boolean'].includes(typeof e[key]))entry[key]=e[key];console.log('QA_BUSINESS_API_FAIL',id,JSON.stringify({errorType:entry.errorType,assertionLine:entry.assertionLine,actual:entry.actual,expected:entry.expected}));process.exitCode=1;}}
-const makeOrder=kind=>'QA-CI-'+runId+'-'+kind+'-'+randomUUID().slice(0,8).toUpperCase();
+const makeOrder=kind=>'QA-CI-'+fixtureRun+'-'+kind+'-'+randomUUID().slice(0,8).toUpperCase();
 const logistics={sender_contact:'Synthetic QA sender',origin:'Brest, Belarus',destination:'Minsk, Belarus',cargo:'Synthetic QA pallets',volume:'12.5',weight:'1250',ready_date:'2099-12-01',incoterm:'EXW',incoterm_place:'Brest warehouse',dangerous_goods:'no'};
 async function upload(order,name,bytes){const f=new FormData();f.set('order',order);f.append('files',new Blob([bytes]),name);return ok(await call('owner','/api/documents',f));}
 async function create(order,sourceLogistics=logistics,deadline='2099-12-15T12:00'){await upload(order,'qa-required.txt','Synthetic QA attachment');const data=ok(await call('owner','/api/requests',{order,summary:'Synthetic API business acceptance',deadline,bitrixTask:'910001,910002',logistics:sourceLogistics}));assert.equal(data.recipients,2);return data;}

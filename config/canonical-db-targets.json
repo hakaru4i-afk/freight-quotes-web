@@ -19,5 +19,10 @@
     "neverFallbackToOtherEnvironment": true,
     "qaEdgeFunctions": "test-only, explicit isolated fixtures",
     "backupAndRealShipmentsProtected": true
+  },
+  "isolatedQa": {
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "run": "carrier124nov18",
+    "contract": "carrier-remedy-v1"
   }
 }

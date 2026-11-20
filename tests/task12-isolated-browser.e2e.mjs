@@ -20,10 +20,11 @@ const map50=process.env.QA_MAP50==='true';
 const exactCandidate=process.env.QA_CARRIER124_CANDIDATE==='true';
 const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const loginFor=actor=>(exactCandidate?carrier124.run:'rc20261110')+'-'+actor.toLowerCase();
+let candidateManifest;
 if(exactCandidate){
  assert.equal(published,false,'Carrier124 candidate must use local committed assets');
  assert.ok(process.env.QA_SESSIONS_FILE,'A dedicated synthetic sessions file is required');
- assertCandidateCheckout();
+ candidateManifest=assertCandidateCheckout();
 }
 // Freeze source bytes before browser startup: a concurrent merge must never
 // change a running test's HTML or assets underneath it.
@@ -53,8 +54,7 @@ const remainingPhase=exactCandidate&&process.env.QA_BROWSER_REMAINING;
 const phase=remainingPhase?'remaining-'+remainingPhase:loginSmoke?'login':ownerFieldsDenied?'owner-fields-denied':loserArchive?'loser-archive':process.env.QA_BROWSER_CARRIER124==='true'?'carrier124-dashboard':process.env.QA_BROWSER_TENDER==='true'?'tender':process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=frozenSource||process.cwd(),base=exactCandidate?carrier124Base:'https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 if(exactCandidate){
- const manifest=JSON.parse(await readAsset('test/staging-manifest.json'));
- if(manifest.sh59IsolatedQa?.receiptPath){
+ if(candidateManifest.sh59IsolatedQa?.receiptPath){
   const r=await fetch(base+'/health?forceFunctionRegion=eu-central-1',{redirect:'error',signal:AbortSignal.timeout(15000)});
   assert.equal(r.status,200);
   const health=await r.json();
@@ -68,7 +68,7 @@ const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://lo
 await new Promise(done=>server.listen(0,'127.0.0.1',done));
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
 const launchArgs=map50||phase==='remaining-modes'?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[];
-const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree,sqlMigrationVersion:candidateManifest.sh59IsolatedQa?.catalogMigrationVersion||candidateManifest.sqlMigrationVersion,workflowRunId:process.env.GITHUB_RUN_ID||null}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
 const html=(await readAsset('test/index.html')).toString('utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readAsset('test/'+name)).digest('hex');}

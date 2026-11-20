@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "8b0e7bbb30fa0f2293ca",
+  "version": "4e8855eed630976002e0",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.59 v candidate; source locked, publication and acceptance blocked.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "c26fbe3fc2c633442e1a1bbfda6a956c69824093",
+  "servedAppBlobSha": "4218da1025cee6775018f009dae0572273d305da",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -57,8 +57,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "c26fbe3fc2c633442e1a1bbfda6a956c69824093",
-        "sha256": "418ac468cbade15cab18e7e6b0c1da2e62c3eaf821dcfed824152f98fa398a94"
+        "gitBlob": "4218da1025cee6775018f009dae0572273d305da",
+        "sha256": "433a39648a43dc56dbe0965e8d855ce6e86ca9e028884a4493b9c5804b209599"
       },
       "task2-panel.js": {
         "gitBlob": "e2f5ed16f13f1c57a760365420fcfdfdc97b6fc7",
@@ -587,12 +587,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "8b0e7bbb30fa0f2293ca",
+  "stagingAssetBuildId": "4e8855eed630976002e0",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "ad03d1b4a06e08278ac7c391ea789d2358cd3a9dc491bf3a36b51911c0eb405c",
-    "app.js": "418ac468cbade15cab18e7e6b0c1da2e62c3eaf821dcfed824152f98fa398a94",
+    "app.js": "433a39648a43dc56dbe0965e8d855ce6e86ca9e028884a4493b9c5804b209599",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -602,14 +602,14 @@
     "carrier-defer-transport-application-20261107.css": "1f66be0e0b22cd27d86dc51e63a9e9d1ec4aa8f7af4d521b60973ad9d2d286ab",
     "carrier-defer-transport-application-20261107.js": "0f7a7173b6cf83514e3969c487803a7c89ad8406f0afc005c707d2e44d75ca3b",
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
-    "current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
+    "current-workspace-help-20261108.js": "c62534bf59b9a4b2cf89e8af9264772773de7de43c4d86cbe2423b2f6cbc5fdf",
     "global-view/distance.mjs": "e5cb93fe7833008feb861c43d1beb0396f3c4e2824ed84769acf2d0353de60a1",
     "global-view/globe.mjs": "7bc1486e45ca1358f17654b433e2fb8d1700c16e1ad00bdc2e52a11ab578e278",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
     "global-view/map.mjs": "69124429bd77f557da4b2127800357e63ec30eb0cebf9c2c36caaf379c7966b3",
     "global-view/route-model.mjs": "7087f032e9891657144e90632b3956f3ea5d756147ab33b634bcf033154b99a4",
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "global-view/view.mjs": "f22b59d5a5f61533059ea4dfd157d99514f78ff50209a757599a808d1bf85d74",
+    "global-view/view.mjs": "40b7eeb42043714a14475decd6b5cd0dd5bf10599f9bf740a42bc98b6b35991c",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -699,7 +699,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-20T09:49:45.818Z",
+  "assetBuildRecordedAt": "2026-11-20T14:29:13.651Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
@@ -790,7 +790,7 @@
     "apiProjectionVersion": 1,
     "scope": "assigned_requests",
     "backendPullRequest": "https://github.com/hakaru4i-afk/freight-quotes/pull/102",
-    "backendSourceCommit": "abb99afc701af6df57285ce7b471e545df20445d",
+    "backendSourceCommit": "63e8e7bd6fcedf539645c431208236f0abf6fbd7",
     "releaseGate": "BLOCKED",
     "ownerAccepted": false
   },
@@ -813,17 +813,20 @@
     "businessVersion": "SH-01.30.59 v",
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api-qa-carrier124nov18",
-    "version": 18,
+    "version": 19,
     "schema": "freight_qa_carrier124nov18",
-    "sourceCommit": "abb99afc701af6df57285ce7b471e545df20445d",
-    "providerBundleSha256": "1555daa74af0119b1a2fcce76d92a1b323cdd87ef73b64d2fb8a4137902d148b",
+    "sourceCommit": "63e8e7bd6fcedf539645c431208236f0abf6fbd7",
+    "providerBundleSha256": "d8991789fa74cd7adbb9d29095956e36fed4495a7c25bc4433a01686a04face5",
     "sourceFilesVerified": 26,
     "qaSchemaMigration": "20261118161830",
-    "observedStagingLedger": "20261119163433",
-    "receiptPath": "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md",
-    "runtimeVerification": "SOURCE_READBACK_26_OF_26_PASS; LIVE_HEALTH_AND_AUTH_E2E_NOT_VERIFIED",
-    "frontendCompatibility": "SOURCE_ONLY_COMPATIBLE; AUTH_E2E_AND_EXACT_PAIR_NOT_VERIFIED",
-    "promotionBlocked": true
+    "observedStagingLedger": "20261120140727",
+    "receiptPath": "docs/releases/STAB-20261117/SH59_ISOLATED_API_V19_20261120.json",
+    "runtimeVerification": "SOURCE_FILES_AND_HEALTH_VERIFIED",
+    "frontendCompatibility": "SOURCE_COMPATIBLE; FULL_AUTHENTICATED_ACCEPTANCE_PENDING",
+    "promotionBlocked": true,
+    "sourceTree": "11af6a35714f996c64a4e8abe0c982cd11b354c5",
+    "sourceReceiptSha256": "7dfd735c05f3a28a5c07274c4e71e60fff37c0b00cd491220fb02d435457f161",
+    "catalogMigrationVersion": "20261120140727"
   },
   "historicalTask1Build": "SH-01.30.50 v",
   "historicalTask1StagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open."
