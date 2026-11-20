@@ -54,7 +54,7 @@ if(process.argv.includes('--write')){
  for(const name of Object.keys(meta.task2.frontendCandidateComponents||{}))meta.task2.frontendCandidateComponents[name]={gitBlob:blob(name),sha256:hash(readFileSync(resolve(root,'test',name)))};
  meta.indexStructureSha256=htmlStructureSha256;meta.visualAssetSha256=visualSignature;write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
 }else{
- if(meta.indexStructureSha256!==htmlStructureSha256)throw Error('STALE_HTML_STRUCTURE_DIGEST');
+ if(meta.indexStructureSha256!==htmlStructureSha256)throw Error('STALE_HTML_STRUCTURE_DIGEST:recorded='+String(meta.indexStructureSha256||'MISSING')+':computed='+htmlStructureSha256+':regenerate-with-stamp-write-and-review-diff');
  if(JSON.stringify(meta.visualAssetSha256)!==JSON.stringify(visualSignature))throw Error('STALE_VISUAL_ASSET_DIGEST');
  if(meta.version!==buildId||meta.releaseVersion!==primaryVersion)throw Error('STALE_PRIMARY_VERSION');
  if(!app.includes('currentVersion:"'+buildId+'"')||meta.stagingAssetBuildId!==buildId||status.version!==buildId)throw Error('STALE_STAGING_BUILD_ID');
