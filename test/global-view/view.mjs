@@ -1,5 +1,5 @@
 import { calculateMapDistances } from './distance.mjs?v=42ea24b3c9cd';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=12e3ce36f01f';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=313979589be1';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
