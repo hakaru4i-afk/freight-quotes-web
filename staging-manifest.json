@@ -33,12 +33,12 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "bb705a165bd0d971337f3bcf8344fd9b2043b8bc",
+  "frontendCommit": "366331739106b6be7cfccefc1604248430b2307c",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "fe52ff783c7c7748fa641921bfbd390d30a7c3ec324dc1892d8fc35b4ddb0826",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "007985d388de2b657dc7b3fcf7b6ee4e473fb82d2dd7db87e1a0888c9990dd5e",
+    ".github/workflows/carrier124-reindex-candidate.yml": "50ca2b84abd0c3322d181e6075e459b1b8a1bc623ab88d3f19d67b1950cf9e27",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
     ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "c83c3b1e3fcba067f95b4b46e044a27241769dc4ee937e1fe15a2ce8da7f583c",
@@ -92,7 +92,7 @@
     ".github/workflows/sanitize-completed-qa-artifact.yml": "b3eb6002a7e61cc9c7c683d0293245c4bdebfb9223711e14de3b4f517180443d",
     ".github/workflows/stab-owner-audit-unit.yml": "4898d82382780f5685ffb706c68c760525b7c04b6d4d175ea2dc17f961695d50",
     ".github/workflows/stab-owner-publication-unit.yml": "62ba61b3521f10f5aec7a50e430ede7ebabafc99dfd83ed5ed43997a89627b4b",
-    ".github/workflows/staging-alignment.yml": "ea770ecc3abf9d25b5b5d7a88508e6f999f61810a79b6fd5e65475cd5a2f41d1",
+    ".github/workflows/staging-alignment.yml": "69af5fc650417af63a5ab0fac1cbfbd65466fc156123d329864b417e9ebb9b4e",
     ".github/workflows/staging-faq-check.yml": "08adc7bf1159f3df667d24ef16a6dcd82b026bd4efdc25f611fc8a3b633e34eb",
     ".github/workflows/sync-release-metadata.yml": "8b49041469aa65dba27462d5ae4f110bcbb79f7e4d89789e3225fde1eac65ccb",
     ".github/workflows/task12-observer.yml": "7bf82872adfe0bdab2d50f47e5408e3db0f99c74d01aed38edc6d76dd87c2c0f",
