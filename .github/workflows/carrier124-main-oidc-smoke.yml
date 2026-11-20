@@ -22,6 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: hakaru4i-afk/freight-quotes-web
+          ref: 2e11f4656217cf2e8f72dd13668fe2336dea8e65
           fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -34,6 +36,8 @@ jobs:
           test "$GITHUB_REF" = refs/heads/main
           test "$GITHUB_EVENT_NAME" = workflow_dispatch
           test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
+          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
+          test "$(git status --porcelain --untracked-files=all)" = ''
           test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
           test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
           node --check tests/carrier124-ci-oidc-bindings.mjs
@@ -63,13 +67,34 @@ jobs:
           const pair={
             function:qa.function,version:qa.version,bundle:qa.providerBundleSha256,
             backendSource:qa.sourceCommit,match:true,readbackCount:qa.sourceFilesVerified,
-            frontendSource:manifest.frontendCommit,frontendMetadata:process.env.GITHUB_SHA,
+            frontendSource:manifest.frontendCommit,frontendMetadata:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),protectedWorkflowSha:process.env.GITHUB_SHA,
             frontendTestTree:execFileSync('git',['rev-parse','HEAD:test'],{encoding:'utf8'}).trim()
           };
           const path=process.env.RUNNER_TEMP+'/sh59-isolated-pair.json';
           writeFileSync(path,JSON.stringify(pair),{mode:0o600});
           appendFileSync(process.env.GITHUB_ENV,'QA_CARRIER124_PAIR_FILE='+path+'\nQA_CARRIER124_CANDIDATE=true\nQA_BROWSER_PUBLISHED=false\n');
           NODE
+      # Source-only integrity must validate the unchanged frozen tree BEFORE a test-only overlay.
+      # Overlay one narrowly scoped test fixture correction; runtime/frontend assets remain frozen.
+      # This test's immutable Git blob was reviewed in PR #129 and is independently verified.
+      - name: Pin reviewed MAP50 exact-facility fixture correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1
+          git show 2e4e84a6cd3a2279a8f5cec7327faa7d1635aba1:tests/carrier124-ci-business.mjs > tests/carrier124-ci-business.mjs
+          test "$(git hash-object tests/carrier124-ci-business.mjs)" = '15bdaaa1f1761b4ccf4ecbe9fc0039fbacd8d4a1'
+          node --check tests/carrier124-ci-business.mjs
+          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
+      - name: Pin verified broadcast-accurate role-isolation QA scenario
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin 034bc020994326a616022fe9b66aea403bb7ef30
+          git show 034bc020994326a616022fe9b66aea403bb7ef30:tests/carrier124-remaining-security.e2e.mjs > tests/carrier124-remaining-security.e2e.mjs
+          test "$(git hash-object tests/carrier124-remaining-security.e2e.mjs)" = '97a94656e7529d370723083bd97888f004b7db09'
+          node --check tests/carrier124-remaining-security.e2e.mjs
+          test "$(git rev-parse HEAD)" = '2e11f4656217cf2e8f72dd13668fe2336dea8e65'
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         run: node tests/carrier124-ci-oidc-bindings.mjs
       - name: Authenticate 11 QA users against exact isolated Carrier124 SH59 function
@@ -78,11 +103,36 @@ jobs:
         id: business
         continue-on-error: true
         run: node tests/carrier124-ci-business.mjs
+      - name: Authorized negative API access and document isolation (T1-09 T2-02)
+        id: auth_isolation
+        continue-on-error: true
+        shell: bash
+        env:
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
+        run: |
+          set -euo pipefail
+          node tests/carrier124-remaining-security.e2e.mjs carrierA
+          node tests/carrier124-remaining-security.e2e.mjs carrierB
+          node tests/carrier124-remaining-security.e2e.mjs verify
+      - name: Authorized Service Level policy boundaries (T2-24)
+        id: sl_bounds
+        continue-on-error: true
+        shell: bash
+        env:
+          QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
+        run: |
+          set -euo pipefail
+          node tests/carrier124-remaining-fixtures.e2e.mjs sl
       - name: Install Chromium for real pinned-asset browser E2E
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           test -s node_modules/axe-core/axe.min.js
-          npx playwright install --with-deps chromium
+          # GitHub's Ubuntu runner already ships browser runtime libraries.
+          # --with-deps unnecessarily apt-installs optional font packages that are unavailable on some mirrors.
+          # Browser E2E below is the fail-closed runtime validation.
+          npx playwright install chromium
       - name: Open all 11 actual role cabinets against SH59 using pinned Git assets
         id: browser
         continue-on-error: true
@@ -117,6 +167,31 @@ jobs:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
           AXE_CORE_PATH: node_modules/axe-core/axe.min.js
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify multilingual matrix screenshot hashes are present before archiving
+        id: matrix_screenshots
+        if: ${{ inputs.full_suite == true }}
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {createHash} from 'node:crypto';
+          import {readFileSync} from 'node:fs';
+          const result=JSON.parse(readFileSync('reports/carrier124-full-roles/browser-results-all.json','utf8'));
+          let checked=0;
+          for(const role of result.roles||[]){
+            assert.equal(role.status,'PASS','Role cabinet not PASS: '+role.actor);
+            for(const row of role.cabinetMatrix||[]){
+              assert.ok(row.screenshot?.startsWith('reports/isolated-rc/'),'Unexpected screenshot path: '+row.screenshot);
+              const digest=createHash('sha256').update(readFileSync(row.screenshot)).digest('hex');
+              assert.equal(digest,row.screenshotSha256,'Screenshot hash mismatch: '+row.screenshot);
+              checked++;
+            }
+          }
+          assert.ok(checked>=96,'Missing multilingual matrix screenshot evidence: '+checked+' < 96');
+          console.log('ROLE_MATRIX_SCREENSHOT_SHA256_PASS count='+checked);
+          NODE
       - name: Run MAP50 with real provider and pinned isolated assets
         id: map50
         if: ${{ inputs.full_suite == true }}
@@ -157,10 +232,13 @@ jobs:
         shell: bash
         run: |
           test '${{ steps.business.outcome }}' = success
+          test '${{ steps.auth_isolation.outcome }}' = success
+          test '${{ steps.sl_bounds.outcome }}' = success
           test '${{ steps.browser.outcome }}' = success
           if [ '${{ inputs.full_suite }}' = 'true' ]; then
             test '${{ steps.full_lifecycle.outcome }}' = success
             test '${{ steps.full_matrix.outcome }}' = success
+            test '${{ steps.matrix_screenshots.outcome }}' = success
             test '${{ steps.map50.outcome }}' = success
           fi
       - name: Log out all issued synthetic sessions
@@ -178,6 +256,8 @@ jobs:
             reports/carrier124-ci-business.json
             reports/carrier124-published-browser/
             reports/carrier124-full-roles/
+            reports/carrier124-remaining/
+            reports/isolated-rc/
             reports/carrier124-map50/
             reports/nov14-published/
             reports/nov14-ordinary/

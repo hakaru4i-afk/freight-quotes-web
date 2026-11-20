@@ -1,0 +1,107 @@
+name: Carrier124 v6 protected full real browser acceptance
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: carrier124-full-v6-oidc
+  cancel-in-progress: false
+jobs:
+  real-carrier124-full:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    environment: isolated-qa
+    runs-on: ubuntu-24.04
+    timeout-minutes: 55
+    env:
+      QA_ISOLATED_RUN: carrier124nov18
+      QA_BROWSER_PUBLISHED: 'true'
+      QA_SESSIONS_FILE: /tmp/freight-carrier124-ci/sessions.json
+      QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
+      AXE_CORE_PATH: node_modules/axe-core/axe.min.js
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restrict OIDC to protected main and known test scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REPOSITORY" = hakaru4i-afk/freight-quotes-web
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          for f in tests/carrier124-ci-oidc-bindings.mjs tests/carrier124-ci-auth.mjs tests/carrier124-ci-business.mjs tests/task12-isolated-browser.e2e.mjs tests/nov14-published-chain.e2e.mjs; do
+            node --check "$f"
+          done
+      - name: Obtain temporary Carrier124 credentials via scoped GitHub OIDC
+        run: node tests/carrier124-ci-oidc-bindings.mjs
+      - name: Authenticate 11 separate synthetic roles on isolated v6
+        run: node tests/carrier124-ci-auth.mjs
+      - name: Install isolated browser runtime and PDF verifier
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
+          npx playwright install --with-deps chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends poppler-utils
+      - name: Verify real Owner and Carrier quote award and take
+        id: business
+        continue-on-error: true
+        run: node tests/carrier124-ci-business.mjs
+      - name: Read every published cabinet against Carrier124 v6
+        id: roles
+        continue-on-error: true
+        env:
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Run full claim and ordinary railway + VED workflow with MAP50 on v6
+        id: full_chain
+        continue-on-error: true
+        env:
+          QA_MAP_ORDER: QA-C124-FULL-${{ github.run_id }}-${{ github.run_attempt }}
+          QA_NOV14_INCLUDE_ORDINARY: 'true'
+        run: node tests/nov14-published-chain.e2e.mjs
+      - name: Eleven cabinets RU EN ZH on mobile and desktop
+        id: locales
+        continue-on-error: true
+        env:
+          QA_BROWSER_MATRIX: 'true'
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-locales
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify complete exact-target acceptance, never infer from mock/unit
+        if: always()
+        shell: bash
+        env:
+          RESULT_BUSINESS: ${{ steps.business.outcome }}
+          RESULT_ROLES: ${{ steps.roles.outcome }}
+          RESULT_FULL_CHAIN: ${{ steps.full_chain.outcome }}
+          RESULT_LOCALES: ${{ steps.locales.outcome }}
+        run: |
+          set -euo pipefail
+          for variable in RESULT_BUSINESS RESULT_ROLES RESULT_FULL_CHAIN RESULT_LOCALES; do
+            if [ "${!variable}" != success ]; then echo "CARRIER124_EXACT_V6_QA_INCOMPLETE:$variable=${!variable}"; exit 1; fi
+          done
+          echo 'CARRIER124_V6_FULL_WORKFLOW_PASS_NOT_PRODUCTION_DEPLOY'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: carrier124-v6-full-redacted-evidence
+          path: |
+            reports/carrier124-ci-qa-auth.json
+            reports/carrier124-ci-business.json
+            reports/carrier124-full-roles/*.json
+            reports/carrier124-full-locales/*.json
+            reports/nov14-published/*.json
+            reports/nov14-ordinary/*.json
+            reports/nov14-published/*.png
+            reports/nov14-ordinary/*.png
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Log out temporary sessions
+        if: always()
+        run: node tests/carrier124-ci-auth.mjs --logout
+      - name: Close Carrier124 synthetic broker leases and disable all test users
+        if: always()
+        run: node tests/carrier124-ci-oidc-bindings.mjs --finish
