@@ -64,3 +64,4 @@ jobs:
 # Reindex source provenance after safe main merge dcc9692, no deploy; 19 Nov 2026.
 # 2026-11-20 reindex v18 source/manifest after successful process provenance refresh; release blocked.
 # 2026-11-20 final source-only reindex after v18 QA protocol addendum; never releases production.
+# 2026-11-20 Nov14 v18 route now has five distinct stops with explicit Incoterms + carrier station; source-only reindex, no deploy.
