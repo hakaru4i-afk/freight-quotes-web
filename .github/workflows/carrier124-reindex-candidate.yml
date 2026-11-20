@@ -46,38 +46,6 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- test/staging-manifest.json staging-manifest.json
           if git diff --cached --quiet; then echo 'NO_MANIFEST_CHANGES'; exit 0; fi
-          if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest\\.json          git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
-          git push origin HEAD:refs/heads/fix/carrier-dashboard-124
-# 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
-# 2026-11-19 reindex after verified process-map source refresh for role-scoped notices.
-# 2026-11-19 reindex after owner-progress CI verification, source-only, RELEASE_BLOCKED.
-
-# 2026-11-19 reindex T1-01 browser test after required Incoterms place was added; source-only, no deployment.
-# 2026-11-19 reindex candidate with reviewed backend source 194fb3ff, source-only and release blocked.
-# 2026-11-19 final source-only reindex after scoped v6 QA trigger; maintain unchanged production root.
-
-# Reindex source provenance after safe main merge dcc9692, no deploy; 19 Nov 2026.
-# 2026-11-20 reindex v18 source/manifest after successful process provenance refresh; release blocked.
-# 2026-11-20 final source-only reindex after v18 QA protocol addendum; never releases production.
-# 2026-11-20 Nov14 v18 route now has five distinct stops with explicit Incoterms + carrier station; source-only reindex, no deploy.
-# 2026-11-20 reindex candidate-only exact AUTO-KM authenticated fixture from verified public facility coordinates, no deployment.
-# 2026-11-20 only confirmed catalog rail-facility points in exact AUTO-KM fixture; Yantian port explicitly remains approximate.
-# 2026-11-20 SH59 production/test stylesheet source order aligned; refresh hash manifest only after QA-only authentication enhancements (no deploy).
-; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
+          if git diff --cached --name-only | grep -Ev '^(test/)?staging-manifest[.]json$'; then echo 'UNEXPECTED_MANIFEST_FILE'; exit 2; fi
           git commit -m 'build(staging): refresh candidate-only source hashes, RELEASE_BLOCKED [skip ci]'
           git push origin HEAD:refs/heads/fix/carrier-dashboard-124
-# 2026-11-19 source-only index for role-filtered development notices; preserve RELEASE_BLOCKED.
-# 2026-11-19 reindex after verified process-map source refresh for role-scoped notices.
-# 2026-11-19 reindex after owner-progress CI verification, source-only, RELEASE_BLOCKED.
-
-# 2026-11-19 reindex T1-01 browser test after required Incoterms place was added; source-only, no deployment.
-# 2026-11-19 reindex candidate with reviewed backend source 194fb3ff, source-only and release blocked.
-# 2026-11-19 final source-only reindex after scoped v6 QA trigger; maintain unchanged production root.
-
-# Reindex source provenance after safe main merge dcc9692, no deploy; 19 Nov 2026.
-# 2026-11-20 reindex v18 source/manifest after successful process provenance refresh; release blocked.
-# 2026-11-20 final source-only reindex after v18 QA protocol addendum; never releases production.
-# 2026-11-20 Nov14 v18 route now has five distinct stops with explicit Incoterms + carrier station; source-only reindex, no deploy.
-# 2026-11-20 reindex candidate-only exact AUTO-KM authenticated fixture from verified public facility coordinates, no deployment.
-# 2026-11-20 only confirmed catalog rail-facility points in exact AUTO-KM fixture; Yantian port explicitly remains approximate.
-# 2026-11-20 SH59 production/test stylesheet source order aligned; refresh hash manifest only after QA-only authentication enhancements (no deploy).
