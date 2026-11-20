@@ -37,3 +37,4 @@ jobs:
 # 2026-11-20 request protected v18 full-suite rerun with strict automatic exact-km facility fixture, main pin 994e365f; production untouched.
 # 2026-11-20 strict AUTO-KM verified rail-facility fixture candidate 2e11f465, protected workflow 0e1693ae, no release.
 # 2026-11-20: protected main-only v18 full-suite rerun after QA fixture-only merge 54933514 (PR132); order-scoped MAP50 attachment; no production runtime changes.
+# 2026-11-20: retry protected OIDC v18 after source-only alignment/QA-overlay order fix 45cbeed; immutable app/API bytes, main-only access, no release.
