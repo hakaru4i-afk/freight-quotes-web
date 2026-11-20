@@ -670,7 +670,7 @@
     "test/global-view/globe.mjs": "5e02e6d857dd7a1625ec6a5c9d6ff6b3b1e8ebbb769391af0b9855af9031b4ac",
     "test/global-view/map.mjs": "03167d60433987edcb7b848828b76061919ff52482650a8036d9b524a0031645"
   },
-  "reviewedBackendSourceCommit": "12eee66c1948e88e8ac47d39527c2b942e70508c",
+  "reviewedBackendSourceCommit": "f8bb38ca1d55b7aceb529a89526abbb0c3253ecd",
   "previousVersion": "20261113-logic-11",
   "technicalContext": "Кандидат FE PR129 / backend PR102, source bec4fa5596a32cfdba01253388f3039ad5ebdd42. Проверены 276 backend tests и PostgreSQL; UI Owner/Carrier и RU/EN/ZH проверены отдельно. Это не hosted authenticated E2E. Published FE main1e1e4fb, production API46, staging API115, QA44; source binding shared115 не подтверждён. Полная приёмка и публикация остаются RELEASE_BLOCKED."
 }
