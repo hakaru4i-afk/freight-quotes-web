@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "16067e5684517becb968fcc2fcd9a73618945398",
+  "frontendCommit": "b184ed242254cd91a9f80f40b7e125dea53ef210",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
@@ -348,10 +348,10 @@
     "tests/map50-owner-km-before-bid.test.mjs": "48c385cf5ae7e3ba114b3a85f16705fa03b88679604baa85e81344755dbe4a57",
     "tests/map50-published-chain.e2e.mjs": "8187929cdc98920fd99732b166f7b6e0a31f3199e3b20c36f8edef672d9135bc",
     "tests/map50-real-edits.e2e.mjs": "0fcba51ee227e826bd4e0aed8a3d12639341f6ade5236732b1912c349f5bd838",
-    "tests/map50-real-scenario.mjs": "2141d1d9efd086e9e0e36d468e4d91a977a3b51110a4612424eed0856b00c5ed",
+    "tests/map50-real-scenario.mjs": "c55867db8aaab6151a5bf6ec0153151fe2c350f4952153f89e6decff8bc59f45",
     "tests/nov14-owner-registers-real.mjs": "558ac5c5e1d06fb2a77af2ed6002c22c0dcd2015862892b123c0e9139c5adeb0",
     "tests/nov14-published-chain.e2e.mjs": "776d216490d9da1d343de8447daa3909818b71ff0879f72599dfe91a4cd4ed6a",
-    "tests/nov14-real-scenario.mjs": "a89a262fb4ac8cc525f8c30e768be74a1a3841da41790bc53c0ae3b8f056716d",
+    "tests/nov14-real-scenario.mjs": "c57faa39849277b38977f3c0645f82e3bb4582dfecdd382ba215f1d9a183d9d9",
     "tests/offer-scoring-r2-nov17.test.mjs": "930883f6a0c01499e5580b8b029510e97263d70ea5625b270ea1f173ea3b0e0b",
     "tests/owner-acceptance-regression.test.mjs": "e4449b9a9e47740b77098138ffecd1aaf2c1718a651ce39cbfec44aa4f4f7dfb",
     "tests/owner-audit-explanations-20261117.test.mjs": "dac5f6ccc09c16eedfd7056329513c5a4083ec5dde0a1e0e74bda4321f4e054e",
