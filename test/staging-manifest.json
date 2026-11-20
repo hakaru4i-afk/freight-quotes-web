@@ -456,7 +456,7 @@
   "ownerAccepted": false,
   "runtimePairStatus": "UNVERIFIED",
   "businessVersionSourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7",
-  "backendSourceCommit": "f8bb38ca1d55b7aceb529a89526abbb0c3253ecd",
+  "backendSourceCommit": "abb99afc701af6df57285ce7b471e545df20445d",
   "observedBackendDeployment": {
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api",
@@ -493,16 +493,16 @@
     "businessVersion": "SH-01.30.59 v",
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api-qa-carrier124nov18",
-    "version": 17,
+    "version": 18,
     "schema": "freight_qa_carrier124nov18",
-    "sourceCommit": "f8bb38ca1d55b7aceb529a89526abbb0c3253ecd",
-    "providerBundleSha256": "a61aafa1d30a6b0d8a1526a80c1aea8cd67b662d505f35d98359650cfd532c0a",
+    "sourceCommit": "abb99afc701af6df57285ce7b471e545df20445d",
+    "providerBundleSha256": "1555daa74af0119b1a2fcce76d92a1b323cdd87ef73b64d2fb8a4137902d148b",
     "sourceFilesVerified": 26,
     "qaSchemaMigration": "20261118161830",
     "observedStagingLedger": "20261119163433",
     "receiptPath": "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md",
-    "runtimeVerification": "SOURCE_READBACK_26_OF_26_HEALTH_AND_ANON_DENIAL_PASS_AUTH_E2E_PENDING",
-    "frontendCompatibility": "SOURCE_CONTRACT_PASS_AUTH_E2E_NOT_VERIFIED",
+    "runtimeVerification": "SOURCE_READBACK_26_OF_26_PASS; LIVE_HEALTH_AND_AUTH_E2E_NOT_VERIFIED",
+    "frontendCompatibility": "SOURCE_ONLY_COMPATIBLE; AUTH_E2E_AND_EXACT_PAIR_NOT_VERIFIED",
     "promotionBlocked": true
   }
 }
