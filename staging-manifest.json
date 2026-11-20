@@ -33,12 +33,12 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "09589e2d9f9e68c1b8777e0d8f7b42829d5d31cd",
+  "frontendCommit": "8304a15f6057005c52e7cdbc46b3dd1163d81cdc",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "904125bcdb77c8284bbd617d7cbe35667f61ed64654af3ef94a032dcfcf09630",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "1fbde3fde9ac41bcb62ca101bf58d06db6cc4b2960cf76a1c4ce952e939bd69d",
     ".github/workflows/carrier124-process-map-candidate-refresh.yml": "7cfbc62fbd829d96148b5b6071fe029b6de26429b3c908039898e6f50c98356f",
-    ".github/workflows/carrier124-reindex-candidate.yml": "a42b6691afe676e988c9af8fc90b35ebb972495189c35005b768c260fdac1e3f",
+    ".github/workflows/carrier124-reindex-candidate.yml": "d2daf6ff2128ba06f1164d4051cc6924a8f06cad05718932e66baa4bebb466eb",
     ".github/workflows/carrier124-served-release-readback.yml": "4c57934681938114fd6ba3b5278765985507126fc5cb60d8431ce7e40e1613af",
     ".github/workflows/carrier124-stamp-source-only.yml": "3cac685d80071b29704d44c5e2aed2f36a1cebacbff6d7b758ec49e128b7992d",
     ".github/workflows/carrier124-trigger-main-oidc-qa-20261119.yml": "3a9abb104864995e50deb1780f1101600a68b697d898700ca49cdb8b8284cb7e",
@@ -98,7 +98,7 @@
     ".github/workflows/task2-contrast.yml": "952f20ccab6a4b49444c46a6589f9fcc430147bf6e647ed25a157f85c2d2fc32",
     "docs/full-functional-parity-and-release-policy-20261117.md": "e621dd36fed9ce0cf38d83c8b19c7959dcabff71b4f9041817cd16b2dd0b78db",
     "docs/qa/PROTECTED-E2E-SETUP.md": "b7e73d6f4ee3df6664f58f182b7c40ad26b623cf7b1b57fd04dd29974891cc0a",
-    "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md": "aa1559b6f3481704c1c4cac8db5626318f337707e35ea2a74ecb22622adad44d",
+    "docs/qa/SH59_ISOLATED_API_V17_COMPAT_20261120.md": "3a4761c1279a20518332327fb7e96e04a185e5a7742dbcdd0346d609311b7185",
     "docs/qa/STAGING-REGION-PERFORMANCE.md": "6efe7a1ddd6c18be3d0c1ac39fd8d019eb8ccf7148ba9d11551c0d0f648a3a6b",
     "docs/qa/THREE-CABINET-JOURNEY.md": "66ab0769148888219066ccbe5fa24b83765f1a199e56b49cfb889953d7e5ce00",
     "scripts/approve-ui-process-provenance.mjs": "89f8f4b077f5b057023821a049a55553ebbfee769fd3dfaed6665ba86a710d71",
