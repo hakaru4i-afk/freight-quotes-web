@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {readFileSync,writeFileSync,mkdirSync,realpathSync} from 'node:fs';
-import {resolve,sep} from 'node:path';
+import {dirname,resolve,sep} from 'node:path';
 
 const [artifactDir,runFile,manifestFile,outArg]=process.argv.slice(2);
 if(!artifactDir||!runFile||!manifestFile||!outArg)throw Error('Usage: extracted-protected-artifact-dir github-run.json candidate-manifest.json output-dir');
@@ -43,7 +43,7 @@ const parse=file=>JSON.parse(take(file).bytes);
 const pair=parse('carrier124-ci-pair.json');
 const sourceSha=pair.frontendMetadata;
 assert.match(sourceSha,gitSha);
-const root=resolve(import.meta.dirname,'..');
+const root=resolve(dirname(realpathSync(manifestFile)),'..');
 const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 assert.equal(sourceSha,git('rev-parse','HEAD'),'Unexpected frontend checkout in the protected run');
 assert.equal(pair.frontendTestTree,git('rev-parse','HEAD:test'));
@@ -220,7 +220,7 @@ const rules=[
   {id:'osm:node:3965162822',revision:'2026-11-08T03:17:14Z',precision:'facility',confirmed:true}
  ]);return x.futureRejected===true&&x.fourReschedules===true&&x.weeklyRows===10&&x.stationPoints===2&&x.reloadPreserved===true&&x.mutationsAfterReload===0;}],
  ['T2-18','owner+carrier+ved',()=>{const modes=main('carrierA','mode-matrix').modeMatrix;const a=api('sea_air_multimodal_shipments_retain_actual_tracking_without_guessed_coordinates');for(const m of modes)for(const image of m.screenshots)assert.equal(take(image.file.replace(/^reports\//,'')).sha256,image.sha256);return modes.length===3&&modes.every(m=>m.noGuessedCoordinates===true&&m.reloadPreserved===true&&m.screenshots.length===4)&&a.unchangedReplay===true&&a.roleDenials===true&&rail(winner('nov14-published'),'carrier').routeStops===5;}],
- ['T2-19','owner+carrier+ved+logistic',()=>{const v=main('ved','ved-work'),p=lifecycle('ved','ved-verify').persistence,l=lifecycle('logistic','logistic-document').documentHandoff,s=main('logistic','logistic-security').addressedSecurity;return v.sharedChat.realRecipients===3&&v.sharedChat.files===1&&v.sharedChat.loserDenied===true&&p.draftPreserved===true&&p.reloadVerified===true&&p.submissionRequests===0&&l.completed===true&&l.wrongActorDenied===true&&l.ptoReviewUnchanged===true&&s.retryDeduplicated===true&&s.ptoUnchanged===true;}],
+ ['T2-19','owner+carrier+ved+logistic',()=>{const v=lifecycle('ved','ved-work'),p=lifecycle('ved','ved-verify').persistence,l=lifecycle('logistic','logistic-document').documentHandoff,s=main('logistic','logistic-security').addressedSecurity;return v.sharedChat.realRecipients===3&&v.sharedChat.files===1&&v.sharedChat.loserDenied===true&&p.draftPreserved===true&&p.reloadVerified===true&&p.submissionRequests===0&&l.completed===true&&l.wrongActorDenied===true&&l.ptoReviewUnchanged===true&&s.retryDeduplicated===true&&s.ptoUnchanged===true;}],
  ['T2-20','owner+carrier+ved',()=>rail('owner','start-review').reviewTask===rail('ved','remarks').sameOpenTask&&rail('ved','remarks').sameOpenTask===rail('ved','approve').approvedTask&&rail('ved','remarks').remarksDeliveredToThreeRoles===true&&rail(winner('nov14-published'),'stages').stagesSaved===true],
  ['T2-21','owner+carrier',()=>rail(winner('nov14-published'),'stages').stagesSaved===true&&ordinary().ordinaryCompletion.noContainer===true&&ordinary().ordinaryCompletion.explicitOwnerDecision===true&&ordinary().ordinaryCompletion.replayIdempotent===true],
  ['T2-22','owner+carrier',()=>ordinary().ordinaryCompletion.noClaim===true&&ordinary().ordinaryCompletion.carrierDenied===true&&ordinary().completedAndArchived===true&&ordinary().dashboardAgrees===true&&rail('owner','approve-cost','nov14-ordinary').finalCostApproved.ownerOnly===true],
