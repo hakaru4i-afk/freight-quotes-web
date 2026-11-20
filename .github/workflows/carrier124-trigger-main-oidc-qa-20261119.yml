@@ -45,3 +45,5 @@ jobs:
 # 2026-11-20: authorized T1-09/T2-02 + SL short retry after correcting two-recipient broadcast fixture in trusted PR136 6aa4475; no production write.
 
 # 2026-11-20: Full authorized v20 OIDC & MAP50 QA on immutable pinned candidate 370c016a57f05cd1e3afde3db698953d640a4d71; no production deployment.
+
+# 2026-11-20: new complete protected v20 suite against source a4c9d97427442692629c2d58c29d9cda8d93f71f after real OSM revision, past actual departure fixture and OIDC bounded retry; no production release.
