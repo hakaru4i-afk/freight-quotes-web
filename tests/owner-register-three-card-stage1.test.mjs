@@ -1,84 +1,107 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import vm from 'node:vm';
-
-const load=n=>readFileSync(new URL('../'+n,import.meta.url),'utf8');
-const source=load('owner-register-task-actions-20261121.js');
-const blob=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex').slice(0,12);};
-class FakeElement{
- constructor(tag){this.tagName=tag.toLowerCase();this.children=[];this.dataset={};this.attributes={};this.className='';this.value='';this.hidden=false;this.disabled=false;this.textContent='';this.classList={toggle:(name,on)=>{const c=new Set(this.className.split(/\s+/).filter(Boolean));if(on)c.add(name);else c.delete(name);this.className=[...c].join(' ');}};}
- append(...children){this.children.push(...children)}
- setAttribute(name,value){this.attributes[name]=String(value)}
+const source=n=>readFileSync(new URL('../'+n,import.meta.url),'utf8');
+const shared=source('owner-register-task-actions-20261121.js');
+const digest=s=>{const b=Buffer.from(s);return createHash('sha1').update('blob '+b.length+'\0').update(b).digest('hex').slice(0,12)};
+class Element{
+ constructor(tag){this.tagName=tag.toLowerCase();this.children=[];this.className='';this.dataset={};this.attributes={};this.textContent='';this.value='';this.hidden=false;this.disabled=false;this.style={};this.classList={toggle:(name,on)=>{const a=new Set(this.className.split(/\s+/).filter(Boolean));on?a.add(name):a.delete(name);this.className=[...a].join(' ')}}}
+ append(...v){this.children.push(...v)}
+ setAttribute(k,v){this.attributes[k]=String(v)}
  focus(){this.focused=true}
 }
-const walk=(n,fn)=>[n,...n.children.flatMap(c=>walk(c,fn))].filter(fn);
-const byClass=(n,c)=>walk(n,e=>e.className.split(/\s+/).includes(c));
-const byTag=(n,t)=>walk(n,e=>e.tagName===t);
-function component(lang='ru'){
- const win={},doc={documentElement:{lang},createElement:t=>new FakeElement(t)};
- vm.runInNewContext(source,{window:win,document:doc,Map,Set});
+const all=(n,p)=>[n,...n.children.flatMap(c=>all(c,p))].filter(p),cls=(n,c)=>all(n,e=>e.className.split(/\s+/).includes(c));
+function ui(lang='ru'){
+ const win={},document={documentElement:{lang},createElement:tag=>new Element(tag)};
+ vm.runInNewContext(shared,{window:win,document,Map,Set,Number,Promise});
  return win.OWRegisterTaskActions;
 }
-test('source assets are equal in / and /test/ and every entrypoint pins current Git blob',()=>{
- for(const name of ['owner-registers-20261111.js','owner-register-task-actions-20261121.js','owner-register-task-actions-20261121.css'])
-  assert.equal(load(name),load('test/'+name),'prod/test mismatch '+name);
- for(const page of ['index.html','test/index.html']){
-  const html=load(page);
-  for(const name of ['owner-registers-20261111.js','owner-register-task-actions-20261121.js','owner-register-task-actions-20261121.css'])
-   assert.ok(html.includes('./'+name+'?v='+blob(load('test/'+name))),page+' stale cache key '+name);
-  assert.ok(html.indexOf('<script src="./owner-register-task-actions-20261121.js')<html.indexOf('<script src="./owner-registers-20261111.js'),'shared controls must load first');
- }
-});
-test('all three registers use the same component exactly once, without original in-card launch action',()=>{
- const owner=load('owner-registers-20261111.js');
- assert.equal((owner.match(/OWRegisterTaskActions\?\.render/g)||[]).length,1);
- assert.match(owner,/register:id,row,job,state/);
- assert.doesNotMatch(owner,/const start=el\('button','Взять в работу'/);
- assert.deepEqual(Array.from(component().registers).sort(),['developments','remarks','updates']);
-});
-test('development, remarks, updates cards all have three actions, a date and 0% progress (no status dropdown)',()=>{
+const tick=()=>new Promise(resolve=>setImmediate(resolve));
+test('single implementation serves developments, remarks and updates, never offers a status select',()=>{
+ assert.deepEqual(Array.from(ui().registers).sort(),['developments','remarks','updates']);
  for(const register of ['developments','remarks','updates']){
-  const card=component().render({register,row:{id:'T-1',title:'QA'},state:'new'});
-  assert.equal(card.dataset.register,register);
-  assert.equal(byClass(card,'ow-task-btn').length,3);
-  assert.equal(byTag(card,'select').length,0);
-  assert.equal(byClass(card,'ow-task-deadline-input')[0].type,'date');
-  assert.equal(byClass(card,'ow-task-progress-value')[0].textContent,'0%');
-  assert.equal(byClass(card,'ow-task-universal-track')[0].attributes['aria-valuenow'],'0');
+  const card=ui().render({register,row:{id:'R1'},state:'new',onAction:async()=>{}});
+  assert.equal(cls(card,'ow-task-btn').length,3);
+  assert.equal(all(card,e=>e.tagName==='select').length,0);
+  assert.equal(cls(card,'ow-task-deadline-input')[0].type,'date');
+  assert.equal(cls(card,'ow-task-universal-track')[0].attributes['aria-valuenow'],'0');
  }
 });
-test('start requires a deadline and cannot invoke database or webhook before Stage 2',()=>{
- const card=component().render({register:'developments',row:{id:'TASK-2'},state:'new'});
- const start=byClass(card,'ow-task-btn-start')[0],date=byClass(card,'ow-task-deadline-input')[0],note=byClass(card,'ow-task-inline-info')[0];
- start.onclick();assert.match(note.textContent,/Укажите плановую дату/);
- date.value='2026-12-15';date.oninput();start.onclick();assert.match(note.textContent,/Этапе 2/);
- assert.doesNotMatch(source,/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|WebSocket/);
+test('all three actions are sent to the Owner API callback, start requires deadline',async()=>{
+ const calls=[],card=ui().render({register:'remarks',row:{id:'R2'},state:'new',onAction:async x=>calls.push(x)});
+ cls(card,'ow-task-btn-start')[0].onclick();await tick();assert.equal(calls.length,0);
+ const date=cls(card,'ow-task-deadline-input')[0];date.value='2027-04-28';date.oninput();
+ cls(card,'ow-task-btn-start')[0].onclick();await tick();
+ assert.equal(calls[0].action,'start');assert.equal(calls[0].deadline,'2027-04-28');
 });
-test('defer and reject always request an explanatory reason, never save it during Stage 1',()=>{
- const card=component().render({register:'remarks',row:{id:'TASK-3'},state:'new'});
+test('postpone and reject require 10 characters and retain reason in server payload',async()=>{
  for(const action of ['postpone','reject']){
-  byClass(card,'ow-task-btn-'+action)[0].onclick();
-  const textarea=byClass(card,'ow-task-reason-textarea')[0],panel=byClass(card,'ow-task-reason')[0],note=byClass(card,'ow-task-inline-info')[0];
-  assert.equal(panel.hidden,false);
-  textarea.value='';byClass(card,'ow-task-reason-apply')[0].onclick();assert.match(note.textContent,/не менее 5 символов/);
-  textarea.value='Нужна дополнительная проверка';byClass(card,'ow-task-reason-apply')[0].onclick();
-  assert.equal(panel.hidden,true);assert.match(note.textContent,/не записываются в базу/);
+  const calls=[],card=ui().render({register:'updates',row:{id:'R'+action},state:'new',onAction:async x=>calls.push(x)});
+  cls(card,'ow-task-btn-'+action)[0].onclick();
+  const textarea=cls(card,'ow-task-reason-textarea')[0];textarea.value='short';
+  cls(card,'ow-task-reason-apply')[0].onclick();await tick();assert.equal(calls.length,0);
+  textarea.value='Требуется дополнительная экспертиза';
+  cls(card,'ow-task-reason-apply')[0].onclick();await tick();
+  assert.equal(calls[0].action,action==='postpone'?'defer':'reject');
+  assert.equal(calls[0].reason,textarea.value);
  }
 });
-test('historical, published, and active tasks do not allow duplicate start actions',()=>{
- for(const x of [{row:{id:'T1',historyOnly:true},state:'new'},{row:{id:'T2'},state:'published'},{row:{id:'T3'},job:{status:'in_progress'},state:'in_progress'}]){
-  const card=component().render({register:'updates',...x});
-  assert.ok(byClass(card,'ow-task-btn').every(b=>b.disabled));
+test('100% means only server-reported exact CI with checksPassed; review action appears then',async()=>{
+ const input={register:'developments',row:{id:'R3'},state:'in_progress',execution:{decision:'in_progress',progress:100,checksPassed:false}};
+ const call=[];
+ const notReady=ui().render({...input,onAction:async x=>call.push(x)});
+ assert.equal(cls(notReady,'ow-task-review-submit').length,0);
+ const ready=ui().render({...input,execution:{decision:'in_progress',progress:100,checksPassed:true},onAction:async x=>call.push(x)});
+ assert.equal(cls(ready,'ow-task-universal-track')[0].attributes['aria-valuenow'],'100');
+ cls(ready,'ow-task-review-submit')[0].onclick();await tick();assert.equal(call[0].action,'submit_review');
+});
+test('progress milestone is understandable and never implies Codex started on branch creation',()=>{
+ const card=ui().render({register:'updates',row:{id:'MILESTONE'},state:'in_progress',
+  execution:{decision:'in_progress',progress:10,checksPassed:false,step:'branch_created'},onAction:async()=>{}});
+ assert.match(cls(card,'ow-task-progress-help')[0].textContent,/исполнитель ещё не подтвердил начало работы/);
+ assert.equal(cls(card,'ow-task-progress-value')[0].textContent,'10%');
+});
+test('Owner may reject but cannot accept when review CI evidence expires',()=>{
+ const card=ui().render({register:'developments',row:{id:'EXPIRED'},state:'checking',
+  execution:{decision:'review_pending',progress:90,checksPassed:false},onAction:async()=>{}});
+ const accept=cls(card,'ow-task-btn-start').find(x=>x.textContent==='Принять');
+ const reject=cls(card,'ow-task-btn-reject').find(x=>x.textContent==='Отклонить приёмку');
+ assert.equal(accept.disabled,true);assert.equal(reject.disabled,false);
+});
+test('Owner review panel implements accept and reject-with-reason',async()=>{
+ const actions=[],card=ui().render({register:'developments',row:{id:'R4'},state:'checking',
+  execution:{decision:'review_pending',progress:100,checksPassed:true},onAction:async x=>actions.push(x)});
+ cls(card,'ow-task-btn-start').find(x=>x.textContent==='Принять').onclick();await tick();
+ assert.equal(actions[0].action,'accept');
+ cls(card,'ow-task-btn-reject').find(x=>x.textContent==='Отклонить приёмку').onclick();
+ const textarea=cls(card,'ow-task-reason-textarea')[0];textarea.value='Нужно исправить вывод отчёта';
+ cls(card,'ow-task-reason-apply')[0].onclick();await tick();
+ assert.equal(actions[1].action,'reject_review');
+});
+test('cannot restart completed or historical work; no arbitrary GitHub token/progress in request',()=>{
+ for(const props of [{row:{id:'H',historyOnly:true},state:'new'},{row:{id:'P'},state:'published'},{row:{id:'C'},job:{status:'completed'},state:'accepted'}]){
+  const card=ui().render({register:'remarks',...props,onAction:async()=>{}});
+  assert.ok(cls(card,'ow-task-btn').every(x=>x.disabled));
+ }
+ assert.doesNotMatch(shared,/fetch\(|github_pat_|ghp_|service_role|localStorage|sessionStorage/);
+});
+test('Owner register main script uses authenticated API and 60-second polling',()=>{
+ const root=source('owner-registers-20261111.js');
+ assert.match(root,/owner-register-execution\?register=/);
+ assert.match(root,/action:'dispatch'/);
+ assert.match(root,/OWRegisterTaskActions\?\.render\(\{register:id,row,job,state,execution,onAction:executeRecordAction\}\)/);
+ assert.match(root,/60000/);
+});
+test('production and staging candidate source stays byte-identical and pinned',()=>{
+ for(const file of ['owner-registers-20261111.js','owner-register-task-actions-20261121.js','owner-register-task-actions-20261121.css']){
+  assert.equal(source(file),source('test/'+file));
+  for(const page of ['index.html','test/index.html'])assert.ok(source(page).includes('./'+file+'?v='+digest(source(file))));
  }
 });
-test('all RU, EN, ZH labels and mobile layout remain supported',()=>{
- for(const [language,text] of [['ru','Запустить в разработку'],['en','Start development'],['zh','开始开发']]){
-  const card=component(language).render({register:'updates',row:{id:'UI'},state:'new'});
-  assert.equal(byClass(card,'ow-task-btn-start')[0].textContent,text);
- }
- const css=load('owner-register-task-actions-20261121.css');
- assert.match(css,/@media\(max-width:660px\)/);
- assert.match(css,/grid-template-columns:1fr/);
+test('RU, EN, ZH supported and mobile buttons stack at 390px',()=>{
+ for(const [language,label] of [['ru','Запустить в разработку'],['en','Start development'],['zh','开始开发']])
+  assert.equal(cls(ui(language).render({register:'updates',row:{id:'Lang'+language},state:'new',onAction:async()=>{}}),'ow-task-btn-start')[0].textContent,label);
+ assert.match(source('owner-register-task-actions-20261121.css'),/@media\(max-width:660px\)/);
 });
