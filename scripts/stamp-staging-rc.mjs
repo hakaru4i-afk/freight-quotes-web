@@ -49,7 +49,7 @@ if(process.argv.includes('--write')){
  // Otherwise a malformed HTML entry can leave a partially stamped working tree.
  for(const name of critical){
   const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
-  const re=new RegExp('(?:\\./'+escaped+')(?=\\?v=|["\\'])','g');
+  const re=new RegExp(`(?:\\./${escaped})(?=\\?v=|["'])`,'g');
   if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);
  }
 }
