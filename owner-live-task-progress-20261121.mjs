@@ -21,7 +21,7 @@ export function summarize({pr,audit,runs=[],job=null,parity=null,publication=nul
   {label:'Защищённая приёмка 37/37',passed:e2e===true},
   {label:'Проверка механизма переноса',passed:checks.handoff?.conclusion==='success'},
   {label:'Полная регрессия frontend',passed:checks.regression?.conclusion==='success'},
-  {label:'Согласование staging',passed:checks.alignment?.conclusion==='success'},
+  {label:'Согласование staging',passed:checks.alignment?.conclusion==='success'&&parityPassed===true},
   {label:'Совместимость опубликованного API',passed:parityPassed===true},
   {label:'Резервная копия, разрешение и выпуск',passed:releasePassed===true}
  ];
