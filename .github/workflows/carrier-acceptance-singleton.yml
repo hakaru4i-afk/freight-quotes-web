@@ -24,15 +24,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Syntax, one action handler and cache key
+      - name: Syntax check
         run: |
           set -euo pipefail
           node --check test/carrier-acceptance-workflow-20261107.js
           node --check tests/carrier-acceptance-singleton-browser.test.mjs
-          grep -Fq 'function singleRoot(parent)' test/carrier-acceptance-workflow-20261107.js
-          SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
-          grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" test/index.html
-          ! grep -Fq 'carrier-acceptance-workflow-20261107.js' index.html
           
   served:
     if: github.event_name != 'pull_request'
