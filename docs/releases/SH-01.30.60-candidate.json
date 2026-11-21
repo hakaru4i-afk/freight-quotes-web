@@ -1,0 +1,22 @@
+{
+  "version": "SH-01.30.60 v",
+  "date": "2026-11-22",
+  "title": "Обновление интерфейса реестров, дедлайны, прогресс и оптимизация CSS",
+  "changes": [
+    "Обновление интерфейса реестров: новые кнопки запуска, дедлайны и прогресс-бар. CSS-оптимизация (36 в 1).",
+    "В реестрах разработок, замечаний и обновлений единый блок действий: «Запустить в разработку», «Отложить», «Отклонить».",
+    "Плановый срок обязателен для запуска; отложение и отклонение требуют причины.",
+    "Прогресс и результат приёмки учитываются только по подтверждённым данным сервера и GitHub."
+  ],
+  "status": "updating",
+  "releaseAuthorized": false,
+  "actualProductionPublished": false,
+  "productionAPI": "freight-api v46; /api/owner-register-execution not deployed",
+  "noticeLifecycle": "updating -> checking -> released only after Pages and API verification",
+  "sourcePRs": [
+    "backend #112",
+    "frontend #161",
+    "#162"
+  ],
+  "notes": "Candidate release notes. Not evidence of deployment. Current production release remains SH-01.30.59 v."
+}

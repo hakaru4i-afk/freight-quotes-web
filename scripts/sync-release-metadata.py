@@ -27,10 +27,16 @@ def write(path, value):
         print('SYNC:',path.relative_to(ROOT))
 
 state=source.get('releaseStatus','checking')
+# Historical 'candidate' is a pending publication, never a completed release.
+if state == 'candidate':
+    state='checking'
 if state not in ('updating','checking','released','failed'):
     raise SystemExit('Invalid release status')
 # A build explicitly marked PUBLISHED for this release must not be shown as still checking.
 production_info=json.loads((ROOT/'build-info.json').read_text(encoding='utf-8'))
+# A release must not be marked finished before the corresponding publication is attested.
+if state == 'released' and (production_info.get('releaseStatus') != 'PUBLISHED' or production_info.get('releaseVersion') != version):
+    raise SystemExit('RELEASE_STATUS_WITHOUT_PUBLISHED_BUILD: deploy and verify the exact release first')
 if (production_info.get('releaseStatus') == 'PUBLISHED'
         and production_info.get('releaseVersion') == version
         and state in ('updating','checking')):
