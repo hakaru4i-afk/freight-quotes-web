@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "66adffa70d2091b7e81f47718ea051b733c0131d",
+  "frontendCommit": "7feb4d4c9d1dcb55416d4c34636ec629eb371cc6",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "32bb7256dc4f407f30ffe53f2293885107faf56a1558db33c30dd810aa429199",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "ed7235b5646dcd3ec2081407a6bdf7f2db4d012701ca19859e8a80fa6a0353a1",
@@ -115,7 +115,7 @@
     "scripts/release/check-sh59-staging-import.mjs": "f2551ca4cb3083c1feab5fb2bf29ff822f665c5fc68820bcee5557e54d7f67a5",
     "scripts/release/prepare-tested-candidate.mjs": "9050dafa058e9998cab369508d2b8feead26894fb2a9404b3835961a4cf2f3ff",
     "scripts/release/production-gate.mjs": "3813f2b2267b307805074a8ad5af781e50b431aeeb3b8ace6f9e375a3df6bc00",
-    "scripts/release/refresh-pr157-staging-manifest.mjs": "2e8985f10008a9884afe4847a86a4f8626a46d6962093bc5dc509f2e1240a2b1",
+    "scripts/release/refresh-pr157-staging-manifest.mjs": "461115c405b8adaad43da96f2a5d55a8eeb315796e7d6ec4809de32229e1dc1f",
     "scripts/release/verify-published-root.mjs": "ee0ea46359ad9d94058bba0e70f84756e48294ce47a6a2f1d15afb911afa8f9a",
     "scripts/release/verify-staging-preview-browser.mjs": "53242104519f6d05a57b127eff11dd8979447da5127f624cf9c461b855741f71",
     "scripts/stamp-staging-rc.mjs": "e3553bab02c2c41e84ad7e404a10250c558fbbd9269e9f17fa0e43ee130cd89b",
@@ -123,7 +123,7 @@
     "test/action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "test/app.js": "c14150e7be5048a46acbd8c689feb45b850c13f381e1008636bd66af84cfa8aa",
-    "test/build-info.json": "c47041ca58beea2e2dc9103b3819576bb7ec81cd92d64c093f6cda3746f0c954",
+    "test/build-info.json": "0dfc854b317658444c7e702038df3eb9f0e6fd0655358ac51a03ca247ed78098",
     "test/business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "test/business-process-current.svg": "a13b6a2b57eea28606c0fd99cacedad2c011782f1af04e17ea360bb76e96c8b9",
     "test/business-process-model.json": "885c659e8f71abe6fae264178b12bda358382ad3c6d4b3d3a139f72260c5152e",
@@ -438,8 +438,8 @@
   "roleHelpSha256": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
   "apiVersion": 115,
   "sqlMigrationVersion": "20261115101617",
-  "apiSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
-  "apiBundleSha256": "ee71d39784b7d463c3f7d545d3c264b156b164a12ce10ec1d2f165af4904ee66",
+  "apiSourceCommit": null,
+  "apiBundleSha256": null,
   "processModelVersion": "20261118-logic-12",
   "canonicalHash": null,
   "qaEvidence": {
@@ -461,11 +461,16 @@
     "projectRef": "ibclzdkxiozbzmniiygv",
     "function": "freight-api",
     "version": 115,
-    "observedOn": "2026-11-18",
+    "observedOn": "2026-11-19",
     "sourceCommit": null,
     "sourceBindingStatus": "UNVERIFIED",
     "providerBundleSha256": "23bb527d1281a7a0240f9d933213d93f7f48400d34349493a5928787198ae6ee",
-    "evidence": "https://github.com/hakaru4i-afk/freight-quotes/pull/101"
+    "snapshot": {
+      "repository": "hakaru4i-afk/freight-quotes",
+      "commit": "4273e1b7bed0357d14384e2adb30f828f1391519",
+      "receiptPath": "recovery/runtime-snapshots/staging-freight-api-v115-20261119/manifest.json",
+      "entrySha256": "2b0b91f6de20dc537b9d16c06e22862e326bd606c5607845b1e7d9483a829d0c"
+    }
   },
   "historicalPublication": {
     "frontendCommit": "46edd7390921c450477f73d0416d7c4891d542a4",
