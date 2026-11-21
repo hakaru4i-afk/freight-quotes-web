@@ -6,7 +6,7 @@ import {chromium} from 'playwright';
 
 const repo='hakaru4i-afk/freight-quotes-web',sha='a'.repeat(40),branch='ci/sh59-verified-source-handoff-20261121';
 const runNames=['SH59 immutable tested-source handoff (staging only)','Release stabilization candidate','Canonical staging alignment'];
-const audit={id:44802361801,path:'.github/workflows/sh59-protected-37-audit.yml',head_repository:{full_name:repo},status:'completed',conclusion:'success'};
+const audit={id:44899669386,path:'.github/workflows/sh59-protected-37-audit.yml',head_repository:{full_name:repo},status:'completed',conclusion:'success'};
 const pr={number:145,base:{ref:'main'},head:{ref:branch,sha,repo:{full_name:repo}}};
 const runs=runNames.map((name,i)=>({id:i+1,name,head_sha:sha,head_branch:branch,head_repository:{full_name:repo},status:'completed',conclusion:'success',event:'pull_request',created_at:'2026-11-21T05:30:00Z',updated_at:'2026-11-21T05:30:30Z'}));
 const moduleSource=readFileSync('test/owner-live-task-progress-20261121.mjs');
@@ -28,7 +28,7 @@ test('Owner sees 4 confirmed stages out of 6 with live links and mobile-width pr
  const page=await context.newPage();
  await page.route('https://api.github.com/repos/hakaru4i-afk/freight-quotes-web/**',async route=>{
   const path=new URL(route.request().url()).pathname;
-  const body=path.endsWith('/pulls/145')?pr:path.endsWith('/actions/runs/44802361801')?audit:path.endsWith('/actions/runs')?{workflow_runs:runs}:{jobs:[]};
+  const body=path.endsWith('/pulls/145')?pr:path.endsWith('/actions/runs/44899669386')?audit:path.endsWith('/actions/runs')?{workflow_runs:runs}:{jobs:[]};
   await route.fulfill({status:200,contentType:'application/json',headers:{'access-control-allow-origin':'*'},body:JSON.stringify(body)});
  });
  await page.goto('http://127.0.0.1:'+server.address().port+'/');
