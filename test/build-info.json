@@ -1,6 +1,6 @@
 {
   "environment": "staging",
-  "version": "eb919e83c5ab6a8119a0",
+  "version": "828389bc23cbad7d3c04",
   "releaseVersion": "SH-01.30.59 v",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
@@ -12,7 +12,7 @@
   "stagingPatch": "SH-01.30.50 v candidate: canonical archives, cooperation and process drafts; RELEASE_BLOCKED. Full acceptance remains open.",
   "patchSourceBranch": "fix/issue47-complete-staging",
   "patchSourceCommit": "5a7b3bce66565dfc9de76e3fb746e4a8d2d89986",
-  "servedAppBlobSha": "6c8fc7ab1bbf6e7ee2fbffab0d331f0dfae42e95",
+  "servedAppBlobSha": "a90808d089de970193ec89e37d1b07ed5aaad832",
   "sourceHashNote": "Original Task1 bundle provenance retained. The staging API deployment and served asset hashes are recorded separately.",
   "task2Complete": false,
   "task2": {
@@ -56,8 +56,8 @@
     },
     "frontendCandidateComponents": {
       "app.js": {
-        "gitBlob": "6c8fc7ab1bbf6e7ee2fbffab0d331f0dfae42e95",
-        "sha256": "871cd8d98e6cb941a2d3826b512fe1a54dc352183becd4f13192994a90195eed"
+        "gitBlob": "a90808d089de970193ec89e37d1b07ed5aaad832",
+        "sha256": "c1e6476017373df157e81cee4d06d56cf2f5cf306bd844422a789915fffc7284"
       },
       "task2-panel.js": {
         "gitBlob": "2a9436286830fa5c6363ee3ef9af87f6f173fbdd",
@@ -577,12 +577,12 @@
     "blobSha": "516d6ad7209f653e66a4ebeb5c1c63a8148e383f",
     "status": "CANDIDATE_SPA_MOUNT_FIX"
   },
-  "stagingAssetBuildId": "eb919e83c5ab6a8119a0",
+  "stagingAssetBuildId": "828389bc23cbad7d3c04",
   "currentAssetSha256": {
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "871cd8d98e6cb941a2d3826b512fe1a54dc352183becd4f13192994a90195eed",
+    "app.js": "c1e6476017373df157e81cee4d06d56cf2f5cf306bd844422a789915fffc7284",
     "carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
     "carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
     "carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
@@ -594,12 +594,12 @@
     "current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
     "current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
     "global-view/distance.mjs": "5afbc5bce74f0145f7cbbdbf92cd451c34392e2ffaad998cdf53c3ddde3f7297",
-    "global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
+    "global-view/globe.mjs": "fb9e5123e7606e5cfd0e32ba6fbe1affa13c8d1e5b23a5fcc8bb09d1e92818e5",
     "global-view/leaflet.css": "337bfca5cabd03b39815b2700febe2b3b7edf55921c59cd49f88ecb328212303",
-    "global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13",
-    "global-view/route-model.mjs": "9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2",
+    "global-view/map.mjs": "e781f27b57859f11395c00e4209cea7a81e18e1c974df3855034614e7e18295f",
+    "global-view/route-model.mjs": "d8a16e5965f14a12de0321a54854540748fe616ab5707460a08c77dd645c6b06",
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
-    "global-view/view.mjs": "befe46e0c999bf1abb0388fc97e640e853ae71645910f8e892b853b27f37280b",
+    "global-view/view.mjs": "b4ba818258096e7990a57a0d13cd2c8336ad00a778094f343a850a1f0b1a497b",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
@@ -689,7 +689,7 @@
   "sourceCommitKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "sourceHashKind": "HISTORICAL_ORIGINAL_BUNDLE",
   "builtAtKind": "HISTORICAL_ORIGINAL_BUNDLE_BUILD",
-  "assetBuildRecordedAt": "2026-11-21T06:20:07.063Z",
+  "assetBuildRecordedAt": "2026-11-21T07:32:38.818Z",
   "processModelVersion": "20261118-logic-12",
   "mapGeocode01": {
     "issue": 50,
