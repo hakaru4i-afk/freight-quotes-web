@@ -68,10 +68,10 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
   // Resolve the current PR head before querying its CI branch; never mix stale branch runs.
   if(force||!data.pr||now-data.prAt>600000){try{data.pr=await api('pulls/'+TASK.pr);data.prAt=Date.now()}catch(e){errors.push('PR '+e.message);data.pr=null;data.runs=[];data.runsAt=0}}
 
-  if(force||!data.audit||now-data.auditAt>86400000)jobs.push(api('actions/runs/'+TASK.audit).then(x=>{data.audit=x;data.auditAt=Date.now()}).catch(e=>errors.push('E2E '+e.message)));
+  if(force||!data.audit||now-data.auditAt>86400000)jobs.push(api('actions/runs/'+TASK.audit).then(x=>{data.audit=x;data.auditAt=Date.now()}).catch(e=>{data.audit=null;data.auditAt=0;errors.push('E2E '+e.message)}));
   if(data.pr&&(force||!data.runsAt||now-data.runsAt>115000))jobs.push(api('actions/runs?branch='+encodeURIComponent(data.pr.head.ref)+'&per_page=50').then(x=>{data.runs=Array.isArray(x.workflow_runs)?x.workflow_runs:[];data.runsAt=Date.now()}).catch(e=>{data.runs=[];data.runsAt=0;errors.push('CI '+e.message)}));
-  if(force||!data.parity||now-data.parityAt>120000)jobs.push(served('test/staging-manifest.json').then(x=>{data.parity=x;data.parityAt=Date.now()}).catch(e=>errors.push('Staging '+e.message)));
-  if(force||!data.publication||now-data.publicationAt>600000)jobs.push(Promise.all([served('production-release-manifest.json'),served('build-info.json')]).then(([manifest,build])=>{data.publication={manifest,build,release:data.publication?.release||null};data.publicationAt=Date.now()}).catch(e=>errors.push('Production '+e.message)));
+  if(force||!data.parity||now-data.parityAt>120000)jobs.push(served('test/staging-manifest.json').then(x=>{data.parity=x;data.parityAt=Date.now()}).catch(e=>{data.parity=null;data.parityAt=0;errors.push('Staging '+e.message)}));
+  if(force||!data.publication||now-data.publicationAt>600000)jobs.push(Promise.all([served('production-release-manifest.json'),served('build-info.json')]).then(([manifest,build])=>{data.publication={manifest,build,release:data.publication?.release||null};data.publicationAt=Date.now()}).catch(e=>{data.publication=null;data.publicationAt=0;errors.push('Production '+e.message)}));
   await Promise.all(jobs);
   if(data.publication?.manifest?.businessVersion==='SH-01.30.59 v'&&
      (!data.publication.release||force||now-(data.publication.releaseCheckedAt||0)>600000)){
@@ -82,7 +82,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
      data.publication.release={event:run.event,conclusion:run.conclusion,publishJob:res.jobs?.some(j=>j.name==='publish'&&j.conclusion==='success')===true};
     }else data.publication.release=null;
     data.publication.releaseCheckedAt=Date.now();
-   }catch(e){errors.push('Release '+e.message)}
+   }catch(e){data.publication.release=null;data.publication.releaseCheckedAt=0;errors.push('Release '+e.message)}
   }
   const result=summarize(data);if(result.state==='running'&&result.runId&&(force||data.job?.runId!==result.runId||now-data.jobAt>240000)){
    try{const x=await api('actions/runs/'+result.runId+'/jobs?per_page=30');const j=x.jobs?.find(k=>k.status==='in_progress')||x.jobs?.find(k=>k.conclusion==='failure');const step=j?.steps?.find(k=>k.status==='in_progress')||j?.steps?.find(k=>k.conclusion==='failure');data.job=j?{runId:result.runId,name:j.name,step:step?.name||''}:null;data.jobAt=Date.now()}catch(e){errors.push('шаг '+e.message)}
