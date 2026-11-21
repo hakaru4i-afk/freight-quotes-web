@@ -1,0 +1,128 @@
+name: Mac freight-qa - read-only backup archive triage (no capture)
+on:
+  push:
+    branches: [ops/mac-archive-triage-20261121]
+    paths: [.github/workflows/mac-backup-archive-readonly-20261121.yml]
+permissions:
+  contents: read
+concurrency:
+  group: mac-freight-backup-archive-triage
+  cancel-in-progress: false
+jobs:
+  mac-backup-archive-triage:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS]
+    timeout-minutes: 12
+    steps:
+      - name: Read-only Mac tool and encrypted Google Drive archive identification
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +x
+          umask 077
+          python3 - <<'PY'
+          import json, os, re, shutil, subprocess
+          from datetime import datetime, timezone
+          from pathlib import Path
+          def code(s):
+              print(s, flush=True)
+          def run(args, timeout=100):
+              try:
+                  r=subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                   check=False, timeout=timeout)
+                  if r.returncode: return None
+                  return r.stdout
+              except (OSError, subprocess.TimeoutExpired):
+                  return None
+          def executable(name,extra):
+              r=shutil.which(name)
+              if r: return r
+              return next((str(p) for p in extra if p.is_file() and os.access(p,os.X_OK)),None)
+          home=Path.home()
+          code('MAC_RUNNER_STARTED')
+          code('RUNNER_NAME_MATCH' if os.getenv('RUNNER_NAME')=='freight-qa' else 'RUNNER_NAME_OTHER')
+          code('HOST_MACOS_CONFIRMED' if os.uname().sysname=='Darwin' else 'HOST_NOT_MACOS')
+          docker=executable('docker',[Path('/Applications/Docker.app/Contents/Resources/bin/docker')])
+          age=executable('age',[Path('/opt/homebrew/bin/age'),Path('/usr/local/bin/age')])
+          rclone=executable('rclone',[home/'Library/Application Support/FreightBackup/tools/rclone-v1.75.2-osx-arm64/rclone',home/'Library/Application Support/FreightBackup/tools/rclone-v1.75.2-osx-amd64/rclone'])
+          code('DOCKER_CLI_PRESENT' if docker else 'DOCKER_CLI_MISSING')
+          code('AGE_CLI_PRESENT' if age else 'AGE_CLI_MISSING')
+          code('RCLONE_CLI_PRESENT' if rclone else 'RCLONE_CLI_MISSING')
+          identity=home/'FreightBackupKeys/freight-backup.agekey'
+          config=home/'Library/Application Support/FreightBackup/rclone-backup.conf'
+          code('PRIVATE_RECOVERY_IDENTITY_PRESENT' if identity.is_file() and not identity.is_symlink() else 'PRIVATE_RECOVERY_IDENTITY_NOT_ACCESSIBLE')
+          code('PRIVATE_RCLONE_CONFIG_PRESENT' if config.is_file() and not config.is_symlink() else 'PRIVATE_RCLONE_CONFIG_NOT_ACCESSIBLE')
+          if docker:
+              raw=run([docker,'context','inspect'],timeout=25)
+              try:
+                  endpoints=json.loads(raw or b'[]')
+                  host=endpoints[0]['Endpoints']['docker']['Host']
+                  allowed=type(host) is str and host.startswith('unix:///') and '/docker.sock' in host
+              except (ValueError,IndexError,KeyError,TypeError):
+                  allowed=False
+              code('LOCAL_DOCKER_UNIX_CONTEXT_PASS' if allowed else 'LOCAL_DOCKER_UNIX_CONTEXT_BLOCKED')
+              if allowed:
+                  osname=run([docker,'version','--format','{{.Server.Os}}'],timeout=20)
+                  code('DOCKER_LINUX_ENGINE_READY' if osname and osname.strip()==b'linux' else 'DOCKER_LINUX_ENGINE_NOT_READY')
+          if not rclone or not config.is_file() or config.is_symlink():
+              code('ARCHIVE_REMOTE_PROBE_BLOCKED_NO_LOCAL_CONFIG')
+              raise SystemExit(1)
+          folder='1ZtHH7yzk2tKbMcGXO5F-Aa1xzG1r22Ml'
+          base=[rclone,'--config',str(config)]
+          response=run(base+['lsjson','backupdrive:','--drive-root-folder-id',folder,'--files-only'],timeout=100)
+          if not response:
+              code('ARCHIVE_REMOTE_LIST_UNAVAILABLE')
+              raise SystemExit(1)
+          try:
+              listing=json.loads(response)
+              if not isinstance(listing,list): raise ValueError('invalid listing')
+          except ValueError:
+              code('ARCHIVE_REMOTE_LIST_INVALID')
+              raise SystemExit(1)
+          age_pattern=re.compile(r'^([a-f0-9]{64})\.age$')
+          entries={}
+          receipts=set()
+          for item in listing:
+              if not isinstance(item,dict) or item.get('IsDir'): continue
+              name=item.get('Name','')
+              m=age_pattern.fullmatch(name)
+              if m: entries[m.group(1)]=item
+              if re.fullmatch(r'[a-f0-9]{64}\.age\.receipt\.json',name): receipts.add(name)
+          matches=[(digest,item) for digest,item in entries.items() if digest+'.age.receipt.json' in receipts]
+          code('ENCRYPTED_ARCHIVE_COUNT='+str(len(entries)))
+          code('ARCHIVE_RECEIPT_PAIRS='+str(len(matches)))
+          if not matches:
+              code('NO_MATCHING_ENCRYPTED_ARCHIVE_RECEIPT_IN_PINNED_FOLDER')
+              raise SystemExit(2)
+          latest_digest,latest=max(matches,key=lambda x:x[1].get('ModTime',''))
+          code('LATEST_ENCRYPTED_ARCHIVE_SHA256='+latest_digest)
+          date=latest.get('ModTime','')
+          code('LATEST_ENCRYPTED_ARCHIVE_UPLOAD_UTC='+date[:20] if date else 'LATEST_ENCRYPTED_ARCHIVE_UPLOAD_UNKNOWN')
+          if date and date[:10]>='2026-11-21':
+              code('UPLOAD_DATE_ON_OR_AFTER_2026_11_21_NOT_SNAPSHOT_PROOF')
+          else:
+              code('ARCHIVE_UPLOAD_PREDATES_2026_11_21_FRESH_BACKUP_REQUIRED')
+          receipt_name=latest_digest+'.age.receipt.json'
+          receipt_bytes=run(base+['cat','backupdrive:'+receipt_name,'--drive-root-folder-id',folder],timeout=70)
+          if not receipt_bytes or len(receipt_bytes)>65536:
+              code('RECEIPT_CANNOT_BE_VERIFIED')
+              raise SystemExit(2)
+          try:
+              receipt=json.loads(receipt_bytes)
+              assert isinstance(receipt,dict)
+              assert receipt.get('sha256')==latest_digest
+          except (AssertionError, ValueError,TypeError):
+              code('RECEIPT_CIPHERTEXT_SHA_CONTRACT_FAIL')
+              raise SystemExit(2)
+          code('LATEST_RECEIPT_CIPHERTEXT_SHA_CONTRACT_PASS')
+          proof=receipt.get('capture_restore',{})
+          verified=(isinstance(proof,dict)
+                    and proof.get('result')=='PASS_LOGICAL_PAYLOAD_RESTORE'
+                    and proof.get('databaseRestored') is True
+                    and proof.get('storageBytesRestored') is True
+                    and proof.get('isolationVerified') is True
+                    and proof.get('ciphertextDecryptionVerified') is True
+                    and proof.get('ciphertextSha256')==latest_digest)
+          code('LATEST_RECEIPT_HAS_ISOLATED_LOGICAL_RESTORE_PROOF' if verified else 'LATEST_RECEIPT_DOES_NOT_PROVE_ISOLATED_RESTORE')
+          code('ARCHIVE_TRIAGE_COMPLETED_NO_PRODUCTION_ACCESS_NO_DECRYPTION')
+          PY
