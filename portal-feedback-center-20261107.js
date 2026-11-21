@@ -151,7 +151,7 @@ async function runCodexHandoff(item,deadline){
   message='GitHub принял задание. Это ещё не подтверждение запуска модели Codex.';
   if(result.already)message='Задание уже отправлено в GitHub.';
  }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
- finally{handoffBusy=false;await load();render();}
+ finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
 async function runAction(payload){
  if(busy)return;
