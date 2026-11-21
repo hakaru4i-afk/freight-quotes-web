@@ -46,6 +46,7 @@ test('Owner sees 4 confirmed stages out of 6 with live links and mobile-width pr
 });
 test('Unauthenticated or non-Owner screen does not fetch GitHub or mount a progress bar',async(t)=>{
  if(!server.listening)await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ t.after(()=>server.close());
  const browser=await chromium.launch({headless:true});t.after(()=>browser.close());
  const page=await browser.newPage();
  let calls=0;
