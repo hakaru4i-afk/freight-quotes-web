@@ -33,11 +33,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify reviewed map50 delta, exactly three known sources, backend lock unchanged
+      - name: Verify reviewed Carrier #124 terminal-state delta, exact one source and backend lock
         shell: bash
         run: |
           set -euo pipefail
-          node --test tests/map-geocode-fallback.test.mjs tests/global-view-route.test.mjs tests/map50-owner-km-before-bid.test.mjs
+          node --test tests/carrier-winner-status-unit.test.mjs tests/map-geocode-fallback.test.mjs
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
@@ -45,40 +45,44 @@ jobs:
           import {sourceSignatures} from './scripts/build-process-maps.mjs';
           const model=JSON.parse(readFileSync('test/business-process-model.json','utf8'));
           const manifest=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
-          assert.equal(model.version,'20261121-logic-13');
-          assert.equal(model.previousVersion,'20261118-logic-12');
+          assert.equal(model.version,'20261121-logic-14');
+          assert.equal(model.previousVersion,'20261121-logic-13');
           assert.equal(model.releaseStatus,'RELEASE_BLOCKED');
           assert.equal(model.reviewedBackendSourceCommit,manifest.backendSourceCommit);
           const p1=model.processes.find(p=>p.id==='P01'),p5=model.processes.find(p=>p.id==='P05');
           assert.ok(p1?.actual.includes('неподтверждённой улицей/домом'));
           assert.ok(p5?.risks.includes('city/approximate'));
           assert.ok(model.decisions.some(d=>d.includes('21.11 MAP50 candidate review')));
+          assert.ok(model.decisions.some(d=>d.includes('21.11 Carrier #124 candidate review')));
+          const p2=model.processes.find(p=>p.id==='P02'),p3=model.processes.find(p=>p.id==='P03');
+          assert.ok(p2?.actual.includes('итог раунда имеет приоритет'));
+          assert.ok(p3?.actual.includes('статус «Победитель»'));
           const actual=sourceSignatures();
           const changed=Object.keys(actual).filter(path=>actual[path]!==model.reviewedSourceSignatures?.[path]).sort();
-          const reviewedPaths=[
-            'test/global-view/globe.mjs',
-            'test/global-view/map.mjs',
-            'test/global-view/route-model.mjs'
-          ];
-          const reviewedBefore='9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2';
-          const reviewedAfter='d8a16e5965f14a12de0321a54854540748fe616ab5707460a08c77dd645c6b06';
+          const reviewedPaths=['test/app.js'];
+          const reviewedBefore='da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986';
+          const reviewedAfter='beedda737fdbb2e95e2cccc0eca2ce5a41d4fe37a1cc5d3c2877242bf4a304b9';
           if(changed.length===0){
-            assert.equal(model.reviewedSourceSignatures['test/global-view/route-model.mjs'],reviewedAfter,
-              'No changes are expected only when the reviewed MAP50 model is already generated');
-            console.log('REVIEWED_MAP50_ALREADY_CURRENT');
+            assert.equal(model.reviewedSourceSignatures['test/app.js'],reviewedAfter,
+              'No changes are expected only when reviewed Carrier state model is already generated');
+            console.log('REVIEWED_CARRIER124_ALREADY_CURRENT');
           } else {
             assert.deepEqual(changed,reviewedPaths,
-              'Unreviewed source changed; abort rather than re-signing automatically');
-            assert.equal(model.reviewedSourceSignatures['test/global-view/route-model.mjs'],reviewedBefore);
+              'Unreviewed source changed; abort instead of auto-signing');
+            assert.equal(model.reviewedSourceSignatures['test/app.js'],reviewedBefore);
           }
-          assert.equal(actual['test/global-view/route-model.mjs'],reviewedAfter);
+          assert.equal(actual['test/app.js'],reviewedAfter);
+          const carrier=readFileSync('test/app.js','utf8');
+          assert.match(carrier,/selected:"Победитель"/);
+          assert.match(carrier,/n\.round_result==="winner"/);
+          assert.match(carrier,/n\.lifecycle_state==="annulled"/);
           const expectedBlob=execFileSync('git',['hash-object','test/global-view/route-model.mjs'],{encoding:'utf8'}).trim().slice(0,12);
           for(const p of ['test/global-view/map.mjs','test/global-view/globe.mjs']){
             assert.match(readFileSync(p,'utf8'),new RegExp('route-model\\.mjs\\?v='+expectedBlob));
           }
           assert.equal(readFileSync('global-view/route-model.mjs','utf8'),readFileSync('test/global-view/route-model.mjs','utf8'));
           assert.equal(readFileSync('global-view/view.mjs','utf8'),readFileSync('test/global-view/view.mjs','utf8'));
-          console.log('REVIEWED_MAP50_DELTA_CONFIRMED:',changed.join(', '));
+          console.log('REVIEWED_CARRIER124_DELTA_CONFIRMED:',changed.join(', '));
           JS
       - name: Preserve old process version, regenerate reviewed diagrams, fail closed on drift
         id: record
