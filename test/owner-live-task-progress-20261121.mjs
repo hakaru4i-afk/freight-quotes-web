@@ -1,5 +1,5 @@
 /* Owner-only GitHub release progress. No private data or access tokens. */
-export const TASK=Object.freeze({title:'SH59 — выпуск портала',pr:145,audit:44802361801,repo:'hakaru4i-afk/freight-quotes-web'});
+export const TASK=Object.freeze({title:'SH59 — выпуск портала',pr:145,audit:44899669386,repo:'hakaru4i-afk/freight-quotes-web'});
 const ROOT='https://api.github.com/repos/'+TASK.repo+'/';
 const SOURCES={handoff:'SH59 immutable tested-source handoff (staging only)',regression:'Release stabilization candidate',alignment:'Canonical staging alignment'};
 const TESTED_WEB='6e0a465b2b031558989f62b38dc7939797434686';
