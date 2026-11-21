@@ -25,7 +25,13 @@ export function sourceSignatures(){
   return [path,createHash('sha256').update(bytes).digest('hex')];
  }));
 }
-function backendSource(){return JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')).stabilizationQa20261110.backendSourceCommit;}
+// The process model reviews the staging source tree, not a historical QA deployment from 10 November.
+// Runtime deployment parity is validated separately by check-staging-alignment.mjs (fail closed).
+function backendSource(){
+ const manifest=JSON.parse(readFileSync(resolve(root,'test/staging-manifest.json'),'utf8'));
+ if(!/^[a-f0-9]{40}$/.test(manifest.backendSourceCommit||''))throw Error('MISSING_STAGING_BACKEND_SOURCE_COMMIT');
+ return manifest.backendSourceCommit;
+}
 export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}
 export function validate(model){
  if(model.releaseStatus!=='RELEASE_BLOCKED')throw Error('Map does not authorize release');
