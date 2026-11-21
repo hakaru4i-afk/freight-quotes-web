@@ -55,6 +55,9 @@ function detail(){
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
  const execution=executionByFeedback.get(item.id);
  const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&['not_requested','pending','failed'].includes(execution.dispatchStatus));
+ const progressValue=execution?Math.max(0,Math.min(100,Number(execution.progress)||0)):0;
+ const progressText=execution?.dispatchStatus==='dispatched'?'GitHub принял задание; работа Codex пока не подтверждена':execution?.dispatchStatus==='failed'?'Отправка не завершилась': 'Ожидает отправки в GitHub';
+ const progressPanel=execution?'<section class="pf-codex-progress" aria-label="Прогресс выполнения"><div><strong>Прогресс выполнения</strong><span> '+progressValue+'%</span></div><progress aria-label="Прогресс выполнения" value="'+progressValue+'" max="100" style="width:100%"></progress><small>'+esc(progressText)+'</small></section>':'';
  const handoffPanel=handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>Передача задачи в разработку</h4><p>После принятия задачи укажи дедлайн здесь. Задание будет отправлено в GitHub; Codex запускается только при подключённой интеграции.</p><label>Плановый дедлайн<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>Передать задание в GitHub для Codex</button></form>':(execution?.dispatchStatus==='dispatched'?'<p class="pf-ci-success">GitHub принял задание. Работа Codex подтверждается отдельно.</p>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
@@ -78,7 +81,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ progressPanel+handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
