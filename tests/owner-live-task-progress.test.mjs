@@ -4,7 +4,7 @@ import {TASK,summarize} from '../test/owner-live-task-progress-20261121.mjs';
 import {readFileSync} from 'node:fs';
 const HEAD='a'.repeat(40),OLD='b'.repeat(40),BRANCH='ci/sh59-verified-source-handoff-20261121';
 function pr(){return {number:145,base:{ref:'main'},head:{ref:BRANCH,sha:HEAD,repo:{full_name:TASK.repo}}};}
-function audit(){return {id:44802361801,path:'.github/workflows/sh59-protected-37-audit.yml',head_repository:{full_name:TASK.repo},status:'completed',conclusion:'success'};}
+function audit(){return {id:TASK.audit,path:'.github/workflows/sh59-protected-37-audit.yml',head_repository:{full_name:TASK.repo},status:'completed',conclusion:'success'};}
 function run(name,{sha=HEAD,branch=BRANCH,conclusion='success',status='completed',id=123}={}){return {id,name,status,conclusion,head_sha:sha,head_branch:branch,head_repository:{full_name:TASK.repo},event:'pull_request',created_at:'2026-11-21T06:00:00Z',updated_at:'2026-11-21T06:00:01Z'};}
 const names=['SH59 immutable tested-source handoff (staging only)','Release stabilization candidate','Canonical staging alignment'];
 test('never creates 100% progress or a released state from old 37/37 alone',()=>{const x=summarize({pr:pr(),audit:audit(),runs:[]});assert.equal(x.passed,1);assert.equal(x.percent,17);assert.equal(x.releaseReady,false)});
@@ -54,3 +54,5 @@ test('publish job without verified restore and exact Owner release approval stay
  x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});
  assert.equal(x.releaseReady,false);
 });
+
+test('obsolete pre-publication audit cannot substitute final published 37/37 receipt',()=>{const old=audit();old.id=44802361801;const x=summarize({pr:pr(),audit:old,runs:[]});assert.equal(x.stages[0].passed,false);assert.equal(x.releaseReady,false)});
