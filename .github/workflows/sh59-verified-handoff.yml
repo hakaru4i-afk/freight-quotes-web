@@ -37,16 +37,20 @@ jobs:
         run: node --test tests/prepare-tested-candidate.test.mjs
   prepare:
     if: >-
-      github.event_name != 'pull_request' &&
       github.repository == 'hakaru4i-afk/freight-quotes-web' &&
-      (github.event_name == 'workflow_dispatch' ||
-       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.actor == 'hakaru4i-afk') ||
+       github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'))
     needs: negative-tests
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     env:
       GH_TOKEN: ${{ github.token }}
-      AUDIT_RUN_ID: ${{ inputs.audit_run_id || github.event.workflow_run.id }}
+      AUDIT_RUN_ID: ${{ github.event_name == 'pull_request' && '44802361801' || inputs.audit_run_id || github.event.workflow_run.id }}
       TESTED_FRONTEND_SHA: 6e0a465b2b031558989f62b38dc7939797434686
       TESTED_BACKEND_SHA: 092decf57d97fabdefa35bba0593890f52d34ef6
     steps:
