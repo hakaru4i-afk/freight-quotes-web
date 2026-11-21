@@ -65,3 +65,14 @@ test('failed CI refresh clears cached successes instead of showing stale progres
   assert.match(source,/\.catch\(e=>\{data\.runs=\[\];data\.runsAt=0;errors\.push\('CI '\+e\.message\)\}\)/);
  }
 });
+
+test('unavailable evidence endpoints invalidate cached proofs for both Owner entrypoints',()=>{
+ for(const path of ['owner-live-task-progress-20261121.mjs','test/owner-live-task-progress-20261121.mjs']){
+  const source=readFileSync(path,'utf8');
+  for(const [field,label] of [['audit','E2E'],['parity','Staging'],['publication','Production']]){
+   assert.ok(source.includes(`data.${field}=null;`),`${path}: ${label} proof must be cleared`);
+   assert.ok(source.includes(`data.${field}At=0;`),`${path}: ${label} proof must be retried`);
+  }
+  assert.match(source,/catch\(e\)\{data\.publication\.release=null;data\.publication\.releaseCheckedAt=0;errors\.push\('Release '/);
+ }
+});
