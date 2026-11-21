@@ -36,9 +36,12 @@ export function assertSourcesCurrent(model){
  const actualBackend=backendSource();
  if(model.reviewedBackendSourceCommit!==actualBackend)
   throw Error('Backend source changed without reviewed map: reviewed='+model.reviewedBackendSourceCommit+' current='+actualBackend+'. Review process model against the new backend before updating reviewedBackendSourceCommit.');
+ const drifts=[];
  for(const [path,sha] of Object.entries(sourceSignatures()))
   if(model.reviewedSourceSignatures?.[path]!==sha)
-   throw Error('Process source changed without reviewed map: '+path+' reviewed='+(model.reviewedSourceSignatures?.[path]??'MISSING')+' current='+sha);
+   drifts.push(path+' reviewed='+(model.reviewedSourceSignatures?.[path]??'MISSING')+' current='+sha);
+ if(drifts.length)throw Error('Process sources changed without reviewed map ('+drifts.length+'):\n'+drifts.join('\n'));
+
 }
 export function validate(model){
  if(model.releaseStatus!=='RELEASE_BLOCKED')throw Error('Map does not authorize release');
