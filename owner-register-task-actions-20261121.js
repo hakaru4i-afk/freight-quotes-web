@@ -67,7 +67,8 @@
    const review=make('section','ow-task-owner-review');review.append(make('strong',null,w.reviewTitle));
    const decisionActions=make('div','ow-task-buttons');
    acceptButton=make('button','ow-task-btn ow-task-btn-start',w.accept);rejectButton=make('button','ow-task-btn ow-task-btn-reject',w.rejectReview);
-   acceptButton.type=rejectButton.type='button';acceptButton.onclick=()=>void send('accept');
+   acceptButton.type=rejectButton.type='button';acceptButton.disabled=value!==100||execution.checksPassed!==true;
+   acceptButton.onclick=()=>void send('accept');
    rejectButton.onclick=()=>{selectedAction='reject_review';reasonPanel.hidden=false;textarea.focus();};
    decisionActions.append(acceptButton,rejectButton);review.append(decisionActions);root.append(review);
   }
