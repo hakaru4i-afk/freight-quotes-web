@@ -80,6 +80,18 @@ jobs:
             echo '::error::Owner must set Settings > Pages > Source > GitHub Actions first. No release.'
             exit 1
           }
+      - name: Read current GitHub Pages publication mode without changing settings
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '"PAGES_SOURCE=" + (.build_type // "unknown")' ; then
+            echo 'Pages settings read successfully; no configuration mutation performed.'
+          else
+            echo '::warning::Current GitHub connector/workflow credential cannot read Pages mode; owner must confirm in Settings > Pages.'
+          fi
       - name: Retrieve real immutable QA handoff (no synthetic evidence)
         shell: bash
         env:
