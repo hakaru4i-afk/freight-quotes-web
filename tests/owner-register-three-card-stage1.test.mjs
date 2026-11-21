@@ -57,6 +57,12 @@ test('100% means only server-reported exact CI with checksPassed; review action 
  assert.equal(cls(ready,'ow-task-universal-track')[0].attributes['aria-valuenow'],'100');
  cls(ready,'ow-task-review-submit')[0].onclick();await tick();assert.equal(call[0].action,'submit_review');
 });
+test('progress milestone is understandable and never implies Codex started on branch creation',()=>{
+ const card=ui().render({register:'updates',row:{id:'MILESTONE'},state:'in_progress',
+  execution:{decision:'in_progress',progress:10,checksPassed:false,step:'branch_created'},onAction:async()=>{}});
+ assert.match(cls(card,'ow-task-progress-help')[0].textContent,/исполнитель ещё не подтвердил начало работы/);
+ assert.equal(cls(card,'ow-task-progress-value')[0].textContent,'10%');
+});
 test('Owner may reject but cannot accept when review CI evidence expires',()=>{
  const card=ui().render({register:'developments',row:{id:'EXPIRED'},state:'checking',
   execution:{decision:'review_pending',progress:90,checksPassed:false},onAction:async()=>{}});
