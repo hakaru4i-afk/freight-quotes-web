@@ -1,0 +1,176 @@
+name: SH59 isolated QA20 staging-only Pages promotion
+on:
+  pull_request:
+    paths:
+      - .github/workflows/sh59-staging-only-pages.yml
+      - scripts/release/build-staging-only-package.mjs
+      - scripts/release/verify-published-root.mjs
+      - scripts/release/verify-staging-preview-browser.mjs
+      - tests/build-staging-only-package.test.mjs
+      - tests/verify-published-root.test.mjs
+  workflow_dispatch:
+    inputs:
+      handoff_run_id:
+        description: 'Successful immutable SH59 source handoff run (37/37 original pair, signed audit)'
+        type: string
+        default: '44885529954'
+        required: true
+      staging_confirmation:
+        description: 'Exact text STAGING ONLY SH59 API20, does NOT authorize production release'
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: sh59-isolated-staging-pages
+  cancel-in-progress: false
+jobs:
+  unit-and-negative:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify staging-only copy, QA20 routing and production byte guards
+        run: |
+          set -euo pipefail
+          node --check scripts/release/build-staging-only-package.mjs
+          node --check scripts/release/verify-published-root.mjs
+          node --check scripts/release/verify-staging-preview-browser.mjs
+          node --test tests/build-staging-only-package.test.mjs tests/verify-published-root.test.mjs
+
+  prepare:
+    needs: unit-and-negative
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.actor == 'hakaru4i-afk' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    permissions:
+      contents: read
+      actions: read
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Require explicit staging-only Owner instruction and Pages Actions mode
+        shell: bash
+        env:
+          CONFIRM: ${{ inputs.staging_confirmation }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRM" = 'STAGING ONLY SH59 API20'
+          test "$(gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '.build_type')" = workflow || {
+            echo '::error::Owner must set Settings > Pages > Source > GitHub Actions first. No release.'
+            exit 1
+          }
+      - name: Retrieve real immutable QA handoff (no synthetic evidence)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HANDOFF_ID: ${{ inputs.handoff_run_id }}
+        run: |
+          set -euo pipefail
+          [[ "$HANDOFF_ID" =~ ^[1-9][0-9]*$ ]]
+          mkdir -p verified-handoff imported
+          gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$HANDOFF_ID" \
+            --jq '.conclusion == "success" and .path == ".github/workflows/sh59-verified-handoff.yml"' | grep -qx true
+          gh run download "$HANDOFF_ID" -R hakaru4i-afk/freight-quotes-web \
+            --name sh59-immutable-tested-source-handoff --dir verified-handoff
+          cd verified-handoff
+          sha256sum --check SHA256SUMS
+          test -s sh59-tested-source-lock.json
+          test -s sh59-isolated-staging-import.json
+          cd ..
+          if tar -tzf verified-handoff/sh59-tested-test-assets.tar.gz | \
+            grep -Ev '(^test/|^test$)'; then
+            echo '::error::Unsafe source archive'; exit 1
+          fi
+          tar -xzf verified-handoff/sh59-tested-test-assets.tar.gz -C imported
+      - name: Package SH59 isolated QA20 with production root copied unchanged
+        run: |
+          set -euo pipefail
+          node scripts/release/build-staging-only-package.mjs . imported/test \
+            verified-handoff/sh59-tested-source-lock.json .qa-pages
+          cmp app.js .qa-pages/app.js
+          cmp index.html .qa-pages/index.html
+          cmp build-info.json .qa-pages/build-info.json
+          cmp site-status.json .qa-pages/site-status.json
+          cmp production-release-manifest.json .qa-pages/production-release-manifest.json
+          test "$(node -e "console.log(require('./.qa-pages/test/sh59-qa-pair.json').productionAuthorized)")" = false
+      - name: Check every production root file against currently served Pages before staging publish
+        run: node scripts/release/verify-published-root.mjs .qa-pages
+      - name: Real browser QA smoke on packaged stage and isolated v20 API
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node scripts/release/verify-staging-preview-browser.mjs .qa-pages
+      - name: Generate immutable served-root verification receipt
+        run: |
+          set -euo pipefail
+          find .qa-pages -type f -not -path '.qa-pages/test/*' -not -name .nojekyll -print0 | \
+            sort -z | xargs -0 sha256sum > production-root-sha256.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sh59-staging-only-root-receipt
+          path: |
+            production-root-sha256.txt
+            .qa-pages/test/sh59-qa-pair.json
+          retention-days: 30
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .qa-pages
+
+  deploy:
+    needs: prepare
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: pages
+      - uses: actions/download-artifact@v4
+        with:
+          name: sh59-staging-only-root-receipt
+          path: verified
+      - name: Confirm every served production root asset still matches the prior bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          while read -r expected path; do
+            rel="${path#'.qa-pages/'}"
+            curl --fail --silent --show-error --location --retry 4 --max-time 30 \
+              -H 'Cache-Control: no-cache' \
+              "https://hakaru4i-afk.github.io/freight-quotes-web/$rel?root_proof=$GITHUB_RUN_ID" -o /tmp/sh59-verified-root
+            actual=$(sha256sum /tmp/sh59-verified-root | cut -d' ' -f1)
+            test "$actual" = "$expected" || { echo "::error::Production root changed: $rel"; exit 1; }
+          done < verified/production-root-sha256.txt
+      - name: Confirm published staging pair receipt, not production release approval
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 4 --max-time 30 \
+            "https://hakaru4i-afk.github.io/freight-quotes-web/test/sh59-qa-pair.json?stage_proof=$GITHUB_RUN_ID" -o /tmp/sh59-stage-pair.json
+          cmp /tmp/sh59-stage-pair.json verified/sh59-qa-pair.json
+          node -e 'const r=require("/tmp/sh59-stage-pair.json");if(r.isolatedQaApiVersion!==20||r.productionAuthorized!==false||r.stagingBundleRebindRequiresFreshE2E!==true)process.exit(1)'
+          echo 'STAGING_QA20_PUBLISHED; PRODUCTION_ROOT_UNCHANGED; FULL_AUTHENTICATED_ACCEPTANCE_PENDING'
