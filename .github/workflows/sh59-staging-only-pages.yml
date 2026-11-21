@@ -19,7 +19,7 @@ on:
       handoff_run_id:
         description: 'Successful immutable SH59 source handoff run (37/37 original pair, signed audit)'
         type: string
-        default: '44885529954'
+        default: '44907714960'
         required: true
       staging_confirmation:
         description: 'Exact text STAGING ONLY SH59 API20, does NOT authorize production release'
@@ -117,7 +117,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-          HANDOFF_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.handoff_run_id || '44885529954' }}
+          HANDOFF_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.handoff_run_id || '44907714960' }}
         run: |
           set -euo pipefail
           [[ "$HANDOFF_ID" =~ ^[1-9][0-9]*$ ]]
