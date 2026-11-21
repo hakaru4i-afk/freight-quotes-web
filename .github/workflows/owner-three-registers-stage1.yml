@@ -1,0 +1,34 @@
+name: Owner three registers — Stage 2 UI
+on:
+  pull_request:
+    paths:
+      - 'owner-register-task-actions-20261121.*'
+      - 'test/owner-register-task-actions-20261121.*'
+      - 'owner-registers-20261111.js'
+      - 'test/owner-registers-20261111.js'
+      - 'index.html'
+      - 'test/index.html'
+      - 'tests/owner-register-three-card-stage1.test.mjs'
+      - '.github/workflows/owner-three-registers-stage1.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  stage1-unit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify JS syntax
+        run: |
+          node --check owner-register-task-actions-20261121.js
+          node --check test/owner-register-task-actions-20261121.js
+          node --check owner-registers-20261111.js
+          node --check test/owner-registers-20261111.js
+      - name: Test three shared register cards and safe preview behavior
+        run: node --test tests/owner-register-three-card-stage1.test.mjs

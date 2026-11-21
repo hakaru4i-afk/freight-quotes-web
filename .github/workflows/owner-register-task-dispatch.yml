@@ -1,0 +1,102 @@
+name: Owner register task dispatch
+run-name: Owner task ${{ inputs.dispatch_key }}
+on:
+  workflow_dispatch:
+    inputs:
+      dispatch_key:
+        description: 'Server-issued UUID'
+        required: true
+        type: string
+      register:
+        description: 'developments / remarks / updates'
+        required: true
+        type: string
+      record_id:
+        description: 'Record ID'
+        required: true
+        type: string
+      source_key:
+        description: 'Canonical source key'
+        required: true
+        type: string
+      feedback_id:
+        description: 'Feedback task UUID'
+        required: true
+        type: string
+      deadline:
+        description: 'YYYY-MM-DD'
+        required: true
+        type: string
+      base_sha:
+        description: 'Server-verified source main commit SHA'
+        required: true
+        type: string
+permissions:
+  contents: write
+  issues: write
+concurrency:
+  group: owner-task-${{ inputs.dispatch_key }}
+  cancel-in-progress: false
+jobs:
+  register-task:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      TASK_UUID: ${{ inputs.dispatch_key }}
+      TASK_REGISTER: ${{ inputs.register }}
+      TASK_RECORD_ID: ${{ inputs.record_id }}
+      TASK_SOURCE: ${{ inputs.source_key }}
+      TASK_FEEDBACK_ID: ${{ inputs.feedback_id }}
+      TASK_DEADLINE: ${{ inputs.deadline }}
+      TASK_BASE_SHA: ${{ inputs.base_sha }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Validate server-issued fields
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$TASK_UUID" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          [[ "$TASK_FEEDBACK_ID" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
+          [[ "$TASK_REGISTER" =~ ^(developments|remarks|updates)$ ]]
+          [[ "$TASK_RECORD_ID" =~ ^[A-Za-z0-9_.:-]{1,120}$ ]]
+          [[ "$TASK_DEADLINE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          test -n "$TASK_SOURCE"
+          test "${#TASK_SOURCE}" -le 240
+          [[ "$TASK_BASE_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$GITHUB_REF_NAME" = main
+      - name: Create work branch without pretending implementation commits exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          BRANCH="owner-task/$TASK_UUID"
+          if ! gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$BRANCH" >/dev/null 2>&1; then
+            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" \
+              -f ref="refs/heads/$BRANCH" -f sha="$TASK_BASE_SHA" >/dev/null
+          fi
+          echo "TASK_BRANCH=$BRANCH" >> "$GITHUB_ENV"
+      - name: Open auditable engineering task for a separately connected Codex agent
+        shell: bash
+        run: |
+          set -euo pipefail
+          TITLE="Engineering task [$TASK_UUID] · $TASK_REGISTER/$TASK_RECORD_ID"
+          EXISTING="$(gh issue list --state all --search "$TASK_UUID in:title" --json number --jq '.[0].number // empty')"
+          if [ -z "$EXISTING" ]; then
+            {
+              printf '## Задача из инженерного реестра владельца\n\n'
+              printf 'Реестр: %s\n\n' "$TASK_REGISTER"
+              printf 'Номер: %s\n\n' "$TASK_RECORD_ID"
+              printf 'Источник: %s\n\n' "$TASK_SOURCE"
+              printf 'Внутренний ID: %s\n\n' "$TASK_FEEDBACK_ID"
+              printf 'Плановый дедлайн: %s\n\n' "$TASK_DEADLINE"
+              printf 'Рабочая ветка: %s\n\n' "$TASK_BRANCH"
+              printf 'Codex должен получить задание через отдельно настроенную интеграцию.\n'
+              printf 'Этот workflow сам НЕ запускает модель и не выполняет разработку.\n'
+              printf 'Готовность подтверждается кодом и обязательными зелёными тестами.\n'
+            } > /tmp/owner-task.txt
+            gh issue create --title "$TITLE" --body-file /tmp/owner-task.txt
+          fi
+          echo 'OWNER_TASK_REGISTERED; AWAITING_IMPLEMENTATION'
