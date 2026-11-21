@@ -15,6 +15,7 @@ const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh"
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
+const isReleaseReady=(item,isOwner,readiness)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&readiness?.taskId===item.id&&readiness?.ready===true;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 const requestStatus=i=>i.status==="release"&&i.release_date?"Выпуск · "+i.release_date:latestStatus(i.status);
@@ -55,7 +56,7 @@ function detail(){
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
  const releaseEligible=data.owner&&['in_progress','release'].includes(item.status);
- const releaseReady=releaseEligible&&releaseReadiness.taskId===item.id&&releaseReadiness.ready===true;
+ const releaseReady=isReleaseReady(item,data.owner,releaseReadiness);
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="Контроль выпуска">'+
   '<h4>Публикация обновления</h4>'+
   (releaseReady?'<p class="pf-ci-success" role="status">Все обязательные тесты пройдены</p>':'<p class="pf-ci-wait" role="status">Ожидаются тесты</p>')+
