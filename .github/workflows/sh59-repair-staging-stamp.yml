@@ -66,9 +66,9 @@ jobs:
           echo "changed=true" >> "$GITHUB_OUTPUT"
           echo "SH59_STAGING_BUILD_METADATA_FIXED; PRODUCTION_UNCHANGED"
       - name: Request fresh regression (GITHUB_TOKEN pushes do not trigger normal PR workflows)
-        if: steps.reconcile.outputs.changed == 'true'
+        if: steps.reconcile.outcome == 'success'
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh workflow run release-stabilization.yml --ref ci/sh59-verified-source-handoff-20261121
