@@ -93,3 +93,10 @@
 @media(max-width:420px){
   #portal-feedback-root .pf-header{padding:14px;}
 }
+
+/* Owner CI release control: no green action without server-side exact-SHA verification. */
+#portal-feedback-root .pf-release-guard{border:1px solid #c8d8ce;border-radius:10px;padding:14px;background:#f7faf8;margin:14px 0}
+#portal-feedback-root .pf-release-guard h4{margin:0 0 9px}
+#portal-feedback-root .pf-ci-wait{color:#79521a!important;font-weight:650}
+#portal-feedback-root .pf-ci-success{color:#216245!important;font-weight:700}
+#portal-feedback-root .pf-release-guard button{margin-top:8px}
