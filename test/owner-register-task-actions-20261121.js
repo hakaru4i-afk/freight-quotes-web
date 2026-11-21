@@ -2,9 +2,9 @@
 (()=>{'use strict';
  const REGISTERS=new Set(['remarks','developments','updates']),DRAFTS=new Map();
  const WORDS=[
-  {deadline:'Плановый дедлайн',start:'Запустить в разработку',postpone:'Отложить',reject:'Отклонить',reason:'Причина решения',placeholder:'Укажите причину (минимум 10 символов)',apply:'Подтвердить',cancel:'Отмена',progress:'Прогресс выполнения',missingDate:'Укажите плановый дедлайн.',missingReason:'Укажите причину не менее 10 символов.',notice:'Статус и прогресс подтверждаются сервером и GitHub.',working:'В разработке',pending:'Ожидает GitHub',retry:'Повторить отправку в GitHub',review:'Отправить на приёмку Владельцу',accept:'Принять',rejectReview:'Отклонить приёмку',reviewTitle:'Приёмка владельцем',error:'Не удалось сохранить решение',done:'Решение принято сервером',closed:'Историческая или завершённая запись',step:'Стадия: '},
-  {deadline:'Planned deadline',start:'Start development',postpone:'Defer',reject:'Reject',reason:'Decision reason',placeholder:'At least 10 characters',apply:'Confirm',cancel:'Cancel',progress:'Task progress',missingDate:'Choose a planned deadline.',missingReason:'Reason must contain at least 10 characters.',notice:'Progress is verified by the server and GitHub.',working:'In development',pending:'Waiting for GitHub',retry:'Retry GitHub dispatch',review:'Submit for Owner review',accept:'Accept',rejectReview:'Reject review',reviewTitle:'Owner review',error:'Could not save decision',done:'Decision saved by server',closed:'Historical or completed record',step:'Stage: '},
-  {deadline:'计划截止日期',start:'开始开发',postpone:'延期',reject:'拒绝',reason:'决定理由',placeholder:'至少10个字符',apply:'确认',cancel:'取消',progress:'任务进度',missingDate:'请填写计划截止日期。',missingReason:'原因至少10个字符。',notice:'状态和进度由服务器与 GitHub 验证。',working:'开发中',pending:'等待 GitHub',retry:'重试发送到 GitHub',review:'提交所有者验收',accept:'接受',rejectReview:'拒绝验收',reviewTitle:'所有者验收',error:'保存失败',done:'服务器已保存',closed:'历史或已完成记录',step:'阶段：'}
+  {deadline:'Плановый дедлайн',start:'Взять в работу',postpone:'Отложить',reject:'Отклонить',reason:'Причина решения',placeholder:'Укажите причину (минимум 10 символов)',apply:'Подтвердить',cancel:'Отмена',progress:'Прогресс выполнения',missingDate:'Укажите плановый дедлайн.',missingReason:'Укажите причину не менее 10 символов.',notice:'Статус и прогресс подтверждаются сервером и GitHub.',working:'В разработке',pending:'Ожидает GitHub',retry:'Повторить отправку в GitHub',review:'Отправить на приёмку Владельцу',accept:'Принять',rejectReview:'Отклонить приёмку',reviewTitle:'Приёмка владельцем',error:'Не удалось сохранить решение',done:'Решение принято сервером',closed:'Историческая или завершённая запись',step:'Стадия: '},
+  {deadline:'Planned deadline',start:'Move to improvement center',postpone:'Defer',reject:'Reject',reason:'Decision reason',placeholder:'At least 10 characters',apply:'Confirm',cancel:'Cancel',progress:'Task progress',missingDate:'Choose a planned deadline.',missingReason:'Reason must contain at least 10 characters.',notice:'Progress is verified by the server and GitHub.',working:'In development',pending:'Waiting for GitHub',retry:'Retry GitHub dispatch',review:'Submit for Owner review',accept:'Accept',rejectReview:'Reject review',reviewTitle:'Owner review',error:'Could not save decision',done:'Decision saved by server',closed:'Historical or completed record',step:'Stage: '},
+  {deadline:'计划截止日期',start:'移至改进中心',postpone:'延期',reject:'拒绝',reason:'决定理由',placeholder:'至少10个字符',apply:'确认',cancel:'取消',progress:'任务进度',missingDate:'请填写计划截止日期。',missingReason:'原因至少10个字符。',notice:'状态和进度由服务器与 GitHub 验证。',working:'开发中',pending:'等待 GitHub',retry:'重试发送到 GitHub',review:'提交所有者验收',accept:'接受',rejectReview:'拒绝验收',reviewTitle:'所有者验收',error:'保存失败',done:'服务器已保存',closed:'历史或已完成记录',step:'阶段：'}
  ];
  const STAGE_LABELS=[
   {dispatch_pending:'Ожидает отправки в GitHub',branch_unavailable:'Ожидается подтверждение ветки GitHub',
@@ -41,7 +41,7 @@
   const root=make('section','ow-task-universal');root.dataset.sharedTaskControls='stage2';root.dataset.register=register;
   const deadlineLabel=make('label','ow-task-deadline');deadlineLabel.append(make('span','ow-task-field-name',w.deadline));
   const deadline=make('input','ow-task-deadline-input');deadline.type='date';deadline.required=true;deadline.value=draft.deadline;deadline.disabled=locked||busy;deadline.setAttribute('aria-label',w.deadline);
-  deadline.oninput=()=>{draft.deadline=deadline.value;info.hidden=true;};deadlineLabel.append(deadline);root.append(deadlineLabel);
+  deadline.oninput=()=>{draft.deadline=deadline.value;info.hidden=true;};deadlineLabel.append(deadline);
   const controls=make('div','ow-task-buttons');
   const button=(label,cls)=>{const e=make('button','ow-task-btn ow-task-btn-'+cls,label);e.type='button';e.disabled=locked||busy;return e;};
   const start=button(w.start,'start'),postpone=button(w.postpone,'postpone'),reject=button(w.reject,'reject');
@@ -61,7 +61,7 @@
   const fill=make('span','ow-task-universal-fill');fill.style.width=value+'%';track.append(fill);progress.append(track);
   const readable=execution?.step?(STAGE_LABELS[locale()][execution.step]||w.step+execution.step):execution?.dispatchStatus==='failed'?w.pending:w.notice;
   progress.append(make('small','ow-task-progress-help',readable));
-  root.append(progress);
+  // Progress is tracked only in the Improvement Center after intake.
   const show=(message,error=false)=>{info.hidden=false;info.textContent=message;info.classList.toggle('ow-task-info-error',error);};
   let sending=false,selectedAction='';
   const send=async(action,extra={})=>{
@@ -72,20 +72,20 @@
    catch(e){show((e?.message||w.error),true);}
    finally{sending=false;for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=false;}
   };
-  start.onclick=()=>{if(!deadline.value){deadline.focus();show(w.missingDate,true);return;}draft.deadline=deadline.value;void send('start',{deadline:draft.deadline});};
+  start.onclick=()=>void send('transfer');
   const choose=action=>{selectedAction=action;reasonPanel.hidden=false;textarea.focus();show(action==='defer'?w.postpone+' · '+w.reason:w.reject+' · '+w.reason);};
   postpone.onclick=()=>choose('defer');reject.onclick=()=>choose('reject');cancel.onclick=()=>{reasonPanel.hidden=true;info.hidden=true;};
   apply.onclick=()=>{draft.reason=textarea.value.trim();if(draft.reason.length<10){textarea.focus();show(w.missingReason,true);return;}reasonPanel.hidden=true;void send(selectedAction,{reason:draft.reason});};
   let reviewButton=null,acceptButton=null,rejectButton=null;
-  if(execution?.decision==='in_progress'&&['failed','pending'].includes(execution.dispatchStatus)){
+  if(false&&execution?.decision==='in_progress'&&['failed','pending'].includes(execution.dispatchStatus)){
    const retry=make('button','ow-task-github-retry',w.retry);retry.type='button';
    retry.onclick=()=>void send('dispatch');root.append(retry);
   }
-  if(execution?.decision==='in_progress'&&value===100&&execution.checksPassed===true){
+  if(false&&execution?.decision==='in_progress'&&value===100&&execution.checksPassed===true){
    reviewButton=make('button','ow-task-review-submit',w.review);reviewButton.type='button';
    reviewButton.onclick=()=>void send('submit_review');root.append(reviewButton);
   }
-  if(execution?.decision==='review_pending'){
+  if(false&&execution?.decision==='review_pending'){
    const review=make('section','ow-task-owner-review');review.append(make('strong',null,w.reviewTitle));
    const decisionActions=make('div','ow-task-buttons');
    acceptButton=make('button','ow-task-btn ow-task-btn-start',w.accept);rejectButton=make('button','ow-task-btn ow-task-btn-reject',w.rejectReview);

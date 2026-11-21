@@ -133,8 +133,8 @@ async function executeRecordAction(payload){
  };
  try{
   const first=await call(payload);
-  if(payload.action==='start'&&first.dispatchPending)
-   await call({action:'dispatch',register:id,recordId:payload.recordId});
+  // The Owner sets a deadline and triggers dispatch only from the Improvement Center.
+  if(payload.action==='transfer'&&!first.transferred&&!first.already)throw Error('TRANSFER_NOT_CONFIRMED');
   workNotice='Решение сохранено на сервере. Статус GitHub подтверждён отдельно.';
  }catch(e){executionError=String(e.message||e);throw e;}
  finally{
@@ -235,11 +235,15 @@ function paintArchive(host,id){
  search.oninput=()=>{query=search.value;draw();};sortControl.onchange=()=>{sort=sortControl.value;draw();};
  function draw(){
   target.replaceChildren();const term=query.toLocaleLowerCase(),view=filters.view;
-  const unfinished=rows.filter(row=>!row.archived&&!finished(currentState(row,taskFor(id,row.id)),taskFor(id,row.id))).length;
+  const transferred=row=>{
+   const work=taskFor(id,row.id),exec=executionStateByKey.get(id+':'+row.id);
+   return Boolean(exec?.feedbackId||work&&['in_progress','release','completed'].includes(work.status));
+  };
+  const unfinished=rows.filter(row=>!row.archived&&!transferred(row)&&!finished(currentState(row,taskFor(id,row.id)),taskFor(id,row.id))).length;
   count.textContent='Незавершённых записей: '+unfinished;
   const visible=rows.filter(row=>{
    const job=taskFor(id,row.id),status=currentState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
-   return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
+   return (!transferred(row)||view==='archive')&&(row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
     (view==='all'||view==='today'&&date===minskDay()||view==='archive'&&(row.archived||job?.status==='denied'||finished(status,job))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status,job)||view==='selected'&&!!job);
   }).sort((a,b)=>String(/^\d{4}-/.test(a.detectedAt)?a.detectedAt:'').localeCompare(String(/^\d{4}-/.test(b.detectedAt)?b.detectedAt:''))*(sort==='old'?1:-1));
   if(view==='done'&&!visible.length)target.append(el('p','Пока нет работ, лично подтверждённых владельцем. Технические исправления находятся в «Реестре приёмки владельцем».',{class:'ow-board-help'}));
@@ -255,9 +259,14 @@ function paintArchive(host,id){
    detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.technical?.datePrecision==='unknown'?'В исходной записи не указана':row.technical?.datePrecision==='day'?new Date(row.detectedAt).toLocaleDateString('ru-RU'):row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
    // Stage 1 preview: identical task controls in updates, remarks and developments.
    // No database write or GitHub workflow is performed by these three buttons.
-   const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state,execution,onAction:executeRecordAction});
-   if(!taskControls)throw Error('OWNER_REGISTER_TASK_UI_MISSING');
-   card.append(taskControls);
+   if(transferred(row)){
+    const link=el('a','Задача перенесена в Центр доработок — открыть',{href:'#portal-feedback',class:'ow-board-link'});
+    link.onclick=e=>{e.preventDefault();navigate('');location.hash='#portal-feedback';};card.append(link);
+   }else{
+    const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state,execution,onAction:executeRecordAction});
+    if(!taskControls)throw Error('OWNER_REGISTER_TASK_UI_MISSING');
+    card.append(taskControls);
+   }
    const actions=el('div',null,{class:'ow-human-actions'});
    const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary','История изменений'));
    const events=workEvents.filter(x=>x.request_id===job?.id);

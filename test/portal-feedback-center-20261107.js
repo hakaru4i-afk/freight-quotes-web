@@ -15,6 +15,7 @@ const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh"
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
+let executionByFeedback=new Map(),handoffBusy=false;
 const isReleaseReady=(item,isOwner,readiness)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&readiness?.taskId===item.id&&readiness?.ready===true;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
@@ -52,6 +53,9 @@ function itemsList(){
 function detail(){
  const item=data.items.find(i=>i.id===selected);
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
+ const execution=executionByFeedback.get(item.id);
+ const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&['not_requested','pending','failed'].includes(execution.dispatchStatus));
+ const handoffPanel=handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>Передача задачи в разработку</h4><p>После принятия задачи укажи дедлайн здесь. Задание будет отправлено в GitHub; Codex запускается только при подключённой интеграции.</p><label>Плановый дедлайн<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>Передать задание в GitHub для Codex</button></form>':(execution?.dispatchStatus==='dispatched'?'<p class="pf-ci-success">GitHub принял задание. Работа Codex подтверждается отдельно.</p>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
@@ -74,7 +78,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
@@ -91,9 +95,22 @@ async function apiCall(action,dataToSend){
  if(!res.ok||!out.ok)throw Error(out.error||"HTTP "+res.status);
  return out;
 }
+async function fetchExecutions(){
+ if(!data.owner){executionByFeedback=new Map();return;}
+ const registers=['developments','remarks','updates'];
+ const requests=await Promise.allSettled(registers.map(async reg=>{
+  const response=await fetch('/api/owner-register-execution?register='+encodeURIComponent(reg),{cache:'no-store'});
+  const body=await response.json();if(!response.ok||body.ok!==true)throw Error(body.error||'HTTP '+response.status);
+  return body.items||[];
+ }));
+ const next=new Map();for(const req of requests)if(req.status==='fulfilled')for(const x of req.value){
+  if(x.feedbackId&&!next.has(x.feedbackId))next.set(x.feedbackId,x);
+ }
+ executionByFeedback=next;
+}
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
 }
 async function refreshReleaseReadiness(){
@@ -114,6 +131,27 @@ async function refreshReleaseReadiness(){
   releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
  }
  if(seq===releaseReadinessRequest)render();
+}
+async function runCodexHandoff(item,deadline){
+ if(handoffBusy||busy)return;
+ const execution=executionByFeedback.get(item.id);
+ if(!data.owner||!execution||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(deadline)){
+  error='Укажи корректный дедлайн и обнови задачу';render();return;
+ }
+ handoffBusy=true;error='';message='';render();
+ const call=async action=>{
+  const response=await fetch('/api/owner-register-execution',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,register:execution.register,recordId:execution.recordId,...(action==='start'?{deadline}:{})})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||result.ok!==true)throw Error([result.error||'HTTP '+response.status,result.detail].filter(Boolean).join(': '));
+  return result;
+ };
+ try{
+  await call('start');
+  const result=await call('dispatch');
+  message='GitHub принял задание. Это ещё не подтверждение запуска модели Codex.';
+  if(result.already)message='Задание уже отправлено в GitHub.';
+ }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
+ finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
 async function runAction(payload){
  if(busy)return;
@@ -153,6 +191,10 @@ document.addEventListener("submit",ev=>{
  if(!root()?.contains(ev.target))return;
  if(ev.target.id==="pf-create"){ev.preventDefault();const f=ev.target;const desc=f.description?.value||draftText;void runAction({action:"create",category:f.category.value,description:desc});}
  if(ev.target.id==="pf-update"){ev.preventDefault();const f=ev.target,item=data.items.find(i=>i.id===f.dataset.id);if(!item)return;void runAction({action:"set_status",id:item.id,expectedStatus:item.status,status:f.elements.status.value,note:f.elements.note.value,releaseDate:f.elements.releaseDate.value});}
+ if(ev.target.id==='pf-codex-handoff'){
+  ev.preventDefault();const form=ev.target,item=data.items.find(i=>i.id===form.dataset.id);
+  if(item)void runCodexHandoff(item,form.elements.deadline.value);
+ }
 });
 let pending=false;
 const obs=new MutationObserver(()=>{
