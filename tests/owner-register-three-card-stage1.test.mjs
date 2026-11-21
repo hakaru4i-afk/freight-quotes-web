@@ -62,7 +62,7 @@ test('Owner review panel implements accept and reject-with-reason',async()=>{
   execution:{decision:'review_pending',progress:100,checksPassed:true},onAction:async x=>actions.push(x)});
  cls(card,'ow-task-btn-start').find(x=>x.textContent==='Принять').onclick();await tick();
  assert.equal(actions[0].action,'accept');
- cls(card,'ow-task-btn-reject')[0].onclick();
+ cls(card,'ow-task-btn-reject').find(x=>x.textContent==='Отклонить приёмку').onclick();
  const textarea=cls(card,'ow-task-reason-textarea')[0];textarea.value='Нужно исправить вывод отчёта';
  cls(card,'ow-task-reason-apply')[0].onclick();await tick();
  assert.equal(actions[1].action,'reject_review');
