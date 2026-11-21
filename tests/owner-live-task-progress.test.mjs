@@ -85,3 +85,12 @@ test('failed GitHub job step refresh clears obsolete job detail in both Owner en
   assert.match(source,/catch\(e\)\{data\.job=null;data\.jobAt=0;errors\.push\('шаг '\+e\.message\)\}/);
  }
 });
+
+for(const conclusion of ['timed_out','cancelled','action_required','startup_failure']){
+ test(`interrupted CI ${conclusion} is shown as an error, not a green or idle check`,()=>{
+  const x=summarize({pr:pr(),audit:audit(),runs:[run(names[1],{conclusion})]});
+  assert.equal(x.state,'failed');
+  assert.match(x.action,/Ошибка GitHub Actions/);
+  assert.equal(x.stages[2].passed,false);
+ });
+}
