@@ -14,14 +14,14 @@ export function summarize({pr,audit,runs=[],job=null,parity=null,publication=nul
  const sorted=[...matching].sort((a,b)=>stamp(b.updated_at||b.created_at)-stamp(a.updated_at||a.created_at));
  const checks=Object.fromEntries(Object.entries(SOURCES).map(([key,name])=>[key,sorted.find(x=>x.name===name)]));
  const e2e=audit?.id===TASK.audit&&audit?.path==='.github/workflows/sh59-protected-37-audit.yml'&&audit?.head_repository?.full_name===TASK.repo&&audit?.status==='completed'&&audit?.conclusion==='success';
- const parityPassed=checks.alignment?.conclusion==='success'&&parity?.runtimePairStatus==='VERIFIED'&&parity?.frontendCommit===TESTED_WEB&&parity?.apiSourceCommit===TESTED_API&&parity?.apiBundleSha256===TESTED_BUNDLE&&parity?.qaEvidence?.fullGroupsPassed===37;
+ const parityPassed=checks.alignment?.status==='completed'&&checks.alignment?.conclusion==='success'&&parity?.runtimePairStatus==='VERIFIED'&&parity?.frontendCommit===TESTED_WEB&&parity?.apiSourceCommit===TESTED_API&&parity?.apiBundleSha256===TESTED_BUNDLE&&parity?.qaEvidence?.fullGroupsPassed===37;
  const deployment=publication?.manifest,build=publication?.build,release=publication?.release;
  const releasePassed=parityPassed&&deployment?.businessVersion==='SH-01.30.59 v'&&deployment?.environment==='production'&&deployment?.sourceStagingFrontendCommit===TESTED_WEB&&build?.environment==='production'&&build?.releaseVersion==='SH-01.30.59 v'&&build?.build===deployment?.frontendBuild&&release?.event==='workflow_dispatch'&&release?.conclusion==='success'&&release?.publishJob===true&&release?.backupRestoreVerified===true&&release?.ownerApproved===true&&release?.approvedReleaseId===deployment?.releaseId&&typeof deployment?.releaseId==='string'&&deployment.releaseId.length>0;
  const stages=[
   {label:'Защищённая приёмка 37/37',passed:e2e===true},
-  {label:'Проверка механизма переноса',passed:checks.handoff?.conclusion==='success'},
-  {label:'Полная регрессия frontend',passed:checks.regression?.conclusion==='success'},
-  {label:'Согласование staging',passed:checks.alignment?.conclusion==='success'&&parityPassed===true},
+  {label:'Проверка механизма переноса',passed:checks.handoff?.status==='completed'&&checks.handoff?.conclusion==='success'},
+  {label:'Полная регрессия frontend',passed:checks.regression?.status==='completed'&&checks.regression?.conclusion==='success'},
+  {label:'Согласование staging',passed:checks.alignment?.status==='completed'&&checks.alignment?.conclusion==='success'&&parityPassed===true},
   {label:'Совместимость опубликованного API',passed:parityPassed===true},
   {label:'Резервная копия, разрешение и выпуск',passed:releasePassed===true}
  ];
