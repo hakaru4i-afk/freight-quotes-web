@@ -17,7 +17,7 @@ permissions:
   attestations: write
 jobs:
   evaluate-protected-37:
-    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main')) }}
+    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.display_title == 'SH59 QA20 full' && github.event.workflow_run.conclusion == 'success')) }}
     env:
       PROTECTED_RUN: ${{ inputs.protected_run || github.event.workflow_run.id }}
       EVALUATOR_SOURCE: 6e0a465b2b031558989f62b38dc7939797434686
@@ -67,7 +67,7 @@ jobs:
           ]);
           // The frozen evaluator expects only the job holding OIDC credentials.
           const protectedJob=r.jobs.find(job=>job.name==='qa');
-          writeFileSync(path,JSON.stringify({...r,runAttempt:String(metadata.run_attempt),jobs:[protectedJob]}),{mode:0o600});
+          writeFileSync(path,JSON.stringify({...r,runAttempt:String(metadata.run_attempt),title:metadata.display_title,jobs:[protectedJob]}),{mode:0o600});
           console.log('PROTECTED_OIDC_RUN_REVIEWED',r.databaseId,r.conclusion);
           JS
       - name: Download and assess protected browser/API receipts against frozen SH59 v20
@@ -84,13 +84,40 @@ jobs:
             reports/verified-authenticated "$RUNNER_TEMP/protected-run.json" test/staging-manifest.json reports
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
-          import {readFileSync} from 'node:fs';
+          import {readFileSync,writeFileSync} from 'node:fs';
           const a=JSON.parse(readFileSync('reports/private-authenticated-e2e.json','utf8'));
           const pair=JSON.parse(readFileSync('reports/verified-authenticated/carrier124-ci-pair.json','utf8'));
           const run=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/protected-run.json','utf8'));
           assert.equal(pair.workflowRunAttempt,run.runAttempt);
           assert.equal(a.scenarios.length,37);
           assert.equal(a.scenarios.filter(s=>s.status==='PASS').length,37);
+          if(run.title==='SH59 QA20 full'){
+            const site='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
+            const receipt='24a2813f6ee59c148b4bd97c3e48b9c6216f78e967786d6975bfb5db06b1e273';
+            const verified=new Set();
+            for(const scenario of a.scenarios){
+              const browser=scenario.evidence.sources.filter(item=>item.file.includes('browser-results-')&&item.file.endsWith('.json'));
+              assert.ok(browser.length,'MISSING_PUBLISHED_BROWSER_EVIDENCE:'+scenario.id);
+              for(const item of browser){
+                if(verified.has(item.file))continue;
+                const e=JSON.parse(readFileSync('reports/verified-authenticated/'+item.file));
+                assert.equal(e.sourceSite,site,'BROWSER_DID_NOT_OPEN_PUBLISHED_QA20:'+item.file);
+                const proof=e.publishedQa;
+                assert.equal(proof?.sourceSite,site);
+                assert.equal(proof.receiptSha256,receipt);
+                assert.equal(proof.backendSource,pair.backendSource);
+                assert.equal(proof.bundle,pair.bundle);
+                assert.equal(proof.apiVersion,20);
+                assert.equal(e.servedAssetHashes['index.html'],proof.derivedAssets['index.html']);
+                assert.equal(e.servedAssetHashes['staging-transport-20261111.js'],proof.derivedAssets['staging-transport-20261111.js']);
+                assert.equal(e.servedAssetHashes['app.js'],e.sourceAssets['app.js']);
+                verified.add(item.file);
+              }
+            }
+            a.publishedAcceptance={site,receiptSha256:receipt,verifiedBrowserReceipts:verified.size};
+            writeFileSync('reports/private-authenticated-e2e.json',JSON.stringify(a,null,2)+'\n');
+            console.log('PUBLISHED_QA20_37_OF_37_PASS',verified.size);
+          }
           console.log('FULL_AUTHENTICATED_37_OF_37_PROVENANCE_PASS_NOT_A_PRODUCTION_RELEASE');
           JS
       - name: Attest the verified 37-ID evidence using GitHub provenance

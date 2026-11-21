@@ -1,4 +1,5 @@
 name: Carrier124 live OIDC acceptance on isolated SH59 (11 roles)
+run-name: SH59 QA20 ${{ inputs.fixture_only && 'fixture' || inputs.full_suite && 'full' || 'smoke' }}
 on:
   pull_request:
     paths:
@@ -8,6 +9,11 @@ on:
     inputs:
       full_suite:
         description: 'Run the pinned SH59 lifecycle and role matrix in the isolated QA environment'
+        type: boolean
+        required: false
+        default: false
+      fixture_only:
+        description: 'Verify the isolated synthetic fixture twice and revoke all QA sessions'
         type: boolean
         required: false
         default: false
@@ -42,12 +48,17 @@ jobs:
           git show "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs" > tests/task12-published-qa20.e2e.mjs
           git show "$GITHUB_SHA:tests/qa20-published-proof-contract.test.mjs" > tests/qa20-published-proof-contract.test.mjs
           node --check tests/task12-published-qa20.e2e.mjs
-          node --test tests/qa20-published-proof-contract.test.mjs
+          for file in scripts/qa20-sl-recovery-guard.mjs scripts/qa20-protected-run-guard.mjs tests/qa20-sl-recovery-guard.test.mjs tests/qa20-protected-run-guard.test.mjs; do
+            git show "$GITHUB_SHA:$file" > "$file"
+          done
+          node --test tests/qa20-published-proof-contract.test.mjs tests/qa20-sl-recovery-guard.test.mjs tests/qa20-protected-run-guard.test.mjs
+          git show "$GITHUB_SHA:scripts/qa20-served-browser.patch" | git apply --check --whitespace=error
   qa:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa
     permissions:
       contents: read
+      actions: read
       id-token: write
     concurrency:
       group: carrier124-main-oidc-verified
@@ -86,6 +97,29 @@ jobs:
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
           node --check tests/task12-published-qa20.e2e.mjs || test ! -e tests/task12-published-qa20.e2e.mjs
+      - name: Admit exactly one protected run per source and mode
+        id: unique_run
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          QA_RUN_TITLE: SH59 QA20 ${{ inputs.fixture_only && 'fixture' || inputs.full_suite && 'full' || 'smoke' }}
+        run: |
+          set -euo pipefail
+          if [ '${{ inputs.fixture_only }}' = true ]; then
+            test '${{ inputs.full_suite }}' != true
+          fi
+          git fetch --no-tags origin "$GITHUB_SHA" --depth=1
+          git show "$GITHUB_SHA:scripts/qa20-protected-run-guard.mjs" > "$RUNNER_TEMP/qa20-protected-run-guard.mjs"
+          runs="$RUNNER_TEMP/qa20-protected-runs.json"
+          api="repos/$GITHUB_REPOSITORY/actions/workflows/carrier124-main-oidc-smoke.yml"
+          gh api --paginate --slurp "$api/runs?branch=main&head_sha=$GITHUB_SHA&event=workflow_dispatch&per_page=100" > "$runs"
+          previous=()
+          if [ "$GITHUB_RUN_ATTEMPT" = 2 ]; then
+            prior="$RUNNER_TEMP/qa20-original-run.json"
+            gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/attempts/1" > "$prior"
+            previous+=("$prior")
+          fi
+          node "$RUNNER_TEMP/qa20-protected-run-guard.mjs" "$runs" "${previous[@]}"
       - name: Bind frozen Git assets and the isolated API before requesting credentials
         run: |
           node scripts/check-staging-alignment.mjs --source-only
@@ -142,6 +176,9 @@ jobs:
           node --check tests/carrier124-remaining-api.mjs
           node --test tests/qa20-sl-recovery-guard.test.mjs
           echo 'PINNED_SYNTHETIC_QA_SL_RECOVERY_NEGATIVE_TESTS_PASS'
+          git show "$GITHUB_SHA:scripts/qa20-served-browser.patch" | git apply --whitespace=error
+          node --check tests/task12-isolated-browser.e2e.mjs
+          echo 'QA_BROWSER_PUBLISHED=true' >> "$GITHUB_ENV"
           echo 'EXACT_PUBLISHED_QA20_BROWSER_HARNESS_PINNED'
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         id: issued
@@ -154,11 +191,34 @@ jobs:
         env:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
         run: node tests/carrier124-remaining-fixtures.e2e.mjs recover-sl
+      - name: Verify the recovered fixture can be replayed without another write
+        id: fixture_replay
+        if: inputs.fixture_only == true
+        env:
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-remaining
+        run: |
+          set -euo pipefail
+          cp reports/carrier124-remaining/sl-recovery.json reports/carrier124-remaining/sl-recovery-first.json
+          node tests/carrier124-remaining-fixtures.e2e.mjs recover-sl
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const read=name=>JSON.parse(readFileSync('reports/carrier124-remaining/'+name)).carrierB;
+          const first=read('sl-recovery-first.json');
+          const again=read('sl-recovery.json');
+          assert.equal(again.score,79);
+          assert.equal(again.blocked,false);
+          assert.equal(again.recoveryRequired,false);
+          assert.equal(again.revision,first.revision);
+          console.log('PROTECTED_QA_SL_REPLAY_PASS',again.revision);
+          JS
       - name: Execute real owner-carrier award and take with isolated synthetic rows
+        if: inputs.fixture_only != true
         id: business
         continue-on-error: true
         run: node tests/carrier124-ci-business.mjs
       - name: Authorized negative API access and document isolation (T1-09 T2-02)
+        if: inputs.fixture_only != true
         id: auth_isolation
         continue-on-error: true
         shell: bash
@@ -181,13 +241,21 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y --no-install-recommends poppler-utils
           fi
-      - name: Open all 11 actual role cabinets against SH59 using pinned Git assets
+      - name: Open all 11 role cabinets on the published SH59 QA20 site
+        if: inputs.fixture_only != true
         id: browser
         continue-on-error: true
         env:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
-      - name: Full isolated Carrier124 SH59 workflow with claim and ordinary closure
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Check one Owner cabinet on the published site before full acceptance
+        id: fixture_browser
+        if: inputs.fixture_only == true
+        env:
+          QA_BROWSER_ACTORS: owner
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Published SH59 workflow with claim and ordinary closure
         id: full_lifecycle
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
@@ -195,14 +263,14 @@ jobs:
           QA_MAP_ORDER: QA-C124-REV-${{ github.run_id }}-${{ github.run_attempt }}
           QA_NOV14_INCLUDE_ORDINARY: 'true'
         run: node tests/nov14-published-chain.e2e.mjs
-      - name: Eleven real role cabinets RU EN ZH desktop/mobile on isolated SH59
+      - name: Eleven real role cabinets RU EN ZH desktop/mobile on published SH59
         id: full_matrix
         if: ${{ inputs.full_suite == true }}
         continue-on-error: true
         env:
           QA_BROWSER_MATRIX: 'true'
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify multilingual matrix screenshot hashes are present before archiving
         id: matrix_screenshots
         if: ${{ inputs.full_suite == true }}
@@ -267,7 +335,7 @@ jobs:
           QA_BROWSER_ALIGNMENT: 'true'
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify all ten non-Owner roles are denied private archives
         id: alignment_denials
         if: ${{ inputs.full_suite == true && steps.alignment_owner.outcome == 'success' }}
@@ -276,7 +344,7 @@ jobs:
           QA_BROWSER_ALIGNMENT: 'true'
           QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify addressed Logistic upload, completion and VED separation
         id: logistic_security
         if: ${{ inputs.full_suite == true && steps.map50.outcome == 'success' }}
@@ -285,7 +353,7 @@ jobs:
           QA_BROWSER_LOGISTIC_SECURITY: 'true'
           QA_BROWSER_ACTORS: logistic
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Verify the previous UI can read the new API for rollback
         id: rollback_ui
         if: ${{ inputs.full_suite == true }}
@@ -311,7 +379,7 @@ jobs:
           QA_BROWSER_MODE_MATRIX: 'true'
           QA_BROWSER_ACTORS: carrierA
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Download the finalized tender PDF and validate the exact server values
         id: tender_pdf
         if: ${{ inputs.full_suite == true && steps.full_business_api.outcome == 'success' }}
@@ -320,8 +388,9 @@ jobs:
           QA_BROWSER_TENDER: 'true'
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
+        run: node tests/task12-isolated-browser.e2e.mjs
       - name: Authorized Service Level policy boundaries (T2-24)
+        if: inputs.fixture_only != true
         id: sl_bounds
         continue-on-error: true
         env:
@@ -351,13 +420,19 @@ jobs:
             fi
           }
 
+          require_pass unique_run '${{ steps.unique_run.outcome }}'
           require_pass issued '${{ steps.issued.outcome }}'
           require_pass authenticated '${{ steps.authenticated.outcome }}'
           require_pass fixture_recovery '${{ steps.fixture_recovery.outcome }}'
-          require_pass business '${{ steps.business.outcome }}'
-          require_pass auth_isolation '${{ steps.auth_isolation.outcome }}'
-          require_pass browser '${{ steps.browser.outcome }}'
-          require_pass sl_bounds '${{ steps.sl_bounds.outcome }}'
+          if [ '${{ inputs.fixture_only }}' = true ]; then
+            require_pass fixture_replay '${{ steps.fixture_replay.outcome }}'
+            require_pass fixture_browser '${{ steps.fixture_browser.outcome }}'
+          else
+            require_pass business '${{ steps.business.outcome }}'
+            require_pass auth_isolation '${{ steps.auth_isolation.outcome }}'
+            require_pass browser '${{ steps.browser.outcome }}'
+            require_pass sl_bounds '${{ steps.sl_bounds.outcome }}'
+          fi
           if [ '${{ steps.cleanup.outcome }}' != success ]; then
             require_pass cleanup_resume '${{ steps.cleanup_resume.outcome }}'
           fi

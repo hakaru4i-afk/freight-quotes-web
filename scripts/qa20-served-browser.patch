@@ -1,0 +1,83 @@
+--- a/tests/task12-isolated-browser.e2e.mjs
++++ b/tests/task12-isolated-browser.e2e.mjs
+@@ -24,5 +24,8 @@
+ let candidateManifest;
+ if(exactCandidate){
+- assert.equal(published,false,'Carrier124 candidate must use local committed assets');
++ if(published){
++  assert.equal(process.env.GITHUB_REF,'refs/heads/main','PROTECTED_MAIN_DISPATCH_REQUIRED');
++  assert.equal(process.env.GITHUB_EVENT_NAME,'workflow_dispatch','PROTECTED_MAIN_DISPATCH_REQUIRED');
++ }
+  assert.ok(process.env.QA_SESSIONS_FILE,'A dedicated synthetic sessions file is required');
+  candidateManifest=assertCandidateCheckout();
+@@ -64,4 +67,24 @@
+  }
+ }
++const digestPublished=bytes=>createHash('sha256').update(bytes).digest('hex');
++const servedSite='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
++let publishedQa=null;
++if(exactCandidate&&published){
++ const url=servedSite+'sh59-qa-pair.json?run='+encodeURIComponent(process.env.GITHUB_RUN_ID);
++ const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(15000)});
++ assert.equal(response.status,200,'PUBLISHED_QA_PAIR_UNAVAILABLE');
++ const bytes=Buffer.from(await response.arrayBuffer()),sha256=digestPublished(bytes);
++ assert.equal(sha256,'24a2813f6ee59c148b4bd97c3e48b9c6216f78e967786d6975bfb5db06b1e273','PUBLISHED_QA_PAIR_RECEIPT_DRIFT');
++ const served=JSON.parse(bytes);
++ assert.deepEqual([served.kind,served.testedFrontendSha,served.testedBackendSha,served.testedBackendBundleSha256,
++  served.apiProject,served.apiFunction,served.isolatedQaApiVersion,served.productionAuthorized],
++ ['SH59_ISOLATED_QA20_STAGING_PACKAGE',carrier124.frontendMetadata,carrier124.backendSource,carrier124.bundle,
++  carrier124.project,carrier124.function,20,false],'PUBLISHED_QA20_PAIR_DRIFT');
++ assert.equal(digestPublished(await readAsset('test/app.js')),served.originalTestAppSha256);
++ assert.equal(digestPublished(await readAsset('test/index.html')),served.originalTestIndexSha256);
++ publishedQa={sourceSite:servedSite,receiptSha256:sha256,backendSource:served.testedBackendSha,
++  bundle:served.testedBackendBundleSha256,apiVersion:20,
++  derivedAssets:{'index.html':served.patchedIndexSha256,'staging-transport-20261111.js':served.patchedTransportSha256}};
++}
+ const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
+ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
+@@ -72,4 +95,5 @@
+ const browser=await chromium.launch({headless:true,...(exactCandidate&&process.env.QA_CHROMIUM_PATH?{executablePath:process.env.QA_CHROMIUM_PATH}:{}),args:launchArgs});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:metadata.isolatedQaFunction,...(exactCandidate?{frontendSource:carrier124.frontendSource,frontendMetadata:carrier124.frontendMetadata,frontendTestTree:carrier124.frontendTestTree,sqlMigrationVersion:candidateManifest.sh59IsolatedQa?.catalogMigrationVersion||candidateManifest.sqlMigrationVersion,workflowRunId:process.env.GITHUB_RUN_ID||null}:{}),backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:exactCandidate?'isolated-qa-'+carrier124.run:'isolated-qa-rc20261110',transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+ await mkdir(evidenceDir,{recursive:true});
++if(publishedQa)report.publishedQa=publishedQa;
+ const html=(await readAsset('test/index.html')).toString('utf8');
+ for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readAsset('test/'+name)).digest('hex');}
+@@ -85,7 +109,8 @@
+   const path=exactCandidate?isolatedBrowserApiPath(url,origin):url.hostname==='ibclzdkxiozbzmniiygv.supabase.co'?url.pathname.split('/freight-api')[1]:url.pathname.startsWith('/api/')?url.pathname:null;
+   if(path){
+-   if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
++   if(publishedQa)assert.equal(url.origin+url.pathname,base+path,'PUBLISHED_BROWSER_REQUEST_USED_WRONG_API');
++   if(req.method()==='OPTIONS'&&!publishedQa){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
+    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
+-   let r;try{r=await qaDocumentFetch(exactCandidate?isolatedApiUrl(path,url.search):base+path+url.search,{...(exactCandidate?{redirect:'error'}:{}),method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),},{timeout:60000,onTransportRetry:()=>report.calls.push({actor,path,method:req.method(),retry:'document_upload_transport'})});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
++   let r;try{r=await qaDocumentFetch(exactCandidate?isolatedApiUrl(path,url.search):base+path+url.search,{...(exactCandidate?{redirect:'error'}:{}),method:req.method(),headers,body:['GET','HEAD','OPTIONS'].includes(req.method())?undefined:req.postDataBuffer(),},{timeout:60000,onTransportRetry:()=>report.calls.push({actor,path,method:req.method(),retry:'document_upload_transport'})});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
+    const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,durationMs:Date.now()-start,requestId:r.headers.get('x-freight-request-id'),requestedRegion:url.searchParams.get('forceFunctionRegion'),actualRegion:r.headers.get('x-sb-edge-region')});
+    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
+@@ -93,7 +118,16 @@
+   }
+   if(published&&url.origin===origin&&url.pathname.startsWith('/freight-quotes-web/test/')){
+-   const r=await fetch(url.href,{signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await r.arrayBuffer());
++   const r=await fetch(url.href,{redirect:'error',signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await r.arrayBuffer());
+    const name=decodeURIComponent(url.pathname.slice('/freight-quotes-web/test/'.length))||'index.html';
+-   if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
++   if(r.ok){
++    const local=resolve(root,'test',name);
++    assert.ok(local.startsWith(root+'/test/'));
++    const hash=digestPublished(bytes);
++    if(/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json'){
++     const expected=publishedQa?.derivedAssets[name]??digestPublished(await readAsset('test/'+name));
++     assert.equal(hash,expected,'PUBLISHED_ASSET_HASH_MISMATCH:'+name);
++    }
++    report.servedAssetHashes[name]=hash;
++   }
+    const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];await route.fulfill({status:r.status,headers,body:bytes});return;
+   }
+@@ -111,4 +145,9 @@
+  try{
+   await page.goto(origin+(published?'/freight-quotes-web/test/':'/test/'),{waitUntil:'domcontentloaded'});
++  if(publishedQa){
++   assert.equal(await page.evaluate(()=>window.__sh59Qa20?.apiVersion),20,'PUBLISHED_QA_BINDING_DID_NOT_RUN');
++   assert.equal(report.servedAssetHashes['index.html'],publishedQa.derivedAssets['index.html']);
++   assert.equal(report.servedAssetHashes['staging-transport-20261111.js'],publishedQa.derivedAssets['staging-transport-20261111.js']);
++  }
+   if(loginSmoke){
+    assert.match(password||'',/^[a-f0-9]{64}$/,'Expected a protected synthetic credential');
