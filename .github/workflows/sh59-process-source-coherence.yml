@@ -1,0 +1,24 @@
+name: SH59 source process map coherence (fast)
+on:
+  pull_request:
+    paths:
+      - 'scripts/build-process-maps.mjs'
+      - '.github/workflows/sh59-process-source-coherence.yml'
+      - 'test/business-process-model.json'
+      - 'test/staging-manifest.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-map:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify reviewed model vs current declared source, without runtime-parity substitution
+        run: node scripts/build-process-maps.mjs --check
