@@ -2060,3 +2060,1716 @@ body.lw-cc-owner-view .test-cabinets a{
 .lw-cc-development-item:hover{background:#e3f1fb}
 .lw-cc-development-item:focus-visible{outline:3px solid #64c2e7}
 
+
+/* --- SOURCE owner-registers-20261111.css --- */
+/* OW-01.30.47 v owner registers and current process model */
+.staff-portal[data-cabinet-role="owner"][data-ow-register-view]:not([data-ow-register-view=""]) .cabinet-content>:not(#ow-workspace){display:none!important}
+#ow-workspace{background:var(--portal-dark-surface,#0c2b47);color:var(--portal-dark-ink,#edf6ff);border:1px solid #315b81;border-radius:14px;padding:18px;min-width:0;overflow-wrap:anywhere}
+#ow-workspace>h2{color:var(--portal-dark-ink,#edf6ff);margin:0 0 16px}
+.ow-toolbar,.ow-tabs{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+#ow-workspace :is(input,select,textarea){background:#fff;color:#18344f;-webkit-text-fill-color:currentColor;border:1px solid #849aaf;border-radius:7px;padding:9px;max-width:100%;min-width:0;box-sizing:border-box}
+#ow-workspace :is(button,a.ow-action){background:#155e4c;color:#fff;-webkit-text-fill-color:currentColor;border:1px solid #6fa894;border-radius:7px;padding:9px 13px;cursor:pointer;min-height:40px}
+#ow-workspace :is(button,input,select,textarea,a):focus-visible{outline:3px solid #9adbef;outline-offset:3px}
+#ow-workspace button:disabled{background:#38536c;color:#fff;cursor:wait}
+.ow-toolbar input[type="search"]{flex:1;min-width:180px}.ow-source{font-size:12px;word-break:break-all}
+#ow-workspace>.ow-extra-filters>summary{color:var(--portal-dark-ink,#edf6ff)}
+.ow-record{background:#fff;color:#18344f;border:1px solid #aebfcd;border-radius:9px;padding:12px;margin:10px 0}
+.ow-record pre{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:13px/1.6 ui-monospace,monospace;color:inherit;max-width:100%}
+.ow-record summary{cursor:pointer;font-weight:650}.ow-editor-grid{display:grid;grid-template-columns:180px minmax(0,1fr) 240px;gap:12px}
+.ow-editor-canvas{background:#edf3f8;border:1px solid #a3b7c8;border-radius:9px;overflow:hidden;min-width:0;position:relative}
+.ow-editor-canvas svg{display:block;width:100%;height:560px;touch-action:none}.ow-editor-canvas text{fill:#18344f;font:13px system-ui,sans-serif;pointer-events:none}
+.ow-editor-inspector{background:#fff;color:#18344f;padding:12px;border-radius:9px}.ow-editor-inspector label{display:grid;gap:5px;margin-bottom:12px;color:#18344f}.ow-editor-inspector h3{color:#18344f}
+.ow-editor-palette{display:grid;gap:9px;align-content:start}.ow-editor-revisions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.ow-editor-message{white-space:pre-wrap}#ow-partner-count{margin-bottom:12px}
+@media(max-width:900px){.ow-editor-grid{grid-template-columns:1fr}.ow-editor-palette{display:flex;flex-wrap:wrap}.ow-editor-canvas svg{height:430px}#ow-workspace{padding:12px}.ow-toolbar>*{max-width:100%}}
+.staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]{display:flex!important;align-items:center!important;gap:8px;min-height:34px!important;line-height:1.3;padding:7px 11px!important;color:#e9f4ff!important;text-decoration:none;white-space:normal}
+.staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:hover{background:#214d72!important;color:#fff!important}
+.staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register][aria-current="page"]{background:#1a527a!important;box-shadow:inset 3px 0 #7bd0ff!important}
+.staff-portal[data-cabinet-role="owner"] .lw-owner-nav>a[data-ow-register]:focus-visible{outline:2px solid #8ad7ff!important;outline-offset:-2px}
+#ow-workspace a{color:#9adbef}
+#ow-workspace .ow-record a{color:#20548c}
+/* The cooperation cards use the Owner dark surface; generic light details do not. */
+#ow-cooperation-screen .lw-inquiry summary{color:inherit}
+#ow-cooperation-screen .lw-inquiry summary strong{color:inherit}
+
+/* QA-019: human-first Owner registers, raw metadata only in collapsed history. */
+#ow-workspace .ow-live-board{position:relative;background:#eef6fb;color:#17364b;border:1px solid #b7cfdf;border-radius:13px;padding:18px;margin:14px 0 19px}
+#ow-workspace .ow-live-board h3{font-size:19px;line-height:1.3;color:#15354c;margin:0 76px 4px 0}
+#ow-workspace .ow-work-count{position:absolute;right:18px;top:15px;background:#dceee8;color:#11593f;min-width:43px;text-align:center;border-radius:10px;padding:8px;font-size:22px}
+#ow-workspace .ow-board-help{color:#3b5871!important;font-size:14px;margin:7px 0 13px;line-height:1.45}
+#ow-workspace>.ow-board-help{color:var(--portal-dark-ink,#edf6ff)!important}
+#ow-workspace .ow-work-error{color:#7e2834!important}
+#ow-workspace .ow-work-success{color:#126342!important;font-weight:700}
+#ow-workspace .ow-active-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:10px;margin:12px 0}
+#ow-workspace .ow-active-item{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;color:#17364b;border:1px solid #c5d7e1;border-radius:10px;padding:12px;min-width:0}
+#ow-workspace .ow-active-item>div{min-width:0;display:grid;gap:4px}
+#ow-workspace .ow-active-item strong{font-size:14px;line-height:1.4;overflow-wrap:anywhere}
+#ow-workspace .ow-active-item small{color:#4c6074;font-size:12px}
+#ow-workspace .ow-active-item button{flex-shrink:0}
+#ow-workspace .ow-work-card{background:#fff;color:#16364d;border:1px solid #bdd0de;border-radius:13px;padding:17px 18px;margin:12px 0;box-shadow:0 3px 12px rgba(7,27,51,.09);min-width:0}
+#ow-workspace .ow-work-card-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+#ow-workspace .ow-work-card h3{color:#13314a;font-size:18px;line-height:1.35;margin:0;flex:1;min-width:180px}
+#ow-workspace .ow-human-description{color:#244257;line-height:1.55;font-size:14px;margin:12px 0 8px}
+#ow-workspace .ow-human-meta{color:#506a7c;font-size:12px;margin:5px 0 13px}
+#ow-workspace .ow-human-status{display:inline-flex;align-items:center;border:1px solid #c5d4df;border-radius:999px;padding:7px 10px;font-size:12px;line-height:1.2;font-weight:700;background:#eaf1f6;color:#284658}
+#ow-workspace .ow-human-status[data-state="working"]{background:#e1f2e7;color:#135c38;border-color:#a6cbb3}
+#ow-workspace .ow-human-status[data-state="blocked"]{background:#fff0e6;color:#783e1c;border-color:#e9cbb8}
+#ow-workspace .ow-human-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#ow-workspace .ow-technical-history{flex:1 1 210px;min-width:200px}
+#ow-workspace .ow-technical-history summary{color:#285379;font-size:13px;cursor:pointer;padding:10px 5px}
+#ow-workspace .ow-technical-history pre{border-radius:7px;background:#eef4f8;color:#2e4456;white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.5 ui-monospace,monospace;padding:10px;max-height:340px;overflow:auto}
+#ow-workspace .ow-source{font-size:11px;color:#b1c6d8;overflow-wrap:anywhere}
+#ow-archive-records > .ow-record{display:none}
+#ow-workspace .ow-board-link{margin-top:8px}
+@media(max-width:750px){
+ #ow-workspace .ow-live-board{padding:12px}
+ #ow-workspace .ow-work-card{padding:12px}
+ #ow-workspace .ow-work-card h3{font-size:16px}
+ #ow-workspace .ow-active-item{flex-direction:column;align-items:stretch}
+ #ow-workspace .ow-active-item button{width:100%}
+ #ow-workspace .ow-work-count{font-size:16px;right:12px}
+ #ow-workspace .ow-technical-history{flex-basis:100%}
+}
+/* Stable controls and readable compact facts for the release register. */
+#ow-workspace .ow-stable-toolbar{display:grid;grid-template-columns:minmax(160px,1fr) 170px 120px;gap:10px;align-items:center}
+#ow-workspace .ow-register-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+#ow-workspace .ow-register-facts{display:grid;grid-template-columns:minmax(120px,180px) minmax(0,1fr);gap:6px 12px;margin:10px 0;font-size:14px;line-height:1.5}
+#ow-workspace .ow-register-facts dt{font-weight:650;color:#3b5871}
+#ow-workspace .ow-register-facts dd{margin:0;overflow-wrap:anywhere;color:#16364d}
+#ow-workspace .ow-record-details summary{cursor:pointer;padding:10px 0;color:#285379}
+#ow-workspace .ow-human-actions>button{min-width:145px;min-height:40px;flex:0 0 auto}
+.ow-work-confirm{width:min(560px,calc(100vw - 32px));max-height:85vh;overflow:auto;box-sizing:border-box;border:1px solid #a8bed0;border-radius:14px;background:#fff;color:#16364d;padding:24px}
+.ow-work-confirm::backdrop{background:rgba(8,24,40,.65)}
+.ow-work-confirm h2{font:650 20px/1.4 system-ui;color:#13314a}
+.ow-work-confirm p{font:15px/1.6 system-ui;color:#244257}
+.ow-work-confirm button{min-height:44px;min-width:120px;border:1px solid #506a7c;border-radius:8px;padding:10px 16px;background:#e9f2f8;color:#16364d;cursor:pointer}
+.ow-work-confirm button:focus-visible{outline:3px solid #007ba7;outline-offset:2px}
+@media(max-width:600px){#ow-workspace .ow-stable-toolbar{grid-template-columns:minmax(0,1fr) 120px}#ow-workspace .ow-stable-toolbar input{grid-column:1/-1}#ow-workspace .ow-register-facts{grid-template-columns:1fr;gap:2px}#ow-workspace .ow-register-facts dd{margin-bottom:7px}#ow-workspace .ow-human-actions>button{width:100%}}
+
+#ow-workspace input::placeholder{color:#506a7c;opacity:1}
+
+
+/* Live Owner development progress: stage count from private API, never elapsed-time animation. */
+#ow-workspace .ow-task-progress{display:grid;gap:6px;width:100%;min-width:0;margin:9px 0 4px;color:#23455d}
+#ow-workspace .ow-task-progress-label{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:6px;font:600 12px/1.5 system-ui,sans-serif}
+#ow-workspace .ow-task-progress-track{height:10px;overflow:hidden;background:#dbe7ef;border-radius:999px;border:1px solid #b5cada}
+#ow-workspace .ow-task-progress-fill{display:block;height:100%;background:#218e81;border-radius:999px;transition:width .25s ease}
+#ow-workspace .ow-task-clock{color:#45677e;font-weight:500}
+#ow-workspace .ow-task-overdue{color:#962e24;font-weight:750}
+#ow-workspace .ow-active-item>div{flex:1;min-width:0}
+#ow-workspace .ow-active-item .ow-task-progress{min-width:min(100%,190px)}
+@media(prefers-reduced-motion:reduce){#ow-workspace .ow-task-progress-fill{transition:none}}
+
+#ow-workspace .ow-expected-title{display:block;color:#1a425b;font-size:12px;margin-top:7px}
+#ow-workspace .ow-expected-result{margin:4px 0 10px;color:#244257;font-size:14px;line-height:1.5;overflow-wrap:anywhere}
+
+
+/* --- SOURCE role-help-20261111.css --- */
+/* SH-01.30.46 v: staff role-specific guidance in existing Help view */
+.sw-cabinet #sh-role-instructions{background:#f4f8fc;color:#173147;border:1px solid #b2c8da;border-radius:13px;margin:0 0 18px;padding:18px}
+.sw-cabinet #sh-role-instructions h2{font-size:19px;color:#142f47!important;margin:0 0 6px}
+.sw-cabinet #sh-role-instructions small{font-size:12px;color:#38536c}
+.sw-cabinet #sh-role-instructions ol{padding-left:23px;display:grid;gap:8px;margin:13px 0 0}
+.sw-cabinet #sh-role-instructions li{font-size:13px;line-height:1.5}
+@media(max-width:520px){.sw-cabinet #sh-role-instructions{padding:13px}}
+
+
+/* --- SOURCE portal-contrast-accessibility-20261108.css --- */
+/* LW-CONTRAST-04 | 2026-11-08 | STAGING ONLY.
+   Fix unreadable text in Owner response monitoring and bid comparisons while
+   keeping the agreed dark workspaces, semantic decision colours and light forms.
+   Loaded AFTER role themes and hover fixes; no DOM/API/authorization changes. */
+
+/* LW-CONTRAST-ALL: keep foreground, text fill and surface in the same scope.
+   The role themes still provide their own accents and surface design. */
+:root {
+  --lw-contrast-light-ink: #172d44;
+  --lw-contrast-light-muted: #344b64;
+  --lw-contrast-light-surface: #f3f7fc;
+  --lw-contrast-dark-ink: #f3f9ff;
+  --lw-contrast-dark-muted: #cbdced;
+  --lw-contrast-dark-surface: #1b3b57;
+  --lw-contrast-disabled-ink: #33465b;
+  --lw-contrast-disabled-surface: #e4eaf0;
+  --lw-contrast-error-ink: #79261f;
+  --lw-contrast-error-surface: #fff0ed;
+  --lw-contrast-warning-ink: #573c12;
+  --lw-contrast-warning-surface: #fff4da;
+  --lw-contrast-focus-light: #174f94;
+  --lw-contrast-focus-dark: #87d8ff;
+}
+
+/* Readable dark workspace tables in every role. The generic legacy rule
+   "tbody tr:hover{background:#f9fcfb}" caused white-on-white Owner rows. */
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover {
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
+}
+:is(.cabinet-app.carrier-portal,.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active)
+  .cabinet-panel:not([data-section="overview"]) .tablewrap:not(.compact-transport-document .tablewrap)
+  tbody tr:not([class*="offer-row-"]):hover > td {
+  background:var(--lw-contrast-dark-surface) !important;color:var(--lw-contrast-dark-ink) !important;
+}
+/* Never apply a dark-row hover to explicitly light document surfaces. */
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover,
+.cabinet-app[data-cabinet-role] :is(#task2-root .t2-stage,.compact-transport-document,#portal-feedback-root)
+  .tablewrap tbody tr:hover > td {
+  background:#e6f0eb !important;color:#1b3c30 !important;
+}
+
+/* Owner uses a light notice/warning on a dark cabinet, but its new shell
+   previously passed along white foreground text. Keep light alerts readable. */
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel :is(.notice,.warning,.error,.offer-legend) {
+  color:#234338 !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .warning {color:#63451d !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel .error {color:#853025 !important;}
+.cabinet-app[data-cabinet-role]:not(.carrier-portal) .cabinet-panel
+  :is(.notice,.warning,.error,.offer-legend) :is(p,span,small,.small,.quiet,b,strong,em):not(.btn) {
+  color:inherit !important;opacity:1 !important;
+}
+/* No white notice text after visiting Owner's dark overview. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-panel:not([data-section="overview"]) .notice a:not(.btn) {
+  color:#075f69 !important;text-decoration:underline;
+}
+
+/* Real offers: each scored row is deliberately pastel. Owner's global
+   dark-shell typography (.small,.quiet) must NOT bleed onto pastel cells.
+   Keep semantic backgrounds: red=unavailable, green=good/selected, etc. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td {
+  color:#20392f !important;
+  -webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-unavailable > td {color:#622c2d !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-review > td {color:#4b380f !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr.offer-row-alternative > td {color:#283e51 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr:is(.offer-row-good,.offer-row-review,.offer-row-alternative,.offer-row-unavailable,.offer-row-selected) > td
+  :is(p,.small,.quiet,small,time,span,strong,b,em,a):not(.btn):not(.offer-label):not(.badge) {
+  color:inherit !important;opacity:1 !important;
+  -webkit-text-fill-color:currentColor;
+}
+/* A label is a signal with its own readable foreground. */
+.cabinet-app[data-cabinet-role] .cabinet-panel :is(.offer-label-good,.offer-label-review,.offer-label-alternative,.offer-label-unavailable) {
+  opacity:1 !important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-good {color:#075532 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-review {color:#634300 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-alternative {color:#283e56 !important;}
+.cabinet-app[data-cabinet-role] .cabinet-panel .offer-label-unavailable {color:#702222 !important;}
+
+/* Outcome badges are light surfaces even when placed on a dark table. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap td .badge {
+  background:#e5f0ed !important;color:#284b42 !important;
+  -webkit-text-fill-color:currentColor;opacity:1 !important;
+  border:1px solid #a9c8bf !important;
+}
+/* A dark CTA should never have dark text over dark blue on coloured rows. */
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn:not(.secondary):hover:not(:disabled) {
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
+  background:#185d99 !important;border-color:#2a76b6 !important;
+  box-shadow:0 2px 7px #09274329 !important;text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:not(:disabled),
+.cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap
+  tr[class*="offer-row-"] .btn.secondary:hover:not(:disabled) {
+  color:#f3f9ff !important;-webkit-text-fill-color:currentColor !important;
+  background:#173d5b !important;border-color:#436e8d !important;
+  box-shadow:0 2px 7px #09274326 !important;text-shadow:none !important;
+}
+
+/* Dense tables, explanations and menu labels: small text must stay legible. */
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap th {
+  font-size:12px !important;font-weight:700 !important;line-height:1.5 !important;
+  letter-spacing:.015em !important;
+}
+.cabinet-app[data-cabinet-role] .cabinet-panel:not([data-section="overview"]) .tablewrap td {
+  font-size:13px;line-height:1.55;
+}
+.cabinet-app[data-cabinet-role] :is(.cabinet-sidebar nav a,.cabinet-topbar a,.cabinet-topbar button) {
+  text-shadow:none !important;
+}
+/* Prism sidebars are dark for both cabinet shells. Selected links retain their
+   role-specific text/background pair and bypass the normal/hover override. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]) {
+  color:var(--lw-contrast-dark-muted) !important;
+  -webkit-text-fill-color:currentColor;
+  opacity:1;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar nav a,.sw-sidebar nav button):not([aria-current="page"]):hover {
+  color:var(--lw-contrast-dark-ink) !important;
+}
+
+/* Keep the selected Owner item blue while staying readable across the
+   full gradient, including the brightest end on a wide sidebar. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-sidebar nav a[aria-current="page"] {
+  background:linear-gradient(120deg,#075487,#12669d) !important;
+  color:var(--lw-contrast-dark-ink) !important;
+  -webkit-text-fill-color:currentColor;
+}
+/* State is not removed from disabled controls. */
+.cabinet-app[data-cabinet-role] .cabinet-panel button:focus-visible,
+.cabinet-app[data-cabinet-role] .cabinet-sidebar nav a:focus-visible {
+  outline:2px solid #87d8ff !important;outline-offset:3px !important;
+}
+@media(max-width:480px){
+  .cabinet-app[data-cabinet-role] .cabinet-panel .tablewrap {
+    max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+}
+
+/* LW-CONTRAST-05: Issue 63 / VED execution header. Keep text and surface in sync. */
+.cabinet-app #task2-root .t2-heading {
+  background:var(--lw-contrast-light-surface) !important;
+  border:1px solid #cad7e6 !important;
+  border-radius:14px !important;
+  padding:18px 20px !important;
+  color:var(--lw-contrast-light-ink) !important;
+}
+.cabinet-app #task2-root .t2-heading h2,
+.cabinet-app #task2-root .t2-heading p,
+.cabinet-app #task2-root .t2-heading div {
+  color:var(--lw-contrast-light-ink) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-ink) !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+.cabinet-app #task2-root .t2-heading p {
+  color:var(--lw-contrast-light-muted) !important;
+  -webkit-text-fill-color:var(--lw-contrast-light-muted) !important;
+  font-size:14px !important;
+  line-height:1.55 !important;
+}
+.cabinet-app #task2-root .t2-heading .t2-btn {
+  color:#fff !important;-webkit-text-fill-color:currentColor !important;
+  background:#2058a8 !important;border-color:#2058a8 !important;
+  opacity:1 !important;
+}
+.cabinet-app #task2-root .t2-empty {
+  background:#fff !important;color:#253b56 !important;
+}
+.cabinet-app #task2-root .t2-empty :is(h3,p) {
+  color:#253b56 !important;-webkit-text-fill-color:currentColor !important;opacity:1 !important;
+}
+
+/* Text-bearing alerts own an opaque surface, including in nested dark panels. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .error {
+  color:var(--lw-contrast-error-ink) !important;
+  background:var(--lw-contrast-error-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page) .warning {
+  color:var(--lw-contrast-warning-ink) !important;
+  background:var(--lw-contrast-warning-surface) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(.cabinet-panel,.sw-page)
+  :is(.warning,.error) :is(p,span,small,strong,em):not(.btn):not(.badge) {
+  color:inherit !important;
+  -webkit-text-fill-color:currentColor;
+}
+
+/* Disabled state is conveyed by its own pair, not a translucent label.
+   Map widgets and document-specific controls keep their component palette. */
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(button.btn,input,select,textarea):disabled {
+  opacity:1 !important;
+  color:var(--lw-contrast-disabled-ink) !important;
+  -webkit-text-fill-color:currentColor !important;
+  background:var(--lw-contrast-disabled-surface) !important;
+  border-color:#a4b3c1 !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role] :is(input,textarea)::placeholder {
+  opacity:1;
+  -webkit-text-fill-color:currentColor;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.field,.t2-stage,.compact-transport-document) :is(a,button,input,textarea,select,summary):focus-visible {
+  outline-color:var(--lw-contrast-focus-light) !important;
+}
+:is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+  :is(.cabinet-sidebar,.sw-sidebar) :is(a,button):focus-visible {
+  outline-color:var(--lw-contrast-focus-dark) !important;
+}
+@media (max-width:480px) {
+  :is(.cabinet-app,.sw-cabinet)[data-cabinet-role]
+    :is(.cabinet-sidebar nav a,.sw-sidebar nav button,.cabinet-panel .btn,.sw-page .btn) {
+    white-space:normal;
+    overflow-wrap:anywhere;
+    min-width:0;
+    height:auto;
+  }
+}
+
+/* TRACK-UX-01: readable grouped tracking form, all screen sizes. */
+#task2-root [data-t2-form="save"] .t2-fields{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;max-width:840px!important;}
+#task2-root [data-t2-form="save"] .t2-block-title{grid-column:1/-1!important;background:#eaf1fa!important;color:#173653!important;-webkit-text-fill-color:#173653!important;border-left:4px solid #3676c9!important;padding:13px 16px!important;border-radius:8px!important;font-size:16px!important;font-weight:750!important;margin:18px 0 2px!important;}
+#task2-root [data-t2-form="save"] .t2-field{display:flex!important;flex-direction:column!important;gap:7px!important;min-width:0!important;}
+#task2-root [data-t2-form="save"] .t2-field>span{font-size:15px!important;line-height:1.45!important;font-weight:650!important;color:#1b344e!important;-webkit-text-fill-color:#1b344e!important;}
+#task2-root [data-t2-form="save"] .t2-field>small{font-size:13px!important;line-height:1.45!important;color:#4b5d73!important;-webkit-text-fill-color:#4b5d73!important;}
+#task2-root [data-t2-form="save"] :is(input,select,textarea){width:100%!important;min-height:44px!important;box-sizing:border-box!important;font-size:16px!important;background:#fff!important;color:#1a314a!important;-webkit-text-fill-color:#1a314a!important;border:1px solid #a9bacd!important;border-radius:9px!important;}
+#task2-root [data-t2-form="save"] textarea{min-height:80px!important;resize:vertical!important;}
+@media(max-width:600px){#task2-root [data-t2-form="save"] .t2-fields{gap:12px!important;}#task2-root [data-t2-form="save"] .t2-block-title{font-size:15px!important;}}
+
+/* SHIPMENT-LAYOUT-03: clear hierarchy of the three primary shipment blocks. */
+#task2-root .t2-stage {
+  border:1px solid #cbd8e8!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  padding:clamp(16px,2.5vw,28px)!important;
+  margin:20px 0!important;
+  box-shadow:0 3px 16px rgba(24,48,78,.06)!important;
+}
+#task2-root .t2-stage>h3 {
+  font-size:clamp(20px,2.4vw,27px)!important;
+  line-height:1.25!important;
+  color:#16334f!important;
+  -webkit-text-fill-color:#16334f!important;
+  border-bottom:2px solid #e1eaf5!important;
+  padding-bottom:14px!important;
+  margin:0 0 20px!important;
+}
+#task2-root .t2-stage[data-t2-section="stages"],
+#task2-root .t2-stage[data-t2-section="completion"],
+#task2-root .t2-stage[data-t2-section="claims"],
+#task2-root .t2-stage[data-t2-section="history"] {
+  margin-top:24px!important;
+}
+
+/* TRACK-UX-02: paired planned date / reason, full-width actual departure below. */
+#task2-root [data-t2-form="save"] .t2-date-reason-row {
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+ gap:18px!important;
+ align-items:start!important;
+ width:100%!important;
+ min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row>.t2-field {
+ width:100%!important;min-width:0!important;
+}
+#task2-root [data-t2-form="save"] .t2-date-reason-row textarea {
+ min-height:52px!important;
+}
+@media(max-width:680px){
+ #task2-root [data-t2-form="save"] .t2-date-reason-row {
+  grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+ }
+}
+
+#task2-root .t2-plans-current{background:#f0f5fc;border:1px solid #c8d8ea;border-radius:12px;padding:16px;margin:0 0 12px;color:#1b344e}
+#task2-root .t2-plans-current>strong{display:block;color:#17334f;font-size:16px;margin-bottom:12px}
+#task2-root .t2-plan-history{display:grid;gap:8px}
+#task2-root .t2-plan-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:12px;background:#fff;border:1px solid #d8e3ef;border-radius:8px;align-items:center}
+#task2-root .t2-plan-entry span{color:#304862;font-size:14px}
+#task2-root .t2-plan-entry b{color:#16324d;font-size:15px}
+#task2-root .t2-plan-entry small{grid-column:1/-1;color:#435973;font-size:13px}
+#task2-root .t2-plan-next{font-weight:700;color:#183e69;margin:12px 0}
+@media(max-width:680px){#task2-root .t2-plan-entry{grid-template-columns:1fr}}
+
+/* TRACK-PLAN-04: four reschedule rows, independent save actions */
+#task2-root .t2-plan-four{display:grid;gap:10px;margin:14px 0 20px}
+#task2-root .t2-plan-four-row{display:grid;grid-template-columns:95px minmax(180px,1fr) minmax(180px,1.2fr) 140px;gap:12px;align-items:center;background:#fff;border:1px solid #cbd8e7;border-radius:10px;padding:12px;margin:0}
+#task2-root .t2-plan-four-row>span:first-child{font-weight:700;color:#18344e}
+#task2-root .t2-plan-four-row label{display:grid;gap:5px;min-width:0;font-size:13px;font-weight:600;color:#233e5a}
+#task2-root .t2-plan-four-row input{box-sizing:border-box;width:100%;min-width:0;min-height:42px;border:1px solid #9baec5;border-radius:7px;padding:8px;background:#fff;color:#19334d;font-size:15px}
+#task2-root .t2-plan-four-row .t2-btn{min-height:42px;white-space:nowrap}
+#task2-root .t2-plan-four-row.is-saved{background:#f1f7f2}
+#task2-root .t2-plan-four-row.is-locked{background:#f4f6f9;color:#657387}
+#task2-root .t2-plan-saved{color:#25633c;font-weight:700}
+@media(max-width:850px){#task2-root .t2-plan-four-row{grid-template-columns:1fr 1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:1/-1}}
+@media(max-width:550px){#task2-root .t2-plan-four-row{grid-template-columns:1fr}#task2-root .t2-plan-four-row>span:first-child{grid-column:auto}}
+
+/* TRACK-PLAN-05: force compact rows even under legacy form styles */
+#task2-root .t2-plan-four{display:grid!important;gap:6px!important;margin:8px 0 16px!important;max-width:100%!important}
+#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{
+ display:grid!important;grid-template-columns:90px minmax(180px,1fr) minmax(180px,1fr) 116px!important;
+ align-items:center!important;gap:10px!important;padding:9px 12px!important;
+ background:#f8fbff!important;border:1px solid #c8d7e7!important;border-radius:9px!important;
+ color:#1b344e!important;min-width:0!important;
+}
+#task2-root .t2-plan-four-row label{display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;margin:0!important}
+#task2-root .t2-plan-four-row label>span{font-size:12px!important;color:#38526e!important;-webkit-text-fill-color:#38526e!important}
+#task2-root .t2-plan-four-row input{height:40px!important;min-height:40px!important;background:#fff!important;color:#172f4a!important;-webkit-text-fill-color:#172f4a!important;border:1px solid #9fb1c6!important;border-radius:7px!important;box-sizing:border-box!important;padding:6px 9px!important}
+#task2-root .t2-plan-four-row button{min-height:40px!important;margin:0!important}
+#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:1/-1;color:#8c2930!important;font-size:13px!important}
+#task2-root .t2-plans-current{display:flex!important;gap:14px!important;align-items:center!important;flex-wrap:wrap!important;padding:10px 14px!important}
+#task2-root .t2-plans-current span{color:#3e536b!important}
+@media(max-width:760px){#task2-root form.t2-plan-four-row,#task2-root div.t2-plan-four-row{grid-template-columns:1fr!important}#task2-root .t2-plan-four-row .t2-plan-feedback{grid-column:auto}}
+
+/* TRACK-ACTUAL-01: align the one-time actual date with reschedule rows */
+#task2-root .t2-actual-row{display:grid!important;grid-template-columns:90px minmax(0,1fr)!important;gap:10px!important;align-items:center!important;border:1px solid #c8d7e7!important;border-radius:9px!important;background:#eef5fd!important;padding:9px 12px!important;margin:10px 0 18px!important;color:#1b344e!important}
+#task2-root .t2-actual-label{font-weight:700!important;font-size:14px!important;line-height:1.3!important;color:#173650!important}
+#task2-root form.t2-actual-form{display:grid!important;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) 116px!important;gap:10px!important;align-items:center!important;min-width:0!important;margin:0!important}
+#task2-root .t2-actual-form label{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;min-width:0!important}
+#task2-root .t2-actual-form label>span{font-size:12px!important;color:#38526e!important}
+#task2-root .t2-actual-form input{box-sizing:border-box!important;min-height:40px!important;height:40px!important;width:100%!important;min-width:0!important;border:1px solid #9fb1c6!important;border-radius:7px!important;background:#fff!important;color:#172f4a!important;-webkit-text-fill-color:#172f4a!important;padding:6px 9px!important;font-size:15px!important}
+#task2-root .t2-actual-form button{min-height:40px!important;margin:0!important}
+#task2-root .t2-actual-note{font-size:13px!important;color:#50627b!important}
+#task2-root .t2-actual-form .t2-plan-feedback{grid-column:1/-1!important}
+#task2-root .t2-actual-saved{font-size:15px!important}
+@media(max-width:760px){#task2-root .t2-actual-row,#task2-root form.t2-actual-form{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-01 */
+#task2-root .t2-weekly-tracking{display:grid;gap:8px;margin:10px 0 18px}
+#task2-root .t2-weekly-row{display:grid!important;grid-template-columns:95px minmax(180px,1fr) minmax(180px,1fr) 180px!important;align-items:center!important;gap:10px!important;padding:8px 12px!important;margin:0!important;border:1px solid #c8d7e7!important;border-radius:9px!important;background:#f8fbff!important;min-width:0!important;color:#18344f!important}
+#task2-root .t2-weekly-row label{display:flex!important;flex-direction:column!important;gap:3px!important;margin:0!important;min-width:0!important}
+#task2-root .t2-weekly-row label span{font-size:12px!important;color:#395572!important}
+#task2-root .t2-weekly-row input{box-sizing:border-box!important;width:100%!important;min-width:0!important;height:40px!important;background:white!important;color:#18344f!important;-webkit-text-fill-color:#18344f!important;border:1px solid #a1b3c7!important;border-radius:7px!important;padding:6px 9px!important}
+#task2-root .t2-weekly-row button{height:40px!important;margin:0!important}
+#task2-root .t2-weekly-row.is-saved{background:#eef8f1!important}
+#task2-root .t2-weekly-row.is-pending{color:#53687d!important}
+@media(max-width:760px){#task2-root .t2-weekly-row{grid-template-columns:1fr!important}}
+
+/* WEEKLY-TRACK-02: stable single-line desktop layout, no inherited field stacking */
+#task2-root form.t2-weekly-row{display:grid!important;grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important;align-items:end!important;gap:10px!important;width:100%!important;box-sizing:border-box!important}
+#task2-root form.t2-weekly-row label{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-width:0!important;width:100%!important}
+#task2-root form.t2-weekly-row label input{width:100%!important;max-width:100%!important;margin:0!important}
+#task2-root form.t2-weekly-row button{width:100%!important;white-space:nowrap!important}
+#task2-root .t2-weekly-tracking>.t2-muted{margin:0 0 4px!important}
+@media(min-width:761px){#task2-root form.t2-weekly-row{grid-template-columns:82px minmax(0,1fr) minmax(0,1fr) 112px!important}}
+@media(max-width:760px){#task2-root form.t2-weekly-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}#task2-root form.t2-weekly-row>strong{grid-column:1/-1}#task2-root form.t2-weekly-row>button{grid-column:1/-1}}
+
+
+/* QA-009 / TRACK-PLAN-ALIGN-01: all four reschedule rows use the same
+   shared grid, equal-height inputs and a right-aligned Save action.
+   A conditional aria-live feedback slot must not reserve an empty grid row.
+   Scope to Task2 only, without changing form submission or save history. */
+#task2-root .t2-plan-four {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:8px!important;
+}
+#task2-root :is(form,div).t2-plan-four-row {
+  box-sizing:border-box!important;
+  width:100%!important;
+  grid-template-columns:minmax(90px,96px) minmax(180px,1fr) minmax(180px,1fr) minmax(112px,120px)!important;
+  gap:10px!important;
+  min-height:70px!important;
+  align-items:center!important;
+}
+#task2-root form.t2-plan-four-row {
+  align-items:end!important;
+}
+#task2-root form.t2-plan-four-row > span:first-child {
+  align-self:center!important;
+}
+#task2-root form.t2-plan-four-row > label {
+  display:grid!important;
+  grid-template-rows:17px 40px!important;
+  align-items:end!important;
+  gap:4px!important;
+  margin:0!important;
+  min-width:0!important;
+}
+#task2-root form.t2-plan-four-row > label > span {
+  min-height:17px!important;
+  line-height:17px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row input,
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  box-sizing:border-box!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+}
+#task2-root form.t2-plan-four-row button[type="submit"] {
+  align-self:end!important;
+  width:100%!important;
+  white-space:nowrap!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:empty {
+  display:none!important;
+}
+#task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {
+  display:block!important;
+  grid-column:1/-1!important;
+  min-height:0!important;
+  margin:0!important;
+}
+@media(max-width:840px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(80px,92px) minmax(0,1fr) minmax(0,1fr)!important;
+  }
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:2/-1!important;
+    justify-self:end!important;
+    width:min(100%,160px)!important;
+  }
+}
+@media(max-width:560px) {
+  #task2-root :is(form,div).t2-plan-four-row {
+    grid-template-columns:minmax(0,1fr)!important;
+    min-height:0!important;
+  }
+  #task2-root form.t2-plan-four-row > span:first-child,
+  #task2-root form.t2-plan-four-row > button[type="submit"] {
+    grid-column:1!important;
+    justify-self:stretch!important;
+    width:100%!important;
+  }
+  #task2-root form.t2-plan-four-row > label {width:100%!important}
+  #task2-root .t2-plan-four-row .t2-plan-feedback:not(:empty) {grid-column:1!important}
+}
+
+
+/* --- SOURCE offer-edit-modal-readability-20261108.css --- */
+/* LW-OFFER-EDIT-READABILITY-01 | staging only | 2026-11-08
+   The Owner "Изменить ставку" modal has a white surface but inherited white
+   label/heading/help typography from the dark cabinet. Scope to light modal
+   surfaces with the offer-edit fields; preserve dark inputs and their values. */
+.cabinet-app[data-cabinet-role] :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(h1,h2,h3,h4,label,legend,.field-label,.form-label,.form-heading,.modal-title,.dialog-title,.form-help,.help-text,.hint,small,.small,.quiet,p):not(.btn):not(button) {
+  color:#213b32 !important;
+  -webkit-text-fill-color:#213b32 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+.cabinet-app[data-cabinet-role] :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(.field small,.field .hint,.field .help-text,.form-help,.help-text,.hint,.quiet) {
+  color:#445d55 !important;
+  -webkit-text-fill-color:#445d55 !important;
+  opacity:1 !important;
+}
+/* Covers portals mounted outside .cabinet-app; only apply when the actual
+   surface is light, detected by the white form's existing input background. */
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(.field > label,.field label,.form-field > label,.form-field label,legend,.field-label,.form-label) {
+  color:#213b32 !important;-webkit-text-fill-color:#213b32 !important;
+  opacity:1 !important;text-shadow:none !important;
+}
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,select,textarea) {
+  opacity:1 !important;
+}
+body :is([role="dialog"],dialog,.modal-content,.modal-card,.modal-panel,.dialog-content,.dialog-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,select,textarea):focus-visible {
+  outline:2px solid #2377ad !important;outline-offset:2px;
+}
+
+/* 02: fix actual user-entered VALUES on navy inputs.
+   The previous patch only addressed the labels; dark-shell CSS inherited
+   near-black text into dark inputs. Explicitly set foreground, caret,
+   placeholder and WebKit text-fill on every state, including focus. */
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input:not([type="checkbox"]):not([type="radio"]),select,textarea):is(:hover,:focus,:active,:disabled) {
+  color:#f8fcff !important;
+  -webkit-text-fill-color:#f8fcff !important;
+  caret-color:#ffffff !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+:is(input,textarea)::placeholder {
+  color:#cbd9e7 !important;
+  -webkit-text-fill-color:#cbd9e7 !important;
+  opacity:1 !important;
+}
+body :is([role="dialog"],dialog,.modal,.modal-content,.modal-card,.modal-panel,.dialog,.dialog-content,.dialog-panel,.overlay-panel,.edit-offer-modal,.offer-edit-modal)
+select option {
+  color:#172d40 !important;
+  background:#fff !important;
+}
+
+
+/* --- SOURCE global-view/leaflet.css --- */
+/* required styles */
+
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url("global-view/images/layers.png");
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url("global-view/images/layers-2x.png");
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: url("global-view/images/marker-icon.png");
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
+
+
+/* --- SOURCE global-view/view.css --- */
+global-route-view {
+  container-type: inline-size;
+  display: block;
+  min-width: 0;
+  margin: .75rem 0 1rem;
+  overflow: hidden;
+  isolation: isolate;
+  color: #eff3ff;
+  background: #0a102c;
+  border: 1px solid #303f69;
+  border-radius: 16px;
+  font: 14px/1.5 system-ui, sans-serif;
+  text-align: left;
+}
+global-route-view [hidden] { display: none !important; }
+.gv-hero {
+  background:
+    linear-gradient(#7689cb0d 1px, transparent 1px) center / 58px 58px,
+    linear-gradient(90deg, #7689cb0d 1px, transparent 1px) center / 58px 58px,
+    radial-gradient(ellipse at 50% 55%, #26376f, #141e49 57%, #090e2a 94%);
+}
+.gv-header { text-align: center; padding: 22px 12px 0; }
+global-route-view .gv-title {
+  margin: 0;
+  color: #f8f9ff;
+  font: 350 clamp(28px, 5cqi, 48px)/1.1 system-ui, sans-serif;
+  letter-spacing: -.055em;
+}
+global-route-view .gv-subtitle { margin: 7px 0 0; color: #b1c1ee; font-size: 12px; }
+.gv-subtitle::before { content: ''; display: inline-block; width: 5px; height: 5px; margin: 0 7px 2px 0; border-radius: 50%; background: #ffd742; }
+.gv-frame { position: relative; overflow: hidden; }
+.gv-stage { position: relative; width: 100%; height: clamp(300px, 49cqi, 560px); overflow: hidden; }
+.gv-stage canvas { display: block; }
+.gv-stage-globe > canvas { width: 100%; height: 100%; cursor: grab; }
+.gv-stage-globe > canvas:active { cursor: grabbing; }
+.gv-stage.leaflet-container { background: #121e43; }
+.gv-stage .leaflet-control-attribution { color: #e3edff; background: #0b1729e8; font-size: 11px; }
+.gv-controls {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px 16px;
+}
+.gv-switch { grid-column: 2; display: inline-flex; background: #465477; border-radius: 24px; padding: 3px; }
+.gv-zoom { justify-self: end; display: flex; gap: 7px; }
+global-route-view .gv-controls button {
+  min-width: 36px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 24px;
+  padding: 0 8px;
+  color: #f4f6ff;
+  background: #3b496f;
+  font: 650 14px/1 system-ui, sans-serif;
+  cursor: pointer;
+}
+global-route-view .gv-switch button { min-width: 50px; background: transparent; }
+global-route-view .gv-controls button:hover:not(:disabled) { background: #52628b; }
+global-route-view .gv-controls button[aria-pressed="true"],
+global-route-view .gv-controls .gv-reset { color: #121c42; background: #fbfcff; }
+global-route-view .gv-controls button[aria-pressed="true"]:hover,
+global-route-view .gv-controls .gv-reset:hover:not(:disabled) { background: #e2e9ff; }
+global-route-view .gv-controls button:disabled { opacity: .52; cursor: default; }
+global-route-view button:focus-visible { outline: 2px solid #ffda43; outline-offset: 2px; }
+.gv-globe-label, .gv-map-stop, .gv-map-country {
+  color: #162044;
+  background: #eff3ff;
+  border: 1px solid #d1dcfa;
+  border-radius: 12px;
+  padding: 2px 7px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: 650 11px/1.35 system-ui, sans-serif;
+}
+.gv-globe-label { position: absolute; transform: translate(8px, -125%); pointer-events: none; }
+.gv-globe-label.gv-label-left { transform: translate(calc(-100% - 8px), -125%); }
+.gv-label-endpoint { color: #192244; background: #fff8dc; border-color: #ffdf58; }
+.gv-stage .gv-map-capital {
+  color: #d2e5e9; font-size: 10px; background: transparent; border: 0; box-shadow: none;
+  text-shadow: 0 1px 2px #000, 0 0 4px #000;
+}
+.gv-stage .leaflet-tooltip::before { display: none; }
+.gv-message {
+  position: absolute; z-index: 700; bottom: 20px; left: 12px; right: 12px; width: fit-content;
+  margin: 0 auto; color: #fff2c4; background: #101a37ee; border-radius: 12px; padding: 5px 10px;
+}
+.gv-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr);
+  align-items: stretch;
+  color: #142147;
+  background: #fafbff;
+  overflow-wrap: anywhere;
+}
+.gv-activities, .gv-summary { min-width: 0; padding: 20px clamp(14px, 3cqi, 28px); }
+.gv-summary { color: #fff; background: #4c62ba; }
+global-route-view .gv-info h3 { margin: 0 0 12px; color: inherit; font-size: 17px; font-weight: 620; }
+.gv-mode, .gv-stop-status {
+  display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: 650;
+}
+.gv-mode { color: #22294a; background: #ffda43; }
+global-route-view .gv-coverage { margin: 13px 0 0; font-size: 38px; font-weight: 350; line-height: 1; }
+global-route-view .gv-coverage-label { margin: 5px 0 14px; color: #f2f5ff; font-size: 12px; }
+global-route-view .gv-warning { margin: 6px 0 0; color: #f2f5ff; font-size: 12px; }
+.gv-stops { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; }
+.gv-stops li {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 9px; align-items: center;
+  padding: 7px 9px; border-radius: 10px; background: #eef1fb;
+}
+.gv-stop-number {
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  color: #fff; background: #455eb3; font-weight: 700;
+}
+.gv-stops li:first-child .gv-stop-number, .gv-stops li:last-child .gv-stop-number { color: #192244; background: #ffda43; }
+.gv-stops strong, .gv-stops small { display: block; }
+.gv-stops small, .gv-unordered { color: #465477; font-size: 12px; }
+.gv-stop-status { color: #293f83; background: #dfe6fc; text-align: center; }
+.gv-stop-unlocated .gv-stop-status { color: #5a4000; background: #f9e8b5; }
+global-route-view .gv-unordered-title { margin: 12px 0 4px; color: inherit; font-size: 13px; }
+.gv-unordered { margin: 0; padding-inline-start: 18px; }
+@container (max-width: 560px) {
+  .gv-header { padding-top: 16px; }
+  .gv-stage { height: clamp(250px, 75cqi, 390px); }
+  .gv-info { grid-template-columns: minmax(0, 1fr); }
+  .gv-activities, .gv-summary { padding: 14px; }
+  .gv-controls { grid-template-columns: auto 1fr; padding-inline: 12px; }
+  .gv-switch { grid-column: 1; }
+  global-route-view .gv-controls button { min-height: 42px; min-width: 42px; }
+  .gv-globe-label, .gv-map-stop { max-width: 100px; }
+}
+@container (max-width: 330px) {
+  .gv-stops li { grid-template-columns: auto minmax(0, 1fr); }
+  .gv-stop-status { grid-column: 2; justify-self: start; }
+}
+.gv-globe-transport {
+  position: absolute; display: grid; place-items: center; width: 27px; height: 27px;
+  transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+  color: #182041; background: #ffda43; box-shadow: 0 0 12px #ffcb65a0;
+  font: 750 15px/1 system-ui, sans-serif;
+}
+@container (max-width: 560px) {
+  .gv-globe-label[data-stop-number], .gv-map-stop span[data-stop-number] { font-size: 0; }
+  .gv-globe-label[data-stop-number]::before, .gv-map-stop span[data-stop-number]::before {
+    content: attr(data-stop-number);
+    font-size: 11px;
+  }
+}
+
+.gv-geocode-edit{font-size:12px;margin-top:8px}.gv-geocode-form{display:grid;gap:7px;min-width:0}.gv-geocode-form input,.gv-geocode-form select{box-sizing:border-box;max-width:100%;min-width:0;width:100%;padding:7px}.gv-geocode-form input[type=checkbox]{width:auto}.gv-geocode-form button{padding:7px;cursor:pointer}.gv-current-location{border-color:#75efaf!important;color:#14532d!important}
+
+.gv-tracking{grid-column:1/-1;min-width:0}.gv-tracking .gv-stops>li{display:block;overflow-wrap:anywhere}.gv-tracking .gv-geocode-edit{margin-top:8px}.gv-geocode-edit summary{white-space:normal;display:inline-block}#task2-root global-route-view .gv-title,#task2-root global-route-view .gv-summary h3{color:#f3f7ff!important}.gv-geocode-form{color:#173650}.gv-geocode-form small{color:#28465f}
+
+#task2-root global-route-view .gv-geocode-edit>summary{color:#164653!important;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+
+.gv-current-caption{margin:0;padding:10px 16px;color:#d5ffeb;background:#102b31;font-size:13px;line-height:1.5;overflow-wrap:anywhere;border-top:1px solid #30575b}
+
+
+/* --- SOURCE ved-single-workspace-20261108.css --- */
+/* VED-01 staging: scope fixes strictly to VED role, no authorization changes. */
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] {
+ color:#172b45!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(h1,h2,h3,h4,strong,b) {
+ color:#152842!important;opacity:1!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(p,small,.small,.quiet,.muted,span,li) {
+ color:#43536b!important;opacity:1!important;-webkit-text-fill-color:currentColor;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(.btn,button,[role="button"]) {
+ -webkit-text-fill-color:initial;opacity:1!important;
+}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav a[hidden] {display:none!important;}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"] :is(input,textarea,select) {color:#142b45!important;background:#fff!important;}
+
+.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a[hidden]{display:none!important;visibility:hidden!important;}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link{display:flex!important;align-items:center;gap:12px;color:#e9f3ff!important;opacity:1!important;visibility:visible!important;font-size:14px;font-weight:650;padding:14px 20px;border-radius:14px;text-decoration:none;}
+.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link:hover,.cabinet-app[data-cabinet-role="ved"] .cabinet-sidebar nav>a.ved-active-shipments-link[aria-current="page"]{background:#244b76!important;color:#fff!important;}
+
+/* VED home: remove legacy owner/carrier metrics and links, not role permissions. */
+.cabinet-app[data-cabinet-role="ved"] .cabinet-panel[data-section="overview"][data-ved-home-ready="true"] > :not(#ved-home-20261108){display:none!important;}
+#ved-home-20261108{display:grid;gap:16px;max-width:1040px;margin:0 auto;padding:32px 22px 48px;color:#20344e!important;}
+#ved-home-20261108 .ved-home-kicker{font-size:12px;letter-spacing:.14em;font-weight:750;color:#41628b!important;}
+#ved-home-20261108 h2{font-size:clamp(26px,3vw,40px);line-height:1.15;letter-spacing:-.03em;color:#172c49!important;margin:0;}
+#ved-home-20261108 p{font-size:16px;line-height:1.6;max-width:750px;color:#40546c!important;margin:0;}
+#ved-home-20261108 .ved-home-actions{margin:8px 0 12px;}
+#ved-home-20261108 .ved-home-primary{display:inline-flex;padding:15px 20px;border-radius:12px;background:#1e5ac5;color:#fff!important;font-weight:750;text-decoration:none;}
+#ved-home-20261108 .ved-home-primary:hover{background:#1648a3;color:#fff!important;}
+#ved-home-20261108 .ved-home-note{display:grid;gap:8px;background:#f0f5fb;border:1px solid #ccd9e9;border-radius:16px;padding:22px;color:#40546c!important;line-height:1.55;}
+#ved-home-20261108 .ved-home-note strong{font-size:16px;color:#20344e!important;}
+#ved-home-20261108 .ved-home-note span{color:#40546c!important;}
+@media(max-width:600px){#ved-home-20261108{padding:22px 12px;}#ved-home-20261108 .ved-home-primary{width:100%;justify-content:center;}}
+
+
+/* --- SOURCE lw-pending-tasks-all-roles-20261109.css --- */
+/* Role-scoped pending tasks panel, staging only. Uses inherited surface colors. */
+#lw-pending-tasks-all-roles {
+ box-sizing:border-box;
+ display:block;
+ width:100%;
+ padding:17px 19px;
+ margin:0 0 20px;
+ border:1px solid #cbd5e1;
+ border-radius:15px;
+ background:#f8fafc;
+ color:#17243a;
+ box-shadow:0 5px 16px rgba(24,45,78,.07);
+ font-family:inherit;
+ text-align:left;
+}
+#lw-pending-tasks-all-roles *,
+#lw-pending-tasks-all-roles *::before,
+#lw-pending-tasks-all-roles *::after {box-sizing:border-box;}
+#lw-pending-tasks-all-roles .lw-pending-head {
+ display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+#lw-pending-tasks-all-roles .lw-pending-head >div{display:flex;align-items:center;gap:10px;min-width:0;}
+#lw-pending-tasks-all-roles h3 {
+ margin:0; padding:0; color:inherit; font-size:1.05rem; font-weight:750;line-height:1.35;
+}
+#lw-pending-tasks-all-roles .lw-pending-count {
+ border-radius:999px;display:inline-flex;min-width:26px;height:26px;padding:0 8px;align-items:center;justify-content:center;
+ font-weight:750;background:#e2e8f0;color:#1e293b;line-height:1;font-size:.84rem;
+}
+#lw-pending-tasks-all-roles [data-lw-tasks-more],
+#lw-pending-tasks-all-roles .lw-pending-head button{
+ appearance:none;background:transparent;color:#164e87;border:1px solid #94a3b8;
+ border-radius:8px;font:inherit;font-size:.81rem;font-weight:650;cursor:pointer;
+ padding:7px 12px;line-height:1.25;
+}
+#lw-pending-tasks-all-roles button:hover,#lw-pending-tasks-all-roles a:hover{background:#e7effb;color:#113a69;}
+#lw-pending-tasks-all-roles button:focus-visible,#lw-pending-tasks-all-roles a:focus-visible {outline:2px solid #2563eb;outline-offset:2px;}
+#lw-pending-tasks-all-roles ul {list-style:none;margin:13px 0 0;padding:0;display:grid;gap:6px;}
+#lw-pending-tasks-all-roles li {margin:0;padding:0;}
+#lw-pending-tasks-all-roles li a {
+ display:flex;align-items:center;justify-content:space-between;gap:14px;
+ padding:9px 11px;border:1px solid #d8e0eb;border-radius:10px;
+ text-decoration:none!important;color:#1f2937!important;background:#fff;
+ font:inherit;
+}
+#lw-pending-tasks-all-roles li a span:first-child{min-width:0;display:flex;flex-direction:column;gap:3px;}
+#lw-pending-tasks-all-roles li a strong {font-weight:700;font-size:.91rem;color:#17243a!important;line-height:1.4;}
+#lw-pending-tasks-all-roles li a small {font-weight:400;font-size:.79rem;color:#475569!important;line-height:1.4;overflow-wrap:anywhere;}
+#lw-pending-tasks-all-roles .lw-pending-arrow{font-size:1.5rem;color:#334155;font-weight:500;flex:none;}
+#lw-pending-tasks-all-roles .lw-pending-status,
+#lw-pending-tasks-all-roles .lw-pending-error,
+#lw-pending-tasks-all-roles .lw-pending-warning,
+#lw-pending-tasks-all-roles .lw-pending-more {margin-top:10px;font-size:.82rem;line-height:1.45;color:#475569;}
+#lw-pending-tasks-all-roles .lw-pending-error{color:#991b1b;}
+#lw-pending-tasks-all-roles .lw-pending-warning{color:#854d0e;}
+/* Owner dashboard is dark: adapt the card locally without affecting other cabinets. */
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles,
+#lw-owner-command #lw-pending-tasks-all-roles {
+ background:#15263d!important;color:#f1f5f9!important;border-color:#405472!important;
+ box-shadow:0 9px 23px rgba(0,0,0,.18);
+}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a,
+#lw-owner-command #lw-pending-tasks-all-roles li a {background:#203650!important;color:#f1f5f9!important;border-color:#49627f!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a strong,
+#lw-owner-command #lw-pending-tasks-all-roles li a strong {color:#fff!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a small,
+#lw-owner-command #lw-pending-tasks-all-roles li a small {color:#cad7e8!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-head button,
+#lw-owner-command #lw-pending-tasks-all-roles .lw-pending-head button{color:#d5e7ff!important;border-color:#7594b8!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-status,
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-more,
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles .lw-pending-warning{color:#cbd5e1!important;}
+.cabinet-app[data-cabinet-role="owner"] #lw-pending-tasks-all-roles li a:hover,
+#lw-owner-command #lw-pending-tasks-all-roles li a:hover{background:#294563!important;}
+@media(max-width:680px){
+ #lw-pending-tasks-all-roles{padding:13px 12px;margin-bottom:14px;border-radius:12px;}
+ #lw-pending-tasks-all-roles h3{font-size:.96rem;}
+ #lw-pending-tasks-all-roles .lw-pending-head{flex-wrap:nowrap;}
+ #lw-pending-tasks-all-roles .lw-pending-head button{padding:6px 9px;font-size:.76rem;}
+ #lw-pending-tasks-all-roles li a{padding:10px 9px;}
+}
+
+
+/* --- SOURCE lw-ved-shared-chat-20261109.css --- */
+/* Full VED conversation: one real /api/chats thread with Owner and Carrier. No templates. */
+.lw-ved-chat-mount {width:100%;min-width:0;margin:12px 0 22px;color:#203047;-webkit-text-fill-color:initial;}
+.lw-ved-chat-layout {border:1px solid #cfd9e6;border-radius:15px;overflow:hidden;background:#fff;box-shadow:0 6px 22px rgba(34,53,76,.07);}
+.lw-ved-chat-header {padding:16px 18px;background:#f3f7fc;border-bottom:1px solid #dae4ee;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.lw-ved-chat-header>div {display:flex;flex-direction:column;gap:4px;min-width:0;}
+.lw-ved-chat-header strong {font-size:16px;font-weight:750;color:#16293c;}
+.lw-ved-chat-header small {font-size:12px;color:#506377;line-height:1.5;}
+.lw-ved-chat-header button {flex-shrink:0;border:1px solid #b6c9da;border-radius:8px;color:#145e89;background:#fff;padding:7px 12px;font-size:12px;font-weight:650;cursor:pointer;}
+.lw-ved-chat-thread {height:360px;min-height:210px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:10px;padding:17px;background:#f8fafd;}
+.lw-ved-chat-placeholder {color:#66768a;text-align:center;align-self:center;padding:32px 5px;font-size:13px;}
+.lw-ved-chat-message {display:flex;flex-direction:column;max-width:min(88%,620px);width:max-content;min-width:95px;background:#fff;border:1px solid #dce3ed;border-radius:11px 11px 11px 3px;padding:9px 13px;box-shadow:0 2px 5px rgba(30,50,85,.05);color:#1f2e43;}
+.lw-ved-chat-message.mine {background:#e7f4ec;border-color:#bedcca;align-self:flex-end;border-radius:11px 11px 3px 11px;}
+.lw-ved-chat-meta {display:flex;align-items:center;justify-content:space-between;gap:17px;flex-wrap:wrap;}
+.lw-ved-chat-meta strong {font-weight:750;font-size:12px;color:#17476c;}
+.lw-ved-chat-meta time {font-size:11px;color:#617082;}
+.lw-ved-chat-message p {white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55;margin:6px 0 0;color:#192c3f;}
+.lw-ved-chat-attachments {display:flex;flex-direction:column;gap:5px;margin:8px 0 0;}
+.lw-ved-chat-file {display:inline-flex;padding:6px 8px;border-radius:7px;background:#f1f5f9;text-decoration:none!important;color:#155ba0!important;font-size:12px;word-break:break-word;}
+.lw-ved-chat-composer {padding:14px 17px 16px;background:white;border-top:1px solid #dde5ee;display:grid;gap:9px;}
+.lw-ved-chat-composer label {display:flex;flex-direction:column;gap:5px;font-size:12px;color:#33475d;font-weight:650;}
+.lw-ved-chat-composer textarea {display:block!important;width:100%!important;min-height:75px!important;padding:10px 12px!important;resize:vertical;border:1px solid #acbccb!important;border-radius:10px!important;background:#fff!important;color:#17283c!important;-webkit-text-fill-color:#17283c!important;box-shadow:none!important;font:inherit;font-size:14px!important;line-height:1.45!important;}
+.lw-ved-chat-composer textarea:focus-visible,.lw-ved-chat-composer input:focus-visible,.lw-ved-chat-header button:focus-visible,.lw-ved-chat-send-row button:focus-visible {outline:2px solid #1670bd;outline-offset:2px;}
+.lw-ved-chat-files {display:flex!important;align-items:center;gap:10px;flex-direction:row!important;flex-wrap:wrap;color:#39576e!important;}
+.lw-ved-chat-files input {max-width:100%;font-size:12px;color:#31495c;}
+.lw-ved-chat-send-row {display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.lw-ved-chat-send-row span {font-size:12px;line-height:1.4;color:#2e754a;}
+.lw-ved-chat-send-row span[data-error="true"] {color:#ab2c2c;}
+.lw-ved-chat-send-row button {border:1px solid #17834c;border-radius:9px;background:#18794d!important;color:#fff!important;font-weight:700;font-size:13px;padding:10px 20px;min-height:38px;cursor:pointer;box-shadow:none!important;}
+.lw-ved-chat-send-row button:hover:not(:disabled) {background:#126941!important;filter:none!important;color:#fff!important;}
+.lw-ved-chat-send-row button:disabled {opacity:.65;cursor:wait;}
+@media(max-width:560px){.lw-ved-chat-header{padding:12px;}.lw-ved-chat-thread{height:320px;padding:11px;}.lw-ved-chat-message{max-width:96%;}.lw-ved-chat-composer{padding:12px;}.lw-ved-chat-meta{gap:6px;}}
+
+/* Dedicated VED menu screen; the same conversation is available inside each shipment. */
+.cabinet-app:not(.lw-ved-chat-active) #lw-ved-chat-page{display:none!important;}
+#lw-ved-chat-page .lw-ved-chat-composer[hidden]{display:none!important;}
+.cabinet-app.lw-ved-chat-active .cabinet-panel {display:none!important;}
+.cabinet-app.lw-ved-chat-active #lw-ved-chat-page{display:block!important;visibility:visible!important;opacity:1!important;width:100%!important;}
+#lw-ved-chat-page{padding:16px;min-width:0;}
+#lw-ved-chat-page .lw-ved-chat-page-heading h2{font-size:24px;font-weight:780;color:#152c43;margin:0 0 7px;}
+#lw-ved-chat-page .lw-ved-chat-page-heading p{color:#5b7185;margin:0 0 16px;font-size:13px;line-height:1.5;}
+#lw-ved-chat-page .lw-ved-chat-orders{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;padding:12px 14px;margin-bottom:12px;border:1px solid #d5e1eb;border-radius:12px;background:#f7fafd;}
+#lw-ved-chat-page [data-vc-orders]{display:flex;align-items:center;gap:7px;flex-wrap:wrap;color:#4b5f73;font-size:13px;}
+#lw-ved-chat-page [data-vc-orders] button{border:1px solid #a8bacb;border-radius:9px;color:#1e425f;background:white;font-weight:650;cursor:pointer;padding:9px 12px;display:inline-flex;align-items:center;gap:8px;}
+#lw-ved-chat-page [data-vc-orders] button.is-current{background:#dceefb;color:#084d7f;border-color:#689ac0;}
+#lw-ved-chat-page [data-vc-orders] button b{border-radius:999px;color:#fff;background:#cc4040;padding:1px 6px;font-size:10px;}
+#lw-ved-chat-page [data-vc-list-refresh]{cursor:pointer;border:1px solid #b6c4d3;border-radius:8px;background:white;color:#23506f;font-weight:600;padding:8px 11px;font-size:12px;}
+#lw-ved-chat-page .lw-ved-chat-mount{margin:0;}
+@media(max-width:560px){#lw-ved-chat-page{padding:8px!important;}#lw-ved-chat-page .lw-ved-chat-orders{padding:9px;}}
+
+
+/* QA-013 / LW-CONTRAST-ALL: chat light surfaces must not inherit the white
+   text-fill/gradient from Owner or Carrier dark cabinets. Scoped to the
+   actual shared shipment chat; does not affect authentication or messages. */
+.cabinet-app .lw-ved-chat-mount,
+.cabinet-app .lw-ved-chat-layout,
+#lw-ved-chat-page .lw-ved-chat-layout {
+  --chat-ink:#192f40;
+  --chat-muted:#375265;
+  --chat-link:#124e80;
+  color:var(--chat-ink)!important;
+  -webkit-text-fill-color:currentColor!important;
+  background:#fff!important;
+  color-scheme:light;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-header,.lw-ved-chat-composer),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-header,.lw-ved-chat-composer) {
+  color:var(--chat-ink)!important;
+  -webkit-text-fill-color:currentColor!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-header strong,
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-meta strong,
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message p,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-header strong,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-meta strong,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message p {
+  color:#1a3345!important;-webkit-text-fill-color:#1a3345!important;
+  opacity:1!important;text-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-header small,.lw-ved-chat-meta time,.lw-ved-chat-placeholder,.lw-ved-chat-composer label,.lw-ved-chat-files),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-header small,.lw-ved-chat-meta time,.lw-ved-chat-placeholder,.lw-ved-chat-composer label,.lw-ved-chat-files) {
+  color:#355167!important;-webkit-text-fill-color:#355167!important;
+  opacity:1!important;text-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(.lw-ved-chat-thread,.lw-ved-chat-message,.lw-ved-chat-composer),
+#lw-ved-chat-page .lw-ved-chat-layout :is(.lw-ved-chat-thread,.lw-ved-chat-message,.lw-ved-chat-composer) {
+  filter:none!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message {
+  background:#fff!important;border-color:#becedd!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-message.mine,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-message.mine {
+  background:#e5f3e9!important;border-color:#b4d3bd!important;
+}
+.cabinet-app .lw-ved-chat-layout textarea,
+#lw-ved-chat-page .lw-ved-chat-layout textarea {
+  background:#fff!important;color:#1b3244!important;
+  -webkit-text-fill-color:#1b3244!important;
+  border-color:#859eae!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout textarea::placeholder,
+#lw-ved-chat-page .lw-ved-chat-layout textarea::placeholder {
+  color:#53677b!important;-webkit-text-fill-color:#53677b!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout .lw-ved-chat-file,
+#lw-ved-chat-page .lw-ved-chat-layout .lw-ved-chat-file {
+  background:#ecf3f8!important;color:#125684!important;
+  -webkit-text-fill-color:#125684!important;
+}
+.cabinet-app .lw-ved-chat-layout button,
+#lw-ved-chat-page .lw-ved-chat-layout button {
+  filter:none!important;text-shadow:none!important;box-shadow:none!important;
+  transition:background-color .15s ease!important;opacity:1!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-refresh],
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-refresh] {
+  background:#f5f9fb!important;color:#1a4c65!important;
+  -webkit-text-fill-color:#1a4c65!important;border-color:#8ba9ba!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-refresh]:hover,
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-refresh]:hover {
+  background:#e2edf4!important;color:#1a4c65!important;-webkit-text-fill-color:#1a4c65!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-submit],
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-submit] {
+  background:#176a47!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  border-color:#176a47!important;
+}
+.cabinet-app .lw-ved-chat-layout [data-vc-submit]:hover:not(:disabled),
+#lw-ved-chat-page .lw-ved-chat-layout [data-vc-submit]:hover:not(:disabled) {
+  background:#12583c!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+  box-shadow:none!important;
+}
+.cabinet-app .lw-ved-chat-layout :is(button,a,textarea):focus-visible,
+#lw-ved-chat-page .lw-ved-chat-layout :is(button,a,textarea):focus-visible {
+  outline:3px solid #1368af!important;outline-offset:2px!important;
+}
+
