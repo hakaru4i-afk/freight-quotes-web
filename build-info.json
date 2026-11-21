@@ -1,12 +1,12 @@
 {
   "environment": "production",
-  "version": "9142f01dfba06589372a",
-  "releaseVersion": "SH-01.30.59 v",
+  "version": "b9e786a5d7175cf1eeb1",
+  "releaseVersion": "SH-01.30.60 v",
   "projectRef": "ooclsrndeygojtofuyte",
-  "build": "9142f01dfba06589372a",
-  "releaseStatus": "CANDIDATE_NOT_RELEASED",
+  "build": "b9e786a5d7175cf1eeb1",
+  "releaseStatus": "PUBLISHED",
   "sourceStagingBuild": "e49dd78d09811370c74d",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotes": "release-status.json",
-  "releaseDate": "2026-11-17"
+  "releaseDate": "2026-11-22"
 }
