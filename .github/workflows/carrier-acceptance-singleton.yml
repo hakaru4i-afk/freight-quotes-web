@@ -24,6 +24,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'
       - name: Syntax, one action handler and cache key
         run: |
           set -euo pipefail
@@ -33,6 +34,7 @@ jobs:
           SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
           grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" test/index.html
           ! grep -Fq 'carrier-acceptance-workflow-20261107.js' index.html
+          
   served:
     if: github.event_name != 'pull_request'
     needs: source
@@ -46,7 +48,7 @@ jobs:
           set -euo pipefail
           SCRIPT_SHA=$(git hash-object test/carrier-acceptance-workflow-20261107.js)
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
-          for attempt in {1..36}; do
+          for attempt in {1..12}; do
             curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/accept-index.html || true
             curl -fsSL --max-time 16 -H 'Cache-Control: no-cache' "$BASE/carrier-acceptance-workflow-20261107.js?qa=$GITHUB_SHA" -o /tmp/accept-workflow.js || true
             if grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" /tmp/accept-index.html 2>/dev/null \
@@ -55,10 +57,11 @@ jobs:
               sha256sum /tmp/accept-workflow.js
               exit 0
             fi
-            sleep 7
+            sleep 15
           done
           echo '::error::Staging script has not been published byte-for-byte'
           exit 1
+          
   browser:
     needs: source
     runs-on: ubuntu-24.04
@@ -68,8 +71,16 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+          cache: 'npm'
+      - name: Cache Playwright Browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
       - name: "Chromium desktop and 390px: no duplicate panels or accept actions"
         run: node --test tests/carrier-acceptance-singleton-browser.test.mjs
       - uses: actions/upload-artifact@v4
