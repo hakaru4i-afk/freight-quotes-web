@@ -5,12 +5,14 @@ on:
     paths:
       - test/carrier-acceptance-workflow-20261107.js
       - test/index.html
+      - index.html
       - tests/carrier-acceptance-singleton-browser.test.mjs
       - .github/workflows/carrier-acceptance-singleton.yml
   pull_request:
     paths:
       - test/carrier-acceptance-workflow-20261107.js
       - test/index.html
+      - index.html
       - tests/carrier-acceptance-singleton-browser.test.mjs
       - .github/workflows/carrier-acceptance-singleton.yml
   workflow_dispatch:
