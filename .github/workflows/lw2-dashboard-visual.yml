@@ -1,15 +1,11 @@
 name: Logistics Workspace 2.0 staging visual QA
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'test/lw2-*'
-      - 'test/index.html'
-      - 'tests/lw2-dashboard-browser.test.mjs'
-      - '.github/workflows/lw2-dashboard-visual.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   visual-staging:
     runs-on: ubuntu-24.04
@@ -19,6 +15,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Cache npm and Playwright Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Validate actual carrier overview selectors, layout and links

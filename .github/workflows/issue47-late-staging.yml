@@ -1,13 +1,5 @@
 name: Issue47 late bid staging regression
 on:
-  pull_request:
-    paths:
-      - 'test/app.js'
-      - 'test/late-bid-staging.js'
-      - 'test/index.html'
-      - 'test/build-info.json'
-      - 'tests/issue47-late-ui.test.mjs'
-      - '.github/workflows/issue47-late-staging.yml'
   push:
     branches: [main]
     paths:
@@ -17,6 +9,9 @@ on:
       - 'test/build-info.json'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify:
     runs-on: ubuntu-24.04

@@ -1,13 +1,14 @@
 name: Formal transport application UI (staging)
 on:
-  pull_request:
-    paths: ['test/task2-panel*.js','test/task2-guidance*.js','test/task2-i18n.js','test/transport-application*','test/index.html','tests/issue17-formal-document-ui.test.mjs','.github/workflows/issue17-formal-document.yml']
   push:
     branches: [main]
     paths: ['test/task2-panel*.js','test/task2-guidance*.js','test/task2-i18n.js','test/transport-application*','test/index.html','tests/issue17-formal-document-ui.test.mjs','.github/workflows/issue17-formal-document.yml']
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   static-check:
     runs-on: ubuntu-24.04

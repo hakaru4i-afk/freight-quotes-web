@@ -1,0 +1,83 @@
+# One bounded PR gate. Release/security evidence remains in dedicated protected workflows.
+name: PR quick checks
+on:
+  pull_request:
+    paths:
+      - '**'
+      - '!test/process-history/**'
+      - '!test/processes/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pr-quick-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  fast:
+    name: Syntax and fast Node tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      # No package-lock exists in this static-site repository. Cache npm downloads
+      # by the pinned Node/Playwright toolchain; never cache mutable node_modules.
+      - name: Cache npm downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node24-pr-npm-v1
+          restore-keys: |
+            ${{ runner.os }}-node24-pr-npm-
+      - name: Syntax-check only changed JavaScript modules
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.js' '*.mjs' '*.cjs' > /tmp/changed-js.txt
+          else
+            git ls-files '*.js' '*.mjs' '*.cjs' > /tmp/changed-js.txt
+          fi
+          count=0
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            node --check "$file"
+            count=$((count+1))
+          done < /tmp/changed-js.txt
+          echo "SYNTAX_PASS: $count changed JavaScript files"
+      - name: Fast deterministic regressions (no network, browser or deployment)
+        run: |
+          node --test --test-concurrency=2 \
+            tests/issue47-late-ui.test.mjs \
+            tests/issue47-task2-csv.test.mjs \
+            tests/issue17-formal-document-ui.test.mjs \
+            tests/issue49-staging-check.test.mjs \
+            tests/map50-owner-km-before-bid.test.mjs \
+            tests/task2-contrast.test.mjs \
+            tests/issue47-owner-optional-reason.test.mjs
+      - name: Prevent accidental return of heavy PR triggers
+        run: |
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const manual=[
+            'release-stabilization',
+            'issue47-live-mobile',
+            'lw-hover-safe','lw-public-guide-qa','lw2-dashboard-visual',
+            'owner-command-center','owner-registers-20261111',
+            'owner-workspace-compact','portal-contrast-accessibility',
+            'task12-observer'
+          ];
+          for (const name of manual){
+            const content=readFileSync('.github/workflows/'+name+'.yml','utf8');
+            if (/^  pull_request:/m.test(content)) throw Error('HEAVY_PR_TRIGGER:'+name);
+          }
+          console.log('HEAVY_PR_TRIGGER_GUARD_PASS; manual/scheduled browser runs only');
+          JS

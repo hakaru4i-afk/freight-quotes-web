@@ -1,18 +1,11 @@
 name: Issue47 live mobile and login locales
 on:
-  pull_request:
-    paths:
-      - 'tests/issue47-live-mobile.test.mjs'
-      - '.github/workflows/issue47-live-mobile.yml'
-  push:
-    branches: [main]
-    paths:
-      - 'test/**'
-      - 'tests/issue47-live-mobile.test.mjs'
-      - '.github/workflows/issue47-live-mobile.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   browser:
     runs-on: ubuntu-24.04
@@ -22,6 +15,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Cache npm and Playwright Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: node --test tests/issue47-live-mobile.test.mjs

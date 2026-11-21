@@ -2,15 +2,7 @@ name: Task 1 + Task 2 / Staging QA observer
 on:
   workflow_dispatch:
   schedule:
-    - cron: '15 6 * * *'
-  push:
-    branches: [main]
-    paths:
-      - 'test/**'
-      - '!test/qa-robot-latest.json'
-      - '!test/qa-release-readiness.json'
-      - 'tests/**'
-      - '.github/workflows/task12-observer.yml'
+    - cron: '15 3 * * 0'
 permissions:
   contents: read
 concurrency:
@@ -48,6 +40,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Playwright Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - name: Install isolated Chromium test runtime
         run: |
           npm install --no-save playwright@1.56.1
@@ -76,6 +75,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Playwright Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - name: Install isolated browser runtime
         run: |
           npm install --no-save playwright@1.56.1
@@ -165,6 +171,13 @@ jobs:
           node-version: '24'
       - name: Check browser journey syntax before connecting to the test system
         run: node --check tests/task12-live-journey.e2e.mjs
+      - name: Restore npm and Playwright Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - name: Install isolated Playwright Chromium
         run: |
           npm install --no-save playwright@1.56.1

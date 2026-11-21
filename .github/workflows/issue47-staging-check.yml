@@ -12,6 +12,9 @@ on:
       - fix/issue47-staging-menu-clarity
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify-staging-only:
     runs-on: ubuntu-24.04

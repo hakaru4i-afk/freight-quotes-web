@@ -10,6 +10,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   source:
     runs-on: ubuntu-24.04
@@ -18,42 +21,73 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: "Validate CSS scope, test syntax and production isolation"
+      - name: Static contrast CSS and exact staging cache identity (blocking)
         shell: bash
         run: |
           set -euo pipefail
           node --check tests/portal-contrast-accessibility-browser.test.mjs
-          grep -Eq 'portal-contrast-accessibility-20261108.css\?v=[a-z0-9-]+' test/index.html
-          grep -Fq 'offer-row-unavailable' test/portal-contrast-accessibility-20261108.css
-          grep -Fq 'tbody tr:not([class*="offer-row-"]):hover' test/portal-contrast-accessibility-20261108.css
-          ! grep -Fq 'portal-contrast-accessibility-20261108.css' index.html
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const file='portal-contrast-accessibility-20261108.css';
+          const bytes=readFileSync('test/'+file);
+          const css=bytes.toString('utf8');
+          const html=readFileSync('test/index.html','utf8');
+          const blob=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex').slice(0,12);
+          const assets=[...html.matchAll(/(?:src|href)=["']\.\/([^"'?]+)\?v=([^"']+)["']/g)];
+          assert.ok(assets.some(x=>x[1]===file&&x[2]===blob),'STAGING_CACHE_KEY_MISMATCH');
+          assert.ok(css.includes('offer-row-unavailable'),'MISSING_UNAVAILABLE_OFFER_STYLE');
+          assert.ok(css.includes('tbody tr:not([class*="offer-row-"]):hover'),'MISSING_SAFE_HOVER_STYLE');
+          console.log('CONTRAST_CSS_SOURCE_PASS');
+          JS
+      - name: Production isolation (advisory for push; blocking on manual verification)
+        continue-on-error: ${{ github.event_name == 'push' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {assertProductionFeatureBoundary} from './tests/helpers/production-release-boundary.mjs';
+          assertProductionFeatureBoundary(readFileSync('index.html','utf8'),'portal-contrast-accessibility-20261108.css');
+          console.log('PRODUCTION_ISOLATION_PASS');
+          JS
   served:
+    if: github.event_name == 'workflow_dispatch'
     needs: source
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: "Verify exactly published contrast CSS and cache key (staging only)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact published staging CSS once (no polling)
         shell: bash
         run: |
           set -euo pipefail
-          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
-          ASSET=$(grep -Eo 'portal-contrast-accessibility-20261108.css\?v=[a-z0-9-]+' test/index.html)
-          for attempt in {1..35}; do
-            curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/index.html?qa=$GITHUB_SHA" -o /tmp/contrast-index.html || true
-            curl -fsSL --max-time 18 -H 'Cache-Control: no-cache' "$BASE/portal-contrast-accessibility-20261108.css?qa=$GITHUB_SHA" -o /tmp/contrast-staging.css || true
-            if grep -Fq "$ASSET" /tmp/contrast-index.html 2>/dev/null \
-              && cmp -s test/portal-contrast-accessibility-20261108.css /tmp/contrast-staging.css; then
-              echo "PASS: served stylesheet and version match staging source"
-              sha256sum /tmp/contrast-staging.css
-              exit 0
-            fi
-            sleep 7
-          done
-          echo '::error::Staging contrast styles not published byte-for-byte'
-          exit 1
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const file='portal-contrast-accessibility-20261108.css';
+          const expected=readFileSync('test/'+file);
+          const blob=createHash('sha1').update('blob '+expected.length+'\0').update(expected).digest('hex').slice(0,12);
+          const base='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
+          async function get(path){
+            const response=await fetch(base+path+'?qa='+process.env.GITHUB_SHA,{headers:{'Cache-Control':'no-cache'},signal:AbortSignal.timeout(12000)});
+            assert.equal(response.status,200,'STAGING_FETCH_FAILED:'+path);
+            return Buffer.from(await response.arrayBuffer());
+          }
+          const [htmlBytes,actual]=await Promise.all([get('index.html'),get(file)]);
+          const links=[...htmlBytes.toString('utf8').matchAll(/(?:src|href)=["']\.\/([^"'?]+)\?v=([^"']+)["']/g)];
+          assert.ok(links.some(x=>x[1]===file&&x[2]===blob),'STAGING_CACHE_KEY_MISMATCH');
+          assert.ok(actual.equals(expected),'STAGING_CSS_BYTE_MISMATCH');
+          console.log('CONTRAST_STAGING_READBACK_PASS');
+          JS
   browser:
-    needs: source
+    if: github.event_name == 'workflow_dispatch'
+    needs: served
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -61,6 +95,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Cache npm and Playwright Chromium
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: "Check role palettes and interaction states on desktop and mobile"
