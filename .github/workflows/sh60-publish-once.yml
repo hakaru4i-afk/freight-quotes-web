@@ -9,11 +9,11 @@ permissions:
   id-token: write
 concurrency:
   group: sh60-one-time-production
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   publish:
     if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
       name: github-pages
