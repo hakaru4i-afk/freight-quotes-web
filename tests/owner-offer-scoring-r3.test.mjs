@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {scoreOffers,OFFER_SCORE_WEIGHTS,OFFER_SCORE_BANDS} from '../offer-scoring.mjs';
 
 const make=(id,extra={})=>({
@@ -75,7 +76,7 @@ test('Production and test use the integrated Owner React offer cards, no duplica
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.mjs\?v=/);
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.css\?v=/);
   }
-  const {execFileSync}=await import('node:child_process');
+  // Git provides the exact staged bundle identity for the cache key.
   const stagedBlob=execFileSync('git',['hash-object','test/app.js'],{encoding:'utf8'}).trim();
   assert.ok(b.includes('app.js?v='+stagedBlob.slice(0,12)),'Staging app cache must be pinned to its exact source bytes');
   const scripts=['../app.js','../test/app.js'].map(f=>readFileSync(new URL(f,import.meta.url),'utf8'));
