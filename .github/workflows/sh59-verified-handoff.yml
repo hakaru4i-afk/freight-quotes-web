@@ -6,6 +6,7 @@ on:
       - 'scripts/release/prepare-tested-candidate.mjs'
       - 'scripts/release/check-sh59-staging-import.mjs'
       - 'tests/prepare-tested-candidate.test.mjs'
+      - 'tests/production-release-integrity.test.mjs'
   workflow_dispatch:
     inputs:
       audit_run_id:
@@ -36,6 +37,10 @@ jobs:
           node-version: '24'
       - name: Check tested-source transfer rejects mismatched source, API and evidence
         run: node --test tests/prepare-tested-candidate.test.mjs
+      - name: Verify synthetic production promotion gate rejects version drift and tampered assets
+        # The second integration test intentionally stays FAIL while the live SH59/SH52 pair is mismatched.
+        # Run this fixture alone; required production smoke and full regression must remain blocking.
+        run: node --test --test-name-pattern='production promotion requires exact production identity' tests/production-release-integrity.test.mjs
   prepare:
     if: >-
       github.repository == 'hakaru4i-afk/freight-quotes-web' &&
