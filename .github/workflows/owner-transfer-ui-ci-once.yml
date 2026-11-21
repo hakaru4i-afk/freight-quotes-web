@@ -2,7 +2,12 @@ name: Owner intake-to-Center UX regression one-time
 on:
   push:
     branches: [main]
-    paths: ['.github/workflows/owner-transfer-ui-ci-once.yml']
+    paths:
+      - '.github/workflows/owner-transfer-ui-ci-once.yml'
+      - 'tests/owner-register-three-card-stage1.test.mjs'
+      - 'owner-registers-20261111.js'
+      - 'portal-feedback-center-20261107.js'
+      - 'owner-register-task-actions-20261121.js'
 permissions:
   contents: read
 jobs:
