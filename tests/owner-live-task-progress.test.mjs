@@ -32,7 +32,7 @@ test('monitor uses no private tokens, never submits mutations, only displays ins
 
 
 function verifiedParity(){return {runtimePairStatus:'VERIFIED',frontendCommit:'6e0a465b2b031558989f62b38dc7939797434686',apiSourceCommit:'092decf57d97fabdefa35bba0593890f52d34ef6',apiBundleSha256:'2875f4dc43dcc61a8b191edcf70281d7f1b8875847bc9e0b276160bdfe6b0b87',qaEvidence:{fullGroupsPassed:37}};}
-function verifiedPublication(){return {manifest:{environment:'production',businessVersion:'SH-01.30.59 v',sourceStagingFrontendCommit:'6e0a465b2b031558989f62b38dc7939797434686',frontendBuild:'locked-build'},build:{environment:'production',releaseVersion:'SH-01.30.59 v',build:'locked-build'},release:{event:'workflow_dispatch',conclusion:'success',publishJob:true}};}
+function verifiedPublication(){return {manifest:{environment:'production',businessVersion:'SH-01.30.59 v',sourceStagingFrontendCommit:'6e0a465b2b031558989f62b38dc7939797434686',frontendBuild:'locked-build',releaseId:'SH59-OWNER-APPROVED'},build:{environment:'production',releaseVersion:'SH-01.30.59 v',build:'locked-build'},release:{event:'workflow_dispatch',conclusion:'success',publishJob:true,backupRestoreVerified:true,ownerApproved:true,approvedReleaseId:'SH59-OWNER-APPROVED'},};}
 test('published source, backend parity and protected Owner gate together permit 100% status',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication:verifiedPublication()});assert.equal(x.percent,100);assert.equal(x.releaseReady,true)});
 test('mismatched API bundle blocks verification and production completion',()=>{const parity=verifiedParity();parity.apiBundleSha256='f'.repeat(64);const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity,publication:verifiedPublication()});assert.equal(x.percent,67);assert.equal(x.releaseReady,false)});
 test('a successful PR release-negative-test is not a published owner-approved release',()=>{const publication=verifiedPublication();publication.release.publishJob=false;const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});assert.equal(x.percent,83);assert.equal(x.releaseReady,false)});
@@ -44,4 +44,13 @@ test('successful rerun on the same commit clears an obsolete failure in the live
  const fresh=run(names[1],{conclusion:'success',id:12});fresh.created_at='2026-11-21T07:01:00Z';fresh.updated_at='2026-11-21T07:01:10Z';
  const x=summarize({pr:pr(),audit:audit(),runs:[old,fresh]});
  assert.equal(x.state,'checked');assert.equal(x.stages[2].passed,true);
+});
+
+test('publish job without verified restore and exact Owner release approval stays blocked',()=>{
+ const publication=verifiedPublication();delete publication.release.backupRestoreVerified;
+ let x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});
+ assert.equal(x.releaseReady,false);
+ publication.release.backupRestoreVerified=true;publication.release.approvedReleaseId='OTHER-RELEASE';
+ x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});
+ assert.equal(x.releaseReady,false);
 });
