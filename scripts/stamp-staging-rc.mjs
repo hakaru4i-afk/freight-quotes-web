@@ -41,20 +41,39 @@ collectVisual();visualAssets.sort();
 const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
 // HTML order affects styling and execution even when every asset byte is unchanged.
-const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[a-zA-Z0-9-]+/g,'$1'));
+const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'\s>]+/g,'$1'));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
+// Reject ambiguous cache entries in both --check and --write modes.
+for(const name of critical){
+ const count=[...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].filter(match=>match[1]===name).length;
+ if(count!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name+':count='+count);
+}
+if(process.argv.includes('--write')){
+ // Validate cache-key multiplicity before writing app.js or any build metadata.
+ // Otherwise a malformed HTML entry can leave a partially stamped working tree.
+ for(const name of critical){
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  const re=new RegExp(`(?:\\./${escaped})(?=\\?v=|["'])`,'g');
+  if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);
+ }
+}
 if(process.argv.includes('--write')){
  if(meta.stagingAssetBuildId!==buildId||!meta.assetBuildRecordedAt)meta.assetBuildRecordedAt=new Date().toISOString();
  app=app.replace(pattern,'currentVersion:"'+buildId+'"');write('app.js',app);
- for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[a-z0-9-]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
+ for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[^"\\s&>]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
  meta.servedStyleBlobSha=blob('style.css');meta.lateBidUiSha=blob(meta.lateBidUiScript);meta.task2.guidanceSha=blob(meta.task2.guidanceScript);meta.task2.i18n.sourceSha=blob('task2-i18n.js');meta.task2.isolatedQaBundleSha256=meta.stabilizationQa20261110.isolatedQaBundleSha256;
  meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;meta.version=buildId;meta.releaseVersion=primaryVersion;
  meta.currentAssetSha256=Object.fromEntries(files.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));status.version=buildId;
  for(const name of Object.keys(meta.task2.frontendCandidateComponents||{}))meta.task2.frontendCandidateComponents[name]={gitBlob:blob(name),sha256:hash(readFileSync(resolve(root,'test',name)))};
- meta.indexStructureSha256=htmlStructureSha256;meta.visualAssetSha256=visualSignature;write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
+ meta.indexStructureSha256=htmlStructureSha256;meta.visualAssetSha256=visualSignature;
+ // Fail closed if stamping changed the normalized HTML structure after buildId was computed.
+ // This protects the recorded digest from silently describing pre-write bytes.
+ const stampedStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^\"'\s>]+/g,'$1'));
+ if(stampedStructureSha256!==htmlStructureSha256)throw Error('STAMP_HTML_STRUCTURE_CHANGED:pre='+htmlStructureSha256+':post='+stampedStructureSha256);
+ write('index.html',html);write('build-info.json',JSON.stringify(meta,null,2)+'\n');write('site-status.json',JSON.stringify(status,null,2)+'\n');
 }else{
- if(meta.indexStructureSha256!==htmlStructureSha256)throw Error('STALE_HTML_STRUCTURE_DIGEST');
+ if(meta.indexStructureSha256!==htmlStructureSha256)throw Error('STALE_HTML_STRUCTURE_DIGEST:recorded='+String(meta.indexStructureSha256||'MISSING')+':computed='+htmlStructureSha256+':regenerate-with-stamp-write-and-review-diff');
  if(JSON.stringify(meta.visualAssetSha256)!==JSON.stringify(visualSignature))throw Error('STALE_VISUAL_ASSET_DIGEST');
  if(meta.version!==buildId||meta.releaseVersion!==primaryVersion)throw Error('STALE_PRIMARY_VERSION');
  if(!app.includes('currentVersion:"'+buildId+'"')||meta.stagingAssetBuildId!==buildId||status.version!==buildId)throw Error('STALE_STAGING_BUILD_ID');

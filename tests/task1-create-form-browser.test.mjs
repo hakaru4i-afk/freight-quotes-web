@@ -139,7 +139,22 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
  assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
  await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
- assert.equal(await publish.isEnabled(),true,"Complete request must enable publication");
+ // React may finish the dependent dangerous-goods validation on the next render.
+ // Wait for the actual enabled state rather than assuming a synchronous commit.
+ try {
+   await publish.waitFor({state:"visible",timeout:3000});
+   await page.waitForFunction(()=>{
+     const button=[...document.querySelectorAll("button")].find(x=>x.textContent?.includes("Опубликовать и уведомить перевозчиков"));
+     return button && !button.disabled && button.getAttribute("aria-disabled")!=="true";
+   },null,{timeout:4000});
+ } catch(e) {
+   const diagnostic=await page.evaluate(()=>({
+     disabled:[...document.querySelectorAll("button")].filter(x=>x.textContent?.includes("Опубликовать и уведомить перевозчиков")).map(x=>({disabled:x.disabled,ariaDisabled:x.getAttribute("aria-disabled")})),
+     invalid:[...document.querySelectorAll(".cabinet-panel[data-section='create-request'] input:invalid,.cabinet-panel[data-section='create-request'] select:invalid")].map(x=>({name:x.name,placeholder:x.placeholder,validation:x.validationMessage})),
+     notices:[...document.querySelectorAll(".cabinet-panel[data-section='create-request'] .notice")].map(x=>x.textContent?.slice(0,200))
+   }));
+   throw Error("T1-01 COMPLETE_REQUEST_STILL_DISABLED "+JSON.stringify(diagnostic)+" ORIGINAL="+e.message.slice(0,160));
+ }
  await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
  await page.waitForFunction(()=>!!document.querySelector(".cabinet-panel[data-section='create-request'] .notice")?.textContent.includes("Опубликовано"),null,{timeout:12000}).catch(()=>{});
