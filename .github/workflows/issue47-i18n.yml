@@ -33,10 +33,9 @@ jobs:
           node --test
           --test-name-pattern='^(translation catalog covers major screens|switching language preserves original labels)'
           tests/issue47-task2-i18n.test.mjs
-      - name: Immutable production release integrity (advisory for PR/push; blocking on manual run)
+      - name: Immutable production release integrity (advisory PR/push, blocking manual)
         continue-on-error: ${{ github.event_name != 'workflow_dispatch' }}
-        run: >-
-          node --test
-          --test-name-pattern='^translation loader stays pinned and production promotion requires its integrity manifest
-
-          tests/issue47-task2-i18n.test.mjs
+        run: |
+          node --test \
+            --test-name-pattern='^translation loader stays pinned and production promotion requires its integrity manifest$' \
+            tests/issue47-task2-i18n.test.mjs
