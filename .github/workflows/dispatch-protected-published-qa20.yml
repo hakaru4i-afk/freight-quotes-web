@@ -1,4 +1,5 @@
 name: Dispatch protected published SH59 QA20 full acceptance
+# Authorized second protected QA run after PR #149 isolated rev37 SL repair and 0 active leases.
 on:
   pull_request:
     paths:
