@@ -33,6 +33,9 @@ export function qaTransport() {
   let url;
   try { url = new URL(input instanceof Request ? input.url : String(input), location.href); }
   catch { return raw(input, init); }
+  // QA must never send requests to the real production Supabase project.
+  if (url.hostname === 'ooclsrndeygojtofuyte.supabase.co')
+    return Promise.reject(Error('QA20_PRODUCTION_API_BLOCKED'));
   if (url.origin === host) {
     if (/^\\/functions\\/v1\\/freight-api(?:\\/|$)/.test(url.pathname))
       url.pathname = url.pathname.replace(/^\\/functions\\/v1\\/freight-api(?=\\/|$)/, '/functions/v1/${API_FUNCTION}');
