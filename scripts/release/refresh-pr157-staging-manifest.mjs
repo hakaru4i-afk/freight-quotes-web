@@ -9,17 +9,25 @@ const git=(...args)=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
 const read=p=>readFileSync(resolve(root,p));
 const hash=b=>createHash('sha256').update(b).digest('hex');
 const path='test/staging-manifest.json';
-if(process.env.GITHUB_REPOSITORY!=='hakaru4i-afk/freight-quotes-web' ||
- process.env.GITHUB_REF!=='refs/heads/feature/owner-ci-release-readiness-20261121' ||
- process.env.GITHUB_ACTOR!=='hakaru4i-afk')throw Error('CANDIDATE_OWNER_BRANCH_ONLY');
+const stdoutOnly=process.argv[2]==='--stdout';
+const candidateBranch='feature/owner-ci-release-readiness-20261121';
+if(!stdoutOnly&&(process.env.GITHUB_REPOSITORY!=='hakaru4i-afk/freight-quotes-web' ||
+ process.env.GITHUB_REF!=='refs/heads/'+candidateBranch ||
+ process.env.GITHUB_ACTOR!=='hakaru4i-afk' ||
+ git('branch','--show-current')!==candidateBranch))throw Error('CANDIDATE_OWNER_BRANCH_ONLY');
 const sourceCommit=git('rev-parse','HEAD');
-if(!/^[0-9a-f]{40}$/.test(sourceCommit)||git('branch','--show-current')!=='feature/owner-ci-release-readiness-20261121')throw Error('INVALID_SOURCE_COMMIT');
+if(!/^[0-9a-f]{40}$/.test(sourceCommit))throw Error('INVALID_SOURCE_COMMIT');
 if(git('status','--porcelain'))throw Error('UNCLEAN_CANDIDATE_SOURCE');
 const manifest=JSON.parse(read(path)),info=JSON.parse(read('test/build-info.json')),model=JSON.parse(read('test/business-process-model.json'));
 if(manifest.environment!=='staging'||manifest.releaseStatus!=='RELEASE_BLOCKED'||manifest.publicationState==='PUBLISHED')throw Error('RELEASE_SCOPE_FORBIDDEN');
 if(info.environment!=='staging'||info.releaseVersion!==info.primaryBusinessVersion||!manifest.businessVersions.some(x=>x.version===info.primaryBusinessVersion))throw Error('MISSING_REVIEWED_SH59_VERSION');
-const apiSource=info.stabilizationQa20261110?.backendSourceCommit,apiBundle=info.stabilizationQa20261110?.sharedBackendBundleSha256;
-if(!/^[0-9a-f]{40}$/.test(apiSource||'')||!/^[0-9a-f]{64}$/.test(apiBundle||'')||!Number.isInteger(info.task2?.backendVersion))throw Error('UNVERIFIED_STAGING_API_PAIR');
+const runtime=info.sharedStagingRuntime,snapshot=runtime?.snapshot;
+if(!Number.isInteger(runtime?.version)||runtime.version!==info.task2?.backendVersion||
+ runtime.projectRef!==info.projectRef||runtime.function!==info.task2.backendFunction||
+ runtime.sourceCommit!==null||runtime.sourceBindingStatus!=='UNVERIFIED'||
+ !/^[0-9a-f]{40}$/.test(snapshot?.commit||'')||
+ !/^[0-9a-f]{64}$/.test(snapshot?.entrySha256||'')||
+ !/^[0-9a-f]{64}$/.test(runtime.providerBundleSha256||''))throw Error('INVALID_STAGING_RUNTIME_SNAPSHOT');
 const excludes=new Set(['test/staging-manifest.json','test/alignment-role-help.json','test/qa-robot-latest.json','test/qa-release-readiness.json']);
 const entries=[];
 function walk(dir){for(const item of readdirSync(resolve(root,dir),{withFileTypes:true})){
@@ -40,14 +48,23 @@ for(const p of entries){
 manifest.frontendCommit=sourceCommit;
 manifest.assetHashes=assets;
 manifest.primaryBusinessVersion=info.primaryBusinessVersion;
-manifest.apiVersion=info.task2.backendVersion;
-manifest.apiSourceCommit=apiSource;
-manifest.apiBundleSha256=apiBundle;
+manifest.apiVersion=runtime.version;
+// The provider snapshot identifies the deployed bytes. The v108 build
+// receipt in stabilizationQa20261110 does not attest the v115 build source.
+manifest.apiSourceCommit=null;
+manifest.apiBundleSha256=null;
+manifest.observedBackendDeployment=runtime;
+manifest.runtimePairStatus='UNVERIFIED';
 manifest.sqlMigrationVersion=info.sqlMigrationVersion;
 manifest.processModelVersion=model.version;
 manifest.roleHelpSha256=hash(read('test/alignment-role-help.json'));
 // Deliberately preserve all historical decisions, QA evidence, publication state,
 // rollback evidence and canonicalHash. Never invent a canonical proof or PASS.
 if(manifest.releaseStatus!=='RELEASE_BLOCKED')throw Error('UNSAFE_RELEASE_STATE');
-writeFileSync(resolve(root,path),JSON.stringify(manifest,null,2)+'\n');
-console.log('STAGING_CANDIDATE_MANIFEST_REGENERATED',JSON.stringify({sourceCommit,assetCount:entries.length,apiVersion:manifest.apiVersion,primaryBusinessVersion:manifest.primaryBusinessVersion,releaseStatus:manifest.releaseStatus}));
+const output=JSON.stringify(manifest,null,2)+'\n';
+if(stdoutOnly){
+ process.stdout.write(output);
+}else{
+ writeFileSync(resolve(root,path),output);
+ console.log('STAGING_CANDIDATE_MANIFEST_REGENERATED',JSON.stringify({sourceCommit,assetCount:entries.length,apiVersion:manifest.apiVersion,primaryBusinessVersion:manifest.primaryBusinessVersion,releaseStatus:manifest.releaseStatus}));
+}
