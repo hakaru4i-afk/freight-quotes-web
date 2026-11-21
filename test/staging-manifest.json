@@ -493,5 +493,21 @@
     "rollback": "Baseline FE d6da784 and runtime91 bundle06f3149, staging only.",
     "sqlMigrationVersion": "20261115101617"
   },
-  "sqlMigrationSemantics": "Source-declared migration baseline; not an attestation of the applied staging ledger."
+  "sqlMigrationSemantics": "Source-declared migration baseline; not an attestation of the applied staging ledger.",
+  "capturedSnapshotAttestation": {
+    "type": "GIT_TAG_TO_CAPTURED_STAGING_PROVIDER_SNAPSHOT",
+    "tag": "api-v115-captured-snapshot-20261119",
+    "tagTargetCommit": "4273e1b7bed0357d14384e2adb30f828f1391519",
+    "manifestPath": "recovery/runtime-snapshots/staging-freight-api-v115-20261119/manifest.json",
+    "manifestGitBlobSha": "7ae8a96f29152c1032ba55a4e9a575d6776a27b3",
+    "entryPath": "recovery/runtime-snapshots/staging-freight-api-v115-20261119/index.ts",
+    "entryGitBlobSha": "7ba57e94ff2f9a9972a094e6b07eff781a5532da",
+    "entrySha256": "2b0b91f6de20dc537b9d16c06e22862e326bd606c5607845b1e7d9483a829d0c",
+    "entryActualByteLength": 1372295,
+    "originalReceiptDeclaredByteLength": 1315118,
+    "originalDeploymentSourceCommit": null,
+    "originalDeploymentSourceStatus": "UNVERIFIED",
+    "releaseAuthorized": false,
+    "note": "Immutable captured staging API v115 files, NOT proof of original deployment source. Historical receipt byte-length discrepancy disclosed; Git blob and SHA-256 identity remain independently enforced."
+  }
 }
