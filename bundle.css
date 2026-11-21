@@ -3773,3 +3773,487 @@ global-route-view .gv-unordered-title { margin: 12px 0 4px; color: inherit; font
   outline:3px solid #1368af!important;outline-offset:2px!important;
 }
 
+
+/* --- SOURCE lw-contrast-canonical-20261111.css --- */
+/* SH-01.30.50 v: explicit surface tokens, shared by every execution stage.
+   Dark Owner rules exclude nested Task2/light workspace surfaces at source. */
+:root{--portal-light-ink:#18344f;--portal-light-muted:#435a70;--portal-light-surface:#ffffff;--portal-dark-ink:#edf6ff;--portal-dark-surface:#0c2b47;--portal-focus:#176b53}
+:where(.staff-portal[data-cabinet-role="owner"] .notice,[data-surface="light"],.notice.warning,#lw-current-help,#task2-root .t2-stage,.ow-record,.ow-editor-inspector){--pr-text:#18344f;--pr-muted:#435a70;--pr-surface:#ffffff;--pr-line:#aebfcd;--surface-hint:#435a70;--ink:var(--pr-text);--muted:var(--pr-muted);--cab-ink:var(--pr-text);--cab-muted:var(--pr-muted)}
+#ow-workspace{--surface-hint:#bdd7ec}
+#ow-workspace :is(.ow-record,.ow-editor-inspector){--surface-hint:#435a70}
+#task2-root .t2-stage{color:var(--portal-light-ink);--t2-surface-ink:var(--portal-light-ink);--t2-surface-muted:var(--portal-light-muted);color-scheme:light}
+#task2-root .t2-stage :is(h1,h2,h3,h4,label,legend,strong){-webkit-text-fill-color:currentColor}
+#task2-root .t2-stage :is(h1,h2,h3,h4){color:var(--portal-light-ink)}
+#task2-root .t2-stage :is(.t2-muted,.t2-empty){color:var(--portal-light-muted);opacity:1}
+/* Unread counts keep readable ink even when navigation icon rules recolor nested spans. */
+#root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter{background:#f5ca72!important;color:#13283e!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+#root [data-cabinet-role] .cabinet-sidebar nav a .chat-unread-counter > span[aria-hidden="true"]{color:inherit!important;-webkit-text-fill-color:currentColor!important;text-shadow:none!important}
+
+/* Production: keep multi-digit shipment counters on one line. */
+#root [data-cabinet-role] #task2-root button.t2-list-filter > span{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;flex:0 0 auto!important;min-width:2.25em!important;width:auto!important;max-width:none!important}
+
+
+/* --- SOURCE task2-execution-layout-20261114.css --- */
+/* SH staging · Task 2 layout: one canonical container editor and shared documents. */
+#task2-root .t2-container-existing{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0 12px}
+#task2-root .t2-container-pill{display:inline-flex;padding:7px 11px;border-radius:7px;background:#e7f4ef;border:1px solid #96c7b1;color:#164c38;font-weight:700}
+#task2-root .t2-docs-overview{display:grid;grid-template-columns:1fr;gap:12px;margin:14px 0 22px}
+#task2-root .t2-docs-group{min-width:0;border:1px solid #d1e1db;border-radius:10px;background:#f9fcfa;padding:14px}
+#task2-root .t2-docs-group h4{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:16px;color:#183a34}
+#task2-root .t2-docs-group h4 span{background:#d9ece5;color:#15533e;border-radius:20px;padding:3px 9px;font-size:12px}
+#task2-root .t2-docs-group .t2-stack{margin:0}
+#task2-root .t2-document-item>div{flex:1;min-width:0}
+#task2-root .t2-document-item strong{display:block;color:#17352e;overflow-wrap:anywhere}
+#task2-root .t2-document-item small{display:block;margin-top:5px;color:#52645d}
+#task2-root .t2-document-item .t2-btn{flex:none;min-width:100px}
+#task2-root .t2-doc-upload .t2-field{min-width:0}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact) :is(label,.t2-pto-cell){min-width:0}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact) :is(input,select,textarea){width:100%;min-width:0;max-width:100%;box-sizing:border-box;min-height:42px}
+#task2-root :is(.t2-plan-four-row,.t2-actual-form,.t2-pto-compact,.t2-container-compact)>.t2-btn{min-height:42px;height:42px;align-self:end;margin-top:0}
+#task2-root .t2-actual-row{grid-template-columns:150px minmax(0,1fr)!important}
+#task2-root .t2-actual-row .t2-actual-form{grid-template-columns:minmax(180px,1fr) minmax(140px,1fr) 116px!important}
+#task2-root .t2-actual-label{overflow-wrap:anywhere}
+@media(max-width:900px){
+ #task2-root .t2-actual-row{grid-template-columns:minmax(0,1fr)!important}
+ #task2-root .t2-actual-row .t2-actual-form{grid-template-columns:minmax(0,1fr)!important}
+ #task2-root .t2-pto-compact{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #task2-root :is(.t2-plan-four-row,.t2-pto-compact,.t2-container-compact)>.t2-btn{width:100%}
+}
+@media(max-width:600px){
+ #task2-root .t2-pto-compact{grid-template-columns:minmax(0,1fr)}
+ #task2-root .t2-document-item{align-items:flex-start;flex-direction:column}
+ #task2-root .t2-document-item .t2-btn{width:100%}
+}
+
+
+/* --- SOURCE public-support-20261115.css --- */
+.public-support{box-sizing:border-box;width:min(680px,calc(100% - 24px));max-height:90dvh;overflow:auto;padding:24px;border:1px solid #8baccd;border-radius:16px;background:#112338;color:#f4f8ff;box-shadow:0 24px 90px #0008}.public-support::backdrop{background:#06101bcc}.public-support *{box-sizing:border-box}.public-support h2{margin:0 0 18px}.public-support label{display:grid;gap:7px;margin:14px 0;font-weight:600}.public-support input:not([type=checkbox]),.public-support textarea{width:100%;padding:10px;border:1px solid #98b1c9;border-radius:6px;background:#fff;color:#13283e;font:inherit}.public-support textarea{resize:vertical}.public-support button{min-height:44px;padding:9px 14px;margin:4px;border:1px solid #91b9df;border-radius:7px;background:#214b73;color:#fff;font:inherit;cursor:pointer}.public-support button:disabled{opacity:.65;cursor:wait}.public-support :focus-visible{outline:3px solid #f6ce65;outline-offset:3px}.public-support .support-close{float:right}.public-support .support-consent{display:flex;align-items:flex-start;gap:10px;font-weight:400}.support-consent input{margin-top:5px;flex-shrink:0}.public-support .support-trap{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important}.support-result,.support-message,.support-inbox p,.support-inbox li{overflow-wrap:anywhere;white-space:pre-wrap}.public-support .support-error{color:#ffbabb}.public-support .support-success{color:#a5edc4}.support-inbox article{padding:14px 0;border-bottom:1px solid #7597b9}.support-inbox summary{cursor:pointer;overflow-wrap:anywhere;padding:8px 0}.support-inbox small{overflow-wrap:anywhere}#owner-support-inbox{min-height:44px;white-space:normal}@media(max-width:480px){.public-support{padding:16px}.public-support .support-close{float:none;display:block;margin-left:auto}}
+
+.cycle-landing #public-support-entry{display:block!important;visibility:visible!important;min-height:44px;width:100%;margin-top:12px;padding:10px 14px;border:1px solid #a9b8ca;border-radius:8px;background:#182739;color:#f4f8ff;font:inherit;cursor:pointer}.cycle-landing #public-support-entry:hover{background:#253c54}.cycle-landing #public-support-entry:focus-visible{outline:3px solid #ffc45c;outline-offset:3px}
+
+
+/* --- SOURCE qa011-owner-winner-actions.css --- */
+
+/* QA-011 / 14.11.2026 — Owner: separate carrier identity from its three actions.
+   Presentation only: existing React buttons, handlers, permissions and API remain untouched. */
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) {
+  display:flex!important;flex-wrap:wrap!important;align-items:stretch!important;
+  justify-content:flex-start!important;gap:9px!important;max-width:100%!important;min-width:0!important;
+  box-sizing:border-box!important;
+}
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button) {
+  flex:1 1 100%!important;min-width:0!important;max-width:100%!important;
+}
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
+  display:inline-flex!important;flex:1 1 220px!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;max-width:100%!important;min-height:44px!important;height:auto!important;
+  margin:0!important;padding:10px 13px!important;box-sizing:border-box!important;
+  white-space:normal!important;text-align:center!important;line-height:1.25!important;
+  overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:middle!important;
+}
+@media(max-width:720px){
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
+    flex:1 1 100%!important;width:100%!important;
+  }
+}
+
+
+/* --- SOURCE owner-ui-unification-20261117.css --- */
+/* OW-UI-20261117 · Owner SLA + activity journal. Same rules in production and staging.
+   Presentation-only: no changes to authorization, API URLs, rates or tracking. */
+#root .lw-owner-sla-ui .summary {
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:16px!important;align-items:stretch!important;
+}
+#root .lw-owner-sla-ui .summary>.metric {
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ min-width:0!important;min-height:118px!important;margin:0!important;
+ background:#fff!important;border:1px solid #cbd8e6!important;border-radius:15px!important;
+ padding:19px 23px!important;color:#17324e!important;-webkit-text-fill-color:#17324e!important;
+ box-shadow:0 2px 7px rgba(12,31,55,.08)!important;opacity:1!important;
+}
+#root .lw-owner-sla-ui .summary>.metric :is(strong,b) {
+ color:#17324e!important;-webkit-text-fill-color:#17324e!important;
+ opacity:1!important;text-shadow:none!important;font-size:clamp(25px,2vw,34px)!important;
+ font-weight:750!important;line-height:1.1!important;letter-spacing:0!important;
+}
+#root .lw-owner-sla-ui .summary>.metric :is(span,small,p) {
+ color:#435a70!important;-webkit-text-fill-color:#435a70!important;
+ opacity:1!important;text-shadow:none!important;font-size:12px!important;line-height:1.45!important;
+}
+#root .lw-owner-sla-ui .summary>.metric:after {top:20px!important;right:18px!important}
+#root .lw-owner-audit-ui .lw-owner-audit-filters {
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ align-items:start!important;gap:12px!important;min-width:0!important;
+}
+#root .lw-owner-audit-ui .lw-owner-audit-filters>* {min-width:0!important;max-width:none!important;width:auto!important;margin:0!important}
+#root .lw-owner-audit-ui .lw-owner-audit-field {
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ gap:7px!important;min-width:0!important;margin:0!important;
+ color:#e9f3ff!important;-webkit-text-fill-color:#e9f3ff!important;
+}
+#root .lw-owner-audit-ui .lw-owner-audit-field :is(input,select) {
+ display:block!important;width:100%!important;max-width:none!important;
+ min-width:0!important;height:45px!important;min-height:45px!important;
+ box-sizing:border-box!important;margin:0!important;border-radius:9px!important;
+ background:#0b233c!important;border:1px solid #466c91!important;
+ color:#f2f7ff!important;-webkit-text-fill-color:#f2f7ff!important;
+ font-size:13px!important;opacity:1!important;
+}
+#root .lw-owner-audit-ui .lw-owner-audit-field :is(input,select):focus-visible {
+ outline:2px solid #75c6fa!important;outline-offset:2px!important;
+}
+#root .lw-owner-audit-ui .lw-owner-audit-field :is(small,.small) {
+ font-size:12px!important;line-height:1.4!important;color:#bcd5ed!important;
+ -webkit-text-fill-color:#bcd5ed!important;opacity:1!important;
+}
+#root .lw-owner-audit-ui .lw-owner-generic-validation-hint {
+ display:none!important;visibility:hidden!important;
+}
+/* Keep actual browser validation and backend errors visible. */
+#root .lw-owner-audit-ui :is(.error,[role="alert"],[aria-invalid="true"]) {
+ visibility:visible!important;
+}
+@media (max-width:1100px) {
+ #root .lw-owner-sla-ui .summary {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #root .lw-owner-audit-ui .lw-owner-audit-filters {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:640px) {
+ #root .lw-owner-sla-ui .summary, #root .lw-owner-audit-ui .lw-owner-audit-filters {
+  grid-template-columns:minmax(0,1fr)!important
+ }
+ #root .lw-owner-sla-ui .summary>.metric {min-height:96px!important}
+}
+
+
+/* --- SOURCE owner-team-users-20261117.css --- */
+/* OW-USERS-20261117: Owner-only user management additions */
+.ow-users-actions{display:flex;flex-wrap:wrap;align-items:center;gap:9px;margin:14px 0;padding:0}
+.ow-users-action{font:600 13px/1.35 system-ui,sans-serif;min-height:42px;padding:10px 14px;border-radius:10px;border:1px solid #6694be;background:#173c60;color:#f4f9ff;-webkit-text-fill-color:#f4f9ff;cursor:pointer}
+.ow-users-action:hover,.ow-users-action:focus-visible{background:#24577e;color:#fff;-webkit-text-fill-color:#fff;outline:2px solid #91d4ff;outline-offset:1px}
+.ow-users-delete{border-color:#bc7d79;background:#653333}
+.ow-users-delete:hover{background:#7d4141}
+.ow-users-backdrop{position:fixed;inset:0;z-index:2147483600;background:rgba(7,17,29,.74);display:flex;align-items:center;justify-content:center;padding:18px;box-sizing:border-box}
+.ow-users-dialog{box-sizing:border-box;width:min(100%,520px);max-height:90vh;overflow:auto;background:#142c44;color:#eff7ff;-webkit-text-fill-color:#eff7ff;padding:24px;border:1px solid #78a7cd;border-radius:15px;box-shadow:0 18px 46px rgba(0,0,0,.55);font:14px/1.45 system-ui,sans-serif}
+.ow-users-dialog h3{margin:0 0 8px;color:#fff;-webkit-text-fill-color:#fff;font-size:20px}
+.ow-users-note{color:#c6e0f6;-webkit-text-fill-color:#c6e0f6;margin:0 0 16px}
+.ow-users-field{display:flex;flex-direction:column;gap:6px;margin:12px 0;color:#eaf4ff;-webkit-text-fill-color:#eaf4ff}
+.ow-users-field input,.ow-users-field select{box-sizing:border-box;min-height:44px;width:100%;padding:10px 12px;background:#f8fbff;color:#142b43;-webkit-text-fill-color:#142b43;border:1px solid #869bb0;border-radius:9px;font-size:15px}
+.ow-users-dialog-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:15px}
+.ow-users-dialog-actions button{min-height:42px;border-radius:9px;padding:10px 15px;cursor:pointer;border:1px solid #6c9bba;font-weight:650}
+.ow-users-primary{background:#2874ae;color:#fff;-webkit-text-fill-color:#fff}
+.ow-users-secondary{background:#29455e;color:#fff;-webkit-text-fill-color:#fff}
+.ow-users-primary:disabled{opacity:.65;cursor:wait}
+.ow-users-result{min-height:1.5em;color:#ffe3c3;-webkit-text-fill-color:#ffe3c3}
+@media(max-width:640px){.ow-users-action{width:100%;text-align:left}.ow-users-dialog{padding:16px}.ow-users-dialog-actions button{flex:1}}
+
+/* Owner seven actions are fully readable in the actual People and Rights card. */
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:10px!important;align-items:stretch!important;max-width:100%!important;
+ padding:14px!important;margin:16px 0!important;
+ background:#102d47!important;border:1px solid #456a8b!important;border-radius:12px!important;
+}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions .ow-users-action{
+ display:flex!important;justify-content:center!important;align-items:center!important;
+ box-sizing:border-box!important;visibility:visible!important;opacity:1!important;
+ min-height:46px!important;min-width:0!important;width:100%!important;
+ background:#205a88!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+ font:700 14px/1.35 system-ui,sans-serif!important;letter-spacing:0!important;
+ padding:11px 14px!important;border:1px solid #9cc6e3!important;
+ text-shadow:none!important;box-shadow:none!important;white-space:normal!important;
+ cursor:pointer!important;
+}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions .ow-users-action:is(:hover,:focus-visible){
+ background:#3279ae!important;color:#fff!important;-webkit-text-fill-color:#fff!important;
+ outline:2px solid #b2e0ff!important;outline-offset:1px!important;
+}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions .ow-users-delete{background:#633036!important;border-color:#e1a5a5!important}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-native-duplicate{display:none!important;visibility:hidden!important}
+.ow-users-backdrop .ow-users-dialog,.ow-users-backdrop .ow-users-dialog :is(h3,label,span,p){opacity:1!important;color:#f3f8ff!important;-webkit-text-fill-color:#f3f8ff!important}
+.ow-users-backdrop .ow-users-dialog :is(input,select){background:#fff!important;color:#162a3f!important;-webkit-text-fill-color:#162a3f!important}
+.ow-users-backdrop .ow-users-dialog .ow-users-note{color:#d7e7f6!important;-webkit-text-fill-color:#d7e7f6!important}
+.ow-users-backdrop .ow-users-dialog .ow-users-primary{background:#2379b8!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+.ow-users-backdrop .ow-users-dialog .ow-users-secondary{background:#31536f!important;color:#fff!important;-webkit-text-fill-color:#fff!important}
+@media(max-width:760px){
+ #root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] .ow-users-actions{grid-template-columns:minmax(0,1fr)!important}
+}
+
+/* OW-USERS-DEDUP-01: one creation interface only. Existing staff list remains. */
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > :is(.bar,form.grid,p.small){
+ display:none!important;
+}
+/* Keep the seven new creation controls, delete control, alerts and members. */
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > .ow-users-actions{
+ display:grid!important;
+}
+#root .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="team"] section.card:has(> .ow-users-actions) > .doc-list{
+ display:block!important;visibility:visible!important;
+}
+
+/* OW-INPUT-READABLE: force dark ink on light fields in the Owner user dialog. */
+body .ow-users-backdrop .ow-users-dialog .ow-users-field :is(input,select),
+body .ow-users-backdrop .ow-users-dialog .ow-users-field :is(input,select):is(:hover,:focus,:focus-visible,:active){
+ color:#142b43!important;
+ -webkit-text-fill-color:#142b43!important;
+ caret-color:#142b43!important;
+ background:#fff!important;
+ color-scheme:light!important;
+ opacity:1!important;
+ text-shadow:none!important;
+}
+body .ow-users-backdrop .ow-users-dialog .ow-users-field input:-webkit-autofill{
+ -webkit-text-fill-color:#142b43!important;
+ box-shadow:0 0 0 1000px #fff inset!important;
+}
+
+
+/* --- SOURCE portal-release-status-20261117.css --- */
+/* OW-01.30.48 / SH-01.30.53: unambiguous live release indicator. */
+#lw-release-status{position:fixed;bottom:16px;right:16px;z-index:2147481000;width:min(405px,calc(100vw - 32px));max-height:min(68vh,520px);overflow:auto;box-sizing:border-box;padding:15px 16px;background:#112e49;color:#f3f9ff;-webkit-text-fill-color:#f3f9ff;border:1px solid #5d95bb;border-left:5px solid #5d95bb;border-radius:12px;box-shadow:0 9px 32px rgba(0,0,0,.38);font:14px/1.42 system-ui,-apple-system,sans-serif}
+#lw-release-status[hidden]{display:none!important}
+#lw-release-status[data-state=updating]{border-left-color:#ffc266}
+#lw-release-status[data-state=checking]{border-left-color:#ffdc87}
+#lw-release-status[data-state=released]{border-left-color:#79d8ae}
+#lw-release-status[data-state=failed]{border-left-color:#f49b9b}
+#lw-release-status .lw-release-header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+#lw-release-status .lw-release-header strong{font-size:15px;font-weight:750;line-height:1.35;color:#fff;-webkit-text-fill-color:#fff}
+#lw-release-status .lw-release-header button{width:30px;height:30px;min-height:30px;flex:none;background:transparent;border:1px solid #7099bd;border-radius:7px;color:#fff;-webkit-text-fill-color:#fff;font-size:21px;line-height:1;cursor:pointer}
+#lw-release-status .lw-release-version{margin:5px 0 8px;color:#d1e7fa;-webkit-text-fill-color:#d1e7fa;font-size:12px;font-weight:650}
+#lw-release-status .lw-release-subtitle{font-weight:700;margin:8px 0 4px;color:#fff;-webkit-text-fill-color:#fff}
+#lw-release-status ul{margin:5px 0 12px;padding-left:20px;line-height:1.45}
+#lw-release-status li{margin:5px 0;overflow-wrap:anywhere}
+#lw-release-status .lw-release-actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:13px}
+#lw-release-status .lw-release-actions :is(a,button){padding:7px 10px;min-height:34px;box-sizing:border-box;border:1px solid #91b8d5;border-radius:8px;background:#194665;color:#fff;-webkit-text-fill-color:#fff;text-decoration:none;font:650 13px/1.2 system-ui,sans-serif;cursor:pointer}
+#lw-release-status :is(a,button):focus-visible{outline:3px solid #ffe19b;outline-offset:2px}
+#lw-release-status.is-collapsed{width:auto;max-width:calc(100vw - 24px);padding:0;border-left-width:3px}
+#lw-release-status.is-collapsed button{padding:10px 15px;min-height:42px;font-weight:750;background:transparent;color:#fff;-webkit-text-fill-color:#fff;border:0;cursor:pointer}
+@media(max-width:520px){#lw-release-status{bottom:10px;right:10px;width:calc(100vw - 20px);max-height:50vh;padding:12px}}
+
+
+/* --- SOURCE owner-audit-explanations-20261117.css --- */
+/* Owner audit: business-readable explanation first, immutable technical record remains expandable. */
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-title {
+ font-size:14px;line-height:1.4;font-weight:750;color:#f6fbff;-webkit-text-fill-color:#f6fbff;
+ margin:0 0 5px;max-width:34rem;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-result {
+ margin-top:5px;font-size:13px;line-height:1.4;font-weight:550;color:#e1f3ff;-webkit-text-fill-color:#e1f3ff;
+ max-width:30rem;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail{
+ margin:10px 0;padding:10px 12px;border:1px solid #567895;border-radius:8px;background:#173450;color:#fff;
+ -webkit-text-fill-color:#fff;line-height:1.5
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail p {
+ margin:6px 0;color:#fff;-webkit-text-fill-color:#fff
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-detail strong {
+ color:#fff;-webkit-text-fill-color:#fff;font-weight:800
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-technical-line {
+ font:12px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;overflow-wrap:anywhere
+}
+#root .cabinet-app[data-cabinet-role="owner"] .site-monitor tbody tr td:nth-child(3)>small{
+ display:block;margin-top:4px;opacity:.8
+}
+@media(max-width:600px){
+ #root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-title{font-size:13px}
+ #root .cabinet-app[data-cabinet-role="owner"] .site-monitor .ow-audit-explanation-result{font-size:12px}
+}
+
+
+/* --- SOURCE offer-score-methodology-20261117.css --- */
+/* OFFER-EVAL-20261117-R2 · Owner-only methodology. */
+.cabinet-app[data-cabinet-role="owner"] .offer-methodology-legacy-hidden,
+.staff-portal[data-cabinet-role="owner"] .offer-methodology-legacy-hidden{display:none!important}
+.offer-methodology-r2{background:#edf4fd;color:#102d45;border:1px solid #aec4da;border-radius:12px;padding:16px 19px;margin:12px 0 18px;line-height:1.5;max-width:100%}
+.offer-methodology-r2 h3{color:#112d48;margin:0 0 6px;font-size:17px}
+.offer-methodology-r2 p{color:#213c56;margin:6px 0 10px}
+.offer-methodology-details summary{cursor:pointer;font-weight:700;color:#173a5a;padding:8px 0}
+.offer-methodology-table{border-collapse:collapse;width:100%;background:white;color:#17304b;table-layout:fixed}
+.offer-methodology-table th,.offer-methodology-table td{border-bottom:1px solid #c8d6e5;padding:8px 10px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.offer-methodology-table th:first-child{width:25%}.offer-methodology-table th:nth-child(2){width:12%;text-align:center}.offer-methodology-table td:nth-child(2){text-align:center;font-weight:700}
+.offer-methodology-bands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.offer-methodology-band{display:flex;gap:8px;align-items:flex-start;flex-direction:column;padding:10px;border-radius:8px;background:white;border-left:5px solid #74869b;color:#142f49}
+.offer-methodology-band strong{font-size:16px}.offer-methodology-band small{font-size:12px}
+.offer-methodology-band.band-0{border-left-color:#126034}.offer-methodology-band.band-1{border-left-color:#248849}.offer-methodology-band.band-2{border-left-color:#7ebd73}.offer-methodology-band.band-3{border-left-color:#e1b514}.offer-methodology-band.band-4{border-left-color:#ed8c26}.offer-methodology-band.band-5{border-left-color:#8e3748}
+.offer-methodology-r2 .offer-methodology-owner{font-weight:650}
+@media(max-width:760px){.offer-methodology-bands{grid-template-columns:repeat(2,minmax(0,1fr))}.offer-methodology-r2{padding:12px}.offer-methodology-table{font-size:12px}}
+
+/* Actual React comparison cards — one highlighted leader, independent score bands. */
+.cabinet-app[data-cabinet-role="owner"] .offer-scoring,
+.staff-portal[data-cabinet-role="owner"] .offer-scoring{
+ display:grid;gap:5px;background:#f4f8fb;color:#142b42;border:1px solid #b5c7d8;
+ border-left:5px solid #7893a6;border-radius:9px;padding:10px 12px;margin:8px 0;
+ max-width:100%;overflow-wrap:anywhere;line-height:1.45
+}
+.offer-scoring strong{font-weight:750;color:#12314c}
+.offer-scoring-band{font-size:12px;font-weight:650}
+.offer-scoring-tags{display:flex;flex-wrap:wrap;gap:5px}
+.offer-scoring-tag{background:#e8eef5;border-radius:6px;padding:3px 7px;font-size:12px}
+.offer-scoring-details,.offer-scoring details{padding:6px 0}
+.offer-scoring-detail{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #d8e1ea;padding:4px 0}
+.offer-scoring-note{font-size:12px;color:#744009!important}
+.offer-scoring-dark-green{border-left-color:#16633c!important}
+.offer-scoring-green{border-left-color:#24844c!important}
+.offer-scoring-light-green{border-left-color:#79ae5d!important}
+.offer-scoring-yellow{border-left-color:#cb9d0e!important}
+.offer-scoring-orange{border-left-color:#bf6915!important}
+.offer-scoring-leader{background:#e4f4e9!important;border-color:#4a9365!important;border-left-color:#136738!important}
+.offer-scoring-leader:before{content:'Единственный лидер по совокупной оценке';display:block;font-weight:750;color:#125d38}
+.offer-scoring-worst:not(.offer-scoring-leader){background:#fff1ec!important;border-left-color:#b44535!important}
+.offer-scoring-excluded{color:#8f3131!important;font-weight:700}
+
+
+/* --- SOURCE lw-hover-safe-20261108.css --- */
+/* LW-HOVER-01 · 2026-11-08 · STAGING
+   Common, low-glare interaction system for every cabinet and login.
+   Loaded LAST after existing styles. Does not change actions or disabled state.
+   The previous global [data-cabinet-role] .btn::after white sweep was a source
+   of unreadable white-on-white highlights, particularly on dark cabinet cards. */
+
+:where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing,.test-cabinets)
+  :is(button,.btn,.t2-btn,[role="button"],input[type="submit"],input[type="button"]):not(svg *):hover:not(:disabled):not([aria-disabled="true"]) {
+  filter:none!important;
+  -webkit-filter:none!important;
+  opacity:1!important;
+  text-shadow:none!important;
+  transform:none!important;
+  box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
+  transition:background-color .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease!important;
+}
+/* SVG nodes use transform for their position; button hover must not reset it. */
+/* Remove the white shimmer overlay entirely. Preserve actual button labels/icons. */
+[data-cabinet-role] .btn::after,
+[data-cabinet-role] .btn:hover::after {
+  display:none!important;
+  content:none!important;
+}
+
+/* Primary buttons: preserve the role accent but stop hover from flashing white.
+   The --pr-on token ensures text stays legible against its own accent. */
+[data-cabinet-role] .btn:not(.secondary):not(.ghost):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:linear-gradient(115deg,
+    color-mix(in srgb,var(--pr-accent,#087f79) 91%,#092a42),
+    color-mix(in srgb,var(--pr-accent,#087f79) 79%,var(--pr-mix,#36566f)))!important;
+  color:var(--pr-on,#061c31)!important;
+  border-color:var(--pr-accent,#3783a8)!important;
+}
+[data-cabinet-role] .btn:is(.secondary,.ghost):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:color-mix(in srgb,var(--pr-surface,#17344c) 90%,var(--pr-tint,#355877))!important;
+  color:var(--pr-text,#e9f3ff)!important;
+  border-color:var(--pr-line,#45647e)!important;
+}
+/* Owner header buttons are secondary controls, not bright main call-to-actions. */
+.staff-portal[data-cabinet-role="owner"].lw-cc-active
+  .cabinet-topbar .btn:hover:not(:disabled) {
+  background:#183c58!important;color:#eaf6ff!important;border-color:#547a99!important;
+}
+/* Ordinary unclassed buttons in dark cards must not become white rectangles. */
+:is(.carrier-portal,.staff-portal[data-cabinet-role="owner"])
+  :is(.cabinet-panel,.cabinet-content) button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:#1b405c!important;
+  color:#f0f8ff!important;
+  border-color:#547b98!important;
+}
+/* Dark execution tabs and other T2 controls retain their active-state meaning. */
+.carrier-portal #task2-root .t2-tabs button:hover:not(:disabled):not(.active) {
+  background:#254a63!important;color:#f0f8ff!important;border-color:#628eaa!important;
+}
+.carrier-portal #task2-root .t2-tabs button.active:hover:not(:disabled) {
+  background:#176b53!important;color:#fff!important;border-color:#78c7a9!important;
+}
+/* Light panels inside otherwise dark carrier and owner workspaces. */
+#task2-root .t2-stage button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.compact-transport-document button:not(.btn):not(.t2-btn):hover:not(:disabled),
+#portal-feedback-root button:not(.btn):not(.t2-btn):hover:not(:disabled) {
+  background:#e6f0ec!important;color:#174b3a!important;border-color:#83ac9c!important;
+}
+#task2-root .t2-stage .t2-btn.ghost:hover:not(:disabled) {
+  background:#e5f1e9!important;color:#145b44!important;border-color:#85ae9b!important;
+}
+/* Keep login gold buttons golden, not dazzling white/yellow on hover. */
+.cycle-landing .cycle-login .auth-card form>.btn:hover:not(:disabled) {
+  background:linear-gradient(110deg,#e7a23b,#cb781c)!important;
+  color:#20170c!important;border-color:#edb15e!important;
+}
+.cycle-landing .cycle-role-tabs button:hover:not(:disabled):not([aria-selected="true"]) {
+  background:#283b50!important;color:#f0f7ff!important;border-color:#506d83!important;
+}
+/* The navigation highlight remains visible, but without glare or motion. */
+[data-cabinet-role] :is(.cabinet-sidebar nav a,.sw-sidebar nav button):hover {
+  filter:none!important;transform:none!important;text-shadow:none!important;
+  box-shadow:none!important;
+}
+#lw-owner-command :is(.lw-cc-kpi,.lw-cc-action):hover {
+  filter:none!important;
+  transform:none!important;
+  box-shadow:0 3px 10px rgba(0,13,26,.2)!important;
+}
+/* Accessible keyboard focus is not replaced with the hover outline. */
+:where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing)
+  :is(button,.btn,.t2-btn,[role="button"],a):focus-visible {
+  outline:2px solid #8ed6ff!important;
+  outline-offset:3px!important;
+}
+@media(prefers-reduced-motion:reduce){
+  :where(.cabinet-app,.sw-cabinet,.carrier-portal,.staff-portal,.cycle-landing)
+    :is(button,.btn,.t2-btn,[role="button"]){transition:none!important}
+}
+
+/* LW-HOVER-02 · explicit Owner/Carrier unclassed buttons.
+   Avoid cascade ambiguity from older deeply nested form styles. */
+.cabinet-app.staff-portal[data-cabinet-role="owner"].lw-cc-active .cabinet-content .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app.carrier-portal[data-cabinet-role="carrier"] .cabinet-content .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled),
+.cabinet-app[data-cabinet-role="carrier"] .cabinet-panel button:not(.btn):not(.t2-btn):hover:not(:disabled) {
+ background:#1b405c!important;
+ background-image:none!important;
+ color:#f0f8ff!important;
+ border-color:#547b98!important;
+ filter:none!important;
+ text-shadow:none!important;
+ box-shadow:0 2px 9px rgba(0,14,28,.18)!important;
+ transition:none!important; /* Prevent first-frame white-to-dark flash */
+}
+
+/* LW-HOVER-03: light document widgets retain their light-on-dark contrast rules.
+   The ID in :is() gives precedence over legacy role-specific plain-button rules,
+   without changing other controls or the active/disabled states. */
+.cabinet-app :is(#portal-feedback-root,.compact-transport-document)
+  button:not(.btn):not(.t2-btn):hover:not(:disabled):not([aria-disabled="true"]) {
+  background:#e6f0ec!important;
+  background-image:none!important;
+  color:#174b3a!important;
+  border-color:#83ac9c!important;
+  filter:none!important;
+  box-shadow:0 2px 9px rgba(0,14,28,.12)!important;
+  text-shadow:none!important;
+  transition:none!important;
+}
+
