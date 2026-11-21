@@ -43,7 +43,7 @@ if(b.some(x=>x.round_id===n.round_id&&x.order_code===n.order_code))return "revie
 if(n.workflow_status==="accepted")return "preparing";
 return "new";
 }
-function issue47StageLabel(n,b){if(n.dashboard_stage==="lost")return "Не выбран · архив";if(n.dashboard_stage==="declined")return "Отказался · архив";const t=issue47Stage(n,b);return {archive:n.lifecycle_state==="annulled"?"Аннулировано · архив":n.round_result==="lost"?"Не выбран · архив":n.round_result==="no_response"?"Нет ответа · архив":n.round_result==="declined"||n.decline_reason?"Отказался · архив":"Архив",completed:"Выполнено",execution:"В пути",selected:"Выиграна",review:"На рассмотрении",preparing:"Расчёт ставки",viewed:"Просмотрена",new:"Новая заявка"}[t]}
+function issue47StageLabel(n,b){if(n.dashboard_stage==="lost")return "Не выбран · архив";if(n.dashboard_stage==="declined")return "Отказался · архив";const t=issue47Stage(n,b);return {archive:n.lifecycle_state==="annulled"?"Аннулировано · архив":n.round_result==="lost"?"Не выбран · архив":n.round_result==="no_response"?"Нет ответа · архив":n.round_result==="declined"||n.decline_reason?"Отказался · архив":"Архив",completed:"Выполнено",execution:"В пути",selected:"Победитель",review:"На рассмотрении",preparing:"Расчёт ставки",viewed:"Просмотрена",new:"Новая заявка"}[t]}
 function issue47MinskTime(s){
  if(!s)return NaN;
  const m=String(s).match(/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/);
