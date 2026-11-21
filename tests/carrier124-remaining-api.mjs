@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import {validateKnownCarrierBSlRecovery} from '../scripts/qa20-sl-recovery-guard.mjs';
+import {recoverVerifiedCarrierB} from '../scripts/qa20-sl-recovery-guard.mjs';
 import {createHash, randomUUID} from 'node:crypto';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -11,13 +11,18 @@ export const sha256 = data => createHash('sha256').update(data).digest('hex');
 export const deadlineMinsk = time => new Intl.DateTimeFormat('sv-SE', {timeZone:'Europe/Minsk', dateStyle:'short', timeStyle:'short'}).format(time).replace(' ', 'T');
 
 export async function createRemainingClient(sessions, log) {
-  assertCandidateCheckout();
+  const manifest=assertCandidateCheckout();
+  assert.equal(manifest.sh59IsolatedQa?.projectRef,'ibclzdkxiozbzmniiygv');
+  assert.equal(manifest.sh59IsolatedQa?.schema,'freight_qa_carrier124nov18');
+  assert.equal(manifest.sh59IsolatedQa?.function,'freight-api-qa-carrier124nov18');
+  assert.equal(manifest.sh59IsolatedQa?.version,20);
   const health = await fetch(carrier124Base + '/health', {redirect:'error', signal:AbortSignal.timeout(15000)});
   assert.equal(health.status, 200);
   const identity = await health.json();
   assert.equal(identity.qaRun, carrier124.run);
   assert.equal(identity.projectRef, carrier124.project);
   assert.equal(identity.environment, 'staging');
+  assert.equal(identity.edgeVersion,20);
   return async function call(actor, path, query = {}, data, expected = 200) {
     const url = isolatedApiUrl(path);
     for (const [key, value] of Object.entries(query)) url.searchParams.set(key,value);
@@ -51,6 +56,9 @@ export async function publishFixture(call,order, {deadline=deadlineMinsk(Date.no
     form.append('files',new Blob([bytes],{type:'text/plain'}),filename);
     await call('owner','/api/documents',{},form);
   }
+  // Award and route control fixtures do not exercise deadline penalties.
+  const control=/^QA-(?:N26-OIDC|MAP50-EXACT)-[0-9]+-[0-9]+$/.test(order);
+  if(control)deadline='2099-12-15T12:00';
   const receipt=await call('owner','/api/requests',{}, {order,deadline,summary,bitrixTask,logistics});
   return {order,logistics,deadline,published:receipt.json,sha256:sha256(bytes)};
 }
@@ -133,49 +141,7 @@ async function restoreServiceScore(api,score,files,reason){
 }
 
 export async function recoverInterruptedCarrierBoundary(api){
-  const recoveryReason='Restore synthetic Carrier B score after interrupted Actions run 44789205566';
-  const current=(await api('owner','/api/service-level',serviceQuery)).json;
-  let carrierB={recoveryRequired:false,score:current.policy.score};
-  if((current.policy.blocked||current.policy.score<76) && validateKnownCarrierBSlRecovery(current)){
-    const restored=await restoreServiceScore(api,79,await serviceEvidence(api),
-      'Restore audited isolated QA Carrier B synthetic no-response penalties after revision 37');
-    carrierB={recoveryRequired:true,auditedCorrectionRevision:37,verifiedExpiredSyntheticEvents:4,...restored};
-  }else if(current.policy.blocked||current.policy.score<76){
-    assert.equal(current.revision,26,'Unrecognized blocked synthetic Carrier B fixture');
-    const history=current.corrections.slice(-5);
-    assert.deepEqual(history.map(row=>Number(row.revision)),[22,23,24,25,26]);
-    assert.deepEqual(history.map(row=>Number(row.value)),[79,76,75,51,50]);
-    assert.ok(history.every(row=>row.action==='set_score'&&row.actor==='carrier124nov18-owner'&&
-      row.reason==='Controlled synthetic QA score for the acceptance boundary'));
-    // Readback recalculates penalties for expired requests. Only the two
-    // observed abandoned OIDC fixtures and a partial recovery may follow rev 26.
-    const events=current.events.filter(row=>Number(row.seq)>Number(history.at(-1).after_seq));
-    const expired=new Set(['QA-N26-OIDC-44586140745','QA-N26-OIDC-44587837976']);
-    let expectedScore=50;
-    let unlocked=false;
-    for(const event of events){
-      if(event.kind==='owner_unlock'){
-        assert.equal(event.actor,'carrier124nov18-owner');
-        assert.equal(event.reason,recoveryReason);
-        assert.equal(unlocked,false);
-        assert.equal(Number(event.requested_delta),51-expectedScore);
-        expectedScore=51;
-        unlocked=true;
-      }else{
-        assert.equal(unlocked,false);
-        assert.equal(event.kind,'no_response');
-        assert.equal(event.source_kind,'request');
-        assert.equal(event.actor,'system');
-        assert.ok(expired.delete(event.order_code),'Unexpected penalty after Carrier B test revision 26');
-        assert.equal(Number(event.requested_delta),-3);
-        expectedScore-=3;
-      }
-    }
-    assert.equal(current.policy.score,expectedScore);
-    assert.equal(current.policy.blocked,!unlocked);
-    const restored=await restoreServiceScore(api,79,await serviceEvidence(api),recoveryReason);
-    carrierB={recoveryRequired:true,interruptedRun:'44789205566',...restored};
-  }
+  const carrierB=await recoverVerifiedCarrierB(api,()=>serviceEvidence(api));
 
   const login='carrier124nov18-carriera';
   const query={login};
