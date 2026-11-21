@@ -14,7 +14,7 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    for(const name of ['process-editor-20261111.mjs','process-model-graph.mjs','process-model-diff.mjs'])await page.route('**/'+name+'*',r=>r.fulfill({path:'test/'+name,contentType:'text/javascript'}));
    const errors=[];page.on("pageerror",e=>errors.push(e.message));
    await page.goto(url+"?page=login&owqa=01112026",{waitUntil:"domcontentloaded",timeout:45000});
-   await page.waitForFunction(()=>window.owOwnerRegistersVersion==="OW-01.30.47 v",{timeout:20000});
+   await page.waitForFunction(()=>window.owOwnerRegistersVersion==="OW-REG-20261117-ACCEPTANCE",{timeout:20000});
    await page.evaluate(()=>{
     const fixture=document.createElement("section");fixture.className="cabinet-app staff-portal";fixture.dataset.cabinetRole="owner";
     fixture.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar mobile-open"><nav class="lw-owner-nav">'+
