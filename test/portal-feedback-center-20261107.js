@@ -11,6 +11,11 @@ const titleTranslations={
  en:{owner:"Improvement center",author:"Suggestions",new:"Create request",category:"Request type",choose:"Select a type",description:"Description",prompt:"Describe the proposed improvement or fix",submit:"Submit",cancel:"Cancel",my:"My requests",all:"All requests",empty:"No requests yet",refresh:"Refresh",status:"Status",register:"Register",created:"Created",authorLabel:"Submitted by",note:"Comment / reason",selectStatus:"Next status",date:"Planned release date",save:"Update status",history:"History",open:"Details",clear:"Select a request",error:"Action failed",success:"Request submitted",releaseHint:"Publication date will be visible to the submitter",read:"Mark as read",summary:"Submitted / In progress / Release planned",noAccess:"Access could not be verified",intro:"Website improvement requests, separate from freight offers."},
  zh:{owner:"改进管理中心",author:"建议",new:"创建申请",category:"申请类型",choose:"选择类型",description:"说明",prompt:"请描述需要改进或修复的内容",submit:"提交",cancel:"取消",my:"我的申请",all:"所有申请",empty:"暂无申请",refresh:"刷新",status:"状态",register:"登记册",created:"创建时间",authorLabel:"提交人",note:"备注 / 原因",selectStatus:"新状态",date:"计划发布日期",save:"更新状态",history:"处理记录",open:"详情",clear:"请选择申请",error:"操作失败",success:"申请已提交",releaseHint:"发布日期对提交人可见",read:"标记已读",summary:"已提交 / 处理中 / 计划发布",noAccess:"无法验证访问权限",intro:"网站改进建议，与运输报价分开。"}
 };
+const ownerExtra={
+ ru:{manual:"Дополнительные действия Владельца",manualHint:"Ручной переход — только для исправления зависших задач. Не означает завершения разработки или публикации.",githubToken:"Автоматическая передача в GitHub не настроена на сервере. Заявка сохранена. Для постоянной работы администратору нужно настроить секрет GITHUB_OWNER_REGISTER_TOKEN в Supabase. Не вводите токен в карточку."},
+ en:{manual:"Advanced Owner actions",manualHint:"Use manual transitions only to recover stalled tasks. This does not confirm implementation or publication.",githubToken:"Automatic GitHub handoff is not configured on the server. The task is saved. An administrator must configure GITHUB_OWNER_REGISTER_TOKEN in Supabase. Never enter a token in this form."},
+ zh:{manual:"所有者高级操作",manualHint:"仅在修复卡住的任务时手动切换阶段；这不代表开发或发布已完成。",githubToken:"服务器尚未配置 GitHub 自动交接。任务已保存。管理员需要在 Supabase 中配置 GITHUB_OWNER_REGISTER_TOKEN，切勿在表单中输入令牌。"}
+};
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
@@ -68,12 +73,12 @@ function detail(){
   '<h4>Публикация обновления</h4>'+
   (releaseReady?'<p class="pf-ci-success" role="status">Все обязательные тесты пройдены</p>':'<p class="pf-ci-wait" role="status">Ожидаются тесты</p>')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||busy?'disabled':'')+'>Выпустить обновление</button></section>':'';
- const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
+ const updateControls=data.owner&&choices.length?'<details class="pf-owner-advanced"><summary>'+esc(ownerExtra[byLang].manual)+'</summary><p>'+esc(ownerExtra[byLang].manualHint)+'</p><form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
  '<label>'+esc(t().note)+'<textarea rows="3" name="note" maxlength="2000" placeholder="'+esc(t().note)+'"></textarea></label>'+
  '<label class="pf-date-field" hidden>'+esc(t().date)+'<input type="date" name="releaseDate" disabled/><small>'+esc(t().releaseHint)+'</small></label>'+
- '<button class="pf-primary" type="submit" '+(busy?'disabled':'')+'>'+esc(t().save)+'</button></form>':"";
+ '<button class="pf-primary" type="submit" '+(busy?'disabled':'')+'>'+esc(t().save)+'</button></form></details>':"";
  return '<article class="pf-detail"><div class="pf-item-top"><h3>'+esc(item.code)+'</h3>'+badge(item)+'</div>'+
  '<p class="pf-type">'+esc(categoryLabels[item.category])+' · '+esc(registerLabels[item.journal])+'</p>'+
  '<p class="pf-body">'+esc(item.description)+'</p>'+
@@ -153,7 +158,7 @@ async function runCodexHandoff(item,deadline){
   const result=await call('dispatch');
   message='GitHub принял задание. Это ещё не подтверждение запуска модели Codex.';
   if(result.already)message='Задание уже отправлено в GitHub.';
- }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
+ }catch(e){const raw=String(e?.message||'Неизвестная ошибка');error=/GITHUB_TOKEN_NOT_CONFIGURED/.test(raw)?ownerExtra[byLang].githubToken:'Передача не выполнена: '+raw;}
  finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
 async function runAction(payload){
