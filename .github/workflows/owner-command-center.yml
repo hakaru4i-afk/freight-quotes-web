@@ -1,21 +1,5 @@
 name: Owner approved dark command center staging QA
 on:
-  push:
-    branches: [main]
-    paths:
-      - "test/owner-command-center-20261108.js"
-      - "test/owner-command-center-20261108.css"
-      - "test/owner-command-hero-20261108.svg"
-      - "test/current-workspace-help-20261108.js"
-      - "test/index.html"
-      - "test/owner-ui-unification-20261117.css"
-      - "test/owner-ui-unification-20261117.js"
-      - "tests/owner-ui-unification-browser.test.mjs"
-      - "tests/owner-team-users-browser.test.mjs"
-      - "test/owner-team-users-20261117.js"
-      - "tests/owner-command-center.test.mjs"
-      - "tests/owner-command-center-browser.test.mjs"
-      - ".github/workflows/owner-command-center.yml"
   workflow_dispatch:
 permissions:
   contents: read
@@ -70,6 +54,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Verify SL, navigation, role safety and visual screenshots

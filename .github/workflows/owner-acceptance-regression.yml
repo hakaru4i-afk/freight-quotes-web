@@ -9,13 +9,6 @@ on:
       - 'test/index.html'
       - 'tests/owner-acceptance-regression.test.mjs'
       - '.github/workflows/owner-acceptance-regression.yml'
-  pull_request:
-    paths:
-      - 'owner-registers-20261111.js'
-      - 'test/owner-registers-20261111.js'
-      - 'index.html'
-      - 'test/index.html'
-      - 'tests/owner-acceptance-regression.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

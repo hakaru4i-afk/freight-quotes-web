@@ -1,11 +1,5 @@
 name: Task2 staging text contrast regression
 on:
-  pull_request:
-    paths:
-      - 'test/task2-contrast-hotfix.css'
-      - 'test/index.html'
-      - 'tests/task2-contrast.test.mjs'
-      - '.github/workflows/task2-contrast.yml'
   push:
     branches: [main]
     paths:

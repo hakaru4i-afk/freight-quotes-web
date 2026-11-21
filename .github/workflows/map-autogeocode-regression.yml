@@ -7,11 +7,6 @@ on:
       - 'test/global-view/**'
       - 'tests/global-view-route.test.mjs'
       - '.github/workflows/map-autogeocode-regression.yml'
-  pull_request:
-    paths:
-      - 'global-view/**'
-      - 'test/global-view/**'
-      - 'tests/global-view-route.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

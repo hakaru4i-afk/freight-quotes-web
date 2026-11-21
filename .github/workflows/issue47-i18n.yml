@@ -1,11 +1,6 @@
 name: Issue47 Task2 RU EN ZH language staging
 on:
-  pull_request:
-    paths:
-      - 'test/task2-i18n.js'
-      - 'test/index.html'
-      - 'tests/issue47-task2-i18n.test.mjs'
-      - '.github/workflows/issue47-i18n.yml'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

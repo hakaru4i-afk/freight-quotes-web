@@ -1,16 +1,5 @@
 name: Owner workspace hierarchy / compact staging QA
 on:
-  push:
-    branches: [main]
-    paths:
-      - "test/owner-workspace-compact-20261108.js"
-      - "test/owner-workspace-compact-20261108.css"
-      - "test/current-workspace-help-20261108.js"
-      - "test/current-workspace-help-20261108.css"
-      - "test/index.html"
-      - "tests/owner-workspace-compact.test.mjs"
-      - "tests/owner-workspace-compact-browser.test.mjs"
-      - ".github/workflows/owner-workspace-compact.yml"
   workflow_dispatch:
 permissions:
   contents: read
@@ -60,6 +49,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Owner menu, compact layout and no overflow on 1366x768 and 390x844

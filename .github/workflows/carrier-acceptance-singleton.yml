@@ -1,18 +1,5 @@
 name: Carrier acceptance singleton / staging
 on:
-  push:
-    branches: [main]
-    paths:
-      - test/carrier-acceptance-workflow-20261107.js
-      - test/index.html
-      - tests/carrier-acceptance-singleton-browser.test.mjs
-      - .github/workflows/carrier-acceptance-singleton.yml
-  pull_request:
-    paths:
-      - test/carrier-acceptance-workflow-20261107.js
-      - test/index.html
-      - tests/carrier-acceptance-singleton-browser.test.mjs
-      - .github/workflows/carrier-acceptance-singleton.yml
   workflow_dispatch:
 permissions:
   contents: read

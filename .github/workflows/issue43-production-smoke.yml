@@ -12,17 +12,6 @@ on:
       - 'owner-ui-unification-*.css'
       - 'owner-ui-unification-*.js'
       - .github/workflows/issue43-production-smoke.yml
-  pull_request:
-    paths:
-      - app.js
-      - index.html
-      - build-info.json
-      - site-status.json
-      - production-release-manifest.json
-      - tests/helpers/production-release-boundary.mjs
-      - 'owner-ui-unification-*.css'
-      - 'owner-ui-unification-*.js'
-      - .github/workflows/issue43-production-smoke.yml
   workflow_dispatch:
 permissions:
   contents: read

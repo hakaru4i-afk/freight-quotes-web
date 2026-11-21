@@ -1,7 +1,6 @@
 name: Issue17 document mapping
 on:
-  pull_request:
-    paths: ['test/transport-application*', 'tests/issue17*', '.github/workflows/issue17-document.yml']
+  workflow_dispatch:
   push:
     branches: [main, fix/issue17-compact-document]
     paths: ['test/transport-application*', 'tests/issue17*', '.github/workflows/issue17-document.yml']

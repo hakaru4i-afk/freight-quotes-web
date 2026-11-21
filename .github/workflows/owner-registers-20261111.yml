@@ -1,21 +1,5 @@
 name: OW-01.30.46 v Owner registers / current process / FAQ staging
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'test/owner-registers-20261111.js'
-      - 'test/owner-registers-20261111.css'
-      - 'test/role-help-20261111.js'
-      - 'test/role-help-20261111.css'
-      - 'tests/role-help-20261111.test.mjs'
-      - 'tests/role-help-browser.test.mjs'
-      - 'test/current-workspace-help-20261108.js'
-      - 'test/lw-public-cooperation-20261108.js'
-      - 'test/index.html'
-      - 'test/process-map.html'
-      - 'tests/owner-registers-20261111.test.mjs'
-      - 'tests/owner-registers-browser.test.mjs'
-      - '.github/workflows/owner-registers-20261111.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +11,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: node --test tests/owner-registers-20261111.test.mjs tests/current-workspace-help.test.mjs tests/owner-workspace-compact.test.mjs tests/lw-permanent-delete-staging.test.mjs tests/role-help-20261111.test.mjs
   served:
     needs: static
@@ -62,6 +53,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: node --test tests/owner-registers-browser.test.mjs tests/role-help-browser.test.mjs

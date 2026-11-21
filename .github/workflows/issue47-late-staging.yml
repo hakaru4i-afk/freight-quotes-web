@@ -1,13 +1,6 @@
 name: Issue47 late bid staging regression
 on:
-  pull_request:
-    paths:
-      - 'test/app.js'
-      - 'test/late-bid-staging.js'
-      - 'test/index.html'
-      - 'test/build-info.json'
-      - 'tests/issue47-late-ui.test.mjs'
-      - '.github/workflows/issue47-late-staging.yml'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

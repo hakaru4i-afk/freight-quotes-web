@@ -1,12 +1,6 @@
 name: Issue #47 staging menu clarity
 on:
-  pull_request:
-    paths:
-      - 'test/app.js'
-      - 'test/index.html'
-      - 'test/build-info.json'
-      - 'tests/issue47-menu-clarity.test.mjs'
-      - '.github/workflows/issue47-staging-check.yml'
+  workflow_dispatch:
   push:
     branches:
       - fix/issue47-staging-menu-clarity

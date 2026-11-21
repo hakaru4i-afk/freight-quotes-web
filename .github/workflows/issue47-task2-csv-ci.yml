@@ -1,10 +1,6 @@
 name: Issue47 staging CSV and completion regression
 on:
-  pull_request:
-    paths:
-      - 'test/task2-panel.js'
-      - 'tests/issue47-task2-csv.test.mjs'
-      - '.github/workflows/issue47-task2-csv-ci.yml'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

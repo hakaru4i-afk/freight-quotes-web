@@ -11,13 +11,6 @@ on:
       - 'test/owner-offer-evaluation-20261117.css'
       - 'tests/owner-offer-scoring-r3.test.mjs'
       - '.github/workflows/owner-offer-scoring.yml'
-  pull_request:
-    paths:
-      - 'offer-scoring.mjs'
-      - 'test/offer-scoring.mjs'
-      - 'owner-offer-evaluation-20261117.mjs'
-      - 'test/owner-offer-evaluation-20261117.mjs'
-      - 'tests/owner-offer-scoring-r3.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

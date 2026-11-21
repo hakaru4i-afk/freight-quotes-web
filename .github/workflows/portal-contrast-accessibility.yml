@@ -1,12 +1,5 @@
 name: "LW Contrast All / all-role staging QA"
 on:
-  push:
-    branches: [main]
-    paths:
-      - test/portal-contrast-accessibility-20261108.css
-      - test/index.html
-      - tests/portal-contrast-accessibility-browser.test.mjs
-      - .github/workflows/portal-contrast-accessibility.yml
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,6 +11,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - name: "Validate CSS scope, test syntax and production isolation"
         shell: bash
         run: |
@@ -61,6 +61,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: "Check role palettes and interaction states on desktop and mobile"

@@ -1,7 +1,6 @@
 name: Issue49 staging-only regression
 on:
-  pull_request:
-    paths: ['test/**', 'tests/issue49-staging-check.test.mjs', '.github/workflows/issue49-staging-check.yml']
+  workflow_dispatch:
   push:
     branches: [fix/issue49-staging-pages]
 permissions:

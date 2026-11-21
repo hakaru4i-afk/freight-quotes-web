@@ -7,11 +7,6 @@ on:
       - 'test/global-view/**'
       - 'tests/map50-owner-km-before-bid.test.mjs'
       - '.github/workflows/map50-owner-initial-km.yml'
-  pull_request:
-    paths:
-      - 'global-view/**'
-      - 'test/global-view/**'
-      - 'tests/map50-owner-km-before-bid.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read

@@ -1,10 +1,6 @@
 name: Task2 legacy CSV integrity staging
 on:
-  pull_request:
-    paths:
-      - 'test/task2-guidance.js'
-      - 'tests/issue47-legacy-csv-integrity.test.mjs'
-      - '.github/workflows/issue47-legacy-csv-integrity.yml'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:

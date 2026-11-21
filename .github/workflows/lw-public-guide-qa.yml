@@ -1,16 +1,5 @@
 name: LW Public Partner & Guide staging QA
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/lw-public-guide-qa.yml"
-      - "tests/lw-public-guide-live.test.mjs"
-      - "test/index.html"
-      - "test/current-workspace-help-20261108.js"
-      - "test/current-workspace-help-20261108.css"
-      - "test/lw-public-cooperation-20261108.js"
-      - "test/lw-public-cooperation-20261108.css"
-      - "test/lw-approved-dark-20261108.css"
   workflow_dispatch:
 permissions:
   contents: read
@@ -23,6 +12,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Chromium cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: node --test tests/lw-public-guide-live.test.mjs

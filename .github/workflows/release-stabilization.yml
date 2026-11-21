@@ -1,12 +1,5 @@
 name: Release stabilization candidate
 on:
-  pull_request:
-    paths:
-      - 'test/**'
-      - 'tests/**'
-      - 'scripts/build-process-maps.mjs'
-      - 'scripts/stamp-staging-rc.mjs'
-      - '.github/workflows/release-stabilization.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -19,6 +12,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Verify metadata, independent forms, tracking and fail-closed release decision
@@ -57,6 +57,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Restore npm and Playwright browser cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-node24-playwright-1.56.1-v1
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - name: Run every frontend test file, including live browser and security regressions
