@@ -36,6 +36,8 @@ jobs:
           node scripts/check-staging-alignment.mjs --source-only
           node scripts/check-isolated-api-pair.mjs
           node --test tests/carrier124-ci-oidc-bindings.test.mjs tests/carrier124-service-recovery.test.mjs
+          node --check tests/task12-published-qa20.e2e.mjs
+          node --test tests/qa20-published-proof-contract.test.mjs
   qa:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa
