@@ -87,7 +87,8 @@ jobs:
           assert.ok(['workflow_dispatch','workflow_run'].includes(audit.event));
           assert.equal(e2e.frontendSha,process.env.TESTED_FRONTEND_SHA);
           assert.equal(e2e.backendSha,process.env.TESTED_BACKEND_SHA);
-          assert.ok(Number.isSafeInteger(e2e.runId)&&e2e.runId>0);
+          assert.match(String(e2e.runId||''),/^[1-9][0-9]*$/);
+          assert.ok(Number.isSafeInteger(Number(e2e.runId)));
           JS
           node --input-type=module <<'JS' >> "$GITHUB_ENV"
           import {readFileSync} from 'node:fs';
