@@ -40,10 +40,14 @@ jobs:
           const fs = require('node:fs');
           const x = JSON.parse(fs.readFileSync('build-info.json', 'utf8'));
           const status = JSON.parse(fs.readFileSync('site-status.json', 'utf8'));
+          // Match the separately reviewed immutable release manifest, not a hard-coded historic label.
+          // This still fails closed on the present SH59/SH52 discrepancy.
+          const release = JSON.parse(fs.readFileSync('production-release-manifest.json', 'utf8'));
           const page = fs.readFileSync('index.html','utf8');
           const app = fs.readFileSync('app.js','utf8');
-          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== 'SH-01.30.52 v') throw Error('wrong production identity');
-          if (x.version !== status.version || status.release.version !== 'SH-01.30.52 v') throw Error('release metadata mismatch');
+          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || release.environment !== 'production') throw Error('wrong production identity');
+          if (x.releaseVersion !== release.businessVersion || status.release.version !== release.businessVersion) throw Error('PRODUCTION_RELEASE_VERSION_MISMATCH');
+          if (x.version !== status.version || x.build !== release.frontendBuild) throw Error('release metadata mismatch');
           if (!page.includes('app.js?v=' + x.build)) throw Error('stale app cache key');
           if (!app.includes('sender_contact:S.target.value') || !app.includes('g.sender_contact||""')) throw Error('Owner field missing');
           if (!app.includes('Object.fromEntries(["sender_contact","origin","weight"')) throw Error('Owner hydrate missing');

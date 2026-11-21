@@ -91,10 +91,17 @@ export function placeIndex(rows) {
     if (/(?:монголия|蒙古国|(?:^|\W)(?:mongolia|mn)(?:$|\W))/iu.test(text)) return 'mn';
     return '';
   };
+  const addressCountry = label => {
+    const text=normal(label),known=countryIn(text);
+    const codes=[...new Set(text.split(/[,，]/).map(x=>x.trim()).filter(x=>/^[a-z]{2}$/.test(x)))];
+    if(codes.length>1||(codes[0]&&known&&codes[0]!==known))return null;
+    return codes[0]||known;
+  };
   const candidateNames = [...new Set([...index.keys(),...aliasesWithTargets.map(([name])=>name)])]
     .filter(name=>name.length>=2 && !/ (?:[a-z]{2})$/.test(name));
   const knownAddress = label => {
-    const haystack=normal(label),country=countryIn(haystack),found=[];
+    const haystack=normal(label),country=addressCountry(label),found=[];
+    if(country===null)return null;
     for(const name of candidateNames){
       if(!hasName(haystack,name))continue;
       const target=aliasIndex.get(name)||name;
@@ -116,11 +123,20 @@ export function placeIndex(rows) {
       source:'gazetteer locality parsed from mixed-language address'};
   };
   return label => {
+    if(addressCountry(label)===null)return null;
     const coordinate = label.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
     if (coordinate) {
       const [, lat, lng] = coordinate.map(Number);
       return Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat, lng, approximate: false } : null;
     }
+    // A known city is not a verified street address. Do not silently reduce
+    // an explicit street/house to an approximate city checkpoint.
+    // Exact latitude/longitude inputs are parsed first and remain supported.
+    const commaParts = normal(label).split(/[,，]/).map(part=>part.trim());
+    const hasUnverifiedStreet = commaParts.length>1 && commaParts.slice(1).some(part=>
+      /\d|(?:^|\s)(?:street|st\.|road|rd\.|avenue|ave\.|lane|ln\.|ulitsa|ul\.|house)(?:\s|$)|улиц|проспект|переул|дом\s*\d|(?:路|街|号)/iu.test(part)
+    );
+    if(hasUnverifiedStreet)return null;
     // MAP50: validated city fallback for a mixed Chinese administrative pickup.
     // This is the center of Linyi (approximate), never the factory or village.
     if (/山东省临沂市/.test(label)) { const p=lookup('linyi cn');return p?{...p,precision:'city',confirmed:false}:null; }
@@ -157,7 +173,9 @@ export function placeIndex(rows) {
     const [city, country] = countryCode(parts[0]) ? [...parts].reverse() : parts;
     const cityName = city.replace(/^(?:г\.|город|city of)\s*/, '');
     const code = countryCode(country);
-    return (code ? lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code) : null) || knownAddress(label);
+    // An explicit ISO country is a constraint, never a hint that may be dropped.
+    if (code) return lookup((aliasIndex.get(cityName) ?? cityName) + ' ' + code);
+    return knownAddress(label);
   };
 }
 

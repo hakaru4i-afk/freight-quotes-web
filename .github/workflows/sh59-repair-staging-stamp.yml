@@ -1,0 +1,76 @@
+name: Repair SH59 staging asset stamps (source only)
+on:
+  pull_request:
+    paths:
+      - 'scripts/stamp-staging-rc.mjs'
+      - '.github/workflows/sh59-repair-staging-stamp.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: sh59-staging-asset-stamp-repair
+  cancel-in-progress: false
+jobs:
+  stamp:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.actor == 'hakaru4i-afk' &&
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.number == 145 &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.event.pull_request.head.ref == 'ci/sh59-verified-source-handoff-20261121') ||
+       (github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/ci/sh59-verified-source-handoff-20261121'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ci/sh59-verified-source-handoff-20261121
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Reconcile generated cache identities in staging source (never production)
+        id: reconcile
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "ci/sh59-verified-source-handoff-20261121"
+          test -z "$(git status --porcelain)"
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+          while IFS= read -r file; do
+            case "$file" in
+              test/index.html|test/app.js|test/build-info.json|test/site-status.json|test/process-model-diff.mjs|test/process-editor-20261111.mjs|test/global-view/globe.mjs|test/global-view/map.mjs|test/global-view/view.mjs) ;;
+              "") ;;
+              *) echo "::error::Unexpected path changed: $file"; exit 1 ;;
+            esac
+          done < <(git diff --name-only)
+          test -z "$(git diff --name-only -- production-release-manifest.json build-info.json index.html app.js test/staging-manifest.json)"
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "SH59_STAGING_STAMP_ALREADY_CURRENT"
+            exit 0
+          fi
+          git diff --stat
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add test/index.html test/app.js test/build-info.json test/site-status.json \
+            test/process-model-diff.mjs test/process-editor-20261111.mjs \
+            test/global-view/globe.mjs test/global-view/map.mjs test/global-view/view.mjs
+          git commit -m "ci(staging): reconcile deterministic SH59 asset build hashes"
+          git push origin HEAD:refs/heads/ci/sh59-verified-source-handoff-20261121
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "SH59_STAGING_BUILD_METADATA_FIXED; PRODUCTION_UNCHANGED"
+      - name: Request fresh regression (GITHUB_TOKEN pushes do not trigger normal PR workflows)
+        if: steps.reconcile.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh workflow run release-stabilization.yml --ref ci/sh59-verified-source-handoff-20261121
+          gh workflow run staging-alignment.yml --ref ci/sh59-verified-source-handoff-20261121
+          echo "Regression dispatched. Canonical API runtime-pair gate remains mandatory."

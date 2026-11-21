@@ -1,5 +1,5 @@
-import { calculateMapDistances } from './distance.mjs?v=map50-initial-km-20261117-2';
-import { modes, placeIndex, routeModel } from './route-model.mjs?v=map50-multilingual-geocode-20261117-5';
+import { calculateMapDistances } from './distance.mjs?v=850df59b95e2';
+import { modes, placeIndex, routeModel } from './route-model.mjs?v=bc1d9d3ad4da';
 
 const node = (tag, className, text) => {
   const element = document.createElement(tag);
@@ -47,28 +47,29 @@ class GlobalRouteView extends HTMLElement {
     const hero = node('div', 'gv-hero');
     const header = node('header', 'gv-header');
     header.append(node('h2', 'gv-title', 'Global View'),
-      node('p', 'gv-subtitle', 'Маршрут заявки'));
+      node('p', 'gv-subtitle', t('Маршрут заявки','Request route','询价路线')));
     const frame = node('div', 'gv-frame');
     const stages = { '3d': node('div', 'gv-stage gv-stage-globe'), '2d': node('div', 'gv-stage gv-stage-map') };
     stages['2d'].hidden = true;
     frame.append(stages['3d'], stages['2d']);
-    const message = node('p', 'gv-message', 'Загружаем карту…');
+    const message = node('p', 'gv-message', t('Загружаем карту…','Loading map…','正在加载地图…'));
     message.setAttribute('role', 'status');
     frame.append(message);
     const buttons = node('div', 'gv-controls');
     const modesControl = node('div', 'gv-switch');
     modesControl.setAttribute('role', 'group');
-    modesControl.setAttribute('aria-label', 'Режим карты');
+    modesControl.setAttribute('aria-label', t('Режим карты','Map mode','地图模式'));
     const globe = node('button', '', '3D');
     const flat = node('button', '', '2D');
-    globe.setAttribute('aria-label', '3D-глобус');
-    flat.setAttribute('aria-label', '2D-карта');
+    globe.setAttribute('aria-label', t('3D-глобус','3D globe','3D 地球'));
+    flat.setAttribute('aria-label', t('2D-карта','2D map','2D 地图'));
+    globe.disabled = flat.disabled = true;
     modesControl.append(globe, flat);
     const zoom = node('div', 'gv-zoom');
     const closer = node('button', '', '+');
     const farther = node('button', '', '−');
     const reset = node('button', 'gv-reset', '⌖');
-    for (const [button, label] of [[closer, 'Приблизить'], [farther, 'Отдалить'], [reset, 'К маршруту']]) {
+    for (const [button, label] of [[closer, t('Приблизить','Zoom in','放大')], [farther, t('Отдалить','Zoom out','缩小')], [reset, t('К маршруту','Fit route','显示完整路线')]]) {
       button.setAttribute('aria-label', label);
       button.title = label;
     }
@@ -154,7 +155,7 @@ class GlobalRouteView extends HTMLElement {
     let trackingHistory = null;
     if (Array.isArray(tracking)) {
       const history = node('section', 'gv-tracking');
-      history.append(node('h3', '', 'Сообщения о местонахождении груза'),node('p','','Еженедельный отчёт перевозчика, не GPS в реальном времени.'));
+      history.append(node('h3', '', t('Сообщения о местонахождении груза','Cargo location reports','货物位置报告')),node('p','',t('Еженедельный отчёт перевозчика, не GPS в реальном времени.','Weekly carrier reports, not live GPS.','承运人每周报告，非实时 GPS。')));
       const list = node('ol', 'gv-stops');
       for (const [index, entry] of tracking.entries()) {
         const latest = index === tracking.length - 1;
@@ -172,7 +173,7 @@ class GlobalRouteView extends HTMLElement {
     }
     const mode = modes[route.mode];
     const activities = node('div', 'gv-activities');
-    activities.append(node('h3', '', 'Маршрут перевозки'));
+    activities.append(node('h3', '', t('Маршрут перевозки','Shipment route','运输路线')));
     const list = node('ol', 'gv-stops');
     for (const [index, stop] of route.stops.entries()) {
       const item = node('li', stop.position ? '' : 'gv-stop-unlocated');
@@ -199,30 +200,31 @@ class GlobalRouteView extends HTMLElement {
       (route.mode === 'unknown' && route.transport ? route.transport : ({road:t(mode.label,'Road','公路'),rail:t(mode.label,'Rail','铁路'),sea:t(mode.label,'Sea','海运'),air:t(mode.label,'Air','空运'),multi:t(mode.label,'Multimodal','多式联运'),unknown:t(mode.label,'Unspecified','未指定')})[route.mode]));
     const located = [...route.stops, ...route.deferred].filter(stop => stop.position).length;
     const total = route.stops.length + route.deferred.length;
-    summary.append(node('h3', '', 'Контроль перевозки'), badge,
+    summary.append(node('h3', '', t('Контроль перевозки','Shipment monitoring','运输监控')), badge,
       node('p', 'gv-coverage', located + ' / ' + total),
-      node('p', 'gv-coverage-label', 'Пунктов с координатами'),
-      node('p', 'gv-warning', 'На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.'));
+      node('p', 'gv-coverage-label', t('Пунктов с координатами','Stops with coordinates','已有坐标的地点')),
+      node('p', 'gv-warning', t('На карте показана схема перевозки. Точная трасса и GPS-позиция не подтверждены.','The map shows a schematic route. Exact routing and GPS location are unverified.','地图显示运输路线示意图。实际路线和 GPS 位置尚未确认。')));
     if (route.missingEndpoints) summary.append(node('p', 'gv-warning', 'Укажите адреса погрузки и доставки.'));
     if (located < total) summary.append(node('p', 'gv-warning', 'Недостающие точки уточняет автоматический геопоиск. Ручная установка координат не требуется.'));
     if (route.mode === 'multi') summary.append(node('p', 'gv-warning', 'Вид транспорта на отдельных участках не указан.'));
     if (lookupFailed) summary.append(node('p', 'gv-warning', 'Справочник городов временно недоступен.'));
     const distancePanel = node('section', 'gv-distance');
     distancePanel.setAttribute('aria-live', 'polite');
-    distancePanel.append(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Рассчитываем расстояния…'));
+    const distanceTitle=t('Расстояние перевозки','Shipment distance','运输距离');
+    distancePanel.append(node('h3', '', distanceTitle), node('p', '', t('Рассчитываем расстояния…','Calculating distances…','正在计算距离…')));
     summary.append(distancePanel);
     if (Array.isArray(tracking)) {
       const km = value => {
         const number = typeof value === 'number' || (typeof value === 'string' && value.trim()) ? Number(value) : NaN;
         return Number.isFinite(number) && number >= 0 ? number.toLocaleString(numberLocale) + t(' км',' km',' 公里') : t('не рассчитано','not calculated','未计算');
       };
-      distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'),
+      distancePanel.replaceChildren(node('h3', '', distanceTitle),
         node('p', '', t('Общий километраж: ','Total distance: ','总里程：') + km(distance?.total)),
         node('p', '', t('Остаток на дату последнего сообщения: ','Remaining at last report: ','最后报告时的剩余里程：') + km(distance?.remaining)));
     }
     else calculateMapDistances(route, { signal }).then(result => {
       if (signal.aborted) return;
-      distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'));
+      distancePanel.replaceChildren(node('h3', '', distanceTitle));
       const totalText = result.totalKm == null ? 'Расстояние пока не рассчитано: координаты уточняются автоматически' :
         result.geodesicMinimum ? 'Предварительный минимум по прямой: ' + result.totalKm.toLocaleString('ru-RU') + ' км (не фактическая длина маршрута)' :
         'Общий километраж: ' + result.totalKm.toLocaleString('ru-RU') + ' км' + (result.estimated ? ' (предварительно, уточняется по данным перевозчика)' : '');
@@ -240,7 +242,7 @@ class GlobalRouteView extends HTMLElement {
         legList.append(node('li', '', leg.from + ' → ' + leg.to + ': ' + label));
       }
       distancePanel.append(legList, node('small', '', result.geodesicMinimum ? 'Минимальная географическая дистанция — только временный ориентир. Реальные километры и маршрут рассчитываются заново после данных о станциях, переходах и транспорте.' : 'Предварительный маршрут по дорожной сети уточняется после добавления станций, промежуточных точек и вида транспорта перевозчиком.'));
-    }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', 'Расстояние перевозки'), node('p', '', 'Расчёт временно недоступен')); });
+    }).catch(() => { if (!signal.aborted) distancePanel.replaceChildren(node('h3', '', distanceTitle), node('p', '', t('Расчёт временно недоступен','Distance calculation temporarily unavailable','距离计算暂不可用'))); });
     // OSRM — автомобильная сеть; для ЖД/моря/авиа не строим ложный дорожный километраж.
     if(Array.isArray(tracking)&&distance?.total==null&&route.mode==='road'){
       distancePanel.dataset.status='loading';
@@ -267,12 +269,12 @@ class GlobalRouteView extends HTMLElement {
         if (fallback) message.textContent = '3D недоступен. Маршрут открыт на 2D-карте.';
         return;
       }
-      message.textContent = 'Загружаем карту…';
+      message.textContent = t('Загружаем карту…','Loading map…','正在加载地图…');
       try {
         loading[name] ??= (async () => {
           const renderer = name === '3d'
-            ? (await import('./globe.mjs?v=2ed1115bbcf6')).createGlobe
-            : (await import('./map.mjs?v=57be13a649c8')).createMap;
+            ? (await import('./globe.mjs?v=238aea412820')).createGlobe
+            : (await import('./map.mjs?v=1bd212759469')).createMap;
           const instance = await renderer(stages[name], route, places);
           if (signal.aborted) instance.destroy();
           else instances[name] = instance;
@@ -300,6 +302,7 @@ class GlobalRouteView extends HTMLElement {
     closer.onclick = () => instances[this.dataset.mode]?.zoom(1);
     farther.onclick = () => instances[this.dataset.mode]?.zoom(-1);
     reset.onclick = () => instances[this.dataset.mode]?.reset();
+    globe.disabled = flat.disabled = false;
     show(previousMode);
   }
 }

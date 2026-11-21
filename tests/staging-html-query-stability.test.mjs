@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,cpSync,mkdirSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+
+test('staging --write and --check preserve HTML structure identity with extra asset query params',t=>{
+ const root=mkdtempSync(join(tmpdir(),'sh59-stamp-query-'));
+ t.after(()=>rmSync(root,{recursive:true,force:true}));
+ mkdirSync(join(root,'scripts'));
+ cpSync('scripts/stamp-staging-rc.mjs',join(root,'scripts/stamp-staging-rc.mjs'));
+ cpSync('test',join(root,'test'),{recursive:true});
+ cpSync('.github',join(root,'.github'),{recursive:true});
+ const path=join(root,'test/index.html');
+ const source=readFileSync(path,'utf8');
+ const pattern=/(\.\/staging-transport-20261111\.js\?v=[^"]+)/;
+ assert.match(source,pattern,'The tested HTML must contain the staging transport');
+ writeFileSync(path,source.replace(pattern,'$1&rev=unified'));
+ const stamp=arg=>execFileSync(process.execPath,[join(root,'scripts/stamp-staging-rc.mjs'),arg],{cwd:root,encoding:'utf8'});
+ stamp('--write');
+ stamp('--check');
+ const first=JSON.parse(readFileSync(join(root,'test/build-info.json'),'utf8'));
+ const html=readFileSync(path,'utf8');
+ const normalized=html.replace(/((?:src|href)="\.\/[^"?]+\.(?:js|mjs|css))\?[^"\s<>]+/g,'$1');
+ const digest=createHash('sha256').update(normalized).digest('hex');
+ assert.equal(first.indexStructureSha256,digest,'The stored HTML structure digest must match the served bytes');
+ stamp('--write');
+ stamp('--check');
+ const second=JSON.parse(readFileSync(join(root,'test/build-info.json'),'utf8'));
+ assert.equal(second.indexStructureSha256,first.indexStructureSha256);
+ assert.equal(second.stagingAssetBuildId,first.stagingAssetBuildId);
+});

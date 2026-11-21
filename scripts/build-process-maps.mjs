@@ -19,14 +19,30 @@ export function sourceSignatures(){
    bytes=Buffer.from(content.replace(build,'currentVersion:"BUILD_ID"'));
   }else if(path==='test/index.html'){
    bytes=Buffer.from(bytes.toString('utf8').replace(/(\.(?:js|mjs|css))\?v=[a-zA-Z0-9-]+/g,'$1?v=ASSET'));
-  }else if(path==='test/process-editor-20261111.mjs'||path==='test/global-view/view.mjs'){
+  }else if(['test/process-editor-20261111.mjs','test/global-view/view.mjs','test/global-view/globe.mjs','test/global-view/map.mjs'].includes(path)){
    bytes=Buffer.from(bytes.toString('utf8').replace(/\?v=[a-f0-9]+/g,'?v=ASSET'));
   }
   return [path,createHash('sha256').update(bytes).digest('hex')];
  }));
 }
-function backendSource(){return JSON.parse(readFileSync(resolve(root,'test/build-info.json'),'utf8')).stabilizationQa20261110.backendSourceCommit;}
-export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}
+// The process model reviews the staging source tree, not a historical QA deployment from 10 November.
+// Runtime deployment parity is validated separately by check-staging-alignment.mjs (fail closed).
+function backendSource(){
+ const manifest=JSON.parse(readFileSync(resolve(root,'test/staging-manifest.json'),'utf8'));
+ if(!/^[a-f0-9]{40}$/.test(manifest.backendSourceCommit||''))throw Error('MISSING_STAGING_BACKEND_SOURCE_COMMIT');
+ return manifest.backendSourceCommit;
+}
+export function assertSourcesCurrent(model){
+ const actualBackend=backendSource();
+ if(model.reviewedBackendSourceCommit!==actualBackend)
+  throw Error('Backend source changed without reviewed map: reviewed='+model.reviewedBackendSourceCommit+' current='+actualBackend+'. Review process model against the new backend before updating reviewedBackendSourceCommit.');
+ const drifts=[];
+ for(const [path,sha] of Object.entries(sourceSignatures()))
+  if(model.reviewedSourceSignatures?.[path]!==sha)
+   drifts.push(path+' reviewed='+(model.reviewedSourceSignatures?.[path]??'MISSING')+' current='+sha);
+ if(drifts.length)throw Error('Process sources changed without reviewed map ('+drifts.length+'):\n'+drifts.join('\n'));
+
+}
 export function validate(model){
  if(model.releaseStatus!=='RELEASE_BLOCKED')throw Error('Map does not authorize release');
  const ids=new Set();for(const p of model.processes){if(ids.has(p.id))throw Error('Duplicate process');ids.add(p.id);

@@ -131,6 +131,8 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Вес брутто, кг").fill("1250");
  await input(page,"Конечная точка прибытия").fill("Minsk, Belarus");
  await input(page,"Условия перевозки · Incoterms").selectOption("EXW");
+ // Incoterms place is a required Owner field; the positive fixture must provide it.
+ await page.locator('input[name="incoterm_place"]').fill("Yiwu, China");
  await input(page,"Дата готовности").fill("2027-06-05");
  await input(page,"Объём, м³").fill("12.5");
  await input(page,"Груз").fill("QA packaged cargo");

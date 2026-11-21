@@ -9,6 +9,14 @@ on:
       - 'test/owner-audit-explanations-20261117.css'
       - 'tests/owner-audit-explanations-20261117.test.mjs'
       - '.github/workflows/owner-audit-explanations.yml'
+  pull_request:
+    paths:
+      - 'owner-audit-explanations-20261117.mjs'
+      - 'test/owner-audit-explanations-20261117.mjs'
+      - 'owner-audit-explanations-20261117.css'
+      - 'test/owner-audit-explanations-20261117.css'
+      - 'tests/owner-audit-explanations-20261117.test.mjs'
+      - '.github/workflows/owner-audit-explanations.yml'
   workflow_dispatch:
 permissions:
   contents: read
