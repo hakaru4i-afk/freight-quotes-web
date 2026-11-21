@@ -1,4 +1,6 @@
+
 name: Owner approved dark command center staging QA
+
 on:
   push:
     branches: [main]
@@ -17,63 +19,138 @@ on:
       - "tests/owner-command-center-browser.test.mjs"
       - ".github/workflows/owner-command-center.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: owner-command-center-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 jobs:
   code:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
+
       - name: Dashboard source, permissions and data checks
         run: node --test tests/owner-command-center.test.mjs
+
   served:
+    if: github.event_name == 'workflow_dispatch'
     needs: code
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Verify exact assets served by staging
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Verify exact published staging assets without polling
         shell: bash
         run: |
           set -euo pipefail
-          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
-          EXPECTED_CACHE_KEY=$(git hash-object test/owner-command-center-20261108.js | cut -c1-12)
-          for attempt in {1..27}; do
-            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/index.html?check=$GITHUB_SHA-$attempt" -o /tmp/owner-index.html || true
-            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-center-20261108.js?check=$GITHUB_SHA-$attempt" -o /tmp/owner-js.js || true
-            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-center-20261108.css?check=$GITHUB_SHA-$attempt" -o /tmp/owner-css.css || true
-            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/owner-command-hero-20261108.svg?check=$GITHUB_SHA-$attempt" -o /tmp/owner-hero.svg || true
-            curl -fsSL --max-time 15 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?check=$GITHUB_SHA-$attempt" -o /tmp/owner-help.js || true
-            if grep -Fq "owner-command-center-20261108.js?v=$EXPECTED_CACHE_KEY" /tmp/owner-index.html 2>/dev/null \
-              && cmp -s test/owner-command-center-20261108.js /tmp/owner-js.js \
-              && cmp -s test/owner-command-center-20261108.css /tmp/owner-css.css \
-              && cmp -s test/owner-command-hero-20261108.svg /tmp/owner-hero.svg \
-              && cmp -s test/current-workspace-help-20261108.js /tmp/owner-help.js; then
-              echo "PASS exact dark Owner dashboard + hero + FAQ served by staging"
-              sha256sum /tmp/owner-js.js /tmp/owner-css.css /tmp/owner-help.js
-              exit 0
-            fi
-            echo "Awaiting Pages deployment for run $GITHUB_SHA (attempt $attempt)"
-            sleep 8
-          done
-          echo "::error::Published staging assets do not match source"
-          exit 1
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+
+          const base = 'https://hakaru4i-afk.github.io/freight-quotes-web/test';
+
+          async function get(file) {
+            const response = await fetch(
+              `${base}/${file}?qa=${process.env.GITHUB_SHA}`,
+              {
+                headers: {'Cache-Control': 'no-cache'},
+                signal: AbortSignal.timeout(12000)
+              }
+            );
+            assert.equal(response.status, 200, `HTTP failure: ${file}`);
+            return Buffer.from(await response.arrayBuffer());
+          }
+
+          const entry = 'owner-command-center-20261108.js';
+          const source = readFileSync(`test/${entry}`);
+          const sha = createHash('sha1')
+            .update(`blob ${source.length}\0`)
+            .update(source)
+            .digest('hex')
+            .slice(0, 12);
+
+          const html = (await get('index.html')).toString('utf8');
+          const links = [
+            ...html.matchAll(
+              /(?:src|href)=["']\.\/([^"'?]+)\?v=([a-f0-9]{12})["']/g
+            )
+          ];
+          assert.ok(
+            links.some(m => m[1] === entry && m[2] === sha),
+            'STAGING_CACHE_KEY_MISMATCH'
+          );
+
+          const files = [
+            entry,
+            'owner-command-center-20261108.css',
+            'owner-command-hero-20261108.svg',
+            'current-workspace-help-20261108.js'
+          ];
+
+          const published = await Promise.all(files.map(get));
+          files.forEach((file, i) => {
+            assert.ok(
+              published[i].equals(readFileSync(`test/${file}`)),
+              `STAGING_ASSET_MISMATCH: ${file}`
+            );
+          });
+
+          console.log('OWNER_STAGING_READBACK_PASS');
+          JS
+
   browser:
+    if: github.event_name == 'workflow_dispatch'
     needs: served
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
+
+      - name: Cache npm and Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v1
+
+      - name: Install Playwright package
+        run: npm install --no-save --ignore-scripts playwright@1.56.1
+
+      - name: Ensure Chromium system dependencies
+        run: npx playwright install-deps chromium
+
+      - name: Download Chromium on cache miss
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
       - name: Verify SL, navigation, role safety and visual screenshots
-        run: node --test tests/owner-command-center-browser.test.mjs tests/owner-ui-unification-browser.test.mjs tests/owner-team-users-browser.test.mjs
+        run: |
+          node --test \
+            tests/owner-command-center-browser.test.mjs \
+            tests/owner-ui-unification-browser.test.mjs \
+            tests/owner-team-users-browser.test.mjs
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
