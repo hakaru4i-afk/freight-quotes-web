@@ -11,6 +11,7 @@ let queued=false,key='',lastView='',loading=false,request=0,source=null,query=''
 // The canonical archive remains read-only. Decisions are persisted through the existing
 // Owner-only /api/portal-feedback lifecycle, not in browser storage.
 let workItems=[],workEvents=[],workBusy='',workReady=false,workError='',workNotice='';
+let executionStateByKey=new Map(),executionError='',executionRegister='',executionBusy=false;
 const workWords=[
  {active:'Сейчас разрабатывается',empty:'Нет работ в активной разработке',start:'Взять в работу',working:'В работе',open:'Открыть задачу',details:'История и технические сведения',changed:'Сохранено на сервере',claimed:'Работа взята в разработку',planning:'В проекте',ready:'Готово к проверке',released:'Выпущено',blocked:'Выпуск не разрешён',partial:'Частично готово',unverified:'Не проверено',proposed:'Зарегистрировано',rejected:'Отклонено',finished:'Работа завершена',sourceName:'Из какого реестра',subtitle:'Название, понятный статус и действия. Код скрыт в истории.'},
  {active:'Work in progress',empty:'No active development tasks',start:'Start work',working:'In progress',open:'Open task',details:'History and technical details',changed:'Saved to server',claimed:'Work started',planning:'Planned',ready:'Ready for verification',released:'Released',blocked:'Release blocked',partial:'Partially done',unverified:'Unverified',proposed:'Registered',rejected:'Rejected',finished:'Completed',sourceName:'Source register',subtitle:'Plain-language summary, status and actions. Technical metadata is in history.'},
@@ -107,6 +108,40 @@ async function refreshWork(silent=false){
   workItems=items;workEvents=events;workError='';workReady=true;
  }catch(e){workError=String(e.message||e);workReady=true;if(!silent)throw e;}
 }
+async function refreshExecution(register){
+ if(executionBusy||!['remarks','developments','updates'].includes(register))return;
+ executionBusy=true;
+ try{
+  const response=await fetch('/api/owner-register-execution?register='+encodeURIComponent(register),{cache:'no-store'});
+  const data=await response.json();
+  if(!response.ok||!data.ok)throw Error(data.error||'HTTP '+response.status);
+  if(selected()!==register)return;
+  executionStateByKey=new Map((data.items||[]).filter(x=>x.register===register&&x.recordId).map(x=>[register+':'+x.recordId,x]));
+  executionRegister=register;executionError='';
+ }catch(e){executionError=String(e.message||e);}
+ finally{executionBusy=false;}
+}
+async function executeRecordAction(payload){
+ const id=payload.register;
+ if(!['remarks','developments','updates'].includes(id)||workBusy)throw Error('ACTION_BUSY');
+ workBusy=id+':'+payload.recordId;executionError='';workNotice='';
+ const call=async body=>{
+  const response=await fetch('/api/owner-register-execution',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  let data;try{data=await response.json()}catch{data={error:'HTTP '+response.status}}
+  if(!response.ok||!data.ok)throw Error((data.error||'HTTP '+response.status)+(data.detail?' · '+data.detail:''));
+  return data;
+ };
+ try{
+  const first=await call(payload);
+  if(payload.action==='start'&&first.dispatchPending)
+   await call({action:'dispatch',register:id,recordId:payload.recordId});
+  workNotice='Решение сохранено на сервере. Статус GitHub подтверждён отдельно.';
+ }catch(e){executionError=String(e.message||e);throw e;}
+ finally{
+  workBusy='';await refreshWork(true);await refreshExecution(id);
+  const host=document.getElementById('ow-workspace');if(host&&selected()===id)paintArchive(host,id);
+ }
+}
 function drawWork(host){
  const l=locale(),w=workWords[l],panel=el('section',null,{class:'ow-live-board'});
  panel.append(el('h3',w.active));
@@ -183,6 +218,7 @@ function paintArchive(host,id){
  const sortControl=el('select',null,{'aria-label':'Порядок записей'});for(const [v,t]of [['recent','Сначала новые'],['old','Сначала старые']])sortControl.append(el('option',t,{value:v}));sortControl.value=sort;
  toolbar.append(search,sortControl,refresh);host.append(toolbar);
  const rows=source?.records||[],views=el('div',null,{class:'ow-tabs','aria-label':'Показать записи'});
+ const currentState=(row,job)=>{const e=executionStateByKey.get(id+':'+row.id);return e?.decision==='deferred'?'deferred':e?.decision==='rejected'?'rejected':e?.decision==='review_pending'?'checking':e?.decision==='accepted'?'accepted':e?.decision==='in_progress'?'in_progress':recordState(row,job);};
  for(const [value,title]of [['all','Все'],['today','Сегодня'],['new','Новые'],['working','В работе'],['done','Выполненные'],['selected','Выбранные владельцем'],['archive','Архив']]){
   const button=el('button',title,{type:'button','aria-pressed':String(filters.view===value),'data-register-view':value});button.onclick=()=>{filters.view=value;paintArchive(host,id);};views.append(button);
  }
@@ -195,20 +231,20 @@ function paintArchive(host,id){
  }
  for(const [key,title]of [['from','С даты'],['to','По дату']]){const wrap=el('label',title),input=el('input',null,{type:'date','data-archive-filter':key});input.value=filters[key];input.oninput=()=>{filters[key]=input.value;draw();};wrap.append(input);filterbar.append(wrap);}
  const extra=el('details',null,{class:'ow-extra-filters'});extra.append(el('summary','Фильтры'),filterbar);host.append(extra);
- const count=el('p',null,{class:'ow-register-count',role:'status'}),notice=el('p',workNotice||workError,{role:workError?'alert':'status'}),target=el('div',null,{id:'ow-archive-records'});host.append(count,notice,target);
+ const count=el('p',null,{class:'ow-register-count',role:'status'}),notice=el('p',workNotice||workError||executionError,{role:workError||executionError?'alert':'status'}),target=el('div',null,{id:'ow-archive-records'});host.append(count,notice,target);
  search.oninput=()=>{query=search.value;draw();};sortControl.onchange=()=>{sort=sortControl.value;draw();};
  function draw(){
   target.replaceChildren();const term=query.toLocaleLowerCase(),view=filters.view;
-  const unfinished=rows.filter(row=>!row.archived&&!finished(recordState(row,taskFor(id,row.id)),taskFor(id,row.id))).length;
+  const unfinished=rows.filter(row=>!row.archived&&!finished(currentState(row,taskFor(id,row.id)),taskFor(id,row.id))).length;
   count.textContent='Незавершённых записей: '+unfinished;
   const visible=rows.filter(row=>{
-   const job=taskFor(id,row.id),status=recordState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
+   const job=taskFor(id,row.id),status=currentState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
    return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
     (view==='all'||view==='today'&&date===minskDay()||view==='archive'&&(row.archived||job?.status==='denied'||finished(status,job))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status,job)||view==='selected'&&!!job);
   }).sort((a,b)=>String(/^\d{4}-/.test(a.detectedAt)?a.detectedAt:'').localeCompare(String(/^\d{4}-/.test(b.detectedAt)?b.detectedAt:''))*(sort==='old'?1:-1));
   if(view==='done'&&!visible.length)target.append(el('p','Пока нет работ, лично подтверждённых владельцем. Технические исправления находятся в «Реестре приёмки владельцем».',{class:'ow-board-help'}));
   for(const row of visible){
-   const job=taskFor(id,row.id),state=recordState(row,job),card=el('article',null,{class:'ow-work-card','data-record-id':row.id}),heading=el('div',null,{class:'ow-work-card-top'});
+   const job=taskFor(id,row.id),state=currentState(row,job),execution=executionStateByKey.get(id+':'+row.id),card=el('article',null,{class:'ow-work-card','data-record-id':row.id}),heading=el('div',null,{class:'ow-work-card-top'});
    const badge=el('span',humanStatuses[state]||'Ожидает решения',{class:'ow-human-status'});if(state==='in_progress')badge.dataset.state='working';heading.append(el('h3',row.title),badge);card.append(heading);if(row.historyOnly)card.append(el('p','Историческая запись. Текущий статус не подтверждён; активная работа не создаётся.',{class:'ow-board-help'}));
    const facts=el('dl',null,{class:'ow-register-facts'}),fact=(label,value)=>{if(!value)return;facts.append(el('dt',label),el('dd',value));};
    fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
@@ -219,7 +255,7 @@ function paintArchive(host,id){
    detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.technical?.datePrecision==='unknown'?'В исходной записи не указана':row.technical?.datePrecision==='day'?new Date(row.detectedAt).toLocaleDateString('ru-RU'):row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
    // Stage 1 preview: identical task controls in updates, remarks and developments.
    // No database write or GitHub workflow is performed by these three buttons.
-   const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state});
+   const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state,execution,onAction:executeRecordAction});
    if(!taskControls)throw Error('OWNER_REGISTER_TASK_UI_MISSING');
    card.append(taskControls);
    const actions=el('div',null,{class:'ow-human-actions'});
@@ -244,7 +280,7 @@ async function load(id,host,expected){
   if(!r.ok||!data.ok)throw Error('HTTP '+r.status);
   const digest=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(data.markdown)))).map(x=>x.toString(16).padStart(2,'0')).join('');if(digest!==data.sha256)throw Error('SOURCE_DIGEST_MISMATCH');source=data;
  }catch(e){failed=true;if(n===request)host.append(el('p',words[locale()].error+' '+e.message,{role:'alert'}));}
- finally{if(n===request){loading=false;if(!failed){await refreshWork(true);paintArchive(host,id);}}}
+ finally{if(n===request){loading=false;if(!failed){await refreshWork(true);await refreshExecution(id);paintArchive(host,id);}}}
 }
 
 let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={};
@@ -399,6 +435,7 @@ function render(){
  else{if(source?.name!==id)source=null;paintArchive(host,id);if(!source&&!loading)void load(id,host);}
 }
 function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;render();});}
+setInterval(()=>{if(document.visibilityState==='hidden'||!owner())return;const id=selected();if(!['remarks','developments','updates'].includes(id)||!source||source.name!==id||loading||executionBusy)return;void refreshExecution(id).then(()=>{const host=document.getElementById('ow-workspace');if(host&&selected()===id)paintArchive(host,id);});},60000);
 document.addEventListener('click',e=>{const a=e.target.closest?.('a[data-ow-register]');if(a&&owner()?.contains(a)){e.preventDefault();e.stopImmediatePropagation();navigate(a.dataset.owRegister);return;}if(e.target.closest?.('.cabinet-sidebar nav a')&&selected())navigate('');},true);
 for(const event of ['hashchange','popstate','freight-access-updated'])window.addEventListener(event,schedule);
 // Lightweight metadata polling; Owner's live registry never needs a frontend rebuild
