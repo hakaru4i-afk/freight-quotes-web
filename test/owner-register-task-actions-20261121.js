@@ -32,7 +32,7 @@
   const apply=make('button','ow-task-reason-apply',w.apply),cancel=make('button','ow-task-reason-cancel',w.cancel);
   apply.type=cancel.type='button';reasonButtons.append(apply,cancel);reasonPanel.append(reasonButtons);root.append(reasonPanel);
   const info=make('p','ow-task-inline-info');info.hidden=true;info.setAttribute('role','status');root.append(info);
-  const notice=make('p','ow-task-preview-notice',locked?w.closed:w.notice);root.append(notice);
+  const notice=make('p','ow-task-preview-notice',execution?.lastError?'GitHub: '+execution.lastError:locked?w.closed:w.notice);root.append(notice);
   const progress=make('div','ow-task-universal-progress'),percent=Number(execution?.progress);
   const value=Number.isInteger(percent)&&percent>=0&&percent<=100?percent:0;
   const head=make('div','ow-task-universal-progress-head');head.append(make('span',null,w.progress),make('strong','ow-task-progress-value',value+'%'));progress.append(head);
@@ -55,6 +55,10 @@
   postpone.onclick=()=>choose('defer');reject.onclick=()=>choose('reject');cancel.onclick=()=>{reasonPanel.hidden=true;info.hidden=true;};
   apply.onclick=()=>{draft.reason=textarea.value.trim();if(draft.reason.length<10){textarea.focus();show(w.missingReason,true);return;}reasonPanel.hidden=true;void send(selectedAction,{reason:draft.reason});};
   let reviewButton=null,acceptButton=null,rejectButton=null;
+  if(execution?.decision==='in_progress'&&['failed','pending'].includes(execution.dispatchStatus)){
+   const retry=make('button','ow-task-github-retry',w.pending+' · повторить отправку');retry.type='button';
+   retry.onclick=()=>void send('dispatch');root.append(retry);
+  }
   if(execution?.decision==='in_progress'&&value===100&&execution.checksPassed===true){
    reviewButton=make('button','ow-task-review-submit',w.review);reviewButton.type='button';
    reviewButton.onclick=()=>void send('submit_review');root.append(reviewButton);
