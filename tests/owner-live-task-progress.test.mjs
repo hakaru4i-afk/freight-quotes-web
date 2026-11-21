@@ -56,3 +56,5 @@ test('publish job without verified restore and exact Owner release approval stay
 });
 
 test('obsolete pre-publication audit cannot substitute final published 37/37 receipt',()=>{const old=audit();old.id=44802361801;const x=summarize({pr:pr(),audit:old,runs:[]});assert.equal(x.stages[0].passed,false);assert.equal(x.releaseReady,false)});
+
+test('renamed or replaced PR branch cannot borrow old SH59 CI receipts',()=>{const replaced=pr();replaced.head.ref='unreviewed-release';const x=summarize({pr:replaced,audit:audit(),runs:names.map(name=>run(name,{branch:'unreviewed-release'}))});assert.equal(x.sha,null);assert.equal(x.passed,1);assert.equal(x.runId,null);assert.equal(x.releaseReady,false)});
