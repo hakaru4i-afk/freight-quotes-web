@@ -1,4 +1,4 @@
-name: Owner three registers — Stage 1 UI
+name: Owner three registers — Stage 2 UI
 on:
   pull_request:
     paths:
