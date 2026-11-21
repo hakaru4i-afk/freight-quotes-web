@@ -44,6 +44,11 @@ const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?ap
 const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'\s>]+/g,'$1'));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
+// Reject ambiguous cache entries in both --check and --write modes.
+for(const name of critical){
+ const count=[...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].filter(match=>match[1]===name).length;
+ if(count!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name+':count='+count);
+}
 if(process.argv.includes('--write')){
  // Validate cache-key multiplicity before writing app.js or any build metadata.
  // Otherwise a malformed HTML entry can leave a partially stamped working tree.
