@@ -38,7 +38,9 @@ if([...html.matchAll(notice)].length!==1)throw Error('RELEASE_NOTIFICATION_SCRIP
 html=html.replace(notice,'portal-release-status-20261117.js?v=SH-01.30.61%20v&rev=unified');
 write('index.html',html);
 const ui=read('owner-register-task-actions-20261121.js');
-for(const s of ['Запустить в разработку','Отложить','Отклонить','Прогресс выполнения'])if(!ui.includes(s))throw Error('OWNER_CARD_ACTION_MISSING:'+s);
+for(const s of ['Взять в работу','Отложить','Отклонить'])if(!ui.includes(s))throw Error('OWNER_CARD_ACTION_MISSING:'+s);
+const center=read('portal-feedback-center-20261107.js');
+for(const s of ['Прогресс выполнения','pf-codex-handoff','runCodexHandoff'])if(!center.includes(s))throw Error('IMPROVEMENT_CENTER_HANDOFF_MISSING:'+s);
 const manifest=JSON.parse(read('production-release-manifest.json'));
 if(manifest.environment!=='production'||!manifest.sourceStagingBuild||!manifest.sourceStagingFrontendCommit)throw Error('PROVENANCE_MISSING');
 manifest.businessVersion=version;manifest.frontendBuild=build;manifest.publicationState=state==='released'?'PUBLISHED':'DEPLOYING';
