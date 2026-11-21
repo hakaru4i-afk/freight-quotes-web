@@ -1,12 +1,9 @@
 {
   "environment": "production",
   "version": "e0e602c130b51fb75897",
-  "releaseVersion": "SH-01.30.59 v",
+  "releaseVersion": "SH-01.30.52 v",
   "projectRef": "ooclsrndeygojtofuyte",
   "build": "e0e602c130b51fb75897",
   "releaseStatus": "PUBLISHED",
-  "sourceStagingBuild": "e49dd78d09811370c74d",
-  "ownerReleaseVersion": "OW-01.30.52 v",
-  "releaseNotes": "release-status.json",
-  "releaseDate": "2026-11-17"
+  "sourceStagingBuild": "e49dd78d09811370c74d"
 }
