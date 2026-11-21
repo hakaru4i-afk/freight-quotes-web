@@ -159,12 +159,14 @@ jobs:
           set -euo pipefail
           find .qa-pages -type f -not -path '.qa-pages/test/*' -not -name .nojekyll -print0 | \
             sort -z | xargs -0 sha256sum > production-root-sha256.txt
+          # Artifact uploads ignore hidden folders by default; export this public receipt.
+          cp .qa-pages/test/sh59-qa-pair.json sh59-qa-pair.json
       - uses: actions/upload-artifact@v4
         with:
           name: sh59-staging-only-root-receipt
           path: |
             production-root-sha256.txt
-            .qa-pages/test/sh59-qa-pair.json
+            sh59-qa-pair.json
             reports/sh59-qa20-*.png
           retention-days: 30
       - uses: actions/configure-pages@v5
@@ -215,3 +217,75 @@ jobs:
           cmp /tmp/sh59-stage-pair.json verified/sh59-qa-pair.json
           node -e 'const r=require("/tmp/sh59-stage-pair.json");if(r.isolatedQaApiVersion!==20||r.productionAuthorized!==false||r.stagingBundleRebindRequiresFreshE2E!==true)process.exit(1)'
           echo 'STAGING_QA20_PUBLISHED; PRODUCTION_ROOT_UNCHANGED; FULL_AUTHENTICATED_ACCEPTANCE_PENDING'
+
+  verify-published:
+    # Exact committed opt-in; read-only verification of an already-deployed QA site.
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      startsWith(github.event.head_commit.message, 'verify(staging): confirm published SH59 API20 and root parity')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Retrieve original deployment receipt
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api repos/hakaru4i-afk/freight-quotes-web/actions/runs/44890506212 \
+            --jq '.head_sha=="f10923ffe9a4975d13a1b260d9831da51a8ba026"' | grep -qx true
+          gh run download 44890506212 -R hakaru4i-afk/freight-quotes-web \
+            --name sh59-staging-only-root-receipt --dir verified
+          test -s verified/production-root-sha256.txt
+      - name: Confirm SH59 isolated QA20 served bytes and production root parity
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://hakaru4i-afk.github.io/freight-quotes-web"
+          for entry in "sh59-qa-pair.json pair.json" "index.html index.html" "app.js app.js" "staging-transport-20261111.js transport.js"; do
+            read -r target output <<< "$entry"
+            curl --retry 5 --retry-delay 2 --fail --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' "$base/test/$target?verify=$GITHUB_RUN_ID" -o "/tmp/$output"
+          done
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import assert from 'node:assert/strict';
+          const r=JSON.parse(readFileSync('/tmp/pair.json','utf8'));
+          assert.equal(r.kind,'SH59_ISOLATED_QA20_STAGING_PACKAGE');
+          assert.equal(r.businessVersion,'SH-01.30.59 v');
+          assert.equal(r.testedFrontendSha,'6e0a465b2b031558989f62b38dc7939797434686');
+          assert.equal(r.testedBackendSha,'092decf57d97fabdefa35bba0593890f52d34ef6');
+          assert.equal(r.testedBackendBundleSha256,'2875f4dc43dcc61a8b191edcf70281d7f1b8875847bc9e0b276160bdfe6b0b87');
+          assert.equal(r.apiFunction,'freight-api-qa-carrier124nov18');
+          assert.equal(r.apiProject,'ibclzdkxiozbzmniiygv');
+          assert.equal(r.isolatedQaApiVersion,20);
+          assert.equal(r.originalE2EPass,37);
+          assert.equal(r.stagingBundleRebindRequiresFreshE2E,true);
+          assert.equal(r.productionAuthorized,false);
+          assert.equal(r.productionTreeUnchanged,true);
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          assert.equal(hash('/tmp/index.html'),r.patchedIndexSha256);
+          assert.equal(hash('/tmp/app.js'),r.originalTestAppSha256);
+          assert.equal(hash('/tmp/transport.js'),r.patchedTransportSha256);
+          console.log('SERVED_SH59_QA20_PAIR_PASS');
+          JS
+          while read -r expected path; do
+            rel="${path#'.qa-pages/'}"
+            curl --retry 4 --fail --silent --show-error --location --max-time 30 \
+              -H 'Cache-Control: no-cache' "$base/$rel?prodcheck=$GITHUB_RUN_ID" -o /tmp/verified-root
+            actual=$(sha256sum /tmp/verified-root | cut -d' ' -f1)
+            test "$expected" = "$actual" || { echo "::error::Production root changed: $rel"; exit 1; }
+          done < verified/production-root-sha256.txt
+          echo 'STAGING_QA20_PUBLISHED; ALL_PRODUCTION_ROOT_BYTES_UNCHANGED; FRESH_37_E2E_PENDING'
+
