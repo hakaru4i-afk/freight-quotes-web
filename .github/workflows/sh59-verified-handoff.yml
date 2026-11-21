@@ -1,0 +1,161 @@
+name: SH59 immutable tested-source handoff (staging only)
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/sh59-verified-handoff.yml'
+      - 'scripts/release/prepare-tested-candidate.mjs'
+      - 'scripts/release/check-sh59-staging-import.mjs'
+      - 'tests/prepare-tested-candidate.test.mjs'
+      - 'tests/production-release-integrity.test.mjs'
+  workflow_dispatch:
+    inputs:
+      audit_run_id:
+        description: 'Successful signed 37/37 audit run ID; never substitute an unverified status report'
+        required: true
+        type: string
+  workflow_run:
+    workflows: ['SH59 strict 37-of-37 protected E2E audit (QA only)']
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  actions: read
+  attestations: read
+concurrency:
+  group: sh59-tested-handoff-${{ github.event_name == 'pull_request' && github.event.pull_request.number || 'qa' }}
+  cancel-in-progress: false
+jobs:
+  negative-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check tested-source transfer rejects mismatched source, API and evidence
+        run: node --test tests/prepare-tested-candidate.test.mjs
+      - name: Verify synthetic production promotion gate rejects version drift and tampered assets
+        # The second integration test intentionally stays FAIL while the live SH59/SH52 pair is mismatched.
+        # Run this fixture alone; required production smoke and full regression must remain blocking.
+        run: node --test --test-name-pattern='production promotion requires exact production identity' tests/production-release-integrity.test.mjs
+  prepare:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      ((github.event_name == 'pull_request' &&
+        github.event.pull_request.head.repo.full_name == github.repository &&
+        github.actor == 'hakaru4i-afk') ||
+       github.event_name == 'workflow_dispatch' ||
+       (github.event_name == 'workflow_run' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'))
+    needs: negative-tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    env:
+      GH_TOKEN: ${{ github.token }}
+      AUDIT_RUN_ID: ${{ github.event_name == 'pull_request' && '44802361801' || inputs.audit_run_id || github.event.workflow_run.id }}
+      TESTED_FRONTEND_SHA: 6e0a465b2b031558989f62b38dc7939797434686
+      TESTED_BACKEND_SHA: 092decf57d97fabdefa35bba0593890f52d34ef6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: handoff-tooling
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Read signed 37/37 audit from GitHub, never from current candidate report files
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$AUDIT_RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          mkdir -p verified-input audit-artifact
+          gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$AUDIT_RUN_ID" > verified-input/audit-run.json
+          gh run download "$AUDIT_RUN_ID" -R hakaru4i-afk/freight-quotes-web \
+            --name sh59-protected-37-audit-summary --dir audit-artifact
+          mapfile -t evidence < <(find audit-artifact -type f -name private-authenticated-e2e.json)
+          test "${#evidence[@]}" -eq 1 || { echo '::error::Missing or ambiguous 37/37 receipt'; exit 1; }
+          cp "${evidence[0]}" verified-input/e2e.json
+          gh attestation verify "${evidence[0]}" --repo hakaru4i-afk/freight-quotes-web
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const audit=JSON.parse(readFileSync('verified-input/audit-run.json'));
+          const e2e=JSON.parse(readFileSync('verified-input/e2e.json'));
+          assert.equal(audit.repository.full_name,'hakaru4i-afk/freight-quotes-web');
+          assert.equal(audit.path,'.github/workflows/sh59-protected-37-audit.yml');
+          assert.equal(audit.status,'completed');
+          assert.equal(audit.conclusion,'success');
+          assert.equal(audit.head_branch,'main');
+          assert.ok(['workflow_dispatch','workflow_run'].includes(audit.event));
+          assert.equal(e2e.frontendSha,process.env.TESTED_FRONTEND_SHA);
+          assert.equal(e2e.backendSha,process.env.TESTED_BACKEND_SHA);
+          assert.match(String(e2e.runId||''),/^[1-9][0-9]*$/);
+          assert.ok(Number.isSafeInteger(Number(e2e.runId)));
+          JS
+          node --input-type=module <<'JS' >> "$GITHUB_ENV"
+          import {readFileSync} from 'node:fs';
+          const e2e=JSON.parse(readFileSync('verified-input/e2e.json'));
+          console.log('PROTECTED_RUN_ID='+e2e.runId);
+          JS
+      - name: Verify original protected OIDC workflow, not unrelated green check
+        run: |
+          set -euo pipefail
+          gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$PROTECTED_RUN_ID" > verified-input/protected-run.json
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes-web
+          ref: 6e0a465b2b031558989f62b38dc7939797434686
+          path: tested-source
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Build immutable source lock from exact tested tree, not HEAD/main
+        working-directory: tested-source
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$TESTED_FRONTEND_SHA"
+          node ../handoff-tooling/scripts/release/prepare-tested-candidate.mjs \
+            ../verified-input/audit-run.json ../verified-input/protected-run.json \
+            ../verified-input/e2e.json ../verified-output
+          test "$(git rev-parse HEAD)" = "$TESTED_FRONTEND_SHA"
+      - name: Transfer actual immutable QA frontend assets with a verifiable checksum
+        working-directory: tested-source
+        run: |
+          set -euo pipefail
+          git archive --format=tar "$TESTED_FRONTEND_SHA" test | gzip -n > ../verified-output/sh59-tested-test-assets.tar.gz
+          cd ../verified-output
+          sha256sum sh59-tested-test-assets.tar.gz sh59-tested-source-lock.json > SHA256SUMS
+          echo 'VERIFIED_STAGING_HANDOFF_PACKAGED; PRODUCTION_UNCHANGED; FRESH_BACKUP_AND_OWNER_APPROVAL_STILL_REQUIRED'
+      - name: Import the checked SH59 files into an isolated browser staging site
+        shell: bash
+        env:
+          SAVED_HANDOFF_RUN: ${{ github.event_name == 'pull_request' && '44871869409' || '' }}
+        run: |
+          set -euo pipefail
+          handoff=verified-output
+          if [ -n "$SAVED_HANDOFF_RUN" ]; then
+            gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$SAVED_HANDOFF_RUN" \
+              --jq '.conclusion == "success" and .path == ".github/workflows/sh59-verified-handoff.yml" and .head_sha == "9fdf24d4a2b224383ef74303134942854f27eef9"' |
+              grep -qx true
+            handoff=saved-tested-handoff
+            gh run download "$SAVED_HANDOFF_RUN" -R hakaru4i-afk/freight-quotes-web \
+              --name sh59-immutable-tested-source-handoff --dir "$handoff"
+            cmp "$handoff/sh59-tested-source-lock.json" verified-output/sh59-tested-source-lock.json
+            cmp "$handoff/sh59-tested-test-assets.tar.gz" verified-output/sh59-tested-test-assets.tar.gz
+          fi
+          mkdir -p imported-staging
+          tar -xzf "$handoff/sh59-tested-test-assets.tar.gz" -C imported-staging
+          npm --prefix handoff-tooling install --no-save --ignore-scripts playwright@1.56.1
+          handoff-tooling/node_modules/.bin/playwright install chromium
+          node handoff-tooling/scripts/release/check-sh59-staging-import.mjs \
+            imported-staging/test tested-source "$handoff/sh59-tested-source-lock.json" \
+            verified-output/sh59-isolated-staging-import.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sh59-immutable-tested-source-handoff
+          path: verified-output/
+          if-no-files-found: error
+          retention-days: 14
