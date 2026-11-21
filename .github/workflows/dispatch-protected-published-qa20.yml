@@ -57,7 +57,7 @@ jobs:
       github.ref == 'refs/heads/main' &&
       github.repository == 'hakaru4i-afk/freight-quotes-web' &&
       github.actor == 'hakaru4i-afk' &&
-      github.event.head_commit.message == 'qa(published): launch protected 37-of-37 full suite on SH59 QA20'
+      startsWith(github.event.head_commit.message, 'qa(published): launch protected 37-of-37 full suite on SH59 QA20')
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     permissions:
