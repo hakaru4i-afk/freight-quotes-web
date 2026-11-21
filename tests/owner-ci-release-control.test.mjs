@@ -24,5 +24,6 @@ test('browser cannot self-approve or manually mark work completed',()=>{
  assert.match(main,/\.filter\(status=>status!=='completed'\)/);
  assert.match(main,/data-pf="release-update"/);
  assert.match(main,/Ожидаются тесты/);
+ assert.match(main,/if\(isReleaseReady\(item,data\.owner,releaseReadiness\)&&!busy\)/);
  assert.match(main,/\(!releaseReady\|\|busy\?'disabled':''\)/);
 });
