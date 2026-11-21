@@ -32,7 +32,14 @@ function backendSource(){
  if(!/^[a-f0-9]{40}$/.test(manifest.backendSourceCommit||''))throw Error('MISSING_STAGING_BACKEND_SOURCE_COMMIT');
  return manifest.backendSourceCommit;
 }
-export function assertSourcesCurrent(model){if(model.reviewedBackendSourceCommit!==backendSource())throw Error('Backend source changed without reviewed map');for(const [path,sha] of Object.entries(sourceSignatures()))if(model.reviewedSourceSignatures?.[path]!==sha)throw Error('Process source changed without reviewed map: '+path);}
+export function assertSourcesCurrent(model){
+ const actualBackend=backendSource();
+ if(model.reviewedBackendSourceCommit!==actualBackend)
+  throw Error('Backend source changed without reviewed map: reviewed='+model.reviewedBackendSourceCommit+' current='+actualBackend+'. Review process model against the new backend before updating reviewedBackendSourceCommit.');
+ for(const [path,sha] of Object.entries(sourceSignatures()))
+  if(model.reviewedSourceSignatures?.[path]!==sha)
+   throw Error('Process source changed without reviewed map: '+path+' reviewed='+(model.reviewedSourceSignatures?.[path]??'MISSING')+' current='+sha);
+}
 export function validate(model){
  if(model.releaseStatus!=='RELEASE_BLOCKED')throw Error('Map does not authorize release');
  const ids=new Set();for(const p of model.processes){if(ids.has(p.id))throw Error('Duplicate process');ids.add(p.id);
