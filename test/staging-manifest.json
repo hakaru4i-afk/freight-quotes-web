@@ -424,8 +424,8 @@
   "roleHelpSha256": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
   "apiVersion": 115,
   "sqlMigrationVersion": "20261115101617",
-  "apiSourceCommit": null,
-  "apiBundleSha256": null,
+  "apiSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
+  "apiBundleSha256": "ee71d39784b7d463c3f7d545d3c264b156b164a12ce10ec1d2f165af4904ee66",
   "processModelVersion": "20261118-logic-12",
   "canonicalHash": null,
   "qaEvidence": {
