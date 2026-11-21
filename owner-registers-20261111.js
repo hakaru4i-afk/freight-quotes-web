@@ -118,7 +118,7 @@ async function refreshExecution(register){
   if(selected()!==register)return;
   executionStateByKey=new Map((data.items||[]).filter(x=>x.register===register&&x.recordId).map(x=>[register+':'+x.recordId,x]));
   executionRegister=register;executionError='';
- }catch(e){executionError=String(e.message||e);}
+ }catch(e){executionError=String(e.message||e);executionStateByKey=new Map();}
  finally{executionBusy=false;}
 }
 async function executeRecordAction(payload){
