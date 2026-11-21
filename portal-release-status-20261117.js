@@ -5,6 +5,7 @@ const script=document.currentScript;
 const base=script?.src||document.baseURI;
 const loaded=new URL(base).searchParams.get('v')||'';
 const manifest=new URL('./release-status.json',base);
+const publishedBuild=new URL('./build-info.json',base);
 const root=document.createElement('aside');
 root.id='lw-release-status';root.setAttribute('aria-live','polite');root.hidden=true;
 let data=null,collapsed=false,currentRole='';
@@ -19,7 +20,7 @@ const owner=()=>!!document.querySelector('#root .cabinet-app[data-cabinet-role="
 const signed=()=>!!document.querySelector('#root .cabinet-app[data-cabinet-role],#root .staff-portal[data-cabinet-role]');
 const stamp=()=>data?.version||'—';
 function paint(){
- const role=signed()?(owner()?'owner':'staff'):'guest';if(role==='guest'){root.hidden=true;currentRole=role;return}currentRole=role;
+ const role=signed()?(owner()?'owner':'staff'):'guest';if(role==='guest'&&!['updating','checking','failed'].includes(data?.status)){root.hidden=true;currentRole=role;return}currentRole=role;
  const t=tr[language()],state=data?.status||'checking',newer=!!loaded&&!!data?.version&&loaded!==data.version;
  const title=newer?t.stale:(t[state]||t.checking);
  // A completed deployment is not an ongoing notification. Keep the change history in 'Что нового'.
@@ -45,7 +46,18 @@ async function load(){
   if(!response.ok)throw Error('HTTP '+response.status);
   const next=await response.json();
   if(typeof next.version!=='string'||!['updating','checking','released','failed'].includes(next.status))throw Error('INVALID_RELEASE_STATUS');
-  data=next;
+  // Never suppress the progress banner on the strength of release-status.json alone.
+  // The *served* build-info must attest the identical release as actually published.
+  let releasePublished=false;
+  try{
+   const buildUrl=new URL(publishedBuild);buildUrl.searchParams.set('t',String(Date.now()));
+   const buildReply=await fetch(buildUrl.href,{cache:'no-store'});
+   if(buildReply.ok){
+    const build=await buildReply.json();
+    releasePublished=build.releaseVersion===next.version&&build.releaseStatus==='PUBLISHED';
+   }
+  }catch(_buildError){releasePublished=false;}
+  data=next.status==='released'&&!releasePublished?{...next,status:'updating'}:next;
  }catch(e){if(!data)data={version:loaded||'—',status:'checking',changes:[]}}
  paint();
 }
