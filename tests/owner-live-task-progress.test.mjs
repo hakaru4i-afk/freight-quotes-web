@@ -1,0 +1,31 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {TASK,summarize} from '../test/owner-live-task-progress-20261121.mjs';
+import {readFileSync} from 'node:fs';
+const HEAD='a'.repeat(40),OLD='b'.repeat(40),BRANCH='ci/sh59-verified-source-handoff-20261121';
+function pr(){return {number:145,base:{ref:'main'},head:{ref:BRANCH,sha:HEAD,repo:{full_name:TASK.repo}}};}
+function audit(){return {id:44802361801,path:'.github/workflows/sh59-protected-37-audit.yml',head_repository:{full_name:TASK.repo},status:'completed',conclusion:'success'};}
+function run(name,{sha=HEAD,branch=BRANCH,conclusion='success',status='completed',id=123}={}){return {id,name,status,conclusion,head_sha:sha,head_branch:branch,head_repository:{full_name:TASK.repo},event:'pull_request',created_at:'2026-11-21T06:00:00Z',updated_at:'2026-11-21T06:00:01Z'};}
+const names=['SH59 immutable tested-source handoff (staging only)','Release stabilization candidate','Canonical staging alignment'];
+test('never creates 100% progress or a released state from old 37/37 alone',()=>{const x=summarize({pr:pr(),audit:audit(),runs:[]});assert.equal(x.passed,1);assert.equal(x.percent,17);assert.equal(x.releaseReady,false)});
+test('only exact current PR SHA and branch count toward progress',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name,{sha:OLD}))});assert.equal(x.passed,1);assert.equal(x.state,'unverified')});
+test('passing negative handoff tests does not claim staging parity or publication',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map((name,i)=>run(name,{id:i+1}))});assert.equal(x.passed,4);assert.equal(x.percent,67);assert.equal(x.stages[4].passed,false);assert.equal(x.stages[5].passed,false)});
+test('failed workflow keeps failure visible without treating it as a pass',()=>{const x=summarize({pr:pr(),audit:audit(),runs:[run(names[0]),run(names[1],{conclusion:'failure',id:122})]});assert.equal(x.passed,2);assert.equal(x.state,'failed');assert.match(x.action,/Ошибка GitHub Actions/)});
+test('active GitHub job shows actual in-progress step, not fake Codex activity',()=>{const running=run(names[1],{status:'in_progress',conclusion:null,id:555});const x=summarize({pr:pr(),audit:audit(),runs:[running],job:{runId:555,name:'complete-regression',step:'Run frontend tests'}});assert.equal(x.state,'running');assert.match(x.action,/complete-regression \/ Run frontend tests/);assert.equal(x.runId,555)});
+test('different repository or PR cannot be treated as verified release',()=>{const other=pr();other.head.repo.full_name='foreign/repo';const x=summarize({pr:other,audit:audit(),runs:names.map(name=>run(name))});assert.equal(x.passed,1);assert.equal(x.runUrl,null)});
+test('failed or unverified E2E yields zero when no other proof exists',()=>{const bad=audit();bad.conclusion='failure';const x=summarize({pr:pr(),audit:bad,runs:[]});assert.equal(x.passed,0)});
+test('production and test entrypoints both load scoped owner monitor with GitHub CSP',()=>{
+ for(const path of ['index.html','test/index.html']){
+  const html=readFileSync(path,'utf8');
+  assert.match(html,/owner-live-task-progress-20261121\.mjs\?v=[a-f0-9]{12}/);
+  assert.match(html,/owner-live-task-progress-20261121\.css\?v=[a-f0-9]{12}/);
+  assert.match(html,/connect-src 'self' https:\/\/api\.github\.com/);
+ }
+});
+test('monitor uses no private tokens, never submits mutations, only displays inside Owner cabinet',()=>{
+ const code=readFileSync('test/owner-live-task-progress-20261121.mjs','utf8');
+ assert.match(code,/data-cabinet-role="owner"/);
+ assert.match(code,/credentials:'omit'/);
+ assert.doesNotMatch(code,/service_role|Bearer |github_pat_|ghp_|localStorage|sessionStorage|method:\s*['"]POST['"]/);
+ assert.match(code,/120000/);
+});
