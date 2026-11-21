@@ -8,10 +8,10 @@ on:
       - scripts/release/verify-staging-preview-browser.mjs
       - tests/build-staging-only-package.test.mjs
       - tests/verify-published-root.test.mjs
-  # One audited staging-only promotion; only this exact commit message on this QA branch.
-  # Production root bytes must pass read-back before/after the Pages deployment.
+  # A one-time owner-authorized staging-only release commit on main.
+  # No root assets change. All published root bytes must match before/after.
   push:
-    branches: [ci/isolated-sh59-staging-pages-20261121]
+    branches: [main, ci/isolated-sh59-staging-pages-20261121]
     paths:
       - .github/workflows/sh59-staging-only-pages.yml
   workflow_dispatch:
@@ -60,8 +60,10 @@ jobs:
         github.actor == 'hakaru4i-afk' &&
         github.ref == 'refs/heads/main') ||
        (github.event_name == 'push' &&
-        github.ref == 'refs/heads/ci/isolated-sh59-staging-pages-20261121' &&
-        github.event.head_commit.message == 'release(staging): deploy verified SH59 QA20 to Pages test only'))
+        github.actor == 'hakaru4i-afk' &&
+        (github.ref == 'refs/heads/main' ||
+         github.ref == 'refs/heads/ci/isolated-sh59-staging-pages-20261121') &&
+        startsWith(github.event.head_commit.message, 'release(staging): deploy verified SH59 QA20 to Pages test only')))
     runs-on: ubuntu-24.04
     timeout-minutes: 28
     permissions:
@@ -88,8 +90,12 @@ jobs:
             test "$GITHUB_REF" = refs/heads/main
           else
             test "$GITHUB_EVENT_NAME" = push
-            test "$GITHUB_REF" = refs/heads/ci/isolated-sh59-staging-pages-20261121
-            test "$(jq -r .head_commit.message "$GITHUB_EVENT_PATH")" = 'release(staging): deploy verified SH59 QA20 to Pages test only'
+            test "$GITHUB_ACTOR" = hakaru4i-afk
+            case "$GITHUB_REF" in
+              refs/heads/main|refs/heads/ci/isolated-sh59-staging-pages-20261121) ;;
+              *) echo '::error::Unapproved staging deployment ref'; exit 1 ;;
+            esac
+            jq -e '.head_commit.message | startswith("release(staging): deploy verified SH59 QA20 to Pages test only")' "$GITHUB_EVENT_PATH" >/dev/null
           fi
           test "$(gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '.build_type')" = workflow || {
             echo '::error::Owner must set Settings > Pages > Source > GitHub Actions first. No release.'
