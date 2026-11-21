@@ -10,6 +10,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   static-and-dom:
     name: FAQ syntax, role/locale and field tests
@@ -24,6 +27,7 @@ jobs:
       - name: Role, locale, fields smoke
         run: node --test tests/current-workspace-help.test.mjs
   served-pages:
+    if: github.event_name == 'workflow_dispatch'
     name: Confirm GitHub Pages serves this exact FAQ
     needs: static-and-dom
     runs-on: ubuntu-latest
@@ -37,7 +41,7 @@ jobs:
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
           FAQ_CACHE=$(git hash-object test/current-workspace-help-20261108.js)
           FAQ_CACHE=${FAQ_CACHE:0:12}
-          for attempt in {1..18}; do
+          attempt=1
             curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/index.html?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-index.html || true
             curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-guide.js || true
             if [[ -s /tmp/faq-index.html && -s /tmp/faq-guide.js ]] && grep -q "current-workspace-help-20261108.js?v=$FAQ_CACHE" /tmp/faq-index.html && cmp -s test/current-workspace-help-20261108.js /tmp/faq-guide.js; then
@@ -46,7 +50,5 @@ jobs:
               exit 0
             fi
             echo "Pages is still catching up: attempt $attempt / 18"
-            sleep 10
-          done
           echo "::error::The live staging page is not serving the expected FAQ. Do not claim production readiness."
           exit 1

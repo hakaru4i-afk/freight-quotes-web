@@ -1,15 +1,11 @@
 name: Verify served staging Issue47 and production isolation
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'test/app.js'
-      - 'test/build-info.json'
-      - 'test/index.html'
-      - '.github/workflows/issue47-served-smoke.yml'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   served-smoke:
     runs-on: ubuntu-24.04

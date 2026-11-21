@@ -1,7 +1,12 @@
 name: Canonical staging alignment
 on:
   pull_request:
-    paths: ['test/**','scripts/**','tests/**','docs/**','.github/workflows/**']
+    paths:
+      - 'test/staging-manifest.json'
+      - 'test/build-info.json'
+      - 'scripts/check-staging-alignment.mjs'
+      - 'tests/staging-alignment.test.mjs'
+      - '.github/workflows/staging-alignment.yml'
   workflow_dispatch:
   workflow_run:
     workflows: ["Reconcile staging provenance without promoting production"]
@@ -9,19 +14,58 @@ on:
     branches: [main]
 permissions:
   contents: read
+concurrency:
+  group: staging-alignment-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   coherence:
+    name: ${{ github.event_name == 'pull_request' && 'PR source audit (not release-ready)' || 'Full verified staging pair' }}
     if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
           ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node scripts/check-staging-alignment.mjs
-      - run: node scripts/stamp-staging-rc.mjs --check
-      - run: node scripts/build-process-maps.mjs --check
-      - run: node scripts/check-runtime-parity.mjs --allow-staging-candidate
+      # PRs review the validation logic without pretending that an unverified
+      # Supabase deployment has a Git-source attestation. This job cannot deploy.
+      - name: PR-only static tests and explicit unreleased runtime marker
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/check-staging-alignment.mjs
+          node --test tests/staging-alignment.test.mjs
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const m=JSON.parse(readFileSync('test/staging-manifest.json','utf8'));
+          assert.equal(m.environment,'staging');
+          assert.equal(m.releaseStatus,'RELEASE_BLOCKED');
+          assert.notEqual(m.ownerAccepted,true);
+          assert.notEqual(m.publicationState,'RELEASED');
+          const pairReady=/^[a-f0-9]{64}$/.test(m.apiBundleSha256||'')
+            && /^[a-f0-9]{40}$/.test(m.apiSourceCommit||'')
+            && m.runtimePairStatus==='VERIFIED';
+          console.log('PR_SOURCE_TEST_PASS; NO_DEPLOY; FULL_RUNTIME_GATE_NOT_EXECUTED; '
+            +(pairReady?'DECLARED_PAIR_REQUIRES_STRICT_ATTESTATION':'MISSING_VERIFIED_RUNTIME_PAIR'));
+          JS
+      # Only an explicitly invoked/full reconciliation gate may certify
+      # the runtime pair. Missing evidence must still FAIL here.
+      - name: Verify real runtime pair and indexed source hashes
+        if: github.event_name != 'pull_request'
+        run: node scripts/check-staging-alignment.mjs
+      - name: Verify candidate cache stamps
+        if: github.event_name != 'pull_request'
+        run: node scripts/stamp-staging-rc.mjs --check
+      - name: Verify process maps
+        if: github.event_name != 'pull_request'
+        run: node scripts/build-process-maps.mjs --check
+      - name: Verify production/staging runtime parity
+        if: github.event_name != 'pull_request'
+        run: node scripts/check-runtime-parity.mjs --allow-staging-candidate

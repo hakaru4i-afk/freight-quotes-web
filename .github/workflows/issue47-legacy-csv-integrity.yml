@@ -13,6 +13,9 @@ on:
       - '.github/workflows/issue47-legacy-csv-integrity.yml'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   csv-regression:
     runs-on: ubuntu-24.04

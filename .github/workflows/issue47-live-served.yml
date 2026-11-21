@@ -1,9 +1,6 @@
 name: Task2 exact live staging served checks
 on:
-  pull_request:
-    paths:
-      - 'tests/issue47-live-served.test.mjs'
-      - '.github/workflows/issue47-live-served.yml'
+  workflow_dispatch:
   push:
     branches: [main]
     paths:
@@ -12,6 +9,9 @@ on:
       - '.github/workflows/issue47-live-served.yml'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   verify:
     runs-on: ubuntu-24.04

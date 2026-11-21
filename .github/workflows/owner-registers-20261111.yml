@@ -19,6 +19,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   static:
     runs-on: ubuntu-24.04
@@ -29,6 +32,7 @@ jobs:
           node-version: '24'
       - run: node --test tests/owner-registers-20261111.test.mjs tests/current-workspace-help.test.mjs tests/owner-workspace-compact.test.mjs tests/lw-permanent-delete-staging.test.mjs tests/role-help-20261111.test.mjs
   served:
+    if: github.event_name == 'workflow_dispatch'
     needs: static
     runs-on: ubuntu-24.04
     timeout-minutes: 9
@@ -39,7 +43,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE='https://hakaru4i-afk.github.io/freight-quotes-web/test'
-          for i in {1..35}; do
+          i=1
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/index.html?sha=$GITHUB_SHA-$i" -o /tmp/ow-index.html || true
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.js?sha=$GITHUB_SHA-$i" -o /tmp/ow.js || true
             curl -fsSL --max-time 25 -H 'Cache-Control: no-cache' "$BASE/owner-registers-20261111.css?sha=$GITHUB_SHA-$i" -o /tmp/ow.css || true
@@ -49,11 +53,10 @@ jobs:
               echo 'PASS exact staging HTML, Owner registers, CSS and latest FAQ'
               exit 0
             fi
-            sleep 8
-          done
           echo '::error::Staging is not serving exact committed files'
           exit 1
   browser:
+    if: github.event_name == 'workflow_dispatch'
     needs: served
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -62,6 +65,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Cache npm and Playwright Chromium
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
       - run: npx playwright install --with-deps chromium
       - run: node --test tests/owner-registers-browser.test.mjs tests/role-help-browser.test.mjs

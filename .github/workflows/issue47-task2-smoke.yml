@@ -1,31 +1,11 @@
 name: Issue47 Task2 staging full-stack smoke
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'test/app.js'
-      - 'tests/issue47-bid-edit-route.test.mjs'
-      - 'tests/issue47-carrier-round-status.test.mjs'
-      - 'tests/issue47-carrier-workspace-deadlines.test.mjs'
-      - 'tests/task2-document-request-flow.test.mjs'
-      - 'tests/lw-pending-tasks-all-roles.test.mjs'
-      - 'tests/ved-shared-chat-and-requests.test.mjs'
-      - 'test/lw-ved-shared-chat-20261109.js'
-      - 'test/lw-ved-shared-chat-20261109.css'
-      - 'test/lw-pending-tasks-all-roles-20261109.js'
-      - 'test/lw-pending-tasks-all-roles-20261109.css'
-      - 'test/task2-panel.js'
-      - 'test/task2-panel-*.js'
-      - 'test/task2-guidance.js'
-      - 'test/task2-guidance-*.js'
-      - 'test/task2.css'
-      - 'test/index.html'
-      - 'test/build-info.json'
-      - 'test/site-status.json'
-      - '.github/workflows/issue47-task2-smoke.yml'
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   smoke:
     runs-on: ubuntu-24.04

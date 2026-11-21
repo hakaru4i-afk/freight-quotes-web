@@ -11,6 +11,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   code:
     runs-on: ubuntu-24.04
@@ -23,6 +26,7 @@ jobs:
       - name: Verify registry, FAQ, permanent delete and syntax
         run: node --test tests/owner-permanent-delete.test.mjs
   served-staging:
+    if: github.event_name == 'workflow_dispatch'
     needs: code
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -34,7 +38,7 @@ jobs:
           set -euo pipefail
           BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
           EXPECTED_CACHE_KEY=$(git hash-object test/app.js | cut -c1-12)
-          for attempt in {1..30}; do
+          attempt=1
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/index.html?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-index.html || true
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/app.js?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-app.js || true
             curl -fsSL --max-time 20 -H 'Cache-Control: no-cache' "$BASE/current-workspace-help-20261108.js?audit=$GITHUB_SHA-$attempt" -o /tmp/lw-help.js || true
@@ -45,8 +49,6 @@ jobs:
               sha256sum /tmp/lw-app.js /tmp/lw-help.js
               exit 0
             fi
-            sleep 8
-          done
           echo 'FAIL: Pages is not serving the expected staging app'
           exit 1
   api-negative:

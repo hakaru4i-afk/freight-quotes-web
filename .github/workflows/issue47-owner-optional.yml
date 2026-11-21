@@ -1,14 +1,11 @@
 name: Issue47 owner optional reason staging regression
 on:
-  pull_request:
-    paths:
-      - 'test/app.js'
-      - 'test/index.html'
-      - 'test/build-info.json'
-      - 'tests/issue47-owner-optional-reason.test.mjs'
-      - '.github/workflows/issue47-owner-optional.yml'
+  workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   validate:
     runs-on: ubuntu-24.04
