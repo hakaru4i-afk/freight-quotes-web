@@ -6,12 +6,14 @@ on:
       - 'global-view/**'
       - 'test/global-view/**'
       - 'tests/global-view-route.test.mjs'
+      - 'tests/map-geocode-fallback.test.mjs'
       - '.github/workflows/map-autogeocode-regression.yml'
   pull_request:
     paths:
       - 'global-view/**'
       - 'test/global-view/**'
       - 'tests/global-view-route.test.mjs'
+      - 'tests/map-geocode-fallback.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -37,4 +39,4 @@ jobs:
           cmp global-view/view.mjs test/global-view/view.mjs
           cmp global-view/distance.mjs test/global-view/distance.mjs
       - name: Geocoding and preliminary-kilometres regression
-        run: node --test tests/global-view-route.test.mjs
+        run: node --test tests/global-view-route.test.mjs tests/map-geocode-fallback.test.mjs
