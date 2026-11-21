@@ -214,14 +214,21 @@ function paintArchive(host,id){
    fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
    card.append(facts,el('p',row.description,{class:'ow-human-description'}));
    if(row.expected||row.impact){card.append(el('strong',['Ожидаемый результат','Expected result','预期结果'][locale()],{class:'ow-expected-title'}),el('p',row.expected||row.impact,{class:'ow-expected-result'}));}
-   if(job)card.append(workMeter(job));
    const more=el('details',null,{class:'ow-record-details'});more.append(el('summary','Подробнее'));
    const details=el('dl',null,{class:'ow-register-facts'}),detail=(label,value)=>{if(value)details.append(el('dt',label),el('dd',value));};
    detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.technical?.datePrecision==='unknown'?'В исходной записи не указана':row.technical?.datePrecision==='day'?new Date(row.detectedAt).toLocaleDateString('ru-RU'):row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
-   const actions=el('div',null,{class:'ow-human-actions'}),released=['published','production_verified'].includes(state);
-   if(!row.historyOnly&&!released&&(!job||['sent','read','evaluated'].includes(job.status))){const start=el('button','Взять в работу',{type:'button'});start.disabled=!!workBusy||!workReady||!!workError;start.onclick=()=>void startWork(id,row.id,row.title,row.description);actions.append(start);}
-   else if(job){const open=el('button','Открыть задачу',{type:'button'});open.onclick=()=>{navigate('');location.hash='#portal-feedback';};actions.append(open);if(['in_progress','release'].includes(job.status))actions.append(el('span','Задача уже находится в работе'));}
-   const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary','История изменений'));const events=workEvents.filter(x=>x.request_id===job?.id);for(const event of events)history.append(el('p',new Date(event.created_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'})+' · '+event.description+' · '+event.actor_login));if(!events.length)history.append(el('p','Решение владельца ещё не зафиксировано. Источник и прежние проверки — в технической информации.'));actions.append(history);card.append(actions);
+   // Stage 1 preview: identical task controls in updates, remarks and developments.
+   // No database write or GitHub workflow is performed by these three buttons.
+   const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state});
+   if(!taskControls)throw Error('OWNER_REGISTER_TASK_UI_MISSING');
+   card.append(taskControls);
+   const actions=el('div',null,{class:'ow-human-actions'});
+   const history=el('details',null,{class:'ow-technical-history'});history.append(el('summary','История изменений'));
+   const events=workEvents.filter(x=>x.request_id===job?.id);
+   for(const event of events)history.append(el('p',new Date(event.created_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'})+' · '+event.description+' · '+event.actor_login));
+   if(!events.length)history.append(el('p','Решение владельца ещё не зафиксировано. Источник и прежние проверки — в технической информации.'));
+   if(job){const open=el('a','Открыть существующую задачу',{href:'#portal-feedback'});open.onclick=e=>{e.preventDefault();navigate('');location.hash='#portal-feedback';};history.append(open);}
+   actions.append(history);card.append(actions);
    const technical=el('details',null,{class:'ow-technical-history'});technical.append(el('summary','Техническая информация'),el('pre',JSON.stringify({id:row.id,sourceTaskKey:row.sourceTaskKey,...row.technical},null,2)));card.append(technical);target.append(card);
   }
   if(!visible.length)target.append(el('p',loading?'Загрузка…':'Подходящих записей нет'));
