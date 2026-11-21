@@ -37,3 +37,11 @@ test('published source, backend parity and protected Owner gate together permit 
 test('mismatched API bundle blocks verification and production completion',()=>{const parity=verifiedParity();parity.apiBundleSha256='f'.repeat(64);const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity,publication:verifiedPublication()});assert.equal(x.percent,67);assert.equal(x.releaseReady,false)});
 test('a successful PR release-negative-test is not a published owner-approved release',()=>{const publication=verifiedPublication();publication.release.publishJob=false;const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});assert.equal(x.percent,83);assert.equal(x.releaseReady,false)});
 test('out-of-date production release manifest never counts as deployed',()=>{const publication=verifiedPublication();publication.manifest.businessVersion='SH-01.30.52 v';const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});assert.equal(x.percent,83);assert.equal(x.releaseReady,false)});
+
+
+test('successful rerun on the same commit clears an obsolete failure in the live status',()=>{
+ const old=run(names[1],{conclusion:'failure',id:11});
+ const fresh=run(names[1],{conclusion:'success',id:12});fresh.created_at='2026-11-21T07:01:00Z';fresh.updated_at='2026-11-21T07:01:10Z';
+ const x=summarize({pr:pr(),audit:audit(),runs:[old,fresh]});
+ assert.equal(x.state,'checked');assert.equal(x.stages[2].passed,true);
+});
