@@ -57,6 +57,13 @@ test('100% means only server-reported exact CI with checksPassed; review action 
  assert.equal(cls(ready,'ow-task-universal-track')[0].attributes['aria-valuenow'],'100');
  cls(ready,'ow-task-review-submit')[0].onclick();await tick();assert.equal(call[0].action,'submit_review');
 });
+test('Owner may reject but cannot accept when review CI evidence expires',()=>{
+ const card=ui().render({register:'developments',row:{id:'EXPIRED'},state:'checking',
+  execution:{decision:'review_pending',progress:90,checksPassed:false},onAction:async()=>{}});
+ const accept=cls(card,'ow-task-btn-start').find(x=>x.textContent==='Принять');
+ const reject=cls(card,'ow-task-btn-reject').find(x=>x.textContent==='Отклонить приёмку');
+ assert.equal(accept.disabled,true);assert.equal(reject.disabled,false);
+});
 test('Owner review panel implements accept and reject-with-reason',async()=>{
  const actions=[],card=ui().render({register:'developments',row:{id:'R4'},state:'checking',
   execution:{decision:'review_pending',progress:100,checksPassed:true},onAction:async x=>actions.push(x)});
