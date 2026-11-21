@@ -31,6 +31,10 @@ export function validateTestedCandidate({audit,protectedRun,e2e,manifest,checkou
   assert.equal(e2e.frontendSource,manifest.frontendCommit,'FRONTEND_SOURCE_PROVENANCE_MISMATCH');
   assert.equal(manifest.sh59IsolatedQa?.businessVersion,'SH-01.30.59 v');
   assert.equal(manifest.sh59IsolatedQa?.version,20,'API_NOT_TESTED_V20');
+  assert.equal(manifest.sh59IsolatedQa?.projectRef,'ibclzdkxiozbzmniiygv','ISOLATED_API_MUST_USE_STAGING_PROJECT');
+  assert.equal(manifest.sh59IsolatedQa?.function,'freight-api-qa-carrier124nov18','ISOLATED_FUNCTION_MISMATCH');
+  assert.equal(manifest.sh59IsolatedQa?.schema,'freight_qa_carrier124nov18','ISOLATED_SCHEMA_MISMATCH');
+  assert.equal(manifest.sh59IsolatedQa?.promotionBlocked,true,'ISOLATED_API_PROMOTION_MUST_BE_BLOCKED');
   assert.equal(e2e.backendVersion,20,'E2E_API_NOT_V20');
   assert.equal(manifest.sh59IsolatedQa?.sourceCommit,manifest.backendSourceCommit,'UNVERIFIED_BACKEND_ORIGIN');
   assert.equal(e2e.backendSha,manifest.sh59IsolatedQa?.sourceCommit,'TESTED_BACKEND_SHA_MISMATCH');
