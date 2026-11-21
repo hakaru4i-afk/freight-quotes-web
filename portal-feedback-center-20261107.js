@@ -131,7 +131,7 @@ document.addEventListener("click",ev=>{
  if(action==="refresh")void load();
  if(action==="release-update"){
   const item=data.items.find(i=>i.id===selected);
-  if(item&&data.owner&&releaseReadiness.taskId===item.id&&releaseReadiness.ready===true&&!busy)
+  if(isReleaseReady(item,data.owner,releaseReadiness)&&!busy)
    void runAction({action:'release_update',id:item.id,expectedStatus:item.status});
  }
 });
