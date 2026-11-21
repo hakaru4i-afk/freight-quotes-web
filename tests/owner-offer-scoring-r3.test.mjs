@@ -69,10 +69,15 @@ test('Production and test use the integrated Owner React offer cards, no duplica
   const a=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   const b=readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
   for(const html of [a,b]){
-    assert.match(html,/app\.js\?v=offer-eval-r3-20261117-integrated/);
+    // Exact staging cache keys follow the Git blob, whereas the published baseline
+    // can retain its reviewed named R3 cache key until the gated production release.
+    assert.match(html,/app\.js\?v=[a-z0-9-]{12,48}/);
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.mjs\?v=/);
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.css\?v=/);
   }
+  const {execFileSync}=await import('node:child_process');
+  const stagedBlob=execFileSync('git',['hash-object','test/app.js'],{encoding:'utf8'}).trim();
+  assert.ok(b.includes('app.js?v='+stagedBlob.slice(0,12)),'Staging app cache must be pinned to its exact source bytes');
   const scripts=['../app.js','../test/app.js'].map(f=>readFileSync(new URL(f,import.meta.url),'utf8'));
   for(const src of scripts){
     assert.match(src,/offer-scoring\.mjs\?v=offer-r3-20261117-verified/);
