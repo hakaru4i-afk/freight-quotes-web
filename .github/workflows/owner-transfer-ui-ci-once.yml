@@ -1,0 +1,25 @@
+name: Owner intake-to-Center UX regression one-time
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/owner-transfer-ui-ci-once.yml']
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax and original owner controls regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check owner-registers-20261111.js
+          node --check owner-register-task-actions-20261121.js
+          node --check portal-feedback-center-20261107.js
+          node --test tests/owner-register-three-card-stage1.test.mjs
+          node --test tests/owner-register-publication.test.mjs
