@@ -19,7 +19,7 @@ export function sourceSignatures(){
    bytes=Buffer.from(content.replace(build,'currentVersion:"BUILD_ID"'));
   }else if(path==='test/index.html'){
    bytes=Buffer.from(bytes.toString('utf8').replace(/(\.(?:js|mjs|css))\?v=[a-zA-Z0-9-]+/g,'$1?v=ASSET'));
-  }else if(path==='test/process-editor-20261111.mjs'||path==='test/global-view/view.mjs'){
+  }else if(['test/process-editor-20261111.mjs','test/global-view/view.mjs','test/global-view/globe.mjs','test/global-view/map.mjs'].includes(path)){
    bytes=Buffer.from(bytes.toString('utf8').replace(/\?v=[a-f0-9]+/g,'?v=ASSET'));
   }
   return [path,createHash('sha256').update(bytes).digest('hex')];
