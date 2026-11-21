@@ -62,7 +62,8 @@ jobs:
             tests/issue49-staging-check.test.mjs \
             tests/map50-owner-km-before-bid.test.mjs \
             tests/task2-contrast.test.mjs \
-            tests/issue47-owner-optional-reason.test.mjs
+            tests/issue47-owner-optional-reason.test.mjs \
+            tests/owner-ci-release-control.test.mjs
       - name: Prevent accidental return of heavy PR triggers
         run: |
           node --input-type=module <<'JS'
