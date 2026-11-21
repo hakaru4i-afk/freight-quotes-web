@@ -142,6 +142,7 @@ jobs:
           path: |
             production-root-sha256.txt
             .qa-pages/test/sh59-qa-pair.json
+            reports/sh59-qa20-*.png
           retention-days: 30
       - uses: actions/configure-pages@v5
         if: github.event_name != 'pull_request'
