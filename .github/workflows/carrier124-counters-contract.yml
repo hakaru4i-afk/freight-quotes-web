@@ -1,0 +1,52 @@
+name: CAR-01 staging counters contract (no paid services)
+on:
+  pull_request:
+    paths:
+      - test/app.js
+      - test/index.html
+      - test/build-info.json
+      - tests/carrier124-refresh-parity.test.mjs
+      - .github/workflows/carrier124-counters-contract.yml
+permissions:
+  contents: read
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax and exact runtime-source regression (no install, no secrets, no paid API)
+        run: |
+          node --check test/app.js
+          node --test tests/carrier124-refresh-parity.test.mjs tests/issue49-staging-check.test.mjs
+      - name: Verify only staging runtime and tests were touched
+        env:
+          EXPECTED_BRANCH: fix/carrier124-counters-staging-20261120
+        run: |
+          node - <<'NODE'
+          const assert=require('node:assert/strict'),fs=require('node:fs');
+          const html=fs.readFileSync('test/index.html','utf8');
+          const info=JSON.parse(fs.readFileSync('test/build-info.json','utf8'));
+          assert.equal(info.carrier124IncrementalStaging?.task,'DEV-20261117-27');
+          assert.equal(info.carrier124IncrementalStaging?.scope,'STAGING_ONLY');
+          assert.equal(info.carrier124IncrementalStaging?.productionChanged,false);
+          assert.ok(html.includes('./app.js?v='+info.servedAppBlobSha.slice(0,12)));
+          assert.equal(info.currentAssetSha256['app.js'],info.carrier124IncrementalStaging.appSha256);
+          assert.equal(info.task2.frontendCandidateComponents['app.js'].sha256,info.carrier124IncrementalStaging.appSha256);
+          console.log('CAR01_STAGING_SOURCE_CONTRACT_PASS');
+          NODE
+
+  browser-contract:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install existing free Playwright browser test dependencies
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run actual six-card browser and filter test (desktop/mobile, RU/EN/ZH)
+        run: node --test tests/carrier-dashboard-browser.test.mjs
