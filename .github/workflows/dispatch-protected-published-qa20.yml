@@ -33,6 +33,7 @@ jobs:
           node --check tests/task12-published-qa20.e2e.mjs
           node --check tests/carrier124-remaining-api.mjs
           node --test tests/qa20-sl-recovery-guard.test.mjs
+          node --test tests/qa20-published-proof-contract.test.mjs
           node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
