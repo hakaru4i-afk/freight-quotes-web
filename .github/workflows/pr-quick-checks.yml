@@ -62,7 +62,7 @@ jobs:
             tests/issue49-staging-check.test.mjs \
             tests/map50-owner-km-before-bid.test.mjs \
             tests/task2-contrast.test.mjs \
-            tests/owner-offer-scoring-r3.test.mjs
+            tests/issue47-owner-optional-reason.test.mjs
       - name: Prevent accidental return of heavy PR triggers
         run: |
           node --input-type=module <<'JS'
