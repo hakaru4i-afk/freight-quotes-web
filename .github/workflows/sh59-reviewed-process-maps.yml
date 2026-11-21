@@ -55,15 +55,23 @@ jobs:
           assert.ok(model.decisions.some(d=>d.includes('21.11 MAP50 candidate review')));
           const actual=sourceSignatures();
           const changed=Object.keys(actual).filter(path=>actual[path]!==model.reviewedSourceSignatures?.[path]).sort();
-          assert.deepEqual(changed,[
+          const reviewedPaths=[
             'test/global-view/globe.mjs',
             'test/global-view/map.mjs',
             'test/global-view/route-model.mjs'
-          ],'Unreviewed source changed; abort rather than re-signing automatically');
-          assert.equal(model.reviewedSourceSignatures['test/global-view/route-model.mjs'],
-            '9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2');
-          assert.equal(actual['test/global-view/route-model.mjs'],
-            'd8a16e5965f14a12de0321a54854540748fe616ab5707460a08c77dd645c6b06');
+          ];
+          const reviewedBefore='9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2';
+          const reviewedAfter='d8a16e5965f14a12de0321a54854540748fe616ab5707460a08c77dd645c6b06';
+          if(changed.length===0){
+            assert.equal(model.reviewedSourceSignatures['test/global-view/route-model.mjs'],reviewedAfter,
+              'No changes are expected only when the reviewed MAP50 model is already generated');
+            console.log('REVIEWED_MAP50_ALREADY_CURRENT');
+          } else {
+            assert.deepEqual(changed,reviewedPaths,
+              'Unreviewed source changed; abort rather than re-signing automatically');
+            assert.equal(model.reviewedSourceSignatures['test/global-view/route-model.mjs'],reviewedBefore);
+          }
+          assert.equal(actual['test/global-view/route-model.mjs'],reviewedAfter);
           const expectedBlob=execFileSync('git',['hash-object','test/global-view/route-model.mjs'],{encoding:'utf8'}).trim().slice(0,12);
           for(const p of ['test/global-view/map.mjs','test/global-view/globe.mjs']){
             assert.match(readFileSync(p,'utf8'),new RegExp('route-model\\.mjs\\?v='+expectedBlob));
