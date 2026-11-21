@@ -1,4 +1,6 @@
+
 name: LW no-glare hover · all roles staging QA
+
 on:
   push:
     branches: [main]
@@ -9,57 +11,125 @@ on:
       - tests/lw-hover-safe-browser.test.mjs
       - .github/workflows/lw-hover-safe.yml
   workflow_dispatch:
+
 permissions:
   contents: read
+
+concurrency:
+  group: lw-hover-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 jobs:
   source:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
+
       - name: CSS sources, role coverage and production isolation
         run: node --test tests/lw-hover-safe.test.mjs
+
   served:
+    if: github.event_name == 'workflow_dispatch'
     needs: source
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      - name: Exact staging CSS and cache key
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Verify published hover CSS without polling
         shell: bash
         run: |
           set -euo pipefail
-          BASE="https://hakaru4i-afk.github.io/freight-quotes-web/test"
-          EXPECTED_CACHE_KEY=$(git hash-object test/lw-hover-safe-20261108.css | cut -c1-12)
-          for attempt in {1..32}; do
-            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/index.html?qa=$GITHUB_SHA-$attempt" -o /tmp/hover-index.html || true
-            curl -fsSL --max-time 16 -H "Cache-Control: no-cache" "$BASE/lw-hover-safe-20261108.css?qa=$GITHUB_SHA-$attempt" -o /tmp/hover.css || true
-            if grep -Fq "lw-hover-safe-20261108.css?v=$EXPECTED_CACHE_KEY" /tmp/hover-index.html 2>/dev/null \
-              && cmp -s test/lw-hover-safe-20261108.css /tmp/hover.css; then
-              echo "PASS exact hover shield on staging"
-              sha256sum /tmp/hover.css
-              exit 0
-            fi
-            echo "Awaiting Pages deployment (attempt $attempt)"
-            sleep 7
-          done
-          echo "::error::Staging CSS not published byte-for-byte"
-          exit 1
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+
+          const base = 'https://hakaru4i-afk.github.io/freight-quotes-web/test';
+
+          async function get(file) {
+            const response = await fetch(
+              `${base}/${file}?qa=${process.env.GITHUB_SHA}`,
+              {
+                headers: {'Cache-Control': 'no-cache'},
+                signal: AbortSignal.timeout(12000)
+              }
+            );
+            assert.equal(response.status, 200, `HTTP failure: ${file}`);
+            return Buffer.from(await response.arrayBuffer());
+          }
+
+          const entry = 'lw-hover-safe-20261108.css';
+          const source = readFileSync(`test/${entry}`);
+          const sha = createHash('sha1')
+            .update(`blob ${source.length}\0`)
+            .update(source)
+            .digest('hex')
+            .slice(0, 12);
+
+          const html = (await get('index.html')).toString('utf8');
+          const links = [
+            ...html.matchAll(
+              /(?:src|href)=["']\.\/([^"'?]+)\?v=([a-f0-9]{12})["']/g
+            )
+          ];
+          assert.ok(
+            links.some(m => m[1] === entry && m[2] === sha),
+            'STAGING_CACHE_KEY_MISMATCH'
+          );
+
+          const published = await get(entry);
+          assert.ok(
+            published.equals(source),
+            'HOVER_STAGING_ASSET_MISMATCH'
+          );
+
+          console.log('LW_HOVER_STAGING_READBACK_PASS');
+          JS
+
   browser:
+    if: github.event_name == 'workflow_dispatch'
     needs: served
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
-      - name: Isolated eight-role matrix and actual served sign-in hover
+
+      - name: Cache npm and Chromium
+        id: browser-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v1
+
+      - name: Install Playwright package
+        run: npm install --no-save --ignore-scripts playwright@1.56.1
+
+      - name: Ensure Chromium system dependencies
+        run: npx playwright install-deps chromium
+
+      - name: Download Chromium on cache miss
+        if: steps.browser-cache.outputs.cache-hit != 'true'
+        run: npx playwright install chromium
+
+      - name: Isolated eight-role matrix and served sign-in hover
         run: node --test tests/lw-hover-safe-browser.test.mjs
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
