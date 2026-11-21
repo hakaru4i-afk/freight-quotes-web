@@ -17,6 +17,35 @@ const workWords=[
  {active:'当前开发工作',empty:'暂无进行中的开发任务',start:'开始处理',working:'进行中',open:'打开任务',details:'历史和技术信息',changed:'已保存到服务器',claimed:'已开始开发',planning:'已计划',ready:'待验证',released:'已发布',blocked:'禁止发布',partial:'部分完成',unverified:'未验证',proposed:'已登记',rejected:'已拒绝',finished:'已完成',sourceName:'来源登记册',subtitle:'清晰的摘要、状态和操作。技术信息折叠在历史中。'}
 ];
 const statusNames={sent:['Новое','New','新建'],read:['Прочитано','Read','已阅'],evaluated:['Оценено','Evaluated','已评估'],in_progress:['В работе','In progress','进行中'],release:['Готовится к выпуску','Preparing release','准备发布'],completed:['Завершено','Completed','已完成'],denied:['Отклонено','Rejected','已拒绝']};
+
+// Progress is the count of confirmed workflow stages, not an estimate of coding time.
+// Every stage comes from the Owner-only, server-stored work-item status.
+const workStages={sent:1,read:2,evaluated:3,in_progress:4,release:5,completed:6};
+const workStageNames=[
+ ['Зарегистрировано','Прочитано','Оценено','В разработке','Проверка и выпуск','Принято владельцем'],
+ ['Registered','Read','Evaluated','In development','Verification and release','Accepted by Owner'],
+ ['已登记','已阅读','已评估','开发中','测试与发布','所有者已验收']
+];
+function workMeter(item){
+ const l=locale(),raw=String(item?.status||''),stage=workStages[raw]||0;
+ const names=workStageNames[l],percent=Math.round(stage/6*100);
+ const caption=stage?(names[stage-1]+' · '+stage+'/6 · '+percent+'%'):['Этап не подтверждён','Stage unverified','阶段未验证'][l];
+ const wrap=el('div',null,{class:'ow-task-progress','data-work-status':raw,'data-stage':String(stage)});
+ const label=el('div',null,{class:'ow-task-progress-label'});
+ label.append(el('span',caption));
+ const when=Date.parse(item?.started_at||item?.startedAt||'');
+ if(Number.isFinite(when)&&['in_progress','release'].includes(raw)){
+  const elapsed=Math.max(0,Math.round((Date.now()-when)/60000)),hours=Math.floor(elapsed/60),minutes=String(elapsed%60).padStart(2,'0');
+  const expired=elapsed>120,clock=el('small',(expired?['Срок 2 ч превышен: ','Over 2-hour limit: ','超过2小时限制：'][l]:['С начала: ','Elapsed: ','已用时：'][l])+hours+':'+minutes,{class:expired?'ow-task-overdue':'ow-task-clock'});
+  label.append(clock);
+ }
+ wrap.append(label);
+ const meter=el('div',null,{class:'ow-task-progress-track',role:'progressbar','aria-label':['Этапы задачи','Task stages','任务阶段'][l],'aria-valuemin':'0','aria-valuemax':'6','aria-valuenow':String(stage)});
+ meter.append(el('span',null,{class:'ow-task-progress-fill',style:'width:'+percent+'%'}));
+ wrap.append(meter);
+ return wrap;
+}
+
 const plain=x=>String(x??'').replace(/\s+/g,' ').trim();
 const short=(x,max=190)=>plain(x).slice(0,max);
 const archiveMarker=(id,recordId)=>'[ARCHIVE:'+id+':'+recordId+']';
@@ -92,6 +121,7 @@ function drawWork(host){
    const card=el('div',null,{class:'ow-active-item'}),body=el('div');
    const cleaned=plain(item.description).split('Источник реестра:')[0].replace(/ARCHIVE:[^\s]+/g,'').trim();
    body.append(el('strong',short(cleaned,120)||short(item.code,110)),el('small',workStatus(item)));
+   body.append(workMeter(item));
    const action=el('button',w.open,{type:'button'});action.onclick=()=>{navigate('');location.hash='#portal-feedback';};
    card.append(body,action);list.append(card);
   }panel.append(list);
@@ -132,7 +162,18 @@ function sections(){if(!source)return[];return (source.legacyEntries||source.mar
 const humanStatuses={accepted:'Принято владельцем',new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
 const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
 const roleNames={owner:'Владелец',carrier:'Перевозчик',ved:'ВЭД',logistic:'ВЭД / логист',supplier:'Поставщик',visitor:'Посетитель',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
-const recordState=(row,job)=>job?.status==='completed'?'accepted':job?.status==='denied'?'rejected':job?.status==='release'?'checking':job?.status==='in_progress'?'in_progress':row.status;
+const recordState=(row,job)=>{
+ const current=row?.status||'new';
+ // Business publication is distinct from work-item status. A completed
+ // engineering task cannot silently erase a verified production release.
+ if(current==='published'||current==='production_verified')return current;
+ if(job?.status==='denied')return 'rejected';
+ if(job?.status==='in_progress')return 'in_progress';
+ if(job?.status==='release')return 'checking';
+ // Owner has completed the work item, not necessarily its release QA.
+ if(job?.status==='completed')return ['fixed_review','checking','ready'].includes(current)?current:'accepted';
+ return current;
+};
 const finished=(s,job)=>job?.status==='completed';
 function paintArchive(host,id){
  host.dataset.archiveName=id;host.dataset.archiveReady=String(!loading&&!!source&&source.name===id);
@@ -172,6 +213,8 @@ function paintArchive(host,id){
    const facts=el('dl',null,{class:'ow-register-facts'}),fact=(label,value)=>{if(!value)return;facts.append(el('dt',label),el('dd',value));};
    fact('Раздел портала',row.area);fact('Участники',(row.roles||[]).map(x=>roleNames[x]||x).join(', '));fact('Приоритет',priorityNames[row.priority]);
    card.append(facts,el('p',row.description,{class:'ow-human-description'}));
+   if(row.expected||row.impact){card.append(el('strong',['Ожидаемый результат','Expected result','预期结果'][locale()],{class:'ow-expected-title'}),el('p',row.expected||row.impact,{class:'ow-expected-result'}));}
+   if(job)card.append(workMeter(job));
    const more=el('details',null,{class:'ow-record-details'});more.append(el('summary','Подробнее'));
    const details=el('dl',null,{class:'ow-register-facts'}),detail=(label,value)=>{if(value)details.append(el('dt',label),el('dd',value));};
    detail(id==='developments'?'Что требуется улучшить':id==='updates'?'Что изменилось':'Описание',row.description);detail('Правильная работа',row.expected);detail(id==='developments'?'Польза изменения':'Последствия',row.impact);detail('Причина исправления',row.reason);detail('Дата обнаружения',row.technical?.datePrecision==='unknown'?'В исходной записи не указана':row.technical?.datePrecision==='day'?new Date(row.detectedAt).toLocaleDateString('ru-RU'):row.detectedAt?new Date(row.detectedAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'');detail('Версия',row.version);detail('Ответственный',row.responsible);detail('Проверка',row.verification);more.append(details);card.append(more);
