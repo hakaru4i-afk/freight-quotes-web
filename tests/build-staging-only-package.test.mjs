@@ -53,6 +53,9 @@ test('browser binding directs only /api and shared freight-api to isolated v20 a
  assert.ok(requests[0].includes('/functions/v1/freight-api-qa-carrier124nov18/health'));
  assert.ok(requests[1].includes('/functions/v1/freight-api-qa-carrier124nov18/api/quotes'));
  assert.equal(requests.length,2);
+ await assert.rejects(()=>ctx.window.fetch('https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/health'),/QA20_PRODUCTION_API_BLOCKED/);
+ await assert.rejects(()=>ctx.window.fetch('https://ooclsrndeygojtofuyte.supabase.co/rest/v1/requests'),/QA20_PRODUCTION_API_BLOCKED/);
+ assert.equal(requests.length,2,'No request may escape to production Supabase');
  await assert.rejects(()=>ctx.window.fetch('https://ibclzdkxiozbzmniiygv.supabase.co/rest/v1/requests'),/QA20_SHARED_DATA_ENDPOINT_BLOCKED/);
  assert.equal(requests.length,2);
 });
