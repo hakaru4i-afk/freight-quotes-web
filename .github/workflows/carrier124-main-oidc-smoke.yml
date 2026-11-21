@@ -78,6 +78,7 @@ jobs:
           node --check tests/carrier124-ci-auth.mjs
           node --check tests/carrier124-ci-business.mjs
           node --check tests/task12-isolated-browser.e2e.mjs
+          node --check tests/task12-published-qa20.e2e.mjs || test ! -e tests/task12-published-qa20.e2e.mjs
       - name: Bind frozen Git assets and the isolated API before requesting credentials
         run: |
           node scripts/check-staging-alignment.mjs --source-only
@@ -116,6 +117,17 @@ jobs:
           writeFileSync('reports/carrier124-ci-pair.json',JSON.stringify(pair,null,2)+'\n');
           appendFileSync(process.env.GITHUB_ENV,'QA_CARRIER124_PAIR_FILE='+path+'\nQA_CARRIER124_CANDIDATE=true\nQA_BROWSER_PUBLISHED=false\n');
           NODE
+      - name: Pin the published QA20 browser harness to the exact trusted main dispatch SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_EVENT_NAME" = workflow_dispatch
+          test "$GITHUB_REF" = refs/heads/main
+          git fetch --no-tags origin "$GITHUB_SHA" --depth=1
+          git show "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs" > tests/task12-published-qa20.e2e.mjs
+          node --check tests/task12-published-qa20.e2e.mjs
+          test "$(git hash-object tests/task12-published-qa20.e2e.mjs)" = "$(git rev-parse "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs")"
+          echo 'EXACT_PUBLISHED_QA20_BROWSER_HARNESS_PINNED'
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         id: issued
         run: node tests/carrier124-ci-oidc-bindings.mjs
@@ -159,7 +171,7 @@ jobs:
         continue-on-error: true
         env:
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Full isolated Carrier124 SH59 workflow with claim and ordinary closure
         id: full_lifecycle
         if: ${{ inputs.full_suite == true }}
@@ -175,7 +187,7 @@ jobs:
         env:
           QA_BROWSER_MATRIX: 'true'
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-full-roles
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Verify multilingual matrix screenshot hashes are present before archiving
         id: matrix_screenshots
         if: ${{ inputs.full_suite == true }}
@@ -240,7 +252,7 @@ jobs:
           QA_BROWSER_ALIGNMENT: 'true'
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Verify all ten non-Owner roles are denied private archives
         id: alignment_denials
         if: ${{ inputs.full_suite == true && steps.alignment_owner.outcome == 'success' }}
@@ -249,7 +261,7 @@ jobs:
           QA_BROWSER_ALIGNMENT: 'true'
           QA_BROWSER_ACTORS: carrierA,carrierB,ved,logistic,supplier,supplierB,designer,content,purchasing,certification
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Verify addressed Logistic upload, completion and VED separation
         id: logistic_security
         if: ${{ inputs.full_suite == true && steps.map50.outcome == 'success' }}
@@ -258,7 +270,7 @@ jobs:
           QA_BROWSER_LOGISTIC_SECURITY: 'true'
           QA_BROWSER_ACTORS: logistic
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Verify the previous UI can read the new API for rollback
         id: rollback_ui
         if: ${{ inputs.full_suite == true }}
@@ -284,7 +296,7 @@ jobs:
           QA_BROWSER_MODE_MATRIX: 'true'
           QA_BROWSER_ACTORS: carrierA
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Download the finalized tender PDF and validate the exact server values
         id: tender_pdf
         if: ${{ inputs.full_suite == true && steps.full_business_api.outcome == 'success' }}
@@ -293,7 +305,7 @@ jobs:
           QA_BROWSER_TENDER: 'true'
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_EVIDENCE_DIR: reports/isolated-rc
-        run: node tests/task12-isolated-browser.e2e.mjs
+        run: QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE="$RUNNER_TEMP/sh59-isolated-pair.json" node tests/task12-published-qa20.e2e.mjs
       - name: Authorized Service Level policy boundaries (T2-24)
         id: sl_bounds
         continue-on-error: true
