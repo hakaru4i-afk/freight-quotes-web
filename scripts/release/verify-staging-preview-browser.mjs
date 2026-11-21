@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {readFileSync,statSync,realpathSync} from 'node:fs';
+import {readFileSync,statSync,realpathSync,mkdirSync} from 'node:fs';
 import {join,resolve,sep} from 'node:path';
 import {chromium} from 'playwright';
 const root=realpathSync(process.argv[2] || '.qa-pages');
@@ -59,6 +59,8 @@ try{
   assert.equal(result.binding.apiVersion,20);
   assert.deepEqual(shared,[],'Shared staging API was contacted');
   assert.deepEqual(errors,[],'Browser runtime threw errors');
+  mkdirSync('reports',{recursive:true});
+  await page.screenshot({path:'reports/sh59-qa20-'+viewport.width+'.png',fullPage:true});
   console.log('STAGING_QA20_BROWSER_PAIR_PASS',JSON.stringify({viewport,apiVersion:20,anonymousDenied:true}));
   await context.close();
  }
