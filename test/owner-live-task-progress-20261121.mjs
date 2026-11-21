@@ -26,10 +26,11 @@ export function summarize({pr,audit,runs=[],job=null,parity=null,publication=nul
   {label:'Резервная копия, разрешение и выпуск',passed:releasePassed===true}
  ];
  const passed=stages.filter(x=>x.passed).length;
- const running=sorted.find(x=>['queued','in_progress','waiting','requested','pending'].includes(x.status));
- const failed=sorted.find(x=>x.conclusion==='failure');
- const current=running||failed||sorted[0];
- const state=running?'running':failed?'failed':current?'checked':'unverified';
+ const currentByWorkflow=[];const seen=new Set();for(const run of sorted){if(!seen.has(run.name)){seen.add(run.name);currentByWorkflow.push(run)}}
+ const running=currentByWorkflow.find(x=>['queued','in_progress','waiting','requested','pending'].includes(x.status));
+ const failed=currentByWorkflow.find(x=>x.conclusion==='failure');
+ const current=running||failed||currentByWorkflow[0];
+ const state=releasePassed?'released':running?'running':failed?'failed':current?'checked':'unverified';
  let action=running?'GitHub Actions выполняет: ':failed?'Ошибка GitHub Actions: ':current?'Последняя проверка: ':'По текущему коммиту новых проверок нет';
  if(current)action+=current.name+(state==='checked'?' — '+String(current.conclusion||'ожидает'): '');
  if(running&&job?.runId===running.id)action+=' / '+job.name+(job.step?' / '+job.step:'');
@@ -43,11 +44,12 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
  const create=(name,content,className)=>{const x=document.createElement(name);if(content!==undefined)x.textContent=String(content);if(className)x.className=className;return x};
  function mount(){if(!owner()){for(const panel of document.querySelectorAll('[data-owner-ci-status]'))panel.remove();return}for(const container of containers())if(!container.querySelector(':scope > [data-owner-ci-status]')){const x=create('section',undefined,'owner-ci-status');x.dataset.ownerCiStatus='';x.setAttribute('aria-label','Автоматический прогресс выпуска SH59');container.prepend(x);render(x)}}
  function render(panel){const status=summarize(data);panel.replaceChildren();
-  const head=create('div',undefined,'owner-ci-head'),title=create('strong',status.title),badge=create('span',status.state==='running'?'Проверяется':status.state==='failed'?'Ошибка CI':'До выпуска','owner-ci-badge');badge.dataset.status=status.state;head.append(title,badge);panel.append(head);
+  const head=create('div',undefined,'owner-ci-head'),title=create('strong',status.title),badge=create('span',status.state==='released'?'Опубликовано':status.state==='running'?'Проверяется':status.state==='failed'?'Ошибка CI':'До выпуска','owner-ci-badge');badge.dataset.status=status.state;head.append(title,badge);panel.append(head);
   const progress=create('div',undefined,'owner-ci-progress');progress.append(create('span',status.passed+' из '+status.total+' подтверждённых этапов'),create('b',status.percent+'%'));panel.append(progress);
   const bar=create('div',undefined,'owner-ci-track');bar.setAttribute('role','progressbar');bar.setAttribute('aria-label','Подтверждённые этапы SH59');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',String(status.total));bar.setAttribute('aria-valuenow',String(status.passed));const fill=create('div',undefined,'owner-ci-fill');fill.style.width=status.percent+'%';bar.append(fill);panel.append(bar);
   const stages=create('ol',undefined,'owner-ci-stages');for(const s of status.stages){const item=create('li',(s.passed?'✓ ':'○ ')+s.label);item.dataset.passed=String(s.passed);stages.append(item)}panel.append(stages);
   panel.append(create('p',status.action,'owner-ci-action'));
+  panel.append(create('small','Последний коммит PR: '+(status.sha?status.sha.slice(0,12):'не подтверждён')+'. Обновление PR: '+(data.pr?.updated_at?new Date(data.pr.updated_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'неизвестно')+' (Минск).','owner-ci-note'));
   const last=data.runsAt?new Date(data.runsAt).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'}):'ещё нет';
   panel.append(create('small','Источник: GitHub. Последняя проверка: '+last+'. Автообновление каждые 2 минуты.','owner-ci-note'));
   if(data.error)panel.append(create('p','Данные временно недоступны: '+data.error,'owner-ci-error'));
