@@ -85,7 +85,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
    }catch(e){data.publication.release=null;data.publication.releaseCheckedAt=0;errors.push('Release '+e.message)}
   }
   const result=summarize(data);if(result.state==='running'&&result.runId&&(force||data.job?.runId!==result.runId||now-data.jobAt>240000)){
-   try{const x=await api('actions/runs/'+result.runId+'/jobs?per_page=30');const j=x.jobs?.find(k=>k.status==='in_progress')||x.jobs?.find(k=>k.conclusion==='failure');const step=j?.steps?.find(k=>k.status==='in_progress')||j?.steps?.find(k=>k.conclusion==='failure');data.job=j?{runId:result.runId,name:j.name,step:step?.name||''}:null;data.jobAt=Date.now()}catch(e){errors.push('шаг '+e.message)}
+   try{const x=await api('actions/runs/'+result.runId+'/jobs?per_page=30');const j=x.jobs?.find(k=>k.status==='in_progress')||x.jobs?.find(k=>k.conclusion==='failure');const step=j?.steps?.find(k=>k.status==='in_progress')||j?.steps?.find(k=>k.conclusion==='failure');data.job=j?{runId:result.runId,name:j.name,step:step?.name||''}:null;data.jobAt=Date.now()}catch(e){data.job=null;data.jobAt=0;errors.push('шаг '+e.message)}
   }else if(result.state!=='running')data.job=null;
   data.error=errors.join('; ');data.busy=false;paint();
  }
