@@ -1,0 +1,102 @@
+name: Dispatch protected published SH59 QA20 full acceptance
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/dispatch-protected-published-qa20.yml'
+      - '.github/workflows/carrier124-main-oidc-smoke.yml'
+      - 'tests/task12-published-qa20.e2e.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/dispatch-protected-published-qa20.yml'
+permissions:
+  contents: read
+concurrency:
+  group: owner-protected-published-qa20-dispatch
+  cancel-in-progress: false
+jobs:
+  source-validation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify published browser harness syntax and immutable-gate assertions
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check tests/task12-published-qa20.e2e.mjs
+          node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import assert from 'node:assert/strict';
+          const source=readFileSync('tests/task12-published-qa20.e2e.mjs','utf8');
+          for(const marker of [
+            'PUBLISHED_QA20_BROWSER_REQUIRED',
+            'PROTECTED_MAIN_DISPATCH_REQUIRED',
+            'PUBLISHED_ASSET_HASH_MISMATCH:',
+            'PUBLISHED_QA20_ASSET_PROVENANCE_PASS',
+            'SOURCE_APP_DIFFERS_FROM_TESTED_HANDOFF',
+            "const functionPrefix='/functions/v1/'+qaFunction"
+          ])assert.ok(source.includes(marker),'UNVERIFIED_PUBLISHED_BROWSER_GUARD:'+marker);
+          const workflow=readFileSync('.github/workflows/carrier124-main-oidc-smoke.yml','utf8');
+          assert.ok(workflow.includes('FREIGHT_PROTECTED_CANDIDATE'));
+          assert.ok(workflow.includes('environment: isolated-qa'));
+          assert.ok(workflow.includes('git show "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs"'));
+          assert.ok(workflow.includes('QA_BROWSER_PUBLISHED=true QA_BROWSER_BACKEND_PROOF_FILE='));
+          assert.ok(workflow.includes('node tests/carrier124-ci-oidc-bindings.mjs --finish'));
+          console.log('PUBLISHED_QA20_FULL_ACCEPTANCE_GUARDS_PASS');
+          JS
+  launch-protected:
+    needs: source-validation
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.actor == 'hakaru4i-afk' &&
+      github.event.head_commit.message == 'qa(published): launch protected 37-of-37 full suite on SH59 QA20'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require already-published exact isolated QA20 pair; no production writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 3 --max-time 25 \
+            'https://hakaru4i-afk.github.io/freight-quotes-web/test/sh59-qa-pair.json' -o /tmp/served-qa20-pair.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          const r=JSON.parse(readFileSync('/tmp/served-qa20-pair.json','utf8'));
+          assert.equal(r.kind,'SH59_ISOLATED_QA20_STAGING_PACKAGE');
+          assert.equal(r.testedFrontendSha,'6e0a465b2b031558989f62b38dc7939797434686');
+          assert.equal(r.testedBackendSha,'092decf57d97fabdefa35bba0593890f52d34ef6');
+          assert.equal(r.isolatedQaApiVersion,20);
+          assert.equal(r.apiFunction,'freight-api-qa-carrier124nov18');
+          assert.equal(r.productionAuthorized,false);
+          assert.equal(r.stagingBundleRebindRequiresFreshE2E,true);
+          console.log('PUBLISHED_QA20_PRECONDITION_PASS');
+          JS
+      - name: Dispatch the existing protected main-only GitHub OIDC workflow with full suite
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_ACTOR" = hakaru4i-afk
+          gh workflow run carrier124-main-oidc-smoke.yml \
+            -R hakaru4i-afk/freight-quotes-web --ref main -f full_suite=true
+          echo 'PROTECTED_OIDC_FULL_SUITE_DISPATCHED; WAIT_FOR_AUTHENTICATED_EVIDENCE'
