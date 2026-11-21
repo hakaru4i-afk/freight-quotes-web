@@ -27,7 +27,31 @@ on:
 permissions:
   contents: read
 jobs:
+  pr-metadata-safety:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PR metadata consistency (production smoke runs only on main push)
+        run: |
+          set -euo pipefail
+          node <<'NODE_PR'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const info = JSON.parse(fs.readFileSync('build-info.json','utf8'));
+          const status = JSON.parse(fs.readFileSync('site-status.json','utf8'));
+          const manifest = JSON.parse(fs.readFileSync('production-release-manifest.json','utf8'));
+          assert.equal(info.releaseVersion,status.release.version,'PR release metadata mismatch');
+          assert.equal(info.version,status.version,'PR build metadata mismatch');
+          assert.equal(info.environment,'production');
+          assert.equal(info.projectRef,'ooclsrndeygojtofuyte');
+          assert.equal(manifest.environment,'production');
+          assert.match(manifest.assets?.['app.js']||'',/^[a-f0-9]{64}$/);
+          console.log('PR_METADATA_CONSISTENCY_PASS; production smoke reserved for push/main');
+          NODE_PR
   production-static-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
