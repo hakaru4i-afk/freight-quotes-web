@@ -1,0 +1,25 @@
+/* OWNER LIVE-CI — scoped, accessible desktop + 390px mobile */
+.owner-ci-status{display:grid;gap:11px;min-width:0;margin:12px 0;padding:16px;box-sizing:border-box;border:1px solid #a8bfd1;border-radius:14px;background:#fff;color:#18344a;font:14px/1.45 system-ui,sans-serif;box-shadow:0 2px 12px rgba(18,52,75,.05)}
+.owner-ci-status *{box-sizing:border-box}
+.owner-ci-head,.owner-ci-progress{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.owner-ci-head strong{font-size:17px;font-weight:750;color:#17364c}
+.owner-ci-progress b{font-size:19px;color:#155b51}
+.owner-ci-badge{display:inline-block;border:1px solid #dfc18a;color:#704503;background:#fff2db;border-radius:18px;padding:3px 10px;font-size:12px;font-weight:700}
+.owner-ci-badge[data-status=failed]{background:#fff0ed;color:#962c24;border-color:#e4b1a8}
+.owner-ci-badge[data-status=running]{background:#e7f4ff;color:#174e78;border-color:#b4d0e4}
+.owner-ci-track{width:100%;height:12px;overflow:hidden;background:#dce9ef;border:1px solid #a9c5d3;border-radius:99px}
+.owner-ci-fill{height:100%;border-radius:99px;background:#168a7c;transition:width .25s ease}
+.owner-ci-stages{padding-left:20px;display:grid;gap:2px;margin:0;font-size:13px;color:#4a6476}
+.owner-ci-stages li[data-passed=true]{color:#0e685b;font-weight:650}
+.owner-ci-action{font-weight:600;line-height:1.55;margin:0;overflow-wrap:anywhere}
+.owner-ci-note{display:block;color:#546d80;font-size:12px;line-height:1.55}
+.owner-ci-error{margin:0;color:#a0231d;font-weight:650}
+.owner-ci-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.owner-ci-actions a,.owner-ci-actions button{display:inline-flex;align-items:center;min-height:38px;border:1px solid #a2bcd0;border-radius:8px;padding:7px 12px;background:#eff7fd;color:#124d73;text-decoration:none;font:600 13px/1.2 system-ui,sans-serif;cursor:pointer}
+.owner-ci-actions a:hover,.owner-ci-actions button:hover{background:#dceffa}
+.owner-ci-actions a:focus-visible,.owner-ci-actions button:focus-visible{outline:3px solid #0378aa;outline-offset:2px}
+.owner-ci-actions button:disabled{opacity:.55;cursor:wait}
+#lw-owner-command .owner-ci-status{grid-column:1/-1}
+#ow-workspace>.owner-ci-status{margin:12px 0 18px}
+@media(max-width:600px){.owner-ci-status{padding:12px}.owner-ci-actions a,.owner-ci-actions button{flex:1 1 auto;justify-content:center}}
+@media(prefers-reduced-motion:reduce){.owner-ci-fill{transition:none}}
