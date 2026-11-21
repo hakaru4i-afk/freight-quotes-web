@@ -14,6 +14,7 @@ const titleTranslations={
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
+let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 const requestStatus=i=>i.status==="release"&&i.release_date?"Выпуск · "+i.release_date:latestStatus(i.status);
@@ -51,7 +52,14 @@ function detail(){
  const item=data.items.find(i=>i.id===selected);
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
- const choices=transitions[item.status]||[];
+ const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
+ // Completing an item manually is never a substitute for a verified production deployment.
+ const releaseEligible=data.owner&&['in_progress','release'].includes(item.status);
+ const releaseReady=releaseEligible&&releaseReadiness.taskId===item.id&&releaseReadiness.ready===true;
+ const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="Контроль выпуска">'+
+  '<h4>Публикация обновления</h4>'+
+  (releaseReady?'<p class="pf-ci-success" role="status">Все обязательные тесты пройдены</p>':'<p class="pf-ci-wait" role="status">Ожидаются тесты</p>')+
+  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||busy?'disabled':'')+'>Выпустить обновление</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -65,7 +73,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
@@ -84,8 +92,27 @@ async function apiCall(action,dataToSend){
 }
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";if(selected&&!data.items.some(i=>i.id===selected))selected="";render();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
+}
+async function refreshReleaseReadiness(){
+ const item=data.items.find(i=>i.id===selected);
+ const seq=++releaseReadinessRequest;
+ if(!data.owner||!item||!['in_progress','release'].includes(item.status)){
+  releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'};return;
+ }
+ releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};render();
+ try{
+  const response=await fetch(api+'?releaseReadiness='+encodeURIComponent(item.id),{cache:'no-store'});
+  const result=await response.json();
+  if(seq!==releaseReadinessRequest||selected!==item.id)return;
+  // Only the authenticated API can authorize a release. Unknown/failed responses deny it.
+  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',message:'Ожидаются тесты'};
+ }catch{
+  if(seq!==releaseReadinessRequest||selected!==item.id)return;
+  releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
+ }
+ if(seq===releaseReadinessRequest)render();
 }
 async function runAction(payload){
  if(busy)return;
@@ -96,11 +123,16 @@ async function runAction(payload){
 document.addEventListener("click",ev=>{
  const r=root();if(!r||!r.contains(ev.target))return;
  const id=ev.target.closest("[data-pf-id]")?.dataset.pfId;
- if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});return;}
+ if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else void refreshReleaseReadiness();return;}
  const action=ev.target.closest("[data-pf]")?.dataset.pf;
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
+ if(action==="release-update"){
+  const item=data.items.find(i=>i.id===selected);
+  if(item&&data.owner&&releaseReadiness.taskId===item.id&&releaseReadiness.ready===true&&!busy)
+   void runAction({action:'release_update',id:item.id,expectedStatus:item.status});
+ }
 });
 document.addEventListener("input",ev=>{
  if(!root()?.contains(ev.target))return;
@@ -129,5 +161,6 @@ const obs=new MutationObserver(()=>{
  pending=true;requestAnimationFrame(()=>{pending=false;lastRoot=r;loaded=false;render();void load();});
 });
 obs.observe(document.documentElement,{childList:true,subtree:true});
+setInterval(()=>{if(document.visibilityState==='visible'&&data.owner&&selected)void refreshReleaseReadiness();},30000);
 if(root()){render();void load();}
 })();
