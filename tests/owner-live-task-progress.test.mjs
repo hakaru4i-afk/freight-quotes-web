@@ -29,3 +29,11 @@ test('monitor uses no private tokens, never submits mutations, only displays ins
  assert.doesNotMatch(code,/service_role|Bearer |github_pat_|ghp_|localStorage|sessionStorage|method:\s*['"]POST['"]/);
  assert.match(code,/120000/);
 });
+
+
+function verifiedParity(){return {runtimePairStatus:'VERIFIED',frontendCommit:'6e0a465b2b031558989f62b38dc7939797434686',apiSourceCommit:'092decf57d97fabdefa35bba0593890f52d34ef6',apiBundleSha256:'2875f4dc43dcc61a8b191edcf70281d7f1b8875847bc9e0b276160bdfe6b0b87',qaEvidence:{fullGroupsPassed:37}};}
+function verifiedPublication(){return {manifest:{environment:'production',businessVersion:'SH-01.30.59 v',sourceStagingFrontendCommit:'6e0a465b2b031558989f62b38dc7939797434686',frontendBuild:'locked-build'},build:{environment:'production',releaseVersion:'SH-01.30.59 v',build:'locked-build'},release:{event:'workflow_dispatch',conclusion:'success',publishJob:true}};}
+test('published source, backend parity and protected Owner gate together permit 100% status',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication:verifiedPublication()});assert.equal(x.percent,100);assert.equal(x.releaseReady,true)});
+test('mismatched API bundle blocks verification and production completion',()=>{const parity=verifiedParity();parity.apiBundleSha256='f'.repeat(64);const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity,publication:verifiedPublication()});assert.equal(x.percent,67);assert.equal(x.releaseReady,false)});
+test('a successful PR release-negative-test is not a published owner-approved release',()=>{const publication=verifiedPublication();publication.release.publishJob=false;const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});assert.equal(x.percent,83);assert.equal(x.releaseReady,false)});
+test('out-of-date production release manifest never counts as deployed',()=>{const publication=verifiedPublication();publication.manifest.businessVersion='SH-01.30.52 v';const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name)),parity:verifiedParity(),publication});assert.equal(x.percent,83);assert.equal(x.releaseReady,false)});
