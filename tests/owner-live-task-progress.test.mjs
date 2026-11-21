@@ -78,3 +78,10 @@ test('unavailable evidence endpoints invalidate cached proofs for both Owner ent
 });
 
 test('green alignment CI without verified served runtime pair is not a completed milestone',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name))});assert.equal(x.stages[3].passed,false);assert.equal(x.stages[4].passed,false);assert.equal(x.percent,50)});
+
+test('failed GitHub job step refresh clears obsolete job detail in both Owner entrypoints',()=>{
+ for(const path of ['owner-live-task-progress-20261121.mjs','test/owner-live-task-progress-20261121.mjs']){
+  const source=readFileSync(path,'utf8');
+  assert.match(source,/catch\(e\)\{data\.job=null;data\.jobAt=0;errors\.push\('шаг '\+e\.message\)\}/);
+ }
+});
