@@ -230,7 +230,6 @@ jobs:
           node tests/carrier124-remaining-security.e2e.mjs carrierB
           node tests/carrier124-remaining-security.e2e.mjs verify
       - name: Install Chromium for real pinned-asset browser E2E
-        if: inputs.fixture_only != true
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
           test -s node_modules/axe-core/axe.min.js
@@ -247,6 +246,13 @@ jobs:
         id: browser
         continue-on-error: true
         env:
+          QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
+        run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Check one Owner cabinet on the published site before full acceptance
+        id: fixture_browser
+        if: inputs.fixture_only == true
+        env:
+          QA_BROWSER_ACTORS: owner
           QA_BROWSER_EVIDENCE_DIR: reports/carrier124-published-browser
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Published SH59 workflow with claim and ordinary closure
@@ -420,6 +426,7 @@ jobs:
           require_pass fixture_recovery '${{ steps.fixture_recovery.outcome }}'
           if [ '${{ inputs.fixture_only }}' = true ]; then
             require_pass fixture_replay '${{ steps.fixture_replay.outcome }}'
+            require_pass fixture_browser '${{ steps.fixture_browser.outcome }}'
           else
             require_pass business '${{ steps.business.outcome }}'
             require_pass auth_isolation '${{ steps.auth_isolation.outcome }}'
