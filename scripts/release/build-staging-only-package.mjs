@@ -80,7 +80,17 @@ export function buildStagingOnlyPackage(rootSource, checkedTestSource, lockFile,
   assert.ok(!existsSync(join(base,'.qa-pages')) || dest !== resolve(base,'.qa-pages'), 'CANNOT_NEST_OUTPUT_IN_SOURCE');
   rmSync(dest,{recursive:true,force:true});mkdirSync(dest,{recursive:true});
   // Copy the original production root exactly as-is. No rewriting production metadata.
-  copyPublic(base,dest);
+  // Root publishing is allowlisted: temporary CI handoff imports and test evidence
+  // must never become public website paths.
+  for(const ent of readdirSync(base,{withFileTypes:true})) {
+    if(ent.isDirectory()) {
+      if(!new Set(['global-view','processes','process-history']).has(ent.name))continue;
+      const dst=join(dest,ent.name);mkdirSync(dst,{recursive:true});
+      copyPublic(join(base,ent.name),dst,ent.name);
+    } else if(ent.isFile() && (publicFile.test(ent.name) || ent.name==='.nojekyll') && !secrets.test(ent.name)) {
+      cpSync(join(base,ent.name),join(dest,ent.name));
+    }
+  }
   const originalRoot=['index.html','app.js','build-info.json','site-status.json','production-release-manifest.json'];
   for(const name of originalRoot)assert.ok(existsSync(join(dest,name)),'PRODUCTION_BASELINE_MISSING:'+name);
   // Public QA files are copied from the *signed and verified* source tree, not HEAD/main.
