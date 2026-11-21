@@ -48,8 +48,7 @@ if(process.argv.includes('--write')){
  // Validate cache-key multiplicity before writing app.js or any build metadata.
  // Otherwise a malformed HTML entry can leave a partially stamped working tree.
  for(const name of critical){
-  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\if(process.argv.includes('--write')){
- if(meta.stagingAssetBuildId');
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   const re=new RegExp('(?:\\./'+escaped+')(?=\\?v=|["\\'])','g');
   if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);
  }
