@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {createHash} from 'node:crypto';
@@ -19,6 +19,8 @@ function fixture(fn){
   put(tested,'staging-transport-20261111.js','/* Fixed staging host only. */');
   const lock={state:'TESTED_SOURCE_HANDOFF_NOT_DEPLOYED',frontendSha:SOURCE_SHA,backendSha:API_SHA,apiBundleSha256:API_BUNDLE,apiVersion:20,businessVersion:'SH-01.30.59 v',verifiedScenarios:37,productionAuthorized:false,requiresExplicitOwnerApproval:true,assets:Object.fromEntries(['index.html','app.js','staging-manifest.json'].map(n=>['test/'+n,sha(readFileSync(join(tested,n)))]))};
   const lockFile=join(root,'lock.json');writeFileSync(lockFile,JSON.stringify(lock));
+  mkdirSync(join(base,'imported','test'),{recursive:true});writeFileSync(join(base,'imported','test','secret.json'),'SHOULD_NOT_BE_PUBLISHED');
+  mkdirSync(join(base,'verified-handoff'),{recursive:true});writeFileSync(join(base,'verified-handoff','lock.json'),'SHOULD_NOT_BE_PUBLISHED');
   return fn({base,tested,out,lock,lockFile,root});
  }finally{rmSync(root,{recursive:true,force:true});}
 }
@@ -27,6 +29,8 @@ test('preserves all original production sentinel assets byte for byte and import
  for(const n of ['index.html','app.js','build-info.json','site-status.json','production-release-manifest.json'])
    assert.deepEqual(readFileSync(join(base,n)),readFileSync(join(out,n)),n);
  assert.deepEqual(readFileSync(join(tested,'app.js')),readFileSync(join(out,'test','app.js')));
+ assert.ok(!existsSync(join(out,'imported')),'CI imports must never be public');
+ assert.ok(!existsSync(join(out,'verified-handoff')),'Handoff private evidence must never be public');
  assert.equal(p.isolatedQaApiVersion,20);
  assert.equal(p.stagingBundleRebindRequiresFreshE2E,true);
  assert.match(readFileSync(join(out,'test','index.html'),'utf8'),/staging-transport-20261111\.js\?v=[a-f0-9]{12}/);
