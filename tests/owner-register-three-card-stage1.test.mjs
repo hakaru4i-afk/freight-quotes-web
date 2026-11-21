@@ -76,7 +76,7 @@ test('cannot restart completed or historical work; no arbitrary GitHub token/pro
 test('Owner register main script uses authenticated API and 60-second polling',()=>{
  const root=source('owner-registers-20261111.js');
  assert.match(root,/owner-register-execution\?register=/);
- assert.match(root,/action:'transfer'/);
+ assert.match(root,/payload\.action==='transfer'/);
  assert.match(root,/OWRegisterTaskActions\?\.render\(\{register:id,row,job,state,execution,onAction:executeRecordAction\}\)/);
  assert.match(root,/60000/);
 });
