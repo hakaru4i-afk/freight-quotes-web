@@ -18,7 +18,9 @@ export function validateTestedCandidate({audit,protectedRun,e2e,manifest,checkou
   assert.ok(['workflow_dispatch','workflow_run'].includes(audit.event),'INVALID_AUDIT_TRIGGER');
   assert.ok(passRun(protectedRun,'.github/workflows/carrier124-main-oidc-smoke.yml'),'UNVERIFIED_PROTECTED_RUN');
   assert.equal(protectedRun.event,'workflow_dispatch','PROTECTED_RUN_MUST_USE_OIDC_DISPATCH');
-  assert.equal(e2e.runId,protectedRun.id,'PROTECTED_EVIDENCE_RUN_MISMATCH');
+  assert.match(String(e2e.runId||''),/^[1-9][0-9]*$/,'INVALID_EVIDENCE_RUN_ID');
+  assert.ok(Number.isSafeInteger(Number(e2e.runId)),'INVALID_EVIDENCE_RUN_ID');
+  assert.equal(Number(e2e.runId),protectedRun.id,'PROTECTED_EVIDENCE_RUN_MISMATCH');
   assert.ok(Date.parse(audit.updated_at)>Date.parse(protectedRun.updated_at),'AUDIT_MUST_FOLLOW_E2E');
   assert.equal(e2e.environment,'isolated-qa');
   assert.equal(e2e.authorized,true,'AUTHENTICATION_NOT_VERIFIED');
