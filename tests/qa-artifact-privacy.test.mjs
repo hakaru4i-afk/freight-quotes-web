@@ -9,3 +9,17 @@ test('artifact sanitization removes private register images and retains other re
  const published=readFileSync('.github/workflows/isolated-qa-oidc-browser.yml','utf8');for(const dir of['published','ordinary'])for(const name of['owner-register-*.png','owner-cabinet-read*.png'])assert.ok(published.includes('!reports/nov14-'+dir+'/'+name));
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
+test('OIDC artifact retains non-Owner FAQ matrix images while excluding all Owner matrix views',()=>{
+ const workflow=readFileSync('.github/workflows/isolated-qa-oidc-browser.yml','utf8');
+ const paths=workflow.match(/name: isolated-qa-redacted-evidence[\s\S]*?path: \|\n([\s\S]*?)\n\s+retention-days:/)?.[1].split('\n').map(s=>s.trim()).filter(Boolean);assert.ok(paths);
+ const dir=mkdtempSync(join(tmpdir(),'qa-matrix-artifact-'));
+ try{
+  mkdirSync(join(dir,'reports/isolated-rc'),{recursive:true});
+  const actors=['carrierA','carrierB','ved','logistic','supplier','supplierB','designer','content','purchasing','certification'];
+  const expected=actors.flatMap(actor=>['ru','en','zh'].flatMap(lang=>[1366,390].map(width=>'reports/isolated-rc/'+actor+'-matrix-'+lang+'-'+width+'.png')));
+  const hidden=['reports/isolated-rc/owner-matrix-ru-1366.png','reports/isolated-rc/owner-matrix-en-390-updates.png','reports/isolated-rc/owner-matrix-zh-390-process.png'];
+  for(const name of [...expected,...hidden])writeFileSync(join(dir,name),'synthetic evidence');
+  const code='import json,glob,sys\npatterns=json.loads(sys.argv[1]); found=set()\nfor p in patterns:\n if not p.startswith("!"): found.update(glob.glob(p,recursive=True))\nfor p in patterns:\n if p.startswith("!"): found.difference_update(glob.glob(p[1:],recursive=True))\nprint(json.dumps(sorted(found)))';
+  const r=spawnSync('python3',['-c',code,JSON.stringify(paths)],{cwd:dir,encoding:'utf8'});assert.equal(r.status,0,r.stderr);assert.deepEqual(JSON.parse(r.stdout),expected.sort());
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});

@@ -181,6 +181,8 @@ jobs:
         with:
           name: isolated-qa-redacted-evidence
           path: |
+            reports/isolated-rc/*-matrix-*.png
+            !reports/isolated-rc/owner-matrix-*.png
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
             reports/isolated-rc/previous-production-ui-compatibility.json
