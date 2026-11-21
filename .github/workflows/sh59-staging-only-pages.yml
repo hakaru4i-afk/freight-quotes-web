@@ -8,6 +8,12 @@ on:
       - scripts/release/verify-staging-preview-browser.mjs
       - tests/build-staging-only-package.test.mjs
       - tests/verify-published-root.test.mjs
+  # One audited staging-only promotion; only this exact commit message on this QA branch.
+  # Production root bytes must pass read-back before/after the Pages deployment.
+  push:
+    branches: [ci/isolated-sh59-staging-pages-20261121]
+    paths:
+      - .github/workflows/sh59-staging-only-pages.yml
   workflow_dispatch:
     inputs:
       handoff_run_id:
@@ -52,7 +58,10 @@ jobs:
         github.actor == 'hakaru4i-afk') ||
        (github.event_name == 'workflow_dispatch' &&
         github.actor == 'hakaru4i-afk' &&
-        github.ref == 'refs/heads/main'))
+        github.ref == 'refs/heads/main') ||
+       (github.event_name == 'push' &&
+        github.ref == 'refs/heads/ci/isolated-sh59-staging-pages-20261121' &&
+        github.event.head_commit.message == 'release(staging): deploy verified SH59 QA20 to Pages test only'))
     runs-on: ubuntu-24.04
     timeout-minutes: 28
     permissions:
@@ -67,15 +76,21 @@ jobs:
         with:
           node-version: '22'
       - name: Require explicit staging-only Owner instruction and Pages Actions mode
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         shell: bash
         env:
           CONFIRM: ${{ inputs.staging_confirmation }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          test "$GITHUB_EVENT_NAME" = workflow_dispatch
-          test "$CONFIRM" = 'STAGING ONLY SH59 API20'
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            test "$CONFIRM" = 'STAGING ONLY SH59 API20'
+            test "$GITHUB_REF" = refs/heads/main
+          else
+            test "$GITHUB_EVENT_NAME" = push
+            test "$GITHUB_REF" = refs/heads/ci/isolated-sh59-staging-pages-20261121
+            test "$(jq -r .head_commit.message "$GITHUB_EVENT_PATH")" = 'release(staging): deploy verified SH59 QA20 to Pages test only'
+          fi
           test "$(gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '.build_type')" = workflow || {
             echo '::error::Owner must set Settings > Pages > Source > GitHub Actions first. No release.'
             exit 1
@@ -147,15 +162,15 @@ jobs:
             reports/sh59-qa20-*.png
           retention-days: 30
       - uses: actions/configure-pages@v5
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
       - uses: actions/upload-pages-artifact@v4
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         with:
           path: .qa-pages
 
   deploy:
     needs: prepare
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
     runs-on: ubuntu-24.04
     timeout-minutes: 18
     environment:
