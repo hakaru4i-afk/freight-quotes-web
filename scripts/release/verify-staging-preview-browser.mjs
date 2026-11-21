@@ -25,6 +25,21 @@ try{
  for(const viewport of [{width:1366,height:768},{width:390,height:844}]){
   const context=await browser.newContext({viewport,serviceWorkers:'block'});
   const page=await context.newPage(); const shared=[];const errors=[];
+  // Local CI origin cannot satisfy the protected QA provider's Pages-only CORS.
+  // Forward requests to the REAL isolated API server-side with the exact Pages Origin;
+  // never synthesize a success response, cookie, actor, or protected API result.
+  await page.route('https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-carrier124nov18/**', async route=>{
+    const r=route.request();
+    const cors={'access-control-allow-origin':'*','access-control-allow-methods':'GET, HEAD, OPTIONS, POST, PATCH, PUT, DELETE','access-control-allow-headers':'authorization, apikey, content-type, x-client-info'};
+    if(r.method()==='OPTIONS')return route.fulfill({status:204,headers:cors,body:''});
+    const upstream=await fetch(r.url(),{
+      method:r.method(),
+      headers:{Origin:'https://hakaru4i-afk.github.io'},
+      signal:AbortSignal.timeout(20000),redirect:'error'
+    });
+    const body=Buffer.from(await upstream.arrayBuffer());
+    await route.fulfill({status:upstream.status,headers:{...cors,'content-type':upstream.headers.get('content-type')||'application/json'},body});
+  });
   page.on('request',r=>{const u=new URL(r.url());if(u.hostname==='ibclzdkxiozbzmniiygv.supabase.co'&&/^\/functions\/v1\/freight-api(?:\/|$)/.test(u.pathname))shared.push(u.pathname);});
   page.on('pageerror',e=>errors.push(e.message));
   const p=await page.goto(addr,{waitUntil:'domcontentloaded',timeout:30000});
