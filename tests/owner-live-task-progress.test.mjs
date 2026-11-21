@@ -94,3 +94,19 @@ for(const conclusion of ['timed_out','cancelled','action_required','startup_fail
   assert.equal(x.stages[2].passed,false);
  });
 }
+
+test('incomplete GitHub workflow never earns milestone credit even with success conclusion',()=>{
+ const incomplete=run(names[0],{status:'in_progress',conclusion:'success'});
+ const x=summarize({pr:pr(),audit:audit(),runs:[incomplete]});
+ assert.equal(x.stages[1].passed,false);
+ assert.equal(x.percent,17);
+ assert.equal(x.releaseReady,false);
+});
+test('incomplete alignment cannot certify API parity',()=>{
+ const runs=names.map((name,i)=>run(name,{id:i+1}));
+ runs[2].status='queued';
+ const x=summarize({pr:pr(),audit:audit(),runs,parity:verifiedParity(),publication:verifiedPublication()});
+ assert.equal(x.stages[3].passed,false);
+ assert.equal(x.stages[4].passed,false);
+ assert.equal(x.releaseReady,false);
+});
