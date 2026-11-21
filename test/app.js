@@ -33,17 +33,16 @@ function issue124CarrierCards({dashboard,loading,error,onSelect,onRefresh}){
  ]});
 }
 function issue47Stage(n,b){
-if(n.dashboard_stage)return ["declined","lost"].includes(n.dashboard_stage)?"archive":n.dashboard_stage;
-
 if(n.lifecycle_state==="annulled"||["lost","declined","no_response","annulled"].includes(n.round_result)||n.decline_reason)return "archive";
 if(n.completion_state==="completed"||n.cargo_status==="completed")return "completed";
 if(n.selected_offer||n.round_result==="winner")return n.tracking_changed||(n.cargo_status&&n.cargo_status!=="new")?"execution":"selected";
-if(!n.is_current)return "archive";
+if(["declined","lost","archive"].includes(n.dashboard_stage)||!n.is_current)return "archive";
+if(n.dashboard_stage)return n.dashboard_stage;
 if(b.some(x=>x.round_id===n.round_id&&x.order_code===n.order_code))return "review";
 if(n.workflow_status==="accepted")return "preparing";
 return "new";
 }
-function issue47StageLabel(n,b){if(n.dashboard_stage==="lost")return "Не выбран · архив";if(n.dashboard_stage==="declined")return "Отказался · архив";const t=issue47Stage(n,b);return {archive:n.lifecycle_state==="annulled"?"Аннулировано · архив":n.round_result==="lost"?"Не выбран · архив":n.round_result==="no_response"?"Нет ответа · архив":n.round_result==="declined"||n.decline_reason?"Отказался · архив":"Архив",completed:"Выполнено",execution:"В пути",selected:"Победитель",review:"На рассмотрении",preparing:"Расчёт ставки",viewed:"Просмотрена",new:"Новая заявка"}[t]}
+function issue47StageLabel(n,b){const t=issue47Stage(n,b);if(t==="archive"&&n.dashboard_stage==="lost")return "Не выбран · архив";if(t==="archive"&&n.dashboard_stage==="declined")return "Отказался · архив";return {archive:n.lifecycle_state==="annulled"?"Аннулировано · архив":n.round_result==="lost"?"Не выбран · архив":n.round_result==="no_response"?"Нет ответа · архив":n.round_result==="declined"||n.decline_reason?"Отказался · архив":"Архив",completed:"Выполнено",execution:"В пути",selected:"Победитель",review:"На рассмотрении",preparing:"Расчёт ставки",viewed:"Просмотрена",new:"Новая заявка"}[t]}
 function issue47MinskTime(s){
  if(!s)return NaN;
  const m=String(s).match(/^(\d{4})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d))?/);

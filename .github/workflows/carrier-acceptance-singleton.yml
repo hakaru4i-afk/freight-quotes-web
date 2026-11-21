@@ -7,6 +7,8 @@ on:
       - test/index.html
       - index.html
       - tests/carrier-acceptance-singleton-browser.test.mjs
+      - test/app.js
+      - tests/carrier-winner-status-unit.test.mjs
       - .github/workflows/carrier-acceptance-singleton.yml
   pull_request:
     paths:
@@ -14,6 +16,8 @@ on:
       - test/index.html
       - index.html
       - tests/carrier-acceptance-singleton-browser.test.mjs
+      - test/app.js
+      - tests/carrier-winner-status-unit.test.mjs
       - .github/workflows/carrier-acceptance-singleton.yml
   workflow_dispatch:
 permissions:
@@ -26,6 +30,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Carrier winner/loser semantics and label (isolated unit)
+        run: node --test tests/carrier-winner-status-unit.test.mjs
       - name: Syntax, one action handler and cache key
         run: |
           set -euo pipefail
