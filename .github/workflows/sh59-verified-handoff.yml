@@ -4,6 +4,7 @@ on:
     paths:
       - '.github/workflows/sh59-verified-handoff.yml'
       - 'scripts/release/prepare-tested-candidate.mjs'
+      - 'scripts/release/check-sh59-staging-import.mjs'
       - 'tests/prepare-tested-candidate.test.mjs'
   workflow_dispatch:
     inputs:
@@ -123,6 +124,30 @@ jobs:
           cd ../verified-output
           sha256sum sh59-tested-test-assets.tar.gz sh59-tested-source-lock.json > SHA256SUMS
           echo 'VERIFIED_STAGING_HANDOFF_PACKAGED; PRODUCTION_UNCHANGED; FRESH_BACKUP_AND_OWNER_APPROVAL_STILL_REQUIRED'
+      - name: Import the checked SH59 files into an isolated browser staging site
+        shell: bash
+        env:
+          SAVED_HANDOFF_RUN: ${{ github.event_name == 'pull_request' && '44871869409' || '' }}
+        run: |
+          set -euo pipefail
+          handoff=verified-output
+          if [ -n "$SAVED_HANDOFF_RUN" ]; then
+            gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$SAVED_HANDOFF_RUN" \
+              --jq '.conclusion == "success" and .path == ".github/workflows/sh59-verified-handoff.yml" and .head_sha == "9fdf24d4a2b224383ef74303134942854f27eef9"' |
+              grep -qx true
+            handoff=saved-tested-handoff
+            gh run download "$SAVED_HANDOFF_RUN" -R hakaru4i-afk/freight-quotes-web \
+              --name sh59-immutable-tested-source-handoff --dir "$handoff"
+            cmp "$handoff/sh59-tested-source-lock.json" verified-output/sh59-tested-source-lock.json
+            cmp "$handoff/sh59-tested-test-assets.tar.gz" verified-output/sh59-tested-test-assets.tar.gz
+          fi
+          mkdir -p imported-staging
+          tar -xzf "$handoff/sh59-tested-test-assets.tar.gz" -C imported-staging
+          npm --prefix handoff-tooling install --no-save --ignore-scripts playwright@1.56.1
+          handoff-tooling/node_modules/.bin/playwright install chromium
+          node handoff-tooling/scripts/release/check-sh59-staging-import.mjs \
+            imported-staging/test tested-source "$handoff/sh59-tested-source-lock.json" \
+            verified-output/sh59-isolated-staging-import.json
       - uses: actions/upload-artifact@v4
         with:
           name: sh59-immutable-tested-source-handoff
