@@ -36,6 +36,13 @@ jobs:
           node scripts/check-staging-alignment.mjs --source-only
           node scripts/check-isolated-api-pair.mjs
           node --test tests/carrier124-ci-oidc-bindings.test.mjs tests/carrier124-service-recovery.test.mjs
+          # Checkout is deliberately frozen to the audited candidate; fetch only the PR's
+          # test files from its exact merge SHA, never substitute unreviewed runtime assets.
+          git fetch --no-tags origin "$GITHUB_SHA" --depth=1
+          git show "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs" > tests/task12-published-qa20.e2e.mjs
+          git show "$GITHUB_SHA:tests/qa20-published-proof-contract.test.mjs" > tests/qa20-published-proof-contract.test.mjs
+          node --check tests/task12-published-qa20.e2e.mjs
+          node --test tests/qa20-published-proof-contract.test.mjs
   qa:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa

@@ -62,8 +62,13 @@ const metadata=qaRun==='carrier124nov18'
 // An isolated backend candidate can be verified before changing published metadata.
 if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
  const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE,'utf8'));
- assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
- Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
+ assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);
+ assert.equal(proof.version,liveReceipt.isolatedQaApiVersion,'PUBLISHED_QA_API_VERSION_DRIFT');
+ assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.equal(proof.bundle,liveReceipt.testedBackendBundleSha256,'PUBLISHED_QA_BACKEND_BUNDLE_DRIFT');
+ // The trusted OIDC binding receipt calls this field backendSource, not sourceCommit.
+ assert.match(proof.backendSource,/^[a-f0-9]{40}$/);assert.equal(proof.backendSource,liveReceipt.testedBackendSha,'PUBLISHED_QA_BACKEND_SOURCE_DRIFT');
+ assert.equal(proof.match,true,'UNVERIFIED_QA_BACKEND_PROOF');
+ Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.backendSource});
 }
 assert.equal(metadata.isolatedQaFunction,qaFunction);
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
