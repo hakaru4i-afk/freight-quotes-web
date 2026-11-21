@@ -46,8 +46,17 @@ test("dashboard filters closed requests, picks real dates, sorts overdue first",
   assert.match(tasks[1].description,/забор/i);
 });
 test("carrier assets stay isolated until a verified production promotion", () => {
-  for(const tab of ["Готовлю","На рассмотрении","Выбранные","Исполнение","Выполненные","Архив"])assert.ok(app.includes(tab));
-  for(const marker of ['className:"carrier-card-deadline"','className:"carrier-card-subline"','className:"carrier-card-stage"','issue47Stage(x,b)===d','Ближайшие сроки и действия'])assert.ok(app.includes(marker), marker);
+  // The canonical Carrier #124 view consists of six real stages, not the removed legacy tabs.
+  const first=app.indexOf("const issue124Stages="),last=app.indexOf("function issue124CarrierCards(",first);
+  assert.ok(first>=0&&last>first,"canonical Carrier stages must be declared");
+  const definitions=app.slice(first,last);
+  for(const [key,label] of [["new","Новые"],["viewed","Просмотрены"],["preparing","Расчёт ставки"],["review","На рассмотрении"],["selected","Выиграны"],["execution","В пути"]]){
+    assert.ok(definitions.includes('["'+key+'","'+label+'"]'),"Missing canonical Carrier stage "+key);
+  }
+  for(const [key,label] of [["lost","Не выбрали"],["declined","Отказался"],["completed","Завершены"],["archive","Архив"]]){
+    assert.ok(definitions.includes('["'+key+'","'+label+'"]'),"Missing terminal filter "+key);
+  }
+  for(const marker of ['className:"carrier-card-deadline"','className:"carrier-card-subline"','className:"carrier-card-stage"','function issue47Stage(n,b)','Ближайшие сроки и действия'])assert.ok(app.includes(marker), marker);
   assert.match(css,/STAGING Issue #47 \/ B10-B11/);
   assert.equal(manifest.carrierWorkspace.status,"COMMITTED_STAGING_QA_PENDING");
   assert.ok(html.includes("app.js?v="+manifest.servedAppBlobSha.slice(0,12)));
