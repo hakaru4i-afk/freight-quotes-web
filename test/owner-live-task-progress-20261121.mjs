@@ -41,7 +41,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
  const owner=()=>document.querySelector('.cabinet-app[data-cabinet-role="owner"]');
  const containers=()=>owner()?[owner().querySelector('#lw-owner-command .lw-cc-development-list'),owner().querySelector('#ow-workspace')].filter(Boolean):[];
  const create=(name,content,className)=>{const x=document.createElement(name);if(content!==undefined)x.textContent=String(content);if(className)x.className=className;return x};
- function mount(){for(const container of containers())if(!container.querySelector(':scope > [data-owner-ci-status]')){const x=create('section',undefined,'owner-ci-status');x.dataset.ownerCiStatus='';x.setAttribute('aria-label','Автоматический прогресс выпуска SH59');container.prepend(x);render(x)}}
+ function mount(){if(!owner()){for(const panel of document.querySelectorAll('[data-owner-ci-status]'))panel.remove();return}for(const container of containers())if(!container.querySelector(':scope > [data-owner-ci-status]')){const x=create('section',undefined,'owner-ci-status');x.dataset.ownerCiStatus='';x.setAttribute('aria-label','Автоматический прогресс выпуска SH59');container.prepend(x);render(x)}}
  function render(panel){const status=summarize(data);panel.replaceChildren();
   const head=create('div',undefined,'owner-ci-head'),title=create('strong',status.title),badge=create('span',status.state==='running'?'Проверяется':status.state==='failed'?'Ошибка CI':'До выпуска','owner-ci-badge');badge.dataset.status=status.state;head.append(title,badge);panel.append(head);
   const progress=create('div',undefined,'owner-ci-progress');progress.append(create('span',status.passed+' из '+status.total+' подтверждённых этапов'),create('b',status.percent+'%'));panel.append(progress);
@@ -87,7 +87,7 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){schedule();void load()}});
  for(const event of ['hashchange','freight-access-updated'])window.addEventListener(event,()=>{schedule();void load()});
- new MutationObserver(changes=>{if(changes.every(x=>x.target?.closest?.('[data-owner-ci-status]')))return;schedule()}).observe(document.documentElement,{childList:true,subtree:true});
+ new MutationObserver(changes=>{if(changes.every(x=>x.target?.closest?.('[data-owner-ci-status]')))return;schedule()}).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['data-cabinet-role']});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{mount();void load()},{once:true});else{mount();void load()}
  setInterval(()=>{if(!document.hidden){mount();void load()}},120000);
 }
