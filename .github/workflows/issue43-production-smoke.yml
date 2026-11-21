@@ -27,7 +27,37 @@ on:
 permissions:
   contents: read
 jobs:
+  pr-metadata-safety:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PR metadata consistency (production smoke runs only on main push)
+        run: |
+          set -euo pipefail
+          node <<'NODE_PR'
+          const fs = require('node:fs');
+          const assert = require('node:assert/strict');
+          const info = JSON.parse(fs.readFileSync('build-info.json','utf8'));
+          const status = JSON.parse(fs.readFileSync('site-status.json','utf8'));
+          const manifest = JSON.parse(fs.readFileSync('production-release-manifest.json','utf8'));
+          assert.equal(info.releaseVersion,status.release.version,'PR release metadata mismatch');
+          assert.equal(info.version,status.version,'PR build metadata mismatch');
+          assert.equal(info.environment,'production');
+          assert.equal(info.projectRef,'ooclsrndeygojtofuyte');
+          assert.equal(manifest.environment,'production');
+          assert.match(manifest.assets?.['app.js']||'',/^[a-f0-9]{64}$/);
+          console.log('PR_METADATA_CONSISTENCY_PASS; production smoke reserved for push/main');
+          NODE_PR
+          node --input-type=module <<'NODE_ATTEST'
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const m=assertProductionReleaseIntegrity();
+          if (m.businessVersion!=='SH-01.30.59 v'||m.publicationState!=='CANDIDATE_PENDING_REQUIRED_CHECKS') throw Error('INVALID_SH59_DRAFT_ATTESTATION');
+          console.log('SH59_PR_ASSET_INTEGRITY_PASS; PUBLISH_UNAPPROVED');
+          NODE_ATTEST
   production-static-smoke:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -42,8 +72,9 @@ jobs:
           const status = JSON.parse(fs.readFileSync('site-status.json', 'utf8'));
           const page = fs.readFileSync('index.html','utf8');
           const app = fs.readFileSync('app.js','utf8');
-          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== 'SH-01.30.52 v') throw Error('wrong production identity');
-          if (x.version !== status.version || status.release.version !== 'SH-01.30.52 v') throw Error('release metadata mismatch');
+          const protectedVersion = JSON.parse(fs.readFileSync('production-release-manifest.json','utf8')).businessVersion;
+          if (x.environment !== 'production' || x.projectRef !== 'ooclsrndeygojtofuyte' || x.releaseVersion !== protectedVersion) throw Error('wrong production identity');
+          if (x.version !== status.version || status.release.version !== protectedVersion) throw Error('release metadata mismatch');
           if (!page.includes('app.js?v=' + x.build)) throw Error('stale app cache key');
           if (!app.includes('sender_contact:S.target.value') || !app.includes('g.sender_contact||""')) throw Error('Owner field missing');
           if (!app.includes('Object.fromEntries(["sender_contact","origin","weight"')) throw Error('Owner hydrate missing');

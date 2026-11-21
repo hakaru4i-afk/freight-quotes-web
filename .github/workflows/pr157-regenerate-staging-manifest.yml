@@ -1,0 +1,64 @@
+name: PR157 regenerate source-attested staging manifest (branch only)
+on:
+  push:
+    branches: [feature/owner-ci-release-readiness-20261121]
+    paths: [.github/workflows/pr157-regenerate-staging-manifest.yml]
+permissions:
+  contents: write
+concurrency:
+  group: pr157-source-attested-manifest
+  cancel-in-progress: false
+jobs:
+  regenerate:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/feature/owner-ci-release-readiness-20261121'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 25
+    steps:
+      - name: Confirm isolated free Mac runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = macOS
+          test "$(uname -m)" = arm64
+          test "$(id -un)" = freight-qa
+          test "$HOME" = /Users/freight-qa
+      - uses: actions/checkout@v4
+        with:
+          ref: feature/owner-ci-release-readiness-20261121
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Restore clean full source tree
+        shell: bash
+        run: |
+          set -euo pipefail
+          git sparse-checkout disable
+          git restore --source=HEAD --worktree -- .
+          test -f scripts/release/refresh-pr157-staging-manifest.mjs
+          test -f test/staging-manifest.json
+          test -z "$(git status --porcelain)"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Regenerate manifest from exact tracked source files and verify all bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/release/refresh-pr157-staging-manifest.mjs
+          node scripts/check-staging-alignment.mjs
+          node --test tests/staging-alignment.test.mjs
+          git diff --check
+          changed="$(git diff --name-only)"
+          test "$changed" = test/staging-manifest.json
+          git diff --exit-code -- test/build-info.json test/business-process-model.json test/alignment-role-help.json
+      - name: Commit only the regenerated staging candidate manifest, never deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/feature/owner-ci-release-readiness-20261121
+          git add -- test/staging-manifest.json
+          git diff --cached --check
+          test "$(git diff --cached --name-only)" = test/staging-manifest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(pr157): regenerate verified staging candidate source manifest"
+          git push origin HEAD:refs/heads/feature/owner-ci-release-readiness-20261121

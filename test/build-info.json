@@ -5,6 +5,21 @@
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotice": "release-status.json",
   "projectRef": "ibclzdkxiozbzmniiygv",
+  "sharedStagingRuntime": {
+    "projectRef": "ibclzdkxiozbzmniiygv",
+    "function": "freight-api",
+    "version": 115,
+    "observedOn": "2026-11-19",
+    "sourceCommit": null,
+    "sourceBindingStatus": "UNVERIFIED",
+    "providerBundleSha256": "23bb527d1281a7a0240f9d933213d93f7f48400d34349493a5928787198ae6ee",
+    "snapshot": {
+      "repository": "hakaru4i-afk/freight-quotes",
+      "commit": "4273e1b7bed0357d14384e2adb30f828f1391519",
+      "receiptPath": "recovery/runtime-snapshots/staging-freight-api-v115-20261119/manifest.json",
+      "entrySha256": "2b0b91f6de20dc537b9d16c06e22862e326bd606c5607845b1e7d9483a829d0c"
+    }
+  },
   "build": "SH-01.30.50 v",
   "sourceHash": "9ecf884a9454c8312693e3df46b4541de0bd2c3e1ed8627c7f5f2b042ea91484",
   "builtAt": "2026-11-05T15:42:04.848Z",
