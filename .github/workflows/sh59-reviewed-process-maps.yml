@@ -103,7 +103,7 @@ jobs:
       - name: Trigger exact source and release regression on regenerated candidate
         if: steps.record.outputs.changed == 'true'
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
