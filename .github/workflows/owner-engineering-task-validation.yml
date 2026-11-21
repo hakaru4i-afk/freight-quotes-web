@@ -1,0 +1,43 @@
+name: Owner engineering task validation
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+permissions:
+  contents: read
+concurrency:
+  group: owner-task-tests-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  task-e2e:
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.head_ref, 'owner-task/')
+    name: task-e2e
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Syntax check changed JS modules
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only --diff-filter=ACMR "$BASE_SHA" "$HEAD_SHA" -- '*.js' '*.mjs' '*.cjs' |
+            while IFS= read -r file; do
+              test -f "$file" && node --check "$file"
+            done
+      - name: Run every deterministic Node regression, fail closed
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test --test-concurrency=2 tests/*.test.mjs
+      - name: Explicitly exclude deployment from task acceptance
+        run: echo 'TASK_TEST_PASS_IS_NOT_PRODUCTION_RELEASE_APPROVAL'
