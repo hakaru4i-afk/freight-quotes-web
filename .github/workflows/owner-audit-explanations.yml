@@ -1,5 +1,11 @@
 name: Owner audit log explanations
 on:
+  pull_request:
+    paths:
+      - 'owner-audit-explanations-20261117.mjs'
+      - 'test/owner-audit-explanations-20261117.mjs'
+      - 'tests/owner-audit-explanations-20261117.test.mjs'
+      - '.github/workflows/owner-audit-explanations.yml'
   push:
     branches: [main]
     paths:
