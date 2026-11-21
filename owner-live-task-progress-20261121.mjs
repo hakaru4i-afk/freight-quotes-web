@@ -65,9 +65,11 @@ if(typeof window!=='undefined'&&typeof document!=='undefined'){
  const base=new URL(import.meta.url);const siteBase=base.pathname.includes('/test/')?new URL('../',base):new URL('./',base);
  async function served(path){const r=await fetch(new URL(path,siteBase),{credentials:'omit',cache:'no-store',signal:AbortSignal.timeout(12000)});if(!r.ok)throw Error('Site HTTP '+r.status);return r.json()}
  async function load(force=false){if(data.busy||!owner()||document.hidden)return;data.busy=true;paint();const now=Date.now(),errors=[],jobs=[];
-  if(force||!data.pr||now-data.prAt>600000)jobs.push(api('pulls/'+TASK.pr).then(x=>{data.pr=x;data.prAt=Date.now()}).catch(e=>errors.push('PR '+e.message)));
+  // Resolve the current PR head before querying its CI branch; never mix stale branch runs.
+  if(force||!data.pr||now-data.prAt>600000){try{data.pr=await api('pulls/'+TASK.pr);data.prAt=Date.now()}catch(e){errors.push('PR '+e.message);data.pr=null;data.runs=[];data.runsAt=0}}
+
   if(force||!data.audit||now-data.auditAt>86400000)jobs.push(api('actions/runs/'+TASK.audit).then(x=>{data.audit=x;data.auditAt=Date.now()}).catch(e=>errors.push('E2E '+e.message)));
-  if(force||!data.runsAt||now-data.runsAt>115000)jobs.push(api('actions/runs?branch='+encodeURIComponent(data.pr?.head?.ref||'ci/sh59-verified-source-handoff-20261121')+'&per_page=50').then(x=>{data.runs=Array.isArray(x.workflow_runs)?x.workflow_runs:[];data.runsAt=Date.now()}).catch(e=>errors.push('CI '+e.message)));
+  if(data.pr&&(force||!data.runsAt||now-data.runsAt>115000))jobs.push(api('actions/runs?branch='+encodeURIComponent(data.pr.head.ref)+'&per_page=50').then(x=>{data.runs=Array.isArray(x.workflow_runs)?x.workflow_runs:[];data.runsAt=Date.now()}).catch(e=>errors.push('CI '+e.message)));
   if(force||!data.parity||now-data.parityAt>120000)jobs.push(served('test/staging-manifest.json').then(x=>{data.parity=x;data.parityAt=Date.now()}).catch(e=>errors.push('Staging '+e.message)));
   if(force||!data.publication||now-data.publicationAt>600000)jobs.push(Promise.all([served('production-release-manifest.json'),served('build-info.json')]).then(([manifest,build])=>{data.publication={manifest,build,release:data.publication?.release||null};data.publicationAt=Date.now()}).catch(e=>errors.push('Production '+e.message)));
   await Promise.all(jobs);
