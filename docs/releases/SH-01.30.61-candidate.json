@@ -1,0 +1,20 @@
+{
+  "version": "SH-01.30.61 v",
+  "date": "2026-11-22",
+  "title": "Реестр → Центр доработок: единая заявка, дедлайн и передача в GitHub",
+  "changes": [
+    "После выбора «Взять в работу» карточка переносится из активного реестра в Центр доработок, без повторных заявок.",
+    "Плановый дедлайн и передача задания в GitHub для Codex находятся в Центре доработок. Отправка в GitHub не означает подтверждённого запуска модели Codex.",
+    "Одна карточка видна в активной работе, исходная запись остаётся доступна в архиве и истории.",
+    "Прогресс и ошибки передачи отображаются в Центре; прежние версии сохраняются для отката.",
+    "Уведомление «Идёт обновление» сохраняется на время проверки опубликованного релиза."
+  ],
+  "status": "updating",
+  "releaseAuthorized": true,
+  "actualProductionPublished": false,
+  "productionAPI": "freight-api v48",
+  "source": "Owner instruction to fix transition after accepting GOD task",
+  "task": "DEV-20261122-GOD-01",
+  "linkedFeedback": "IM-2026-000007",
+  "knownLimit": "Current GitHub workflow registers an issue/branch but does not itself invoke the Codex model."
+}

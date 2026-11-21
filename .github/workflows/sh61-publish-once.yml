@@ -1,0 +1,113 @@
+name: SH61 owner-approved one-time production publication
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/sh61-publish-once.yml']
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: sh61-one-time-production
+  cancel-in-progress: true
+jobs:
+  publish:
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify strict owner intake and Center regression before publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp owner-registers-20261111.js test/owner-registers-20261111.js
+          cmp owner-register-task-actions-20261121.js test/owner-register-task-actions-20261121.js
+          cmp portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js
+          node --test tests/owner-register-three-card-stage1.test.mjs
+          node --test tests/owner-register-publication.test.mjs
+          node --check owner-registers-20261111.js
+          node --check portal-feedback-center-20261107.js
+      - name: Verify deployed Owner API before publishing frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/sh61-api-response.json"
+          status=$(curl --retry 3 --connect-timeout 8 --max-time 30 -sS -o "$response" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=developments')
+          test "$status" = 403
+          grep -Fq 'OWNER_ONLY' "$response"
+          echo PRODUCTION_API_OWNER_ROUTE_PROTECTED
+      - name: Build updating notification and SH61 staging publication
+        run: node scripts/release/sh61-publish.mjs updating
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          name: sh61-updating-pages
+          path: .release-pages
+      - name: Publish visible "Идёт обновление" notification
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: sh61-updating-pages
+      - name: Verify interim notification is actually served
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 25); do
+            if curl --connect-timeout 8 --max-time 20 -fsSL "https://hakaru4i-afk.github.io/freight-quotes-web/release-status.json?t=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/release-state.json"; then
+              if node -e 'const a=require(process.argv[1]);process.exit(a.version==="SH-01.30.61 v"&&a.status==="updating"?0:1)' "$RUNNER_TEMP/release-state.json"; then
+                echo SH61_UPDATING_NOTICE_SERVED
+                exit 0
+              fi
+            fi
+            sleep 8
+          done
+          echo "::error::INTERIM_RELEASE_STATUS_NOT_SERVED"
+          exit 1
+      - name: Keep visible update banner long enough for the 60-second browser poll
+        shell: bash
+        run: sleep 75
+      - name: Build reviewed final SH61 publication
+        run: node scripts/release/sh61-publish.mjs released
+      - name: Commit SH61 version history and synchronized production JSON to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "hakaru4i-afk"
+          git config user.email "hakaru4i-afk@users.noreply.github.com"
+          git add site-status.json release-status.json build-info.json index.html app.js production-release-manifest.json
+          git diff --cached --quiet && { echo "::error::SH61_NO_CHANGE"; exit 1; }
+          git commit -m "release(production): SH-01.30.61 v owner registers, CSS 36-to-1, status and manifest"
+          git push origin HEAD:refs/heads/main
+          echo SH61_PRODUCTION_METADATA_COMMITTED
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          name: sh61-final-pages
+          path: .release-pages
+      - name: Publish approved SH61 production files
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: sh61-final-pages
+      - name: Verify final release and notification lifecycle
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl --connect-timeout 8 --max-time 20 -fsSL "https://hakaru4i-afk.github.io/freight-quotes-web/release-status.json?t=$GITHUB_RUN_ID-final-$i" -o "$RUNNER_TEMP/final-status.json" && curl --connect-timeout 8 --max-time 20 -fsSL "https://hakaru4i-afk.github.io/freight-quotes-web/build-info.json?t=$GITHUB_RUN_ID-final-$i" -o "$RUNNER_TEMP/final-build.json"; then
+              if node -e 'const a=require(process.argv[1]),b=require(process.argv[2]);process.exit(a.version==="SH-01.30.61 v"&&a.status==="released"&&b.releaseVersion===a.version&&b.releaseStatus==="PUBLISHED"?0:1)' "$RUNNER_TEMP/final-status.json" "$RUNNER_TEMP/final-build.json"; then
+                echo SH61_PRODUCTION_PUBLISHED_AND_RELEASED_CONFIRMED
+                exit 0
+              fi
+            fi
+            sleep 8
+          done
+          echo "::error::SH61_FINAL_PUBLICATION_NOT_CONFIRMED"
+          exit 1
