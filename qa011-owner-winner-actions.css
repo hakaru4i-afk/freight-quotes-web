@@ -1,0 +1,47 @@
+
+/* QA-011 / 14.11.2026 — Owner: separate carrier identity from its three actions.
+   Presentation only: existing React buttons, handlers, permissions and API remain untouched. */
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) {
+  display:flex!important;flex-wrap:wrap!important;align-items:stretch!important;
+  justify-content:flex-start!important;gap:9px!important;max-width:100%!important;min-width:0!important;
+  box-sizing:border-box!important;
+}
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > :not(button),
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button),
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > :not(button) {
+  flex:1 1 100%!important;min-width:0!important;max-width:100%!important;
+}
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+.staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+.cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
+  display:inline-flex!important;flex:1 1 220px!important;align-items:center!important;justify-content:center!important;
+  min-width:0!important;max-width:100%!important;min-height:44px!important;height:auto!important;
+  margin:0!important;padding:10px 13px!important;box-sizing:border-box!important;
+  white-space:normal!important;text-align:center!important;line-height:1.25!important;
+  overflow-wrap:anywhere!important;word-break:normal!important;vertical-align:middle!important;
+}
+@media(max-width:720px){
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .notice div:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card:has(> button + button + button) > button,
+  .staff-portal[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button,
+  .cabinet-app[data-cabinet-role="owner"] .cabinet-panel[data-section="request-registry"] .winner-card div:has(> button + button + button) > button {
+    flex:1 1 100%!important;width:100%!important;
+  }
+}
