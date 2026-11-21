@@ -21,7 +21,9 @@ for(const [name,deps]of [['global-view/globe.mjs',['route-model.mjs']],['global-
 }
 // Human release notes and the QA journal must be reviewed with the business version.
 // Never silently relabel older release notes as a new release.
-if(status.release?.version!==primaryVersion||status.releases?.[0]?.version!==primaryVersion+' · тестовая')throw Error('STALE_VISIBLE_RELEASE_NOTES');
+// Keep the documented SH release ID authoritative; the QA-only display suffix is optional.
+const firstReleaseVersion=status.releases?.[0]?.version;
+if(status.release?.version!==primaryVersion||![primaryVersion,primaryVersion+' · тестовая'].includes(firstReleaseVersion))throw Error('STALE_VISIBLE_RELEASE_NOTES');
 const observer=JSON.parse(read('qa-observer.json'));
 if(observer.primaryBusinessVersion!==primaryVersion||observer.versionPair?.ref!=='staging-manifest.json')throw Error('STALE_QA_OBSERVER_VERSION_PAIR');
 const files=[...new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"\s]*)?"/g)].map(x=>x[1]).filter(x=>/\.(?:js|mjs|css)$/.test(x)).concat('staging-api-region.mjs','process-model-graph.mjs','process-model-diff.mjs','alignment-role-help.json','global-view/route-model.mjs','global-view/distance.mjs','global-view/globe.mjs','global-view/map.mjs'))].sort();
