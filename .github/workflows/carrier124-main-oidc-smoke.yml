@@ -127,6 +127,14 @@ jobs:
           git show "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs" > tests/task12-published-qa20.e2e.mjs
           node --check tests/task12-published-qa20.e2e.mjs
           test "$(git hash-object tests/task12-published-qa20.e2e.mjs)" = "$(git rev-parse "$GITHUB_SHA:tests/task12-published-qa20.e2e.mjs")"
+          # Only the exact immutable main-dispatch source may update the isolated synthetic SL recovery.
+          # This is not a database or production migration; the actual mutation requires Owner QA auth.
+          git show "$GITHUB_SHA:scripts/qa20-sl-recovery-guard.mjs" > scripts/qa20-sl-recovery-guard.mjs
+          git show "$GITHUB_SHA:tests/carrier124-remaining-api.mjs" > tests/carrier124-remaining-api.mjs
+          git show "$GITHUB_SHA:tests/qa20-sl-recovery-guard.test.mjs" > tests/qa20-sl-recovery-guard.test.mjs
+          node --check tests/carrier124-remaining-api.mjs
+          node --test tests/qa20-sl-recovery-guard.test.mjs
+          echo 'PINNED_SYNTHETIC_QA_SL_RECOVERY_NEGATIVE_TESTS_PASS'
           echo 'EXACT_PUBLISHED_QA20_BROWSER_HARNESS_PINNED'
       - name: Obtain 11 ephemeral QA-only credentials via verified GitHub OIDC
         id: issued
