@@ -8,7 +8,7 @@ const TESTED_BUNDLE='2875f4dc43dcc61a8b191edcf70281d7f1b8875847bc9e0b276160bdfe6
 const validSha=value=>/^[a-f0-9]{40}$/.test(value||'');
 const stamp=value=>Date.parse(value||'')||0;
 export function summarize({pr,audit,runs=[],job=null,parity=null,publication=null}={}){
- const validPr=pr?.number===TASK.pr&&pr?.base?.ref==='main'&&pr?.head?.repo?.full_name===TASK.repo&&validSha(pr?.head?.sha);
+ const validPr=pr?.number===TASK.pr&&pr?.base?.ref==='main'&&pr?.head?.ref==='ci/sh59-verified-source-handoff-20261121'&&pr?.head?.repo?.full_name===TASK.repo&&validSha(pr?.head?.sha);
  const sha=validPr?pr.head.sha:null;
  const matching=validPr?runs.filter(r=>r?.head_sha===sha&&r?.head_branch===pr.head.ref&&r?.event==='pull_request'&&r?.head_repository?.full_name===TASK.repo):[];
  const sorted=[...matching].sort((a,b)=>stamp(b.updated_at||b.created_at)-stamp(a.updated_at||a.created_at));
