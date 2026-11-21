@@ -10,6 +10,18 @@ on:
       - 'offer-score-methodology-20261117.js'
       - 'test/offer-score-methodology-20261117.js'
       - 'tests/offer-scoring-r2-nov17.test.mjs'
+      - 'tests/owner-offer-scoring-r3.test.mjs'
+      - '.github/workflows/offer-eval-r2.yml'
+  pull_request:
+    paths:
+      - 'offer-scoring.mjs'
+      - 'test/offer-scoring.mjs'
+      - 'app.js'
+      - 'test/app.js'
+      - 'index.html'
+      - 'test/index.html'
+      - 'tests/offer-scoring-r2-nov17.test.mjs'
+      - 'tests/owner-offer-scoring-r3.test.mjs'
       - '.github/workflows/offer-eval-r2.yml'
   workflow_dispatch:
 permissions:
@@ -31,4 +43,4 @@ jobs:
       - name: Keep evaluation algorithm identical
         run: cmp offer-scoring.mjs test/offer-scoring.mjs
       - name: Validate business rules, colors and runtime integration
-        run: node --test tests/offer-scoring-r2-nov17.test.mjs
+        run: node --test tests/offer-scoring-r2-nov17.test.mjs tests/owner-offer-scoring-r3.test.mjs
