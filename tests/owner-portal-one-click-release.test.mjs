@@ -14,7 +14,7 @@ test('release state must come from protected backend and be visible',()=>{
  assert.match(root,/\?releaseProgress=/);
  assert.match(root,/releaseRun=body\.release/);
  assert.match(root,/releaseT\(\)\.queued/);
- assert.match(root,/https:\\\/\\\/github/);
+ assert.match(root,/github\\.com/);
 });
 test('localized release action and state in RU, EN and ZH',()=>{
  for(const locale of ['ru','en','zh'])assert.match(root,new RegExp(locale+':\\{title:'));
