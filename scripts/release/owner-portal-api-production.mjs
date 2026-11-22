@@ -29,7 +29,7 @@ for(const f of files){
  }
  if(f==='partner-inquiry-attachments.ts')code=replace(code,'deploymentEnv!=="staging"','!["staging","production"].includes(deploymentEnv)',f);
  if(f==='process-editor.ts')code=replace(code,"environment!=='staging'","!['staging','production'].includes(environment)",f);
- if(code.includes('ibclzdkxiozbzmniiygv')&&f==='index.ts')throw Error('STAGING_PROJECT_IN_PRODUCTION_ENTRY');
+ if(f==='index.ts'&&code.includes('var EXPECTED_PROJECT = "ibclzdkxiozbzmniiygv";'))throw Error('STAGING_PROJECT_AS_ACTIVE_PRODUCTION_IDENTITY');
  writeFileSync(join(out,f),code);
  hashes[f]=sha(code);
 }
