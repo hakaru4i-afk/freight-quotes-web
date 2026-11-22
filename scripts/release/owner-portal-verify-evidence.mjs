@@ -22,7 +22,7 @@ const taskChecks=(fc.check_runs||[]).filter(r=>r.name==='task-e2e'&&r.head_sha==
 if(taskChecks.length&&!passed(fc,'task-e2e',webSha))throw Error('FRONTEND_EXACT_SHA_TASK_E2E_FAILED');
 if(!passed(bc,'canonical',beSha))throw Error('BACKEND_EXACT_SHA_CANONICAL_NOT_PASS');
 const now=Date.now();
-const recent=r=>r?.status==='completed'&&r.conclusion==='success'&&now-Date.parse(r.updated_at||'')<24*60*60*1000;
+const recent=r=>{const age=now-Date.parse(r?.updated_at||'');return r?.status==='completed'&&r.conclusion==='success'&&Number.isFinite(age)&&age>=0&&age<24*60*60*1000;};
 const latest=async(repo,token,sha,name)=>{
  const data=await get(repo,'/actions/runs?head_sha='+sha+'&per_page=100',token);
  if(data.total_count>100)throw Error('GITHUB_EVIDENCE_RUN_LIST_INCOMPLETE:'+name);
