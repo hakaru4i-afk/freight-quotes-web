@@ -23,5 +23,7 @@ jobs:
           cmp portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js
           node --check portal-feedback-center-20261107.js
           node --check test/portal-feedback-center-20261107.js
+          node --check owner-register-task-actions-20261121.js
+          node --test tests/owner-register-action-lock-regression.test.mjs
           node --test tests/owner-center-advanced-actions-20261122.test.mjs
           node --test tests/owner-ci-release-control.test.mjs
