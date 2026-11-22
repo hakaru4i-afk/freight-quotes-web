@@ -17,9 +17,9 @@ let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,dr
 let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 const releaseWords={
- ru:{title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска'},
- en:{title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log'},
- zh:{title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志'}
+ ru:{title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'После нажатия GitHub запускает проверки. Только после подтверждения 37 E2E, резервной копии и восстановления публикуются API и сайт; ошибки видны в журнале.'},
+ en:{title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'The click starts GitHub checks. API and Pages publish only after verified 37 E2E, backup and restore; errors appear in the run log.'},
+ zh:{title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'点击后启动 GitHub 检查。只有 37 项端到端测试、备份及恢复均通过后才会发布 API 和网站；错误可在日志中查看。'}
 };
 const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
 let executionByFeedback=new Map(),handoffBusy=false;
@@ -78,7 +78,7 @@ function detail(){
  const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
   '<h4>'+esc(lines.title)+'</h4>'+
-  '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>'+
+  '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p><small>'+esc(lines.help)+'</small>'+
   (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(isRunning||isConfirmed||busy?'disabled':'')+'>'+
     esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
