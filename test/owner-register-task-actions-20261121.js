@@ -70,7 +70,7 @@
    for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=true;
    try{await onAction({action,register,recordId:row.id,...extra});show(w.done);}
    catch(e){show((e?.message||w.error),true);}
-   finally{sending=false;for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=false;}
+   finally{sending=false;for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=locked||busy||((b===acceptButton)&& (value!==100||execution?.checksPassed!==true));}
   };
   start.onclick=()=>void send('transfer');
   const choose=action=>{selectedAction=action;reasonPanel.hidden=false;textarea.focus();show(action==='defer'?w.postpone+' · '+w.reason:w.reject+' · '+w.reason);};
