@@ -34,12 +34,34 @@ jobs:
             while IFS= read -r file; do
               test -f "$file" && node --check "$file"
             done
+      - name: Classify the entire pull request using its two Git revisions
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          scope=full
+          if git cat-file -e "$BASE_SHA:scripts/release/task-change-scope.mjs" 2>/dev/null; then
+            classifier=$(mktemp -d "$RUNNER_TEMP/task-scope.XXXXXXXX")
+            trap 'rm -rf -- "$classifier"' EXIT
+            git show "$BASE_SHA:scripts/release/task-change-scope.mjs" > "$classifier/scope.mjs"
+            scope=$(node "$classifier/scope.mjs" classify "$BASE_SHA" "$HEAD_SHA")
+          fi
+          case "$scope" in lightweight|full) ;; *) exit 1 ;; esac
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+      - name: Check CSS bundle and order for CSS and documentation changes
+        if: steps.scope.outputs.scope == 'lightweight'
+        run: node scripts/build-css-bundle.mjs --check
       # Full suite includes real Chromium tests; install the pinned toolchain before importing them.
       - name: Install Playwright (same version as dedicated browser workflows)
+        if: steps.scope.outputs.scope == 'full'
         run: npm install --no-save playwright@1.56.1
-      - name: Install Chromium and system dependencies
+      - name: Install Chromium
+        if: steps.scope.outputs.scope == 'full'
         run: npx playwright install chromium
       - name: Run every deterministic Node regression, fail closed
+        if: steps.scope.outputs.scope == 'full'
         shell: bash
         run: |
           set -euo pipefail

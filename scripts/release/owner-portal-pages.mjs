@@ -40,6 +40,12 @@ if(!candidate.includes("action:'release_update'")||!candidate.includes('?release
 // a committed, currently served production file or its historical manifest.
 writeFileSync(resolve(out,'portal-feedback-center-20261107.js'),candidate);
 writeFileSync(resolve(out,'test/portal-feedback-center-20261107.js'),candidate);
+const feedbackTag=/src="\.\/portal-feedback-center-20261107\.js(?:\?v=[^"]+)?"/g;
+for(const path of ['index.html','test/index.html']){
+ const file=resolve(out,path),html=readFileSync(file,'utf8');
+ if([...html.matchAll(feedbackTag)].length!==1)throw Error('OWNER_RELEASE_SCRIPT_REFERENCE_INVALID:'+path);
+ writeFileSync(file,html.replace(feedbackTag,'src="./portal-feedback-center-20261107.js?v='+sha(candidate).slice(0,12)+'"'));
+}
 
 const latest=JSON.parse(readFileSync('release-status.json','utf8')),info=JSON.parse(readFileSync('build-info.json','utf8')),site=JSON.parse(readFileSync('site-status.json','utf8'));
 if(info.environment!=='production'||latest.status!=='released'||!latest.version)throw Error('CURRENT_PRODUCTION_VERSION_UNVERIFIED');

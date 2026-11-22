@@ -31,11 +31,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 1
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify server-initiated Owner request and exact frontend main
+      - name: Verify Owner request and pin the frontend release revision
         id: identify
         shell: bash
         env:
@@ -57,8 +57,8 @@ jobs:
           test "$GITHUB_REF" = "refs/heads/main"
           test -n "$BACKEND_TOKEN" || { echo "::error::BACKEND_RELEASE_READ_TOKEN_NOT_CONFIGURED"; exit 1; }
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
-          current=$(git ls-remote origin refs/heads/main | awk '{print $1}')
-          test "$current" = "$GITHUB_SHA" || { echo "::error::FRONTEND_MAIN_MOVED"; exit 1; }
+          git fetch --no-tags origin refs/heads/main
+          node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
           backend=$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)
           [[ "$backend" =~ ^[a-f0-9]{40}$ ]]
           version=$(node --input-type=module <<'JS'
@@ -102,14 +102,15 @@ jobs:
           node --check backend/src/transport-application/owner-portal-release.mjs
           node --test tests/owner-ci-release-control.test.mjs tests/owner-register-publication.test.mjs
           (cd backend && node --test tests/owner-portal-release.test.mjs)
-      - name: Verify no main branch changed during checks
+      - name: Verify that main advances preserve the tested release scope
         env:
           BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$GITHUB_SHA"
+          git fetch --no-tags origin refs/heads/main
+          node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
           test "$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)" = "$BACKEND_SHA"
 
   deploy-api:

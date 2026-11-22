@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from "node:vm";
 const live=readFileSync('portal-feedback-center-20261107.js','utf8');
 const stage=readFileSync('test/portal-feedback-center-20261107.js','utf8');
 const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js','utf8');
@@ -39,4 +40,23 @@ test('cabinet help is available in RU EN ZH, and builder packages the checked ca
  for(const locale of ["ru:{","en:{","zh:{"])assert.ok(live.includes(locale));
  assert.match(live,/Бэкапы и E2E отдельно/);
  assert.match(readFileSync('scripts/release/owner-portal-pages.mjs','utf8'),/release\/owner-portal-feedback-center-20261122\.js/);
+});
+
+test('task status names the blocker in three languages without a development percentage',()=>{
+ const start=live.indexOf('const taskStatusLabels=');
+ const end=live.indexOf('const readinessReasonKeys=',start);
+ for(const [lang,waiting,failed,ready] of [
+  ['ru','В работе. Ожидаем PR','Ошибка проверки task-e2e','Все проверки пройдены'],
+  ['en','In progress. Waiting for a pull request','The task-e2e check failed','Checks passed'],
+  ['zh','开发中，等待拉取请求','task-e2e 检查失败','检查已通过']
+ ]){
+  const context={byLang:lang,releaseT:()=>({readySummary:ready})};
+  runInNewContext(live.slice(start,end)+'globalThis.statusText=taskStatusText;',context);
+  assert.equal(context.statusText({progress:50,step:'code_committed_pr_required'}), waiting);
+  assert.equal(context.statusText({progress:50,step:'task_e2e_failed'}), failed);
+  assert.equal(context.statusText({progress:100,checksPassed:true}),ready);
+  assert.notEqual(context.statusText({progress:100,checksPassed:false}),ready);
+ }
+ const panel=live.split('\n').find(line=>line.includes('const progressPanel='));
+ assert.doesNotMatch(panel,/<progress|%/);
 });

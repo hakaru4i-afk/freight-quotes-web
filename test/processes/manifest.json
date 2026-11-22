@@ -1,6 +1,6 @@
 {
   "version": "20261118-logic-12",
-  "modelSha256": "269d79ce535f9a09ff5d88fcd1c8dda4f64eb569e363c1ef567fd6bf1adfcf56",
+  "modelSha256": "09660a6a424e752fb9e04d69515dd422b9665a7c059277d2b41d772ab5def5e6",
   "modelSnapshot": {
     "version": "20261118-logic-12",
     "date": "2026-11-18",
@@ -639,8 +639,8 @@
       "test/portal-release-status-20261117.css": "935bd66cf987466b04e6ef07a9f3089be393fb5b4d8c13529ef9a9e5f2c1bdfb",
       "test/owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
       "test/offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
-      "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/owner-register-task-actions-20261121.css": "8524771e2a88cc2f0f52f593ec712d8577a155940849389ca60c99a86076e7e9",
+      "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
       "test/app.js": "da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
@@ -650,7 +650,7 @@
       "test/carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",
       "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
       "test/carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
-      "test/portal-feedback-center-20261107.js": "4638a2828df1227f76b692fa8640dc66ddcbf272448a97413358a7f7ca7c35d4",
+      "test/portal-feedback-center-20261107.js": "ea1d33f79ad5a119a460b650689f14d52bc75ed7544b443d2e78106ce0336354",
       "test/feedback-recovery.js": "3e647a5019613a31597a065aaed693070daf70eccf65a0f3a1569f1f4e915542",
       "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
       "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
