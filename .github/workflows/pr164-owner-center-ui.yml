@@ -1,0 +1,27 @@
+name: PR164 Owner Center compact status controls
+on:
+  push:
+    branches: [fix/im000007-handoff-ui-20261122]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pr164-center-check
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate exact source and browser syntax
+        run: |
+          set -euo pipefail
+          cmp portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js
+          node --check portal-feedback-center-20261107.js
+          node --check test/portal-feedback-center-20261107.js
+          node --test tests/owner-center-advanced-actions-20261122.test.mjs
+          node --test tests/owner-ci-release-control.test.mjs
