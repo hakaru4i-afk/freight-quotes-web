@@ -1,0 +1,70 @@
+name: Owner release preflight - frontend and authenticated E2E
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        required: true
+        type: string
+      request_id:
+        required: true
+        type: string
+      frontend_sha:
+        required: true
+        type: string
+      backend_sha:
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: owner-release-preflight-frontend
+  cancel-in-progress: false
+jobs:
+  frontend-source:
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact source and owner UI tests
+        env:
+          INPUTS_JSON: ${{ toJSON(inputs) }}
+        run: |
+          set -euo pipefail
+          node --input-type=module - <<'JS'
+          import assert from 'node:assert/strict';
+          const inputs=JSON.parse(process.env.INPUTS_JSON);
+          for(const key of ['task_id','request_id'])assert.match(inputs[key],/^[a-f0-9-]{36}$/i);
+          for(const key of ['frontend_sha','backend_sha'])assert.match(inputs[key],/^[a-f0-9]{40}$/i);
+          assert.equal(inputs.frontend_sha,process.env.GITHUB_SHA);
+          JS
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          node --check portal-feedback-center-20261107.js
+          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs tests/owner-ci-release-control.test.mjs
+  authenticated-e2e:
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify 37 authenticated real E2E scenarios and exact-SHA artifacts
+        env:
+          INPUTS_JSON: ${{ toJSON(inputs) }}
+          GITHUB_WEB_TOKEN: ${{ github.token }}
+          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+        run: |
+          set -euo pipefail
+          readarray -t pins < <(node -e 'const x=JSON.parse(process.env.INPUTS_JSON);console.log(x.frontend_sha);console.log(x.backend_sha)')
+          test "$GITHUB_SHA" = "${pins[0]}"
+          FRONTEND_SHA="${pins[0]}" BACKEND_SHA="${pins[1]}" node scripts/release/owner-portal-verify-evidence.mjs
