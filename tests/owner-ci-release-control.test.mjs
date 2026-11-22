@@ -19,11 +19,12 @@ test('owner and exact task READY are mandatory',()=>{
   [item,true,undefined]
  ])assert.equal(sandbox.check(...args),false);
 });
-test('browser cannot self-approve or manually mark work completed',()=>{
+test('browser can initiate release but cannot self-approve publication',()=>{
  assert.match(main,/response\.ok&&result\.ok===true&&result\.ready===true&&result\.status==='READY'/);
  assert.match(main,/\.filter\(status=>status!=='completed'\)/);
  assert.match(main,/data-pf="release-update"/);
  assert.match(main,/Ожидаются тесты/);
- assert.match(main,/if\(isReleaseReady\(item,data\.owner,releaseReadiness\)&&!busy\)/);
- assert.match(main,/\(!releaseReady\|\|busy\?'disabled':''\)/);
+ assert.match(main,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
+ assert.match(main,/isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+ assert.match(main,/action:'release_update'/);
 });
