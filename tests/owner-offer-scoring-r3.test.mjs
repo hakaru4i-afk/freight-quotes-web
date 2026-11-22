@@ -68,8 +68,13 @@ test('Production and test use the integrated Owner React offer cards, no duplica
   assert.equal(readFileSync(new URL('../offer-scoring.mjs',import.meta.url),'utf8'),readFileSync(new URL('../test/offer-scoring.mjs',import.meta.url),'utf8'));
   const a=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   const b=readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
+  const prod=JSON.parse(readFileSync(new URL('../build-info.json',import.meta.url),'utf8'));
+  const staging=JSON.parse(readFileSync(new URL('../test/build-info.json',import.meta.url),'utf8'));
+  // Cache keys follow their independently attested environments; a rotated
+  // release build ID must not be mistaken for a regression in the score UI.
+  assert.ok(a.includes('./app.js?v='+prod.build),'Production app cache key is the recorded active build');
+  assert.ok(b.includes('./app.js?v='+staging.servedAppBlobSha.slice(0,12)),'Staging app cache key matches its candidate source');
   for(const html of [a,b]){
-    assert.match(html,/app\.js\?v=offer-eval-r3-20261117-integrated/);
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.mjs\?v=/);
     assert.doesNotMatch(html,/owner-offer-evaluation-20261117\.css\?v=/);
   }
