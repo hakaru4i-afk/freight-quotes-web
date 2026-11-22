@@ -8,13 +8,15 @@ const builder=readFileSync('scripts/release/owner-portal-pages.mjs','utf8');
 test('portal and staging expose the approved one-click release action',()=>{
  assert.equal(live,stage);
  assert.equal(live,candidate);
- assert.match(live,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
+ assert.match(live,/if\(isReleaseReady\(item,data\.owner,releaseReadiness,executionByFeedback\.get\(item\?\.id\)\)&&!busy\)/);
 });
-test('release candidate button starts Owner command without waiting for prior tests',()=>{
+test('release candidate button waits for 100% and 4 out of 4 checks',()=>{
  assert.match(candidate,/data-pf="release-update"/);
- assert.match(candidate,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
+ assert.match(candidate,/if\(isReleaseReady\(item,data\.owner,releaseReadiness,executionByFeedback\.get\(item\?\.id\)\)&&!busy\)/);
  assert.match(candidate,/action:'release_update'/);
- assert.doesNotMatch(candidate,/data-pf="release-update"[^\n]+!releaseReady\|\|busy/);
+ assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy/);
+ assert.match(candidate,/execution\?\.progress===100&&execution\?\.checksPassed===true/);
+ assert.match(candidate,/readiness\?\.passed===4&&readiness\?\.total===4/);
 });
 test('candidate receives protected server job state and displays milestones',()=>{
  assert.match(candidate,/\?releaseProgress=/);
