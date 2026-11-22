@@ -38,3 +38,12 @@ test('release evidence freshness rejects future and invalid workflow timestamps'
  assert.match(evidence,/FRESH_PRODUCTION_BACKUP_MISSING_FOR_EXACT_BACKEND_SHA/);
  assert.match(evidence,/INDEPENDENT_BACKUP_RESTORE_NOT_VERIFIED/);
 });
+
+test('release evidence cannot reuse an older PASS after a newer failed or running exact-SHA run',()=>{
+ const evidence=readFileSync('scripts/release/owner-portal-verify-evidence.mjs','utf8');
+ assert.match(evidence,/candidates\.sort\(/);
+ assert.match(evidence,/const newest=candidates\[0\]/);
+ assert.match(evidence,/!newest\|\|!recent\(newest\)/);
+ assert.match(evidence,/LATEST_EXACT_SHA_EVIDENCE_NOT_SUCCESS/);
+ assert.doesNotMatch(evidence,/\.find\(r=>r\.name===name&&r\.head_sha===sha&&recent\(r\)/);
+});
