@@ -63,7 +63,13 @@
         }
         if (current === view) {
           confirmation = {id:view.id,root:view.root};
-          view.root.querySelector('[data-pf="refresh"]').click();
+          const refresh = view.root.querySelector('[data-pf="refresh"]');
+          if (refresh) refresh.click();
+          else {
+            // A successful server transition must not be reported as a failed write.
+            error.textContent = t.saved;
+            error.setAttribute("role","status");
+          }
         }
       } catch {
         error.textContent = t.error;
