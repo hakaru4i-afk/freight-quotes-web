@@ -1,6 +1,6 @@
 name: Owner-approved one-time release-button bootstrap
 # One Owner-approved UI-only publication. Never deploy backend, DB or unrelated main files.
-# Re-run with the corrected RU/EN/ZH QA assertion for the approved 100%/4-check UI gate.
+# Re-run only for the Owner-requested four-stage gate: 100%, exact frontend/backend/E2E/recovery checks.
 on:
   push:
     branches: [main]
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-reviewed-button:
-    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (startsWith(github.event.head_commit.message, 'Merge pull request #168 ') || github.event.head_commit.message == 'fix(owner): activate verified one-time release button bootstrap')"
+    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (startsWith(github.event.head_commit.message, 'Merge pull request #168 ') || github.event.head_commit.message == 'fix(owner): activate verified one-time release button bootstrap' || github.event.head_commit.message == 'fix(owner): publish four-stage release button gate UI')"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
