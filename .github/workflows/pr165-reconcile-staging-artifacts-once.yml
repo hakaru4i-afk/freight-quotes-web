@@ -1,3 +1,4 @@
+# Retry after verified percent-encoded cache digest correction.
 name: PR165 one-time source-attested staging candidate regeneration (no deploy)
 on:
   push:
