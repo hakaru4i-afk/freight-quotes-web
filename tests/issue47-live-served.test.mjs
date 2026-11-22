@@ -64,7 +64,10 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
  const served=await load(root+"build-info.json?issue47_api="+Date.now());
- assert.equal(h.build,JSON.parse(served.toString("utf8")).task2.backendBuild,"Live staging API disagrees with deployed site's recorded backend build");
+ const deployed=JSON.parse(served.toString("utf8"));
+ assert.equal(deployed.releaseVersion,deployed.primaryBusinessVersion,"Deployed staging business version must be internally consistent");
+ assert.equal(h.build,deployed.primaryBusinessVersion,"Live staging API business release differs from deployed primary business version");
+ // task2.backendBuild is the historical Task 2 build, not the API health business label; backendVersion remains checked below.
  // A candidate build is separate and must pass canonical source/compatibility QA.
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
