@@ -34,6 +34,14 @@ test('100% task progress is distinct from release check evidence, with reason sh
  assert.match(candidate,/releaseReason\(\)/);
  assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
 });
+test('100% development can run task-pinned preflight without bypassing release guard',()=>{
+ assert.match(candidate,/execution\?\.progress===100&&execution\?\.checksPassed===true&&!releaseReady/);
+ assert.match(candidate,/data-pf="prepare-release"/);
+ assert.match(candidate,/action:'prepare_release'/);
+ assert.match(candidate,/preflightQueued/);
+ assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+ for(const locale of ['ru','en','zh'])assert.ok(candidate.includes(locale+':{prepare:'));
+});
 test('candidate receives protected server job state and displays milestones',()=>{
  assert.match(candidate,/\?releaseProgress=/);
  assert.match(candidate,/releaseRun=body\.release/);

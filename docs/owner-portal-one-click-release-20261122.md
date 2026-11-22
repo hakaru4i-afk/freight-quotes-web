@@ -49,3 +49,13 @@ EN: 100% development/PR progress is distinct from 4/4 independent release approv
 ZH: 研发进度 100% 不等于发布验证完成。只有前端、后端、授权端到端测试和备份恢复四项全部确认（4/4）后才启用发布按钮；若未关联发布候选版本，将显示明确原因。
 
 Business-process structure reviewed: release gates remain unchanged. This update changes only UI feedback and does not override Owner permissions or deployment verification.
+
+## Подготовка выпуска / Release preflight / 发布前预检 (2026-11-22)
+
+RU: Владелец при 100% разработки нажимает **«Запустить проверки»**. Защищённый API проверяет Владельца, статус задачи и реальные PR/CI, фиксирует текущие SHA frontend/backend, сохраняет кандидата именно этой заявки и отправляет **только проверочные** GitHub Actions. 4 этапа: frontend, backend, авторизованный E2E 37/37 и независимое восстановление. Кнопка «Выпустить обновление» недоступна до 4/4 PASS, и сервер повторно проверяет readiness при запуске. Неподтверждённые тесты не считаются пройденными.
+
+EN: At 100% task progress, Owner selects **Run release checks** to create an exact-SHA task-bound candidate and launch non-deploying checks in both repositories. The publication button and server endpoint remain blocked until four independently verified checks succeed.
+
+ZH: 研发进度达到 100% 后，所有者点击 **运行发布检查**，API 将任务与两个仓库当前精确 SHA 绑定并启动非部署预检。只有四项真实检查全部通过后才允许发布。
+
+Technical process: Owner decision → approved implementation 100% → four-stage nonpublishing preflight → verified 4/4 → Owner release → protected GitHub deployment. Roles other than Owner have no preflight or release permissions.
