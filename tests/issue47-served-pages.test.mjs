@@ -30,7 +30,7 @@ test('GitHub Pages serves an attested staging baseline independently of the unpu
    assert.equal(hash(value),served.currentAssetSha256[name],'Published file digest differs from deployed manifest: '+name);
   }
  }
- const sha1=bytes=>createHash('sha1').update(Buffer.from('blob '+bytes.length+'\\0')).update(bytes).digest('hex');
+ const sha1=bytes=>createHash('sha1').update(Buffer.from('blob '+bytes.length+'\0')).update(bytes).digest('hex');
  // The deployed build-info and the bytes actually served must agree, regardless
  // of the independent release candidate currently under test.
  assert.equal(sha1(files['app.js']),served.servedAppBlobSha);
@@ -40,9 +40,9 @@ test('GitHub Pages serves an attested staging baseline independently of the unpu
  assert.ok(html.includes('app.js?v='+served.servedAppBlobSha.slice(0,12)),'Published JS cache key not source-attested');
  assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
  assert.match(app,/freight-staging-ibclzdkxiozbzmniiygv-session/);
- assert.match(app,/functions\\/v1\\/freight-api"/);
- assert.doesNotMatch(app,/functions\\/v1\\/freight-api-qa-issue47qa|ooclsrndeygojtofuyte/);
- assert.match(files[served.lateBidUiScript].toString(),/api\\/late-bid-drafts/);
+ assert.match(app,/functions\/v1\/freight-api"/);
+ assert.doesNotMatch(app,/functions\/v1\/freight-api-qa-issue47qa|ooclsrndeygojtofuyte/);
+ assert.match(files[served.lateBidUiScript].toString(),/api\/late-bid-drafts/);
  // Independently fail if an unpublished candidate's own manifest is stale.
  assert.equal(manifest.servedAppBlobSha,sha1(local('app.js')),'Candidate build and app differ');
  assert.ok(local('index.html').toString().includes('app.js?v='+manifest.servedAppBlobSha.slice(0,12)),'Candidate cache key stale');
