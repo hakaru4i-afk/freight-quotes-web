@@ -139,6 +139,18 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
  assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
  await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
+ // React validates the dependent dangerous-goods field on an asynchronous
+ // render. The positive acceptance must wait for the real button to become
+ // enabled; timing cannot turn an invalid request into a passing test.
+ try {
+   await page.waitForFunction(() => {
+     const button=[...document.querySelectorAll('button')].find(x=>x.textContent?.trim()==='Опубликовать и уведомить перевозчиков');
+     return button&&!button.disabled;
+   },null,{timeout:7500});
+ } catch (e) {
+   throw Error("Complete request did not enable publication after settled validation. "+
+     JSON.stringify({errors,unNumber:await page.locator('input[placeholder^="UN номер"]').inputValue(),ready:await publish.isEnabled()}));
+ }
  assert.equal(await publish.isEnabled(),true,"Complete request must enable publication");
  await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
