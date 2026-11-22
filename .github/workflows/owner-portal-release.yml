@@ -102,6 +102,16 @@ jobs:
           node --check backend/src/transport-application/owner-portal-release.mjs
           node --test tests/owner-ci-release-control.test.mjs tests/owner-register-publication.test.mjs
           (cd backend && node --test tests/owner-portal-release.test.mjs)
+      - name: Require protected E2E and backup evidence before any production deployment
+        shell: bash
+        env:
+          GITHUB_WEB_TOKEN: ${{ github.token }}
+          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          FRONTEND_SHA: ${{ steps.identify.outputs.frontend_sha }}
+          BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
+        run: |
+          set -euo pipefail
+          node scripts/release/owner-portal-verify-evidence.mjs
       - name: Verify no main branch changed during checks
         env:
           BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
