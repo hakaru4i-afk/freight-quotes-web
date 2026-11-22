@@ -89,6 +89,8 @@ jobs:
         with:
           name: owner-release-button-reviewed-once
           path: .owner-button-pages
+      - name: Allow the Pages artifact to become available
+        run: sleep 25
       - name: Publish only the approved Owner release control
         uses: actions/deploy-pages@v4
         with:
