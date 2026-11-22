@@ -47,3 +47,13 @@ test('release evidence cannot reuse an older PASS after a newer failed or runnin
  assert.match(evidence,/LATEST_EXACT_SHA_EVIDENCE_NOT_SUCCESS/);
  assert.doesNotMatch(evidence,/\.find\(r=>r\.name===name&&r\.head_sha===sha&&recent\(r\)/);
 });
+
+test('Owner may start protected workflow without typing UUIDs, and API deploy stays gated',()=>{
+ const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
+ assert.match(workflow,/TASK_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);
+ assert.match(workflow,/REQUEST_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);
+ assert.match(workflow,/supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt/);
+ assert.match(workflow,/needs: verify/);
+ assert.match(workflow,/Verify independent authenticated E2E and fresh production restore before release/);
+ assert.match(workflow,/startsWith\(github\.event\.head_commit\.message, 'Merge pull request #168 '\)/);
+});
