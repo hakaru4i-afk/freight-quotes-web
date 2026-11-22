@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Merge pull request #168 ')))
+    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Merge pull request #168 ')))"
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     outputs:
