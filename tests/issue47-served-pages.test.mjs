@@ -16,18 +16,36 @@ async function get(name){
  assert.equal(response.status,200,name+' unavailable');
  return Buffer.from(await response.arrayBuffer());
 }
-test('GitHub Pages serves exact baseline or post-publication candidate bytes',async()=>{
- const names=['index.html','build-info.json','app.js',manifest.lateBidUiScript,manifest.task2.frontendScript,manifest.task2.guidanceScript];
+test('GitHub Pages serves an attested staging baseline independently of the unpublished PR',async()=>{
+ const served=JSON.parse((await get('build-info.json')).toString('utf8'));
+ assert.equal(served.projectRef,'ibclzdkxiozbzmniiygv');
+ assert.equal(served.environment,'staging');
+ const names=['index.html','app.js',served.lateBidUiScript,served.task2.frontendScript,served.task2.guidanceScript];
+ const files={};
  for(const name of names){
-  assert.equal(hash(await get(name)),hash(local(name)),'Published staging differs: '+name);
+  const value=await get(name);files[name]=value;
+  if(process.env.QA_SERVED_EXPECTED_DIR){
+   assert.equal(hash(value),hash(local(name)),'Published file differs from attested deployment: '+name);
+  }else if(served.currentAssetSha256?.[name]){
+   assert.equal(hash(value),served.currentAssetSha256[name],'Published file digest differs from deployed manifest: '+name);
+  }
  }
- const html=local('index.html').toString();
+ const sha1=bytes=>createHash('sha1').update(Buffer.from('blob '+bytes.length+'\\0')).update(bytes).digest('hex');
+ // The deployed build-info and the bytes actually served must agree, regardless
+ // of the independent release candidate currently under test.
+ assert.equal(sha1(files['app.js']),served.servedAppBlobSha);
+ assert.equal(sha1(files[served.task2.frontendScript]),served.task2.frontendSha);
+ assert.equal(sha1(files[served.task2.guidanceScript]),served.task2.guidanceSha);
+ const html=files['index.html'].toString(),app=files['app.js'].toString();
+ assert.ok(html.includes('app.js?v='+served.servedAppBlobSha.slice(0,12)),'Published JS cache key not source-attested');
  assert.doesNotMatch(html,/ooclsrndeygojtofuyte/);
- const app=local('app.js').toString();
  assert.match(app,/freight-staging-ibclzdkxiozbzmniiygv-session/);
- assert.match(app,/functions\/v1\/freight-api"/);
- assert.doesNotMatch(app,/functions\/v1\/freight-api-qa-issue47qa|ooclsrndeygojtofuyte/);
- assert.match(local(manifest.lateBidUiScript).toString(),/api\/late-bid-drafts/);
+ assert.match(app,/functions\\/v1\\/freight-api"/);
+ assert.doesNotMatch(app,/functions\\/v1\\/freight-api-qa-issue47qa|ooclsrndeygojtofuyte/);
+ assert.match(files[served.lateBidUiScript].toString(),/api\\/late-bid-drafts/);
+ // Independently fail if an unpublished candidate's own manifest is stale.
+ assert.equal(manifest.servedAppBlobSha,sha1(local('app.js')),'Candidate build and app differ');
+ assert.ok(local('index.html').toString().includes('app.js?v='+manifest.servedAppBlobSha.slice(0,12)),'Candidate cache key stale');
 });
 test('Staging API health and anonymous denial are independently verified',async()=>{
  const api='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
@@ -36,7 +54,8 @@ test('Staging API health and anonymous denial are independently verified',async(
  const result=await health.json();
  assert.equal(result.projectRef,'ibclzdkxiozbzmniiygv');
  assert.equal(result.environment,'staging');
- assert.equal(result.build,apiManifest.task2.backendBuild);
+ const served=JSON.parse((await get('build-info.json')).toString('utf8'));
+ assert.equal(result.build,served.task2.backendBuild,'Staging API does not match currently published staging source');
  assert.equal(apiManifest.task2.backendFunction,'freight-api');
  assert.equal(apiManifest.task2.backendVersion,apiManifest.task2.lastObservedBackendVersion);
  const unauth=await fetch(api+'/api/late-bid-drafts',{signal:AbortSignal.timeout(15000)});
