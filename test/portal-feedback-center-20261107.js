@@ -78,7 +78,9 @@ function detail(){
  const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
   '<h4>'+esc(lines.title)+'</h4>'+
-  '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p><small>'+esc(lines.help)+'</small>'+
+  '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>'+ 
+  (Number.isInteger(runState.progress)&&runState.progress>=0&&runState.progress<=100?'<progress value="'+runState.progress+'" max="100" aria-label="'+esc(lines.running)+'"></progress><small>'+runState.progress+'% · '+esc(runState.stage||'')+'</small>':'')+
+  '<small>'+esc(lines.help)+'</small>'+
   (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(isRunning||isConfirmed||busy?'disabled':'')+'>'+
     esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
