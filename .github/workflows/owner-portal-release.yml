@@ -1,0 +1,217 @@
+name: Owner portal one-click production release
+run-name: Portal release ${{ inputs.task_id }} / ${{ inputs.request_id }}
+on:
+  workflow_dispatch:
+    inputs:
+      task_id:
+        description: 'Authenticated Owner feedback task UUID'
+        required: true
+        type: string
+      request_id:
+        description: 'One-time server-issued request UUID'
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  verify:
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    outputs:
+      frontend_sha: ${{ steps.identify.outputs.frontend_sha }}
+      backend_sha: ${{ steps.identify.outputs.backend_sha }}
+      version: ${{ steps.identify.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify server-initiated Owner request and exact frontend main
+        id: identify
+        shell: bash
+        env:
+          TASK_ID: ${{ inputs.task_id }}
+          REQUEST_ID: ${{ inputs.request_id }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$TASK_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
+          [[ "$REQUEST_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
+          test "$GITHUB_REPOSITORY" = "hakaru4i-afk/freight-quotes-web"
+          test "$GITHUB_ACTOR" = "hakaru4i-afk"
+          test "$GITHUB_REF" = "refs/heads/main"
+          test -n "$BACKEND_TOKEN" || { echo "::error::BACKEND_RELEASE_READ_TOKEN_NOT_CONFIGURED"; exit 1; }
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          current=$(git ls-remote origin refs/heads/main | awk '{print $1}')
+          test "$current" = "$GITHUB_SHA" || { echo "::error::FRONTEND_MAIN_MOVED"; exit 1; }
+          backend=$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)
+          [[ "$backend" =~ ^[a-f0-9]{40}$ ]]
+          version=$(node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const current=JSON.parse(readFileSync('release-status.json'));
+          const match=/^SH-(\d{2})\.(\d{2})\.(\d{2}) v$/.exec(current.version||'');
+          if(!match||current.status!=='released')throw Error('UNAPPROVED_CURRENT_BUSINESS_VERSION');
+          const next=Number(match[3])+1;
+          if(next>99)throw Error('VERSION_SEQUENCE_EXHAUSTED');
+          console.log('SH-'+match[1]+'.'+match[2]+'.'+String(next).padStart(2,'0')+' v');
+          JS
+          )
+          echo "frontend_sha=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
+          echo "backend_sha=$backend" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "PINNED_CURRENT_MAIN_PAIR FE=$GITHUB_SHA BE=$backend RELEASE=$version"
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          ref: ${{ steps.identify.outputs.backend_sha }}
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          path: backend
+          persist-credentials: false
+      - name: Run exact source tests for Owner handoff and release controls
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check portal-feedback-center-20261107.js
+          node --check scripts/release/owner-portal-api-production.mjs
+          node --check scripts/release/owner-portal-pages.mjs
+          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs
+          node --check backend/src/transport-application/owner-portal-release.mjs
+          (cd backend && node --test tests/owner-portal-release.test.mjs tests/task-release-readiness.test.mjs tests/owner-register-execution.test.mjs)
+      - name: Run full frontend and backend CI regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node --test --test-concurrency=2 tests/*.test.mjs
+          (cd backend && node --test tests/*.test.mjs)
+      - name: Verify independent authenticated E2E and fresh production restore before release
+        shell: bash
+        env:
+          GITHUB_WEB_TOKEN: ${{ github.token }}
+          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          FRONTEND_SHA: ${{ steps.identify.outputs.frontend_sha }}
+          BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
+        run: node scripts/release/owner-portal-verify-evidence.mjs
+      - name: Verify no main branch changed during checks
+        env:
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$GITHUB_SHA"
+          test "$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)" = "$BACKEND_SHA"
+
+  deploy-api:
+    needs: verify
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: production
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.frontend_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          ref: ${{ needs.verify.outputs.backend_sha }}
+          path: backend
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          persist-credentials: false
+      - name: Build reviewed production Edge source (not staging)
+        env:
+          PORTAL_RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          PORTAL_BACKEND_SHA: ${{ needs.verify.outputs.backend_sha }}
+        run: node scripts/release/owner-portal-api-production.mjs
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.122.1
+      - name: Publish reviewed Edge function, only after verified release gates
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          BACKEND_SHA: ${{ needs.verify.outputs.backend_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN_NOT_CONFIGURED"; exit 1; }
+          test "$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)" = "$BACKEND_SHA"
+          supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt
+      - name: Confirm real production API build and environment
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            curl --fail --silent --show-error --max-time 25 "https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/health?release=$GITHUB_RUN_ID-$i" > "$RUNNER_TEMP/health.json" || true
+            if node -e 'const r=require(process.argv[1]);process.exit(r.ok===true&&r.environment==="production"&&r.projectRef==="ooclsrndeygojtofuyte"&&r.release===process.env.RELEASE_VERSION?0:1)' "$RUNNER_TEMP/health.json" 2>/dev/null; then exit 0; fi
+            sleep 5
+          done
+          echo "::error::PUBLISHED_API_BUILD_VERIFICATION_FAILED"
+          exit 1
+
+  deploy-pages:
+    needs: [verify,deploy-api]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.verify.outputs.frontend_sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Build immutable safe Pages artifact and release receipt
+        env:
+          PORTAL_RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          PORTAL_BACKEND_SHA: ${{ needs.verify.outputs.backend_sha }}
+        run: node scripts/release/owner-portal-pages.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+        id: deployment
+      - name: Verify served production release and essential UI assets
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          FRONTEND_SHA: ${{ needs.verify.outputs.frontend_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 25); do
+            curl -fsSL --max-time 20 "https://hakaru4i-afk.github.io/freight-quotes-web/release-status.json?run=$GITHUB_RUN_ID-$i" > "$RUNNER_TEMP/status.json" || true
+            curl -fsSL --max-time 20 "https://hakaru4i-afk.github.io/freight-quotes-web/build-info.json?run=$GITHUB_RUN_ID-$i" > "$RUNNER_TEMP/build.json" || true
+            if node -e 'const s=require(process.argv[1]),b=require(process.argv[2]);process.exit(s.status==="released"&&s.version===process.env.RELEASE_VERSION&&b.releaseVersion===s.version&&b.frontendSourceCommit===process.env.FRONTEND_SHA?0:1)' "$RUNNER_TEMP/status.json" "$RUNNER_TEMP/build.json" 2>/dev/null; then
+              curl -fsSL --max-time 20 "https://hakaru4i-afk.github.io/freight-quotes-web/portal-feedback-center-20261107.js?run=$GITHUB_RUN_ID" | grep -Fq 'releaseProgress'
+              echo OWNER_RELEASE_PRODUCTION_VERIFIED
+              exit 0
+            fi
+            sleep 6
+          done
+          echo "::error::FRONTEND_PRODUCTION_VERIFICATION_FAILED"
+          exit 1
