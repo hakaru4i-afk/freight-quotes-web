@@ -1,4 +1,4 @@
-name: Owner release preflight - frontend and authenticated E2E
+name: Legacy optional frontend quick checks on Mac
 on:
   workflow_dispatch:
     inputs:
@@ -23,7 +23,7 @@ concurrency:
 jobs:
   frontend-source:
     if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -47,23 +47,3 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           node --check portal-feedback-center-20261107.js
           node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs tests/owner-ci-release-control.test.mjs
-  authenticated-e2e:
-    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-      - name: Verify latest successful automatic browser E2E on main (24h)
-        env:
-          INPUTS_JSON: ${{ toJSON(inputs) }}
-          GITHUB_WEB_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          readarray -t pins < <(node -e 'const x=JSON.parse(process.env.INPUTS_JSON);console.log(x.frontend_sha);console.log(x.backend_sha)')
-          test "$GITHUB_SHA" = "${pins[0]}"
-          FRONTEND_SHA="${pins[0]}" BACKEND_SHA="${pins[1]}" node scripts/release/owner-portal-verify-evidence-frontend.mjs

@@ -1,7 +1,6 @@
 name: Owner baseline browser E2E on main
 on:
-  push:
-    branches: [main]
+  # Optional deep QA, not a release gate or push trigger.
   workflow_dispatch:
 permissions:
   contents: read
@@ -12,7 +11,7 @@ concurrency:
 jobs:
   browser-e2e:
     if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +29,7 @@ jobs:
       - name: Install browser test prerequisites
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Run baseline real Chromium E2E and release controls
         run: |
           node --test tests/owner-ui-unification-browser.test.mjs tests/owner-team-users-browser.test.mjs

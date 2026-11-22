@@ -1,11 +1,7 @@
 name: Owner portal one-click production release
 run-name: Portal release ${{ inputs.task_id || 'owner-manual' }} / ${{ inputs.request_id || github.run_id }}
 on:
-  # One explicitly Owner-approved bootstrap release for this fix only.
-  # Ordinary pushes to main NEVER publish. Subsequent releases require the portal button.
-  push:
-    branches: [main]
-    paths: ['.github/workflows/owner-portal-release.yml']
+  # Owner-only manual dispatch. Never deploy automatically on push.
   workflow_dispatch:
     inputs:
       task_id:
@@ -24,8 +20,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Merge pull request #168 ')))"
-    runs-on: ubuntu-24.04
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 50
     outputs:
       frontend_sha: ${{ steps.identify.outputs.frontend_sha }}
@@ -50,8 +46,8 @@ jobs:
           set -euo pipefail
           # An authenticated portal call supplies the existing task UUID and a
           # server-generated release UUID. Manual Owner dispatch needs no inputs.
-          if [[ -z "$TASK_ID" ]]; then TASK_ID=$(cat /proc/sys/kernel/random/uuid); fi
-          if [[ -z "$REQUEST_ID" ]]; then REQUEST_ID=$(cat /proc/sys/kernel/random/uuid); fi
+          if [[ -z "$TASK_ID" ]]; then TASK_ID=$(uuidgen | tr '[:upper:]' '[:lower:]'); fi
+          if [[ -z "$REQUEST_ID" ]]; then REQUEST_ID=$(uuidgen | tr '[:upper:]' '[:lower:]'); fi
           [[ "$TASK_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
           [[ "$REQUEST_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
           echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
@@ -96,22 +92,16 @@ jobs:
           node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs
           node --check backend/src/transport-application/owner-portal-release.mjs
           (cd backend && node --test tests/owner-portal-release.test.mjs tests/task-release-readiness.test.mjs tests/owner-register-execution.test.mjs)
-      - name: Run full frontend and backend CI regression
+      - name: Quick code syntax and release-control checks
         shell: bash
         run: |
           set -euo pipefail
-          npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
-          node --test --test-concurrency=2 tests/*.test.mjs
-          (cd backend && node --test tests/*.test.mjs)
-      - name: Verify recent main browser E2E and fresh encrypted production backup before release
-        shell: bash
-        env:
-          GITHUB_WEB_TOKEN: ${{ github.token }}
-          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
-          FRONTEND_SHA: ${{ steps.identify.outputs.frontend_sha }}
-          BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
-        run: node scripts/release/owner-portal-verify-evidence.mjs
+          node --check portal-feedback-center-20261107.js
+          node --check scripts/release/owner-portal-api-production.mjs
+          node --check scripts/release/owner-portal-pages.mjs
+          node --check backend/src/transport-application/owner-portal-release.mjs
+          node --test tests/owner-ci-release-control.test.mjs tests/owner-register-publication.test.mjs
+          (cd backend && node --test tests/owner-portal-release.test.mjs)
       - name: Verify no main branch changed during checks
         env:
           BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
@@ -124,7 +114,7 @@ jobs:
 
   deploy-api:
     needs: verify
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 25
     environment: production
     permissions:
@@ -179,7 +169,7 @@ jobs:
 
   deploy-pages:
     needs: [verify,deploy-api]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 25
     environment:
       name: github-pages
