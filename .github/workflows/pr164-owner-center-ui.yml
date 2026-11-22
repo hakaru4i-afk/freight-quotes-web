@@ -2,11 +2,20 @@ name: PR164 Owner Center compact status controls
 on:
   push:
     branches: [fix/im000007-handoff-ui-20261122]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'portal-feedback-center-20261107.js'
+      - 'test/portal-feedback-center-20261107.js'
+      - 'owner-register-task-actions-20261121.js'
+      - 'test/owner-register-task-actions-20261121.js'
+      - 'tests/owner-center-advanced-actions-20261122.test.mjs'
+      - '.github/workflows/pr164-owner-center-ui.yml'
   workflow_dispatch:
 permissions:
   contents: read
 concurrency:
-  group: pr164-center-check
+  group: pr164-center-check-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   verify:
