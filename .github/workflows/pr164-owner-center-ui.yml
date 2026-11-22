@@ -21,6 +21,7 @@ jobs:
         run: |
           set -euo pipefail
           cmp portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js
+          cmp owner-register-task-actions-20261121.js test/owner-register-task-actions-20261121.js
           node --check portal-feedback-center-20261107.js
           node --check test/portal-feedback-center-20261107.js
           node --check owner-register-task-actions-20261121.js
