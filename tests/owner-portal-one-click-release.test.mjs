@@ -58,22 +58,24 @@ test('only the protected Pages release builder promotes candidate bytes',()=>{
  assert.match(builder,/OWNER_RELEASE_CANDIDATE_MISSING/);
 });
 
-test('release evidence freshness rejects future and invalid workflow timestamps',()=>{
- const evidence=readFileSync('scripts/release/owner-portal-verify-evidence.mjs','utf8');
- assert.match(evidence,/Number\.isFinite\(age\)&&age>=0&&age<24\*60\*60\*1000/);
- assert.match(evidence,/FRESH_PRODUCTION_BACKUP_MISSING_FOR_EXACT_BACKEND_SHA/);
- assert.match(evidence,/INDEPENDENT_BACKUP_RESTORE_NOT_VERIFIED/);
+test('release E2E uses latest successful automatic main run in 24 hours',()=>{
+ const evidence=readFileSync('scripts/release/owner-portal-verify-evidence-frontend.mjs','utf8');
+ assert.match(evidence,/owner-main-e2e\\.yml\\/runs\\?branch=main/);
+ assert.match(evidence,/latest\\.status!=='completed'/);
+ assert.match(evidence,/latest\\.conclusion!=='success'/);
+ assert.match(evidence,/age>=86400000/);
+ assert.doesNotMatch(evidence,/EXACT_FRONTEND_SHA/);
+ const actions=readFileSync('.github/workflows/owner-main-e2e.yml','utf8');
+ assert.match(actions,/push:/);
+ assert.match(actions,/branches: \\[main\\]/);
+ assert.match(actions,/owner-ui-unification-browser\\.test\\.mjs/);
 });
-
-test('release evidence cannot reuse an older PASS after a newer failed or running exact-SHA run',()=>{
+test('release integrates verified E2E and fresh backup, not exact SHA artifacts',()=>{
  const evidence=readFileSync('scripts/release/owner-portal-verify-evidence.mjs','utf8');
- assert.match(evidence,/candidates\.sort\(/);
- assert.match(evidence,/const newest=candidates\[0\]/);
- assert.match(evidence,/!newest\|\|!recent\(newest\)/);
- assert.match(evidence,/LATEST_EXACT_SHA_EVIDENCE_NOT_SUCCESS/);
- assert.doesNotMatch(evidence,/\.find\(r=>r\.name===name&&r\.head_sha===sha&&recent\(r\)/);
+ assert.match(evidence,/owner-portal-verify-evidence-frontend\\.mjs/);
+ assert.match(evidence,/owner-portal-verify-evidence-backend\\.mjs/);
+ assert.doesNotMatch(evidence,/check-runs\\?per_page=100/);
 });
-
 test('Owner may start protected workflow without typing UUIDs, and API deploy stays gated',()=>{
  const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
  assert.match(workflow,/TASK_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);

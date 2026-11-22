@@ -1,0 +1,37 @@
+name: Owner baseline browser E2E on main
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: owner-main-browser-e2e
+  cancel-in-progress: true
+jobs:
+  browser-e2e:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v1
+      - name: Install browser test prerequisites
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run baseline real Chromium E2E and release controls
+        run: |
+          node --test tests/owner-ui-unification-browser.test.mjs tests/owner-team-users-browser.test.mjs
+          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs

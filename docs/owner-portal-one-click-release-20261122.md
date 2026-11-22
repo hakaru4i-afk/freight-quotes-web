@@ -59,3 +59,14 @@ EN: At 100% task progress, Owner selects **Run release checks** to create an exa
 ZH: 研发进度达到 100% 后，所有者点击 **运行发布检查**，API 将任务与两个仓库当前精确 SHA 绑定并启动非部署预检。只有四项真实检查全部通过后才允许发布。
 
 Technical process: Owner decision → approved implementation 100% → four-stage nonpublishing preflight → verified 4/4 → Owner release → protected GitHub deployment. Roles other than Owner have no preflight or release permissions.
+
+
+## Упрощённые проверки / Simplified checks / 简化检查 (2026-11-22)
+
+RU: E2E браузера автоматически запускается GitHub Actions при каждом push в main. Успешный последний запуск за 24 часа засчитывается для следующего выпуска без совпадения SHA. Проверка резервной копии требует успешный за 24 часа реальный запуск шага `capture-and-readback` (шифрованная production-копия); совпадение SHA бэкенда не требуется. Базовые frontend/backend тесты продолжают выполняться. «Запустить проверки» обновляет 4/4, а при PASS показывает «Проверки пройдены, можно выпускать». Запуск выпуска остаётся только по команде Владельца; проверки не публикуют код автоматически.
+
+EN: Browser E2E runs after every main push. The latest successful main push E2E within 24 hours is reusable across commits; backend SHA equality is not required for a successful encrypted production backup captured and read back within 24 hours. Source regression remains mandatory, and only the Owner initiates deployment.
+
+ZH: 每次推送到 main 都会自动运行浏览器端到端测试。24 小时内最近一次成功的主分支测试可复用，无需与发布提交 SHA 相同。备份检查确认 24 小时内实际加密生产备份和回读成功。前后端基础测试和所有者授权发布流程仍然必需。
+
+Процесс E01: задачи → 100% разработки → базовые проверки frontend/backend + последний зелёный E2E main за 24 ч + реальная свежая зашифрованная копия → 4/4 → разрешение кнопки Владельца → выпуск API/Pages с production smoke. Другие процессы P01–P10 не менялись. FAQ кабинета Владельца приведён в соответствие; остальные кабинеты не затронуты.
