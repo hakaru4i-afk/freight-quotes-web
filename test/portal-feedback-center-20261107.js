@@ -15,13 +15,6 @@ const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh"
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
-let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
-const releaseWords={
- ru:{title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'После нажатия GitHub запускает проверки. Только после подтверждения 37 E2E, резервной копии и восстановления публикуются API и сайт; ошибки видны в журнале.'},
- en:{title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'The click starts GitHub checks. API and Pages publish only after verified 37 E2E, backup and restore; errors appear in the run log.'},
- zh:{title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'点击后启动 GitHub 检查。只有 37 项端到端测试、备份及恢复均通过后才会发布 API 和网站；错误可在日志中查看。'}
-};
-const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
 let executionByFeedback=new Map(),handoffBusy=false;
 const isReleaseReady=(item,isOwner,readiness)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&readiness?.taskId===item.id&&readiness?.ready===true;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
@@ -70,20 +63,11 @@ function detail(){
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
  const releaseEligible=data.owner&&['in_progress','release'].includes(item.status);
- const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
- const isRunning=['queued','in_progress'].includes(runState.status);
- const isConfirmed=runState.status==='published';
- const lines=releaseT();
- const notice=lines[runState.status]||lines.unstarted;
- const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
- const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
-  '<h4>'+esc(lines.title)+'</h4>'+
-  '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>'+ 
-  (Number.isInteger(runState.progress)&&runState.progress>=0&&runState.progress<=100?'<progress value="'+runState.progress+'" max="100" aria-label="'+esc(lines.running)+'"></progress><small>'+runState.progress+'% · '+esc(runState.stage||'')+'</small>':'')+
-  '<small>'+esc(lines.help)+'</small>'+
-  (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
-  '<button class="pf-primary" type="button" data-pf="release-update" '+(isRunning||isConfirmed||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+ const releaseReady=isReleaseReady(item,data.owner,releaseReadiness);
+ const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="Контроль выпуска">'+
+  '<h4>Публикация обновления</h4>'+
+  (releaseReady?'<p class="pf-ci-success" role="status">Все обязательные тесты пройдены</p>':'<p class="pf-ci-wait" role="status">Ожидаются тесты</p>')+
+  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||busy?'disabled':'')+'>Выпустить обновление</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -129,7 +113,7 @@ async function fetchExecutions(){
 }
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();void refreshReleaseProgress();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
 }
 async function refreshReleaseReadiness(){
@@ -150,19 +134,6 @@ async function refreshReleaseReadiness(){
   releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
  }
  if(seq===releaseReadinessRequest)render();
-}
-async function refreshReleaseProgress(){
- const item=data.items.find(i=>i.id===selected);
- const seq=++releaseProgressRequest;
- if(!data.owner||!item||!['in_progress','release'].includes(item.status)){releaseRun={taskId:'',status:'not_started'};return;}
- try{
-  const response=await fetch(api+'?releaseProgress='+encodeURIComponent(item.id),{cache:'no-store'});
-  const body=await response.json();
-  if(seq!==releaseProgressRequest||selected!==item.id)return;
-  if(!response.ok||body.ok!==true)throw Error(body.error||'HTTP '+response.status);
-  releaseRun=body.release||{taskId:item.id,status:'unknown'};
- }catch{if(seq!==releaseProgressRequest||selected!==item.id)return;releaseRun={taskId:item.id,status:'unknown'};}
- render();
 }
 async function runCodexHandoff(item,deadline){
  if(handoffBusy||busy)return;
@@ -188,20 +159,20 @@ async function runCodexHandoff(item,deadline){
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
- try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else message=statusLabels[out.item?.status]||"";render();}
+ try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else message=statusLabels[out.item?.status]||"";render();}
  catch(e){busy=false;error=t().error+": "+e.message;render();}
 }
 document.addEventListener("click",ev=>{
  const r=root();if(!r||!r.contains(ev.target))return;
  const id=ev.target.closest("[data-pf-id]")?.dataset.pfId;
- if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else {void refreshReleaseReadiness();void refreshReleaseProgress();}return;}
+ if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else void refreshReleaseReadiness();return;}
  const action=ev.target.closest("[data-pf]")?.dataset.pf;
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
  if(action==="release-update"){
   const item=data.items.find(i=>i.id===selected);
-  if(data.owner&&item&&['in_progress','release'].includes(item.status)&&!busy)
+  if(isReleaseReady(item,data.owner,releaseReadiness)&&!busy)
    void runAction({action:'release_update',id:item.id,expectedStatus:item.status});
  }
 });
@@ -236,6 +207,6 @@ const obs=new MutationObserver(()=>{
  pending=true;requestAnimationFrame(()=>{pending=false;lastRoot=r;loaded=false;render();void load();});
 });
 obs.observe(document.documentElement,{childList:true,subtree:true});
-setInterval(()=>{if(document.visibilityState==='visible'&&data.owner&&selected){void refreshReleaseReadiness();void refreshReleaseProgress();}},30000);
+setInterval(()=>{if(document.visibilityState==='visible'&&data.owner&&selected)void refreshReleaseReadiness();},30000);
 if(root()){render();void load();}
 })();
