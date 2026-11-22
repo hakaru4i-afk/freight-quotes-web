@@ -5,8 +5,10 @@ import{createHash}from'node:crypto';
 const root=process.cwd(),out=resolve(root,'.release-pages');
 const version=process.env.PORTAL_RELEASE_VERSION||'',fe=process.env.GITHUB_SHA||'',be=process.env.PORTAL_BACKEND_SHA||'';
 if(!/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(version)||!(/^[a-f0-9]{40}$/.test(fe)&&/^[a-f0-9]{40}$/.test(be)))throw Error('MISSING_VERIFIED_RELEASE_IDENTITY');
-if(readFileSync('portal-feedback-center-20261107.js','utf8')!==readFileSync('test/portal-feedback-center-20261107.js','utf8'))throw Error('ROOT_TEST_RELEASE_UI_MISMATCH');
 const sha=data=>createHash('sha256').update(data).digest('hex');
+const published=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
+if(sha(readFileSync('portal-feedback-center-20261107.js'))!==published.assets?.['portal-feedback-center-20261107.js'])
+ throw Error('UNREVIEWED_PUBLISHED_OWNER_SCRIPT');
 const staticFiles=/\.(?:js|mjs|css|html|json|svg|webp|png|jpe?g|gif|ico|wasm|gz|woff2?|ttf|otf|txt)$/i;
 const dirs=new Set(['test','global-view','processes','process-history']);
 const forbidden=/(?:^|\/)(?:node_modules|reports|scripts|tests|docs|config|release|\.git|\.github|\.release-pages)(?:\/|$)|(?:^|[-_.])(?:secret|private-key|credential|session-token|password|database-url)(?:[-_.]|$)/i;
@@ -34,6 +36,8 @@ for(const required of ['index.html','test/index.html','portal-feedback-center-20
 const candidateFile=resolve(root,'release/owner-portal-feedback-center-20261122.js');
 if(!existsSync(candidateFile))throw Error('OWNER_RELEASE_CANDIDATE_MISSING');
 const candidate=readFileSync(candidateFile,'utf8');
+if(candidate!==readFileSync('test/portal-feedback-center-20261107.js','utf8'))
+ throw Error('STAGING_RELEASE_UI_MISMATCH');
 if(!candidate.includes("action:'release_update'")||!candidate.includes('?releaseProgress='))
  throw Error('OWNER_RELEASE_ACTION_NOT_IN_REVIEWED_CANDIDATE');
 // Promote only into the immutable-to-be-published artifact, never mutate

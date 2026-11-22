@@ -60,11 +60,11 @@ jobs:
       - name: Install Chromium
         if: steps.scope.outputs.scope == 'full'
         run: npx playwright install chromium
-      - name: Run every deterministic Node regression, fail closed
+      - name: Run source and local browser regressions, fail closed
         if: steps.scope.outputs.scope == 'full'
         shell: bash
         run: |
           set -euo pipefail
-          node --test --test-concurrency=2 tests/*.test.mjs
+          node scripts/run-owner-task-tests.mjs source
       - name: Explicitly exclude deployment from task acceptance
         run: echo 'TASK_TEST_PASS_IS_NOT_PRODUCTION_RELEASE_APPROVAL'

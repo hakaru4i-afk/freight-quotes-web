@@ -34,3 +34,5 @@ jobs:
         run: |
           node --test tests/owner-ui-unification-browser.test.mjs tests/owner-team-users-browser.test.mjs
           node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs
+      - name: Check the published staging portal separately from PR source
+        run: node scripts/run-owner-task-tests.mjs published

@@ -14,29 +14,9 @@ const titleTranslations={
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
-let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
-let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
-const releaseWords={
- ru:{prepare:'Запустить проверки',preflightQueued:'Проверяются базовые тесты, E2E на main и свежая резервная копия',prepareHelp:'Подготовка запускает только тесты; итоги появятся в X/4.',testsSummary:'Ожидаются тесты',readySummary:'Проверки пройдены, можно выпускать',blocked:'Ожидается завершение разработки (100%).',candidateMissing:'Кандидат выпуска не привязан к этой заявке: 4 проверки ещё не подготовлены.',candidateInvalid:'Для выпуска не указаны корректные SHA и четыре группы проверок.',checksPending:'Не все проверки frontend, backend, E2E и восстановления завершились успешно.',checksUnavailable:'Подтверждение проверок из GitHub сейчас недоступно.',devComplete:'Выпуск доступен после завершения разработки (100%).',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'После 100% разработки нажмите «Выпустить обновление»: Mac проверит синтаксис, соберёт и опубликует API и сайт. Бэкапы и E2E отдельно, не блокируют выпуск.'},
- en:{prepare:'Run release checks',preflightQueued:'Checking source tests, main E2E and a recent backup',prepareHelp:'Preflight runs checks only; results appear in X/4.',testsSummary:'Waiting for tests',readySummary:'Checks passed, ready to release',blocked:'Waiting for completed development (100%).',candidateMissing:'No release candidate is linked to this task; the four release checks are not configured yet.',candidateInvalid:'Valid source SHAs and all four check groups are missing.',checksPending:'Not all frontend, backend, E2E and recovery checks have passed.',checksUnavailable:'GitHub check evidence is currently unavailable.',devComplete:'Release is available once development reaches 100%.',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'At 100% completion, select Start release. Mac checks syntax, builds and publishes the API and website. Backup and E2E are separate and do not block release.'},
- zh:{prepare:'运行发布检查',preflightQueued:'正在检查基础测试、main 分支端到端测试和最新备份',prepareHelp:'预检只运行检查，不发布；结果更新 X/4。',testsSummary:'等待测试',readySummary:'检查已通过，可以发布',blocked:'等待开发进度达到 100%。',candidateMissing:'此任务尚未关联发布候选版本，四项发布检查尚未配置。',candidateInvalid:'缺少有效源码 SHA 或四组必需检查。',checksPending:'前端、后端、端到端测试和恢复验证尚未全部通过。',checksUnavailable:'暂时无法从 GitHub 确认检查结果。',devComplete:'研发进度达到 100% 后可以发布。',title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'任务完成度达到 100% 即可发布。Mac 检查语法、构建并发布 API 和网站。备份与 E2E 单独运行，不阻止发布。'}
-};
-const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
-const taskStatusLabels={
- ru:{label:'Статус разработки',dispatch_pending:'Ожидает отправки в GitHub',dispatch_failed:'Ошибка отправки в GitHub',branch_pending:'Ожидает создания ветки',branch_created:'Ветка создана. Ожидаем первый коммит',code_committed_pr_required:'В работе. Ожидаем PR',pr_unavailable:'Не удалось проверить PR',checks_unavailable:'Результаты проверок недоступны',tests_running:'GitHub выполняет проверки',basic_checks_failed:'Ошибка быстрых проверок',task_e2e_failed:'Ошибка проверки task-e2e',tests_failed:'Есть неуспешные проверки GitHub',required_tests_missing:'Ожидаем обязательные проверки',owner_returned_for_rework:'Владелец вернул задачу на доработку',unknown:'Ожидаем подтверждения GitHub'},
- en:{label:'Development status',dispatch_pending:'Waiting to send to GitHub',dispatch_failed:'GitHub dispatch failed',branch_pending:'Waiting for branch creation',branch_created:'Branch created. Waiting for the first commit',code_committed_pr_required:'In progress. Waiting for a pull request',pr_unavailable:'Could not verify the pull request',checks_unavailable:'Check results unavailable',tests_running:'GitHub is running checks',basic_checks_failed:'Quick checks failed',task_e2e_failed:'The task-e2e check failed',tests_failed:'Some GitHub checks failed',required_tests_missing:'Waiting for required checks',owner_returned_for_rework:'The Owner returned the task for rework',unknown:'Waiting for GitHub confirmation'},
- zh:{label:'开发状态',dispatch_pending:'等待发送到 GitHub',dispatch_failed:'发送到 GitHub 失败',branch_pending:'等待创建分支',branch_created:'分支已创建，等待首次提交',code_committed_pr_required:'开发中，等待拉取请求',pr_unavailable:'无法验证拉取请求',checks_unavailable:'检查结果暂不可用',tests_running:'GitHub 正在运行检查',basic_checks_failed:'快速检查失败',task_e2e_failed:'task-e2e 检查失败',tests_failed:'部分 GitHub 检查失败',required_tests_missing:'等待必需检查',owner_returned_for_rework:'所有者已退回返工',unknown:'等待 GitHub 确认'}
-};
-function taskStatusText(execution){
- const labels=taskStatusLabels[byLang];
- if(execution?.progress===100&&execution.checksPassed===true) return releaseT().readySummary;
- if(execution?.dispatchStatus==='failed') return labels.dispatch_failed;
- return Object.hasOwn(labels,execution?.step)?labels[execution.step]:labels.unknown;
-}
-const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
-const releaseReason=()=>!releaseReadiness.ready?(releaseT()[readinessReasonKeys[releaseReadiness.reason]||'checksPending']||''):'';
+let releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let executionByFeedback=new Map(),handoffBusy=false;
-const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.progress===100&&execution?.checksPassed===true;
+const isReleaseReady=(item,isOwner,readiness)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&readiness?.taskId===item.id&&readiness?.ready===true;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 const requestStatus=i=>i.status==="release"&&i.release_date?"Выпуск · "+i.release_date:latestStatus(i.status);
@@ -75,29 +55,19 @@ function detail(){
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
  const execution=executionByFeedback.get(item.id);
  const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&['not_requested','pending','failed'].includes(execution.dispatchStatus));
- const progressText=taskStatusText(execution);
- const developmentLabel=taskStatusLabels[byLang].label;
- const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p></section>':'';
+ const progressValue=execution?Math.max(0,Math.min(100,Number(execution.progress)||0)):0;
+ const progressText=execution?.dispatchStatus==='dispatched'?'GitHub принял задание; работа Codex пока не подтверждена':execution?.dispatchStatus==='failed'?'Отправка не завершилась': 'Ожидает отправки в GitHub';
+ const progressPanel=execution?'<section class="pf-codex-progress" aria-label="Прогресс выполнения"><div><strong>Прогресс выполнения</strong><span> '+progressValue+'%</span></div><progress aria-label="Прогресс выполнения" value="'+progressValue+'" max="100" style="width:100%"></progress><small>'+esc(progressText)+'</small></section>':'';
  const handoffPanel=handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>Передача задачи в разработку</h4><p>После принятия задачи укажи дедлайн здесь. Задание будет отправлено в GitHub; Codex запускается только при подключённой интеграции.</p><label>Плановый дедлайн<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>Передать задание в GitHub для Codex</button></form>':(execution?.dispatchStatus==='dispatched'?'<p class="pf-ci-success">GitHub принял задание. Работа Codex подтверждается отдельно.</p>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
  const releaseEligible=data.owner&&['in_progress','release'].includes(item.status);
- const releaseReady=isReleaseReady(item,data.owner,releaseReadiness,execution);
- const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
- const isRunning=['queued','in_progress'].includes(runState.status);
- const isConfirmed=runState.status==='published';
- const lines=releaseT();
- const notice=runState.status==='not_started'&&!releaseReady?progressText:(lines[runState.status]||lines.unstarted);
- const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
- const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
-  '<h4>'+esc(lines.title)+'</h4>'+
-  (runState.status!=='not_started'||!execution?'<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>':'')+
-  (Number.isInteger(runState.progress)&&runState.progress>=0&&runState.progress<=100?'<progress value="'+runState.progress+'" max="100" aria-label="'+esc(lines.running)+'"></progress><small>'+runState.progress+'% · '+esc(runState.stage||'')+'</small>':'')+
-  '<small>'+esc(lines.help)+'</small>'+
-  (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
-  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+ const releaseReady=isReleaseReady(item,data.owner,releaseReadiness);
+ const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="Контроль выпуска">'+
+  '<h4>Публикация обновления</h4>'+
+  (releaseReady?'<p class="pf-ci-success" role="status">Все обязательные тесты пройдены</p>':'<p class="pf-ci-wait" role="status">Ожидаются тесты</p>')+
+  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||busy?'disabled':'')+'>Выпустить обновление</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -143,25 +113,27 @@ async function fetchExecutions(){
 }
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();void refreshReleaseProgress();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
 }
 async function refreshReleaseReadiness(){
  const item=data.items.find(i=>i.id===selected);
- releaseReadiness={taskId:item?.id||'',ready:false,checks:[],passed:0,total:0,reason:'',message:''};
-}
-async function refreshReleaseProgress(){
- const item=data.items.find(i=>i.id===selected);
- const seq=++releaseProgressRequest;
- if(!data.owner||!item||!['in_progress','release'].includes(item.status)){releaseRun={taskId:'',status:'not_started'};return;}
+ const seq=++releaseReadinessRequest;
+ if(!data.owner||!item||!['in_progress','release'].includes(item.status)){
+  releaseReadiness={taskId:'',ready:false,message:'Ожидаются тесты'};return;
+ }
+ releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};render();
  try{
-  const response=await fetch(api+'?releaseProgress='+encodeURIComponent(item.id),{cache:'no-store'});
-  const body=await response.json();
-  if(seq!==releaseProgressRequest||selected!==item.id)return;
-  if(!response.ok||body.ok!==true)throw Error(body.error||'HTTP '+response.status);
-  releaseRun=body.release||{taskId:item.id,status:'unknown'};
- }catch{if(seq!==releaseProgressRequest||selected!==item.id)return;releaseRun={taskId:item.id,status:'unknown'};}
- render();
+  const response=await fetch(api+'?releaseReadiness='+encodeURIComponent(item.id),{cache:'no-store'});
+  const result=await response.json();
+  if(seq!==releaseReadinessRequest||selected!==item.id)return;
+  // Only the authenticated API can authorize a release. Unknown/failed responses deny it.
+  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',message:'Ожидаются тесты'};
+ }catch{
+  if(seq!==releaseReadinessRequest||selected!==item.id)return;
+  releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
+ }
+ if(seq===releaseReadinessRequest)render();
 }
 async function runCodexHandoff(item,deadline){
  if(handoffBusy||busy)return;
@@ -187,20 +159,20 @@ async function runCodexHandoff(item,deadline){
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
- try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
+ try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else message=statusLabels[out.item?.status]||"";render();}
  catch(e){busy=false;error=t().error+": "+e.message;render();}
 }
 document.addEventListener("click",ev=>{
  const r=root();if(!r||!r.contains(ev.target))return;
  const id=ev.target.closest("[data-pf-id]")?.dataset.pfId;
- if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else {void refreshReleaseReadiness();void refreshReleaseProgress();}return;}
+ if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else void refreshReleaseReadiness();return;}
  const action=ev.target.closest("[data-pf]")?.dataset.pf;
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
  if(action==="release-update"){
   const item=data.items.find(i=>i.id===selected);
-  if(isReleaseReady(item,data.owner,releaseReadiness,executionByFeedback.get(item?.id))&&!busy)
+  if(isReleaseReady(item,data.owner,releaseReadiness)&&!busy)
    void runAction({action:'release_update',id:item.id,expectedStatus:item.status});
  }
 });
@@ -235,6 +207,6 @@ const obs=new MutationObserver(()=>{
  pending=true;requestAnimationFrame(()=>{pending=false;lastRoot=r;loaded=false;render();void load();});
 });
 obs.observe(document.documentElement,{childList:true,subtree:true});
-setInterval(()=>{if(document.visibilityState==='visible'&&data.owner&&selected){void refreshReleaseReadiness();void refreshReleaseProgress();}},30000);
+setInterval(()=>{if(document.visibilityState==='visible'&&data.owner&&selected)void refreshReleaseReadiness();},30000);
 if(root()){render();void load();}
 })();

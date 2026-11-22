@@ -19,7 +19,7 @@ async function hoverState(page,id){
     }return a.slice(-20)})()};
  });
 }
-test("glare-free hover across eight roles, forms, tabs and login at desktop and mobile",{timeout:240000},async()=>{
+test("glare-free hover across eight roles, forms, tabs and login at desktop and mobile",{timeout:240000,skip:process.env.FREIGHT_OWNER_TEST_SUITE==='published'?'local fixture runs in the source suite':false},async()=>{
  const browser=await chromium.launch({headless:true});
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
@@ -94,7 +94,7 @@ test("glare-free hover across eight roles, forms, tabs and login at desktop and 
 });
 // This check uses the real published staging login DOM, not a synthetic cabinet.
 // Authorized checks across real role cabinets remain a separate E2E requirement.
-test("actual served staging login hover has no white glare on desktop and mobile",{timeout:130000},async()=>{
+test("actual served staging login hover has no white glare on desktop and mobile",{timeout:130000,skip:process.env.FREIGHT_OWNER_TEST_SUITE==='source'?'published portal runs in the published suite':false},async()=>{
  const browser=await chromium.launch({headless:true});
  try{
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
