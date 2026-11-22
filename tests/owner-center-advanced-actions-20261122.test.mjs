@@ -26,3 +26,11 @@ test('No raw missing Github token or secret injection in client, with localized 
 test('Staging and production center source remain byte-for-byte identical',()=>{
  assert.equal(source,read('test/portal-feedback-center-20261107.js'));
 });
+
+test('Failed GitHub handoff remains an error, preserves retry and never reports Codex started',()=>{
+ assert.match(source,/catch\(e\)\{const raw=String\(e\?\.message\|\|'Неизвестная ошибка'\)/);
+ assert.match(source,/error=\/GITHUB_TOKEN_NOT_CONFIGURED\/\.test\(raw\)\?ownerExtra\[byLang\]\.githubToken/);
+ assert.match(source,/finally\{const failure=error;handoffBusy=false;await load\(\);if\(failure\)error=failure;render\(\);\}/);
+ assert.match(source,/Это ещё не подтверждение запуска модели Codex/);
+ assert.doesNotMatch(source,/localStorage\.setItem\([^\n]*TOKEN/);
+});
