@@ -60,21 +60,21 @@ test('only the protected Pages release builder promotes candidate bytes',()=>{
 
 test('release E2E uses latest successful automatic main run in 24 hours',()=>{
  const evidence=readFileSync('scripts/release/owner-portal-verify-evidence-frontend.mjs','utf8');
- assert.match(evidence,/owner-main-e2e\\.yml\\/runs\\?branch=main/);
- assert.match(evidence,/latest\\.status!=='completed'/);
- assert.match(evidence,/latest\\.conclusion!=='success'/);
+ assert.match(evidence,/owner-main-e2e\.yml\/runs\?branch=main/);
+ assert.match(evidence,/latest\.status!=='completed'/);
+ assert.match(evidence,/latest\.conclusion!=='success'/);
  assert.match(evidence,/age>=86400000/);
  assert.doesNotMatch(evidence,/EXACT_FRONTEND_SHA/);
  const actions=readFileSync('.github/workflows/owner-main-e2e.yml','utf8');
  assert.match(actions,/push:/);
- assert.match(actions,/branches: \\[main\\]/);
- assert.match(actions,/owner-ui-unification-browser\\.test\\.mjs/);
+ assert.match(actions,/branches: \[main\]/);
+ assert.match(actions,/owner-ui-unification-browser\.test\.mjs/);
 });
 test('release integrates verified E2E and fresh backup, not exact SHA artifacts',()=>{
  const evidence=readFileSync('scripts/release/owner-portal-verify-evidence.mjs','utf8');
- assert.match(evidence,/owner-portal-verify-evidence-frontend\\.mjs/);
- assert.match(evidence,/owner-portal-verify-evidence-backend\\.mjs/);
- assert.doesNotMatch(evidence,/check-runs\\?per_page=100/);
+ assert.match(evidence,/owner-portal-verify-evidence-frontend\.mjs/);
+ assert.match(evidence,/owner-portal-verify-evidence-backend\.mjs/);
+ assert.doesNotMatch(evidence,/check-runs\?per_page=100/);
 });
 test('Owner may start protected workflow without typing UUIDs, and API deploy stays gated',()=>{
  const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
