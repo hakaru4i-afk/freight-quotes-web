@@ -39,3 +39,13 @@ flowchart TD
 
 ## Релизный контроль
 В текущей ветке находится **кандидат**, не доказательство публикации. До merge необходимы проверки авторизации, повторного запуска, отсутствующего токена, RU/EN/ZH, точной связки, опубликованных файлов, протокола отката. Нельзя показывать фиктивный прогресс либо выдавать результат проверок PR за результат production.
+
+## Уточнение индикации / Release progress distinction / 发布进度说明
+
+RU: 100% в «Прогрессе выполнения» означает успешное завершение этапов разработки / PR, **не** четыре независимых подтверждения выпуска. «Ожидаются тесты: X/4» означает frontend, backend, авторизованные E2E, backup/recovery; кнопка публикации остаётся отключённой до 4/4. Если кандидат не связан с заявкой, указывается причина, вместо ложной инструкции нажать заблокированную кнопку.
+
+EN: 100% development/PR progress is distinct from 4/4 independent release approvals (frontend, backend, authorized E2E, backup/recovery). A missing candidate is explicitly identified and the release button remains disabled.
+
+ZH: 研发进度 100% 不等于发布验证完成。只有前端、后端、授权端到端测试和备份恢复四项全部确认（4/4）后才启用发布按钮；若未关联发布候选版本，将显示明确原因。
+
+Business-process structure reviewed: release gates remain unchanged. This update changes only UI feedback and does not override Owner permissions or deployment verification.

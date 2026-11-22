@@ -14,14 +14,16 @@ const titleTranslations={
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
-let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,message:'Ожидаются тесты'},releaseReadinessRequest=0;
+let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 const releaseWords={
- ru:{testsSummary:'Ожидаются тесты',readySummary:'Готово к выпуску',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'Кнопка доступна только после 100% выполнения задачи и 4/4 подтверждённых проверок. GitHub повторно проверяет условия перед публикацией API и сайта.'},
- en:{testsSummary:'Waiting for tests',readySummary:'Ready to release',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'The button unlocks only at 100% task completion and 4/4 verified checks. GitHub verifies again before publishing API and Pages.'},
- zh:{testsSummary:'等待测试',readySummary:'已准备发布',title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'任务完成度达到 100%，且 4/4 项检查通过后，发布按钮才可用。发布前 GitHub 将再次验证 API 和网站。'}
+ ru:{testsSummary:'Ожидаются тесты',readySummary:'Готово к выпуску',blocked:'Выпуск заблокирован: подтверждения обязательных проверок не получены',candidateMissing:'Кандидат выпуска не привязан к этой заявке: 4 проверки ещё не подготовлены.',candidateInvalid:'Для выпуска не указаны корректные SHA и четыре группы проверок.',checksPending:'Не все проверки frontend, backend, E2E и восстановления завершились успешно.',checksUnavailable:'Подтверждение проверок из GitHub сейчас недоступно.',devComplete:'Разработка подтверждена GitHub, но готовность публикации проверяется отдельно.',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'Кнопка доступна только после 100% выполнения задачи и 4/4 подтверждённых проверок. GitHub повторно проверяет условия перед публикацией API и сайта.'},
+ en:{testsSummary:'Waiting for tests',readySummary:'Ready to release',blocked:'Release blocked: the required checks are not verified',candidateMissing:'No release candidate is linked to this task; the four release checks are not configured yet.',candidateInvalid:'Valid source SHAs and all four check groups are missing.',checksPending:'Not all frontend, backend, E2E and recovery checks have passed.',checksUnavailable:'GitHub check evidence is currently unavailable.',devComplete:'GitHub confirmed development progress, not the separate release gate.',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'The button unlocks only at 100% task completion and 4/4 verified checks. GitHub verifies again before publishing API and Pages.'},
+ zh:{testsSummary:'等待测试',readySummary:'已准备发布',blocked:'发布已锁定：尚未确认全部必要检查',candidateMissing:'此任务尚未关联发布候选版本，四项发布检查尚未配置。',candidateInvalid:'缺少有效源码 SHA 或四组必需检查。',checksPending:'前端、后端、端到端测试和恢复验证尚未全部通过。',checksUnavailable:'暂时无法从 GitHub 确认检查结果。',devComplete:'GitHub 已确认开发进度，但发布检查需要另行通过。',title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'任务完成度达到 100%，且 4/4 项检查通过后，发布按钮才可用。发布前 GitHub 将再次验证 API 和网站。'}
 };
 const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
+const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
+const releaseReason=()=>!releaseReadiness.ready?(releaseT()[readinessReasonKeys[releaseReadiness.reason]||'checksPending']||''):'';
 let executionByFeedback=new Map(),handoffBusy=false;
 const isReleaseReady=(item,isOwner,readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&readiness?.taskId===item.id&&readiness?.ready===true&&readiness?.passed===4&&readiness?.total===4&&execution?.progress===100&&execution?.checksPassed===true;
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
@@ -63,7 +65,7 @@ function detail(){
  const execution=executionByFeedback.get(item.id);
  const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&['not_requested','pending','failed'].includes(execution.dispatchStatus));
  const progressValue=execution?Math.max(0,Math.min(100,Number(execution.progress)||0)):0;
- const progressText=execution?.dispatchStatus==='dispatched'?'GitHub принял задание; работа Codex пока не подтверждена':execution?.dispatchStatus==='failed'?'Отправка не завершилась': 'Ожидает отправки в GitHub';
+ const progressText=progressValue===100?releaseT().devComplete:execution?.dispatchStatus==='dispatched'?'GitHub принял задание; работа Codex пока не подтверждена':execution?.dispatchStatus==='failed'?'Отправка не завершилась': 'Ожидает отправки в GitHub';
  const progressPanel=execution?'<section class="pf-codex-progress" aria-label="Прогресс выполнения"><div><strong>Прогресс выполнения</strong><span> '+progressValue+'%</span></div><progress aria-label="Прогресс выполнения" value="'+progressValue+'" max="100" style="width:100%"></progress><small>'+esc(progressText)+'</small></section>':'';
  const handoffPanel=handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>Передача задачи в разработку</h4><p>После принятия задачи укажи дедлайн здесь. Задание будет отправлено в GitHub; Codex запускается только при подключённой интеграции.</p><label>Плановый дедлайн<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>Передать задание в GitHub для Codex</button></form>':(execution?.dispatchStatus==='dispatched'?'<p class="pf-ci-success">GitHub принял задание. Работа Codex подтверждается отдельно.</p>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
@@ -77,7 +79,7 @@ function detail(){
  const isRunning=['queued','in_progress'].includes(runState.status);
  const isConfirmed=runState.status==='published';
  const lines=releaseT();
- const notice=lines[runState.status]||lines.unstarted;
+ const notice=runState.status==='not_started'&&!releaseReady?lines.blocked:(lines[runState.status]||lines.unstarted);
  const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
   '<h4>'+esc(lines.title)+'</h4>'+
@@ -86,7 +88,7 @@ function detail(){
   '<small>'+esc(lines.help)+'</small>'+
   (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button><p class="'+(releaseReady?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(releaseGateLabel)+'</p></section>':'';
+    esc(isRunning?lines.running:lines.launch)+'</button><p class="'+(releaseReady?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(releaseGateLabel)+'</p>'+(releaseReady?'':'<small class="pf-ci-wait">'+esc(releaseReason())+'</small>')+'</section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -151,10 +153,10 @@ async function refreshReleaseReadiness(){
   // Each release group counts once, even when a group contains several CI jobs.
   const kinds=['frontend','backend','e2e','recovery'];
   const passed=kinds.filter(kind=>{const stage=checks.filter(x=>x?.kind===kind);return stage.length>0&&stage.every(x=>x.pass===true)}).length;
-  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',checks,passed,total:4,message:result.message||'Ожидаются тесты'};
+  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',checks,passed,total:4,reason:result.reason||'',message:result.message||'Ожидаются тесты'};
  }catch{
   if(seq!==releaseReadinessRequest||selected!==item.id)return;
-  releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
+  releaseReadiness={taskId:item.id,ready:false,checks:[],passed:0,total:4,reason:'GITHUB_CHECKS_UNAVAILABLE',message:'Ожидаются тесты'};
  }
  if(seq===releaseReadinessRequest)render();
 }

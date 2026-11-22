@@ -25,6 +25,15 @@ test('release hint counts four stage groups rather than raw individual CI jobs',
  assert.match(candidate,/releaseT\(\)\.testsSummary\+': '\+testsPassed\+'\/4'/);
  assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
 });
+test('100% task progress is distinct from release check evidence, with reason shown',()=>{
+ assert.match(candidate,/progressValue===100\?releaseT\(\)\.devComplete/);
+ assert.match(candidate,/runState\.status==='not_started'&&!releaseReady\?lines\.blocked/);
+ assert.match(candidate,/const readinessReasonKeys=\{/);
+ assert.match(candidate,/candidateMissing:'Кандидат выпуска не привязан/);
+ assert.match(candidate,/reason:result\.reason\|\|''/);
+ assert.match(candidate,/releaseReason\(\)/);
+ assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+});
 test('candidate receives protected server job state and displays milestones',()=>{
  assert.match(candidate,/\?releaseProgress=/);
  assert.match(candidate,/releaseRun=body\.release/);
