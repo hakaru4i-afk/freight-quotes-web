@@ -26,7 +26,7 @@ test('candidate receives protected server job state and displays milestones',()=
  assert.match(candidate,/runState\.progress/);
 });
 test('candidate has RU, EN and ZH rollout guidance',()=>{
- for(const locale of ['ru','en','zh'])assert.match(candidate,new RegExp(locale+':\\{title:'));
+ for(const locale of ['ru','en','zh'])assert.ok(candidate.includes(locale+':{testsSummary:'),'missing localized gate for '+locale);
 });
 test('only the protected Pages release builder promotes candidate bytes',()=>{
  assert.match(builder,/release\/owner-portal-feedback-center-20261122\.js/);
