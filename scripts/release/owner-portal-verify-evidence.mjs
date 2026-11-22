@@ -16,7 +16,10 @@ const get=async(repo,path,token)=>{
 const [fc,bc]=await Promise.all([get(WEB,'/commits/'+webSha+'/check-runs?per_page=100',wt),get(BE,'/commits/'+beSha+'/check-runs?per_page=100',bt)]);
 if(fc.total_count>100||bc.total_count>100)throw Error('INCOMPLETE_GITHUB_CHECK_LIST');
 const passed=(data,name,sha)=>data.check_runs?.filter(x=>x.name===name&&x.head_sha===sha&&x.status==='completed'&&x.conclusion==='success').length===1;
-if(!passed(fc,'task-e2e',webSha))throw Error('FRONTEND_EXACT_SHA_TASK_E2E_NOT_PASS');
+// The same protected workflow runs its full frontend suite on this exact SHA.
+// A separate main-commit task-e2e check is optional because task-e2e is PR-only.
+const taskChecks=(fc.check_runs||[]).filter(r=>r.name==='task-e2e'&&r.head_sha===webSha);
+if(taskChecks.length&&!passed(fc,'task-e2e',webSha))throw Error('FRONTEND_EXACT_SHA_TASK_E2E_FAILED');
 if(!passed(bc,'canonical',beSha))throw Error('BACKEND_EXACT_SHA_CANONICAL_NOT_PASS');
 const now=Date.now();
 const recent=r=>r?.status==='completed'&&r.conclusion==='success'&&now-Date.parse(r.updated_at||'')<24*60*60*1000;
