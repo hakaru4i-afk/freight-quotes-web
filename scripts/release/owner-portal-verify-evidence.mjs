@@ -26,7 +26,12 @@ const recent=r=>{const age=now-Date.parse(r?.updated_at||'');return r?.status===
 const latest=async(repo,token,sha,name)=>{
  const data=await get(repo,'/actions/runs?head_sha='+sha+'&per_page=100',token);
  if(data.total_count>100)throw Error('GITHUB_EVIDENCE_RUN_LIST_INCOMPLETE:'+name);
- return (data.workflow_runs||[]).find(r=>r.name===name&&r.head_sha===sha&&recent(r)&&r.event!=='pull_request_target');
+ const candidates=(data.workflow_runs||[]).filter(r=>r.name===name&&r.head_sha===sha&&r.event!=='pull_request_target');
+ // A newer failed or incomplete run must never be hidden by an older PASS.
+ candidates.sort((a,b)=>Date.parse(b.created_at||'')-Date.parse(a.created_at||'')||Number(b.id)-Number(a.id));
+ const newest=candidates[0];
+ if(!newest||!recent(newest))throw Error('LATEST_EXACT_SHA_EVIDENCE_NOT_SUCCESS:'+name+':'+(newest?.id||'none'));
+ return newest;
 };
 const qa=await latest(WEB,wt,webSha,'Carrier124 live OIDC acceptance on isolated SH59 (11 roles)');
 if(!qa)throw Error('FRESH_AUTHENTICATED_37_E2E_MISSING_FOR_EXACT_FRONTEND_SHA');
