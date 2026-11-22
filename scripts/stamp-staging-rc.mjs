@@ -41,6 +41,8 @@ collectVisual();visualAssets.sort();
 const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
 // HTML order affects styling and execution even when every asset byte is unchanged.
+// Cache identity excludes only v= values (including percent-encoded releases),
+// retaining other query parameters such as rev= for a fail-closed HTML structure audit.
 const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'&\s]+/g,'$1'));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
