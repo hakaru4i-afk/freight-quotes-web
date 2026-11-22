@@ -1,21 +1,33 @@
-import test from'node:test';
-import assert from'node:assert/strict';
-import{readFileSync}from'node:fs';
-const root=readFileSync('portal-feedback-center-20261107.js','utf8');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const live=readFileSync('portal-feedback-center-20261107.js','utf8');
 const stage=readFileSync('test/portal-feedback-center-20261107.js','utf8');
-test('production and staging center modules are byte-identical',()=>assert.equal(root,stage));
-test('release button starts verified Owner command without waiting for test results',()=>{
- assert.match(root,/data-pf="release-update"/);
- assert.match(root,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
- assert.doesNotMatch(root,/data-pf="release-update"[^\n]+!releaseReady\|\|busy/);
- assert.match(root,/action:'release_update'/);
+const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js','utf8');
+const builder=readFileSync('scripts/release/owner-portal-pages.mjs','utf8');
+test('active root and staging remain identical until a verified production promotion',()=>{
+ assert.equal(live,stage);
+ assert.notEqual(candidate,live);
+ assert.match(live,/if\(isReleaseReady\(item,data\.owner,releaseReadiness\)&&!busy\)/);
 });
-test('release state must come from protected backend and be visible',()=>{
- assert.match(root,/\?releaseProgress=/);
- assert.match(root,/releaseRun=body\.release/);
- assert.match(root,/releaseT\(\)\.queued/);
- assert.match(root,/github\\.com/);
+test('release candidate button starts Owner command without waiting for prior tests',()=>{
+ assert.match(candidate,/data-pf="release-update"/);
+ assert.match(candidate,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
+ assert.match(candidate,/action:'release_update'/);
+ assert.doesNotMatch(candidate,/data-pf="release-update"[^\n]+!releaseReady\|\|busy/);
 });
-test('localized release action and state in RU, EN and ZH',()=>{
- for(const locale of ['ru','en','zh'])assert.match(root,new RegExp(locale+':\\{title:'));
+test('candidate receives protected server job state and displays milestones',()=>{
+ assert.match(candidate,/\?releaseProgress=/);
+ assert.match(candidate,/releaseRun=body\.release/);
+ assert.match(candidate,/releaseT\(\)\.queued/);
+ assert.match(candidate,/github\.com/);
+ assert.match(candidate,/runState\.progress/);
+});
+test('candidate has RU, EN and ZH rollout guidance',()=>{
+ for(const locale of ['ru','en','zh'])assert.match(candidate,new RegExp(locale+':\\{title:'));
+});
+test('only the protected Pages release builder promotes candidate bytes',()=>{
+ assert.match(builder,/release\/owner-portal-feedback-center-20261122\.js/);
+ assert.match(builder,/portal-feedback-center-20261107\.js/);
+ assert.match(builder,/OWNER_RELEASE_CANDIDATE_MISSING/);
 });
