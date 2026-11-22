@@ -55,7 +55,9 @@ test('Staging API health and anonymous denial are independently verified',async(
  assert.equal(result.projectRef,'ibclzdkxiozbzmniiygv');
  assert.equal(result.environment,'staging');
  const served=JSON.parse((await get('build-info.json')).toString('utf8'));
- assert.equal(result.build,served.task2.backendBuild,'Staging API does not match currently published staging source');
+ assert.equal(served.releaseVersion,served.primaryBusinessVersion,'Deployed staging business version metadata inconsistent');
+ assert.equal(result.build,served.primaryBusinessVersion,'Staging API business release does not match currently published primary version');
+ // task2.backendBuild is Task 2 historical artifact metadata, not API /health.build.
  assert.equal(apiManifest.task2.backendFunction,'freight-api');
  assert.equal(apiManifest.task2.backendVersion,apiManifest.task2.lastObservedBackendVersion);
  const unauth=await fetch(api+'/api/late-bid-drafts',{signal:AbortSignal.timeout(15000)});
