@@ -20,7 +20,7 @@ test('candidate receives protected server job state and displays milestones',()=
  assert.match(candidate,/\?releaseProgress=/);
  assert.match(candidate,/releaseRun=body\.release/);
  assert.match(candidate,/releaseT\(\)\.queued/);
- assert.match(candidate,/github\.com/);
+ assert.match(candidate,/actionUrl/);
  assert.match(candidate,/runState\.progress/);
 });
 test('candidate has RU, EN and ZH rollout guidance',()=>{
