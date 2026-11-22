@@ -1,0 +1,35 @@
+name: Owner one-click source smoke on Mac
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'portal-feedback-center-20261107.js'
+      - 'test/portal-feedback-center-20261107.js'
+      - 'release/owner-portal-feedback-center-20261122.js'
+      - 'tests/owner-ci-release-control.test.mjs'
+      - 'tests/owner-portal-one-click-release.test.mjs'
+      - '.github/workflows/owner-portal-release.yml'
+      - '.github/workflows/owner-one-click-smoke.yml'
+permissions:
+  contents: read
+concurrency:
+  group: owner-one-click-source-smoke
+  cancel-in-progress: true
+jobs:
+  smoke:
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify syntax and one-click behavior without deployment
+        run: |
+          set -euo pipefail
+          node --check portal-feedback-center-20261107.js
+          node --check test/portal-feedback-center-20261107.js
+          node --check release/owner-portal-feedback-center-20261122.js
+          node --test tests/owner-ci-release-control.test.mjs tests/owner-portal-one-click-release.test.mjs
