@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   code:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
   served-staging:
     if: github.event_name == 'workflow_dispatch'
     needs: code
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -46,14 +46,14 @@ jobs:
                && cmp -s test/app.js /tmp/lw-app.js \
                && cmp -s test/current-workspace-help-20261108.js /tmp/lw-help.js; then
               echo 'PASS: published staging app and FAQ exactly match repository'
-              sha256sum /tmp/lw-app.js /tmp/lw-help.js
+              shasum -a 256 /tmp/lw-app.js /tmp/lw-help.js
               exit 0
             fi
           echo 'FAIL: Pages is not serving the expected staging app'
           exit 1
   api-negative:
     needs: code
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 3
     steps:
       - name: Check staging API health and unauthenticated deletion rejection

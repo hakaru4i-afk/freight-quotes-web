@@ -15,7 +15,9 @@ concurrency:
 jobs:
   fast:
     name: Syntax and fast Node tests
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4

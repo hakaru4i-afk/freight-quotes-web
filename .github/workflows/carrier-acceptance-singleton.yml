@@ -18,7 +18,9 @@ permissions:
   contents: read
 jobs:
   source:
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -31,9 +33,11 @@ jobs:
           node --check tests/carrier-acceptance-singleton-browser.test.mjs
           
   served:
-    if: github.event_name != 'pull_request'
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name != 'pull_request'
     needs: source
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +53,7 @@ jobs:
             if grep -Fq "carrier-acceptance-workflow-20261107.js?v=${SCRIPT_SHA:0:12}" /tmp/accept-index.html 2>/dev/null \
               && cmp -s test/carrier-acceptance-workflow-20261107.js /tmp/accept-workflow.js; then
               echo 'PASS: staging has exact singleton workflow and updated cache key'
-              sha256sum /tmp/accept-workflow.js
+              shasum -a 256 /tmp/accept-workflow.js
               exit 0
             fi
             sleep 15
@@ -59,7 +63,9 @@ jobs:
           
   browser:
     needs: source
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +79,7 @@ jobs:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
         if: steps.playwright-cache.outputs.cache-hit != 'true'
       - name: "Chromium desktop and 390px: no duplicate panels or accept actions"
         run: node --test tests/carrier-acceptance-singleton-browser.test.mjs

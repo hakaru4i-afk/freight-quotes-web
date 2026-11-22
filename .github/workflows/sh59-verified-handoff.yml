@@ -26,7 +26,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   negative-tests:
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -43,16 +46,17 @@ jobs:
         run: node --test --test-name-pattern='production promotion requires exact production identity' tests/production-release-integrity.test.mjs
   prepare:
     if: >-
-      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
-      ((github.event_name == 'pull_request' &&
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository) &&
+      (github.repository == 'hakaru4i-afk/freight-quotes-web' && ((github.event_name == 'pull_request' &&
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.actor == 'hakaru4i-afk') ||
        github.event_name == 'workflow_dispatch' ||
        (github.event_name == 'workflow_run' &&
         github.event.workflow_run.conclusion == 'success' &&
-        github.event.workflow_run.head_branch == 'main'))
+        github.event.workflow_run.head_branch == 'main')))
     needs: negative-tests
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 18
     env:
       GH_TOKEN: ${{ github.token }}
@@ -127,7 +131,7 @@ jobs:
           set -euo pipefail
           git archive --format=tar "$TESTED_FRONTEND_SHA" test | gzip -n > ../verified-output/sh59-tested-test-assets.tar.gz
           cd ../verified-output
-          sha256sum sh59-tested-test-assets.tar.gz sh59-tested-source-lock.json > SHA256SUMS
+          shasum -a 256 sh59-tested-test-assets.tar.gz sh59-tested-source-lock.json > SHA256SUMS
           echo 'VERIFIED_STAGING_HANDOFF_PACKAGED; PRODUCTION_UNCHANGED; FRESH_BACKUP_AND_OWNER_APPROVAL_STILL_REQUIRED'
       - name: Import the checked SH59 files into an isolated browser staging site
         shell: bash

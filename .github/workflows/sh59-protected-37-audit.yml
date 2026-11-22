@@ -17,11 +17,13 @@ permissions:
   attestations: write
 jobs:
   evaluate-protected-37:
-    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.display_title == 'SH59 QA20 full' && github.event.workflow_run.conclusion == 'success')) }}
+    if: >-
+      (github.event_name != 'workflow_run' || github.event.workflow_run.head_repository.full_name == github.repository) &&
+      (github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event.workflow_run.event == 'workflow_dispatch' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.display_title == 'SH59 QA20 full' && github.event.workflow_run.conclusion == 'success')))
     env:
       PROTECTED_RUN: ${{ inputs.protected_run || github.event.workflow_run.id }}
       EVALUATOR_SOURCE: 6e0a465b2b031558989f62b38dc7939797434686
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4

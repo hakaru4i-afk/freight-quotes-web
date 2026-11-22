@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   score-regression:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4

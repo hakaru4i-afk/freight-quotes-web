@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   smoke:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
       - name: Verify served QA assets and API without authentication or mutation
@@ -24,9 +24,9 @@ jobs:
           for file in app.js index.html build-info.json; do
             curl --fail --silent --show-error --location --retry 6 --retry-delay 2 --retry-all-errors "$url/$file" -o "/tmp/issue43-$file"
           done
-          printf '%s  %s\n' 'c090c779ee8519cd20b634397407ee996b4d9f4feb7f9c95087385c06956dc18' '/tmp/issue43-app.js' | sha256sum -c -
-          printf '%s  %s\n' '354c910bd460e24daf24fa38a428697f5d627c06f0002e0917eb73fc9247f6ef' '/tmp/issue43-index.html' | sha256sum -c -
-          printf '%s  %s\n' 'cbb469c19907d98ec7a664a1948490534b3680235a8efe4dd3e45a0d48dc8ca6' '/tmp/issue43-build-info.json' | sha256sum -c -
+          printf '%s  %s\n' 'c090c779ee8519cd20b634397407ee996b4d9f4feb7f9c95087385c06956dc18' '/tmp/issue43-app.js' | shasum -a 256 -c -
+          printf '%s  %s\n' '354c910bd460e24daf24fa38a428697f5d627c06f0002e0917eb73fc9247f6ef' '/tmp/issue43-index.html' | shasum -a 256 -c -
+          printf '%s  %s\n' 'cbb469c19907d98ec7a664a1948490534b3680235a8efe4dd3e45a0d48dc8ca6' '/tmp/issue43-build-info.json' | shasum -a 256 -c -
           curl --fail --silent --show-error --location --retry 5 --retry-delay 2 --retry-all-errors "$api/health" -o /tmp/issue43-health.json
           node --input-type=module -e '
             import fs from "node:fs";

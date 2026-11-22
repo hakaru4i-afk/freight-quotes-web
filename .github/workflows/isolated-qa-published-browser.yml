@@ -10,7 +10,7 @@ jobs:
   real-qa:
     if: github.ref == 'refs/heads/main'
     environment: isolated-qa
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 50
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
@@ -52,7 +52,7 @@ jobs:
           QA_CERTIFICATION_PASSWORD: ${{ secrets.QA_CERTIFICATION_PASSWORD }}
         run: node tests/task12-ci-auth.mjs
       - run: npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Read all role cabinets from actual published assets
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Full published railway and VED review lifecycle for 14 November

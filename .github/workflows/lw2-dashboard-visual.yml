@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   visual-staging:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Validate actual carrier overview selectors, layout and links
         run: node --test tests/lw2-dashboard-browser.test.mjs
       - name: Upload rendered desktop/mobile screenshots

@@ -24,8 +24,10 @@ env:
   FREIGHT_PROTECTED_CANDIDATE: 6e0a465b2b031558989f62b38dc7939797434686
 jobs:
   candidate-preflight:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name == 'pull_request'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -54,7 +56,9 @@ jobs:
           node --test tests/qa20-published-proof-contract.test.mjs tests/qa20-sl-recovery-guard.test.mjs tests/qa20-protected-run-guard.test.mjs
           git show "$GITHUB_SHA:scripts/qa20-served-browser.patch" | git apply --check --whitespace=error
   qa:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     environment: isolated-qa
     permissions:
       contents: read
@@ -63,7 +67,7 @@ jobs:
     concurrency:
       group: carrier124-main-oidc-verified
       cancel-in-progress: false
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, Linux, freight-mac-ci-vm]
     timeout-minutes: 55
     env:
       QA_ISOLATED_RUN: carrier124nov18

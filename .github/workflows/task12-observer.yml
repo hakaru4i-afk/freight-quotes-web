@@ -11,7 +11,7 @@ concurrency:
 jobs:
   published-smoke:
     name: "Staging: public availability & QA evidence contract"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
           retention-days: 30
   browser-smoke:
     name: "Staging: real desktop/mobile browser smoke (not authenticated E2E)"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 17
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
       - name: Install isolated Chromium test runtime
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Check staging login, localization and JavaScript errors at desktop and mobile
         shell: bash
         run: |
@@ -66,7 +66,7 @@ jobs:
           retention-days: 30
   all-robots:
     name: "Robots: execute 37 mapped checks, report PASS/PARTIAL/FAIL/BLOCKED"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 45
     permissions:
       contents: read
@@ -85,7 +85,7 @@ jobs:
       - name: Install isolated browser runtime
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Run all available Task1 + Task2 robot checks and produce inspectable report
         id: robot
         continue-on-error: true
@@ -117,7 +117,7 @@ jobs:
           fi
   authenticated-qa-preflight:
     name: "Protected QA: real Owner/Carrier/Logistic authentication and denial checks"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     permissions:
       contents: read
@@ -160,7 +160,7 @@ jobs:
           fi
   real-business-journey:
     name: "Real QA browser: Owner creates, Carriers bid, Owner selects, Carrier executes"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 25
     permissions:
       contents: read
@@ -181,7 +181,7 @@ jobs:
       - name: Install isolated Playwright Chromium
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Run real browser journey against isolated QA API only
         id: journey
         continue-on-error: true
@@ -217,7 +217,7 @@ jobs:
     name: "Release decision: 37 authenticated E2E + security + restore (fail closed)"
     if: always()
     needs: [all-robots, authenticated-qa-preflight, real-business-journey]
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     permissions:
       actions: read
@@ -260,7 +260,7 @@ jobs:
           echo "READY_FOR_OWNER_RELEASE_APPROVAL: Production still requires explicit Owner authorization."
   policy:
     name: "Scope safeguard"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     steps:
       - name: Confirm no production access or synthetic PASS is claimed
         shell: bash

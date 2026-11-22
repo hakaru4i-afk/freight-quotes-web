@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   permanent-delete-staging:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

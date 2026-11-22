@@ -16,7 +16,7 @@ concurrency:
 jobs:
   static-and-dom:
     name: FAQ syntax, role/locale and field tests
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -30,7 +30,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     name: Confirm GitHub Pages serves this exact FAQ
     needs: static-and-dom
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
             curl -fsSL --retry 2 --max-time 25 -H "Cache-Control: no-cache" "$BASE/current-workspace-help-20261108.js?run=$(printenv GITHUB_SHA)-$(date +%s)" -o /tmp/faq-guide.js || true
             if [[ -s /tmp/faq-index.html && -s /tmp/faq-guide.js ]] && grep -q "current-workspace-help-20261108.js?v=$FAQ_CACHE" /tmp/faq-index.html && cmp -s test/current-workspace-help-20261108.js /tmp/faq-guide.js; then
               echo "PASS: Live GitHub Pages /test/ serves the exact source FAQ bytes and matching content-addressed HTML."
-              sha256sum test/current-workspace-help-20261108.js /tmp/faq-guide.js
+              shasum -a 256 test/current-workspace-help-20261108.js /tmp/faq-guide.js
               exit 0
             fi
             echo "Pages is still catching up: attempt $attempt / 18"

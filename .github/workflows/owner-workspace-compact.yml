@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   code-and-dom:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -39,7 +39,7 @@ jobs:
   served-staging:
     if: github.event_name == 'workflow_dispatch'
     needs: code-and-dom
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
@@ -110,7 +110,7 @@ jobs:
   browser-visual:
     if: github.event_name == 'workflow_dispatch'
     needs: served-staging
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
