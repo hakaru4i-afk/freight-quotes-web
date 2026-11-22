@@ -43,7 +43,7 @@ const requestStatus=i=>{
  return latestStatus(i.status);
 };
 const deadlineChip=i=>{
- const d=deadlineOf(i);return d?'<span class="pf-deadline'+(isOverdue(i)?' pf-deadline-overdue':'')+'">'+
+ const d=deadlineOf(i);return d?'<span class="pf-item-meta"'+(isOverdue(i)?' style="color:#a01522!important;-webkit-text-fill-color:#a01522!important;font-weight:800"':'')+'>'+
  esc(t().date)+': '+esc(formatDeadline(d))+'</span>':'';
 };
 const categories=()=>({improvement:t().category==="Request type"?"Improvement":t().category==="申请类型"?"改进":categoryLabels.improvement,fix:byLang==="en"?"Fix":byLang==="zh"?"修复":categoryLabels.fix,development:byLang==="en"?"Development":byLang==="zh"?"开发":categoryLabels.development});
@@ -56,7 +56,7 @@ function form(){
  (draftCategory?'<label>'+esc(t().description)+'<textarea name="description" required maxlength="5000" minlength="10" rows="6" placeholder="'+esc(t().prompt)+'">'+esc(draftText)+'</textarea><small>10–5000 '+(byLang==="en"?"characters":byLang==="zh"?"个字符":"символов")+'</small></label>':'')+
  '<div class="pf-actions"><button type="submit" class="pf-primary" '+(!draftCategory||busy?'disabled':'')+'>'+esc(t().submit)+'</button><button type="button" class="pf-secondary" data-pf="cancel">'+esc(t().cancel)+'</button></div></form>';
 }
-function badge(i){return '<span class="pf-status pf-status-'+esc(isOverdue(i)?"overdue":i.status)+'">'+esc(requestStatus(i))+'</span>';}
+function badge(i){return '<span class="pf-status pf-status-'+esc(isOverdue(i)?"denied":i.status)+'">'+esc(requestStatus(i))+'</span>';}
 function itemsList(){
  let rows=data.items;
  if(data.owner){
@@ -105,7 +105,7 @@ function detail(){
  '<p class="pf-body">'+esc(item.description)+'</p>'+
  '<dl><dt>'+esc(t().authorLabel)+'</dt><dd>'+esc(item.sender_role+" · "+item.sender_login)+'</dd>'+
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
- (deadlineOf(item)?'<dt>'+esc(t().date)+'</dt><dd class="'+(isOverdue(item)?'pf-deadline-overdue':'')+'">'+esc(formatDeadline(deadlineOf(item)))+'</dd>':'')+
+ (deadlineOf(item)?'<dt>'+esc(t().date)+'</dt><dd'+(isOverdue(item)?' style="color:#a01522!important;-webkit-text-fill-color:#a01522!important;font-weight:800"':'')+'>'+esc(formatDeadline(deadlineOf(item)))+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
  progressPanel+handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
