@@ -100,3 +100,8 @@
 #portal-feedback-root .pf-ci-wait{color:#79521a!important;font-weight:650}
 #portal-feedback-root .pf-ci-success{color:#216245!important;font-weight:700}
 #portal-feedback-root .pf-release-guard button{margin-top:8px}
+
+/* Owner deadline is an execution commitment, never an automatic publication date. */
+#portal-feedback-root .pf-deadline{display:block;margin-top:8px;font-size:12px;font-weight:700;color:#274d3c!important;-webkit-text-fill-color:#274d3c!important}
+#portal-feedback-root .pf-deadline-overdue{color:#a01522!important;-webkit-text-fill-color:#a01522!important;font-weight:800}
+#portal-feedback-root .pf-status-overdue{background:#ffe8e8!important;color:#a01522!important;-webkit-text-fill-color:#a01522!important;border-color:#c24545!important}
