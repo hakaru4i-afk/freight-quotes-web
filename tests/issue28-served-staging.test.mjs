@@ -35,7 +35,7 @@ test("GitHub Pages serves document-only staging baseline or candidate byte-for-b
     // receipts still require exact byte identity with the supplied baseline.
     assert.equal(active.projectRef,expected.projectRef);
     assert.equal(active.environment,"staging");
-    assert.match(active.releaseVersion,/^SH-\\d{2}\\.\\d{2}\\.\\d{2} v$/);
+    assert.match(active.releaseVersion,/^SH-[0-9]{2}[.][0-9]{2}[.][0-9]{2} v$/);
     assert.equal(blob(app),active.servedAppBlobSha,"Published Pages manifest and bundle differ");
     assert.ok(html.toString("utf8").includes("./app.js?v="+blob(app).slice(0,12)),"Published HTML has an outdated app cache key");
     if(process.env.QA_SERVED_EXPECTED_DIR){
