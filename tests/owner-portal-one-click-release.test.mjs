@@ -31,3 +31,10 @@ test('only the protected Pages release builder promotes candidate bytes',()=>{
  assert.match(builder,/portal-feedback-center-20261107\.js/);
  assert.match(builder,/OWNER_RELEASE_CANDIDATE_MISSING/);
 });
+
+test('release evidence freshness rejects future and invalid workflow timestamps',()=>{
+ const evidence=readFileSync('scripts/release/owner-portal-verify-evidence.mjs','utf8');
+ assert.match(evidence,/Number\.isFinite\(age\)&&age>=0&&age<24\*60\*60\*1000/);
+ assert.match(evidence,/FRESH_PRODUCTION_BACKUP_MISSING_FOR_EXACT_BACKEND_SHA/);
+ assert.match(evidence,/INDEPENDENT_BACKUP_RESTORE_NOT_VERIFIED/);
+});
