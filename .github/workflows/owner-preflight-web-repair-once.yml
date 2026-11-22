@@ -1,0 +1,25 @@
+name: One-time frontend E2E verification repair validation (no release)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/owner-preflight-web-repair-once.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'test(owner): validate repaired E2E evidence reader'"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate exact-SHA frontend proof reader and release control
+        run: |
+          set -euo pipefail
+          node --check scripts/release/owner-portal-verify-evidence-frontend.mjs
+          node --check portal-feedback-center-20261107.js
+          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-register-publication.test.mjs tests/owner-ci-release-control.test.mjs
