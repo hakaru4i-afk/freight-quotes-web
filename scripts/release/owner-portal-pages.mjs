@@ -31,6 +31,16 @@ for(const name of readdirSync(root)){
  if(staticFiles.test(name))copy(p);
 }
 for(const required of ['index.html','test/index.html','portal-feedback-center-20261107.js','test/portal-feedback-center-20261107.js'])if(!files.includes(required))throw Error('RELEASE_ASSET_MISSING:'+required);
+const candidateFile=resolve(root,'release/owner-portal-feedback-center-20261122.js');
+if(!existsSync(candidateFile))throw Error('OWNER_RELEASE_CANDIDATE_MISSING');
+const candidate=readFileSync(candidateFile,'utf8');
+if(!candidate.includes("action:'release_update'")||!candidate.includes('?releaseProgress='))
+ throw Error('OWNER_RELEASE_ACTION_NOT_IN_REVIEWED_CANDIDATE');
+// Promote only into the immutable-to-be-published artifact, never mutate
+// a committed, currently served production file or its historical manifest.
+writeFileSync(resolve(out,'portal-feedback-center-20261107.js'),candidate);
+writeFileSync(resolve(out,'test/portal-feedback-center-20261107.js'),candidate);
+
 const latest=JSON.parse(readFileSync('release-status.json','utf8')),info=JSON.parse(readFileSync('build-info.json','utf8')),site=JSON.parse(readFileSync('site-status.json','utf8'));
 if(info.environment!=='production'||latest.status!=='released'||!latest.version)throw Error('CURRENT_PRODUCTION_VERSION_UNVERIFIED');
 const build=sha(fe+be+version).slice(0,20);
