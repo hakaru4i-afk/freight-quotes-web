@@ -22,7 +22,7 @@ test("terminal decision outweighs interim bid acceptance", () => {
   assert.equal(api.stage(note({round_result:"lost"}),bids),"archive");
   assert.equal(api.label(note({round_result:"lost"}),bids),"Не выбран · архив");
   assert.equal(api.stage(note({selected_offer:{bid_id:"bid-42"}}),bids),"selected");
-  assert.equal(api.label(note({selected_offer:{bid_id:"bid-42"}}),bids),"Победитель");
+  assert.equal(api.label(note({selected_offer:{bid_id:"bid-42"}}),bids),"Выиграна");
   assert.equal(api.stage(note({}),bids),"review");
   assert.equal(api.stage(note({workflow_status:"accepted"}),[]),"preparing");
   assert.equal(api.stage(note({completion_state:"completed",selected_offer:{}}),[]),"completed");
@@ -46,8 +46,8 @@ test("dashboard filters closed requests, picks real dates, sorts overdue first",
   assert.match(tasks[1].description,/забор/i);
 });
 test("carrier assets stay isolated until a verified production promotion", () => {
-  for(const tab of ["Готовлю","На рассмотрении","Выбранные","Исполнение","Выполненные","Архив"])assert.ok(app.includes(tab));
-  for(const marker of ['className:"carrier-card-deadline"','className:"carrier-card-subline"','className:"carrier-card-stage"','issue47Stage(x,b)===d','Ближайшие сроки и действия'])assert.ok(app.includes(marker), marker);
+  for(const tab of ["Новые","Просмотрены","Расчёт ставки","На рассмотрении","Выиграны","В пути","Завершены","Архив"])assert.ok(app.includes(tab), tab);
+  for(const marker of ['className:"carrier-card-deadline"','className:"carrier-card-subline"','className:"carrier-card-stage"','issue124CarrierMatches','Ближайшие сроки и действия'])assert.ok(app.includes(marker), marker);
   assert.match(css,/STAGING Issue #47 \/ B10-B11/);
   assert.equal(manifest.carrierWorkspace.status,"COMMITTED_STAGING_QA_PENDING");
   assert.ok(html.includes("app.js?v="+manifest.servedAppBlobSha.slice(0,12)));
