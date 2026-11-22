@@ -1,15 +1,15 @@
 name: Owner portal one-click production release
-run-name: Portal release ${{ inputs.task_id }} / ${{ inputs.request_id }}
+run-name: Portal release ${{ inputs.task_id || 'owner-manual' }} / ${{ inputs.request_id || github.run_id }}
 on:
   workflow_dispatch:
     inputs:
       task_id:
-        description: 'Authenticated Owner feedback task UUID'
-        required: true
+        description: 'Portal supplies the real task UUID; leave empty for an Owner manual run'
+        required: false
         type: string
       request_id:
-        description: 'One-time server-issued request UUID'
-        required: true
+        description: 'Portal generates the request UUID; leave empty for an Owner manual run'
+        required: false
         type: string
 permissions:
   contents: read
@@ -43,8 +43,14 @@ jobs:
           BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
         run: |
           set -euo pipefail
+          # An authenticated portal call supplies the existing task UUID and a
+          # server-generated release UUID. Manual Owner dispatch needs no inputs.
+          if [[ -z "$TASK_ID" ]]; then TASK_ID=$(cat /proc/sys/kernel/random/uuid); fi
+          if [[ -z "$REQUEST_ID" ]]; then REQUEST_ID=$(cat /proc/sys/kernel/random/uuid); fi
           [[ "$TASK_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
           [[ "$REQUEST_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
+          echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
+          echo "request_id=$REQUEST_ID" >> "$GITHUB_OUTPUT"
           test "$GITHUB_REPOSITORY" = "hakaru4i-afk/freight-quotes-web"
           test "$GITHUB_ACTOR" = "hakaru4i-afk"
           test "$GITHUB_REF" = "refs/heads/main"
