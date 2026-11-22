@@ -30,7 +30,7 @@ const minskDay=()=>{
  return fields.year+"-"+fields.month+"-"+fields.day;
 };
 const deadlineOf=i=>executionByFeedback.get(i.id)?.deadline||i.release_date||"";
-const formatDeadline=d=>/^\\d{4}-\\d{2}-\\d{2}$/.test(d)?d.slice(8)+"."+d.slice(5,7)+"."+d.slice(0,4):d;
+const formatDeadline=d=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d)?d.slice(8)+"."+d.slice(5,7)+"."+d.slice(0,4):d;
 const taskReady=i=>releaseReadiness.taskId===i.id&&releaseReadiness.ready===true;
 const isOverdue=i=>/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(deadlineOf(i))&&
  minskDay()>deadlineOf(i)&&!["completed","denied"].includes(i.status)&&!taskReady(i);
