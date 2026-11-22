@@ -1,6 +1,6 @@
 name: Owner-approved one-time release-button bootstrap
 # One Owner-approved UI-only publication. Never deploy backend, DB or unrelated main files.
-# Re-run solely for this explicitly approved 100%/4-check UI gate correction; normal releases use the portal button.
+# Re-run with the corrected RU/EN/ZH QA assertion for the approved 100%/4-check UI gate.
 on:
   push:
     branches: [main]
