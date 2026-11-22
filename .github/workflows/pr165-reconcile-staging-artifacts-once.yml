@@ -1,0 +1,59 @@
+name: PR165 one-time source-attested staging candidate regeneration (no deploy)
+on:
+  push:
+    branches:
+      - owner-task/3c709b93-3b71-4803-9d04-9284e13105fe
+    paths:
+      - .github/workflows/pr165-reconcile-staging-artifacts-once.yml
+permissions:
+  contents: write
+concurrency:
+  group: pr165-asset-regeneration-one-shot
+  cancel-in-progress: false
+jobs:
+  reconcile:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/owner-task/3c709b93-3b71-4803-9d04-9284e13105fe'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: owner-task/3c709b93-3b71-4803-9d04-9284e13105fe
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact reviewed source coherence before any regeneration
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(git status --porcelain)"
+          node scripts/build-process-maps.mjs --check
+          node --check scripts/stamp-staging-rc.mjs
+      - name: Regenerate ONLY unpublished /test source-attested artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/build-process-maps.mjs --check
+          git diff --check
+          if git diff --name-only | grep -Ev '^test/'; then
+            echo "::error::Unexpected non-staging file changed; refusing commit"; exit 1
+          fi
+      - name: Commit verified candidate assets and remove this one-shot workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = 'refs/heads/owner-task/3c709b93-3b71-4803-9d04-9284e13105fe'
+          git add -- test/
+          git rm -- .github/workflows/pr165-reconcile-staging-artifacts-once.yml
+          git diff --cached --check
+          git diff --cached --name-only | grep -Ev '^(test/|\.github/workflows/pr165-reconcile-staging-artifacts-once.yml$)' && {
+            echo "::error::Unapproved file staged"; exit 1
+          } || true
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "build(pr165): regenerate reviewed QA assets without production changes"
+          git push origin HEAD:refs/heads/owner-task/3c709b93-3b71-4803-9d04-9284e13105fe
