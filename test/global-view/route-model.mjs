@@ -102,6 +102,9 @@ export function placeIndex(rows) {
   const knownAddress = label => {
     const haystack=normal(label),country=addressCountry(label),found=[];
     if(country===null)return null;
+    // A city-centre lookup must never silently turn a numbered street address
+    // into a verified stop; street-level positions require a separate geocoder.
+    if(/(?:\b\d+\s+[\p{L}\s]+\b(?:street|st|road|rd|avenue|ave|lane|drive)\b|\bулиц[аы]\b|\bул\.\s*\d)/iu.test(haystack))return null;
     for(const name of candidateNames){
       if(!hasName(haystack,name))continue;
       const target=aliasIndex.get(name)||name;
