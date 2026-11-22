@@ -18,6 +18,13 @@ test('release candidate button waits for 100% and 4 out of 4 checks',()=>{
  assert.match(candidate,/execution\?\.progress===100&&execution\?\.checksPassed===true/);
  assert.match(candidate,/readiness\?\.passed===4&&readiness\?\.total===4/);
 });
+test('release hint counts four stage groups rather than raw individual CI jobs',()=>{
+ assert.match(candidate,/const kinds=\['frontend','backend','e2e','recovery'\]/);
+ assert.match(candidate,/stage\.length>0&&stage\.every\(x=>x\.pass===true\)/);
+ assert.match(candidate,/passed,total:4/);
+ assert.match(candidate,/releaseT\(\)\.testsSummary\+': '\+testsPassed\+'\/4'/);
+ assert.match(candidate,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+});
 test('candidate receives protected server job state and displays milestones',()=>{
  assert.match(candidate,/\?releaseProgress=/);
  assert.match(candidate,/releaseRun=body\.release/);

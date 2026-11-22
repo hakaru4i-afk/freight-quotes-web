@@ -148,7 +148,10 @@ async function refreshReleaseReadiness(){
   if(seq!==releaseReadinessRequest||selected!==item.id)return;
   // Only the authenticated API can authorize a release. Unknown/failed responses deny it.
   const checks=Array.isArray(result.checks)?result.checks:[];
-  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',checks,passed:checks.filter(x=>x?.pass===true).length,total:4,message:result.message||'Ожидаются тесты'};
+  // Each release group counts once, even when a group contains several CI jobs.
+  const kinds=['frontend','backend','e2e','recovery'];
+  const passed=kinds.filter(kind=>{const stage=checks.filter(x=>x?.kind===kind);return stage.length>0&&stage.every(x=>x.pass===true)}).length;
+  releaseReadiness={taskId:item.id,ready:response.ok&&result.ok===true&&result.ready===true&&result.status==='READY',checks,passed,total:4,message:result.message||'Ожидаются тесты'};
  }catch{
   if(seq!==releaseReadinessRequest||selected!==item.id)return;
   releaseReadiness={taskId:item.id,ready:false,message:'Ожидаются тесты'};
