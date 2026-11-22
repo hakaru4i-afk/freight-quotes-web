@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-reviewed-button:
-    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'Merge pull request #168 ')
+    if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (startsWith(github.event.head_commit.message, 'Merge pull request #168 ') || github.event.head_commit.message == 'fix(owner): activate verified one-time release button bootstrap')"
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
