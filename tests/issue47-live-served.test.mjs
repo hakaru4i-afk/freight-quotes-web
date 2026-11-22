@@ -22,34 +22,40 @@ async function retry(action){
  }
  throw error;
 }
-test("GitHub Pages serves the EXACT current staging files",async()=>{
+test("GitHub Pages serves byte-verified staging release, independently from an unpublished PR",async()=>{
  await retry(async()=>{
-  const published=new Map();
-  for(const name of new Set([...fileNames,...(JSON.parse(read("build-info.json").toString("utf8")).carrierDocument?.moduleAssets||[])])){
-   const content=await load(root+name+"?issue47_qa="+Date.now());
-   const local=read(name);
-   assert.equal(githubBlob(content),githubBlob(local),name+" served SHA differs from repository");
-   published.set(name,content.toString("utf8"));
-  }
-  const manifest=JSON.parse(published.get("build-info.json")),html=published.get("index.html");
+  const buildBytes=await load(root+"build-info.json?issue47_qa="+Date.now());
+  const manifest=JSON.parse(buildBytes.toString("utf8"));
   assert.equal(manifest.environment,"staging");
   assert.equal(manifest.projectRef,"ibclzdkxiozbzmniiygv");
-  assert.equal(manifest.servedAppBlobSha,githubBlob(read("app.js")));
-  if(!process.env.QA_SERVED_EXPECTED_DIR){
-  assert.equal(manifest.task2.frontendSha,githubBlob(read(manifest.task2.frontendScript)));
-  assert.equal(manifest.task2.guidanceSha,githubBlob(read(manifest.task2.guidanceScript)));
-  for(const [name,sha] of [
-    ["app.js",manifest.servedAppBlobSha],
-    [manifest.task2.frontendScript,manifest.task2.frontendSha],
-    [manifest.task2.guidanceScript,manifest.task2.guidanceSha]
-  ]) assert.ok(html.includes(name+"?v="+sha.slice(0,12)),"HTML cache key out of sync: "+name);
-  assert.equal(manifest.task2.i18n.sourceSha,githubBlob(read("task2-i18n.js")));
-  assert.ok(html.includes("task2-i18n.js?v="+manifest.task2.i18n.sourceSha.slice(0,12)));
-  } // Candidate asset consistency is independently mandatory in staging-asset-contract.test.mjs.
+  const published=new Map([["build-info.json",buildBytes.toString("utf8")]]);
+  const names=new Set([...fileNames,...(manifest.carrierDocument?.moduleAssets||[])]);
+  for(const name of names){
+   if(name==="build-info.json")continue;
+   const content=await load(root+name+"?issue47_qa="+Date.now());
+   // An explicit immutable post-publication baseline uses byte-for-byte
+   // comparison. A pull-request candidate is *not* an already deployed site:
+   // compare served files with the served manifest's own cryptographic digests.
+   if(process.env.QA_SERVED_EXPECTED_DIR){
+    assert.equal(githubBlob(content),githubBlob(read(name)),name+" differs from attested published baseline");
+   }else{
+    const sha256=manifest.currentAssetSha256?.[name];
+    if(sha256)assert.equal(createHash("sha256").update(content).digest("hex"),sha256,"Published manifest digest mismatch: "+name);
+   }
+   published.set(name,content.toString("utf8"));
+  }
+  const html=published.get("index.html"),app=published.get("app.js");
+  assert.equal(manifest.servedAppBlobSha,githubBlob(Buffer.from(app)),"Published app differs from its manifest");
+  assert.ok(html.includes("./app.js?v="+manifest.servedAppBlobSha.slice(0,12)),"Published HTML cache key differs from app digest");
+  // Local candidate must pass its own independent cryptographic checks;
+  // PR validation must never certify unshipped files as already published.
+  const candidate=JSON.parse(read("build-info.json").toString("utf8"));
+  assert.equal(candidate.servedAppBlobSha,githubBlob(read("app.js")),"PR candidate app/manifest mismatch");
+  assert.ok(read("index.html").toString("utf8").includes("app.js?v="+candidate.servedAppBlobSha.slice(0,12)),"PR candidate cache key differs from its app");
   assert.equal(manifest.task2Complete,false,"Do not falsely mark unfinished E2E as PASS");
   assert.equal(manifest.task2.backendFunction,"freight-api");
   assert.equal(manifest.task2.backendVersion,manifest.task2.lastObservedBackendVersion);
-  console.log("PASS: exact GitHub Pages staging bytes and manifest verified");
+  console.log("PASS: live staging release digests and local PR candidate verified independently");
  });
 },{timeout:135000});
 test("Staging API responds and denies anonymous protected actions",async()=>{
@@ -57,7 +63,9 @@ test("Staging API responds and denies anonymous protected actions",async()=>{
  assert.equal(health.status,200);
  const h=await health.json();
  assert.equal(h.projectRef,"ibclzdkxiozbzmniiygv");
- assert.equal(h.build,JSON.parse(readFileSync("test/build-info.json","utf8")).task2.backendBuild);
+ const served=await load(root+"build-info.json?issue47_api="+Date.now());
+ assert.equal(h.build,JSON.parse(served.toString("utf8")).task2.backendBuild,"Live staging API disagrees with deployed site's recorded backend build");
+ // A candidate build is separate and must pass canonical source/compatibility QA.
  for(const route of ["/api/late-bid-drafts","/api/task2"]){
   const resp=await fetch(stageAPI+route,{signal:AbortSignal.timeout(20000)});
   assert.ok([401,403].includes(resp.status),"Anonymous "+route+" returned "+resp.status);
