@@ -83,10 +83,10 @@ function detail(){
   '<h4>'+esc(lines.title)+'</h4>'+
   '<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>'+ 
   (Number.isInteger(runState.progress)&&runState.progress>=0&&runState.progress<=100?'<progress value="'+runState.progress+'" max="100" aria-label="'+esc(lines.running)+'"></progress><small>'+runState.progress+'% · '+esc(runState.stage||'')+'</small>':'')+
-  '<small role="status">'+esc(releaseGateLabel)+'</small><small>'+esc(lines.help)+'</small>'+
+  '<small>'+esc(lines.help)+'</small>'+
   (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+    esc(isRunning?lines.running:lines.launch)+'</button><p class="'+(releaseReady?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(releaseGateLabel)+'</p></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
