@@ -62,9 +62,8 @@ jobs:
         env:
           INPUTS_JSON: ${{ toJSON(inputs) }}
           GITHUB_WEB_TOKEN: ${{ github.token }}
-          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
         run: |
           set -euo pipefail
           readarray -t pins < <(node -e 'const x=JSON.parse(process.env.INPUTS_JSON);console.log(x.frontend_sha);console.log(x.backend_sha)')
           test "$GITHUB_SHA" = "${pins[0]}"
-          FRONTEND_SHA="${pins[0]}" BACKEND_SHA="${pins[1]}" node scripts/release/owner-portal-verify-evidence.mjs
+          FRONTEND_SHA="${pins[0]}" BACKEND_SHA="${pins[1]}" node scripts/release/owner-portal-verify-evidence-frontend.mjs
