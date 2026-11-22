@@ -63,7 +63,8 @@ jobs:
             tests/map50-owner-km-before-bid.test.mjs \
             tests/task2-contrast.test.mjs \
             tests/issue47-owner-optional-reason.test.mjs \
-            tests/owner-ci-release-control.test.mjs
+            tests/owner-ci-release-control.test.mjs \
+            tests/owner-release-evidence-failclosed.test.mjs
       - name: Validate generated CSS bundle and asset ordering
         run: |
           if [ -f scripts/build-css-bundle.mjs ]; then
