@@ -678,7 +678,7 @@
     "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
     "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
     "test/task2-panel.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
-    "test/global-view/route-model.mjs": "85ac032afcedb4461699c1275994bdba916113f4797e8d60445b738fa615de8b",
+    "test/global-view/route-model.mjs": "9afcdeb08c446768cecd514b057fdbacc32b8dbb94f07d2a43ef5db5d172a8d2",
     "test/global-view/distance.mjs": "5afbc5bce74f0145f7cbbdbf92cd451c34392e2ffaad998cdf53c3ddde3f7297",
     "test/global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
     "test/global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13"
