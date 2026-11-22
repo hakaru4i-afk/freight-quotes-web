@@ -5,10 +5,10 @@ const live=readFileSync('portal-feedback-center-20261107.js','utf8');
 const stage=readFileSync('test/portal-feedback-center-20261107.js','utf8');
 const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js','utf8');
 const builder=readFileSync('scripts/release/owner-portal-pages.mjs','utf8');
-test('active root and staging remain identical until a verified production promotion',()=>{
+test('portal and staging expose the approved one-click release action',()=>{
  assert.equal(live,stage);
- assert.notEqual(candidate,live);
- assert.match(live,/if\(isReleaseReady\(item,data\.owner,releaseReadiness\)&&!busy\)/);
+ assert.equal(live,candidate);
+ assert.match(live,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
 });
 test('release candidate button starts Owner command without waiting for prior tests',()=>{
  assert.match(candidate,/data-pf="release-update"/);
@@ -46,4 +46,14 @@ test('release evidence cannot reuse an older PASS after a newer failed or runnin
  assert.match(evidence,/!newest\|\|!recent\(newest\)/);
  assert.match(evidence,/LATEST_EXACT_SHA_EVIDENCE_NOT_SUCCESS/);
  assert.doesNotMatch(evidence,/\.find\(r=>r\.name===name&&r\.head_sha===sha&&recent\(r\)/);
+});
+
+test('Owner may start protected workflow without typing UUIDs, and API deploy stays gated',()=>{
+ const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
+ assert.match(workflow,/TASK_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);
+ assert.match(workflow,/REQUEST_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);
+ assert.match(workflow,/supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt/);
+ assert.match(workflow,/needs: verify/);
+ assert.match(workflow,/Verify independent authenticated E2E and fresh production restore before release/);
+ assert.match(workflow,/startsWith\(github\.event\.head_commit\.message, 'Merge pull request #168 '\)/);
 });

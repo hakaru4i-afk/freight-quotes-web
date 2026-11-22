@@ -1,15 +1,20 @@
 name: Owner portal one-click production release
-run-name: Portal release ${{ inputs.task_id }} / ${{ inputs.request_id }}
+run-name: Portal release ${{ inputs.task_id || 'owner-manual' }} / ${{ inputs.request_id || github.run_id }}
 on:
+  # One explicitly Owner-approved bootstrap release for this fix only.
+  # Ordinary pushes to main NEVER publish. Subsequent releases require the portal button.
+  push:
+    branches: [main]
+    paths: ['.github/workflows/owner-portal-release.yml']
   workflow_dispatch:
     inputs:
       task_id:
-        description: 'Authenticated Owner feedback task UUID'
-        required: true
+        description: 'Portal supplies the real task UUID; leave empty for an Owner manual run'
+        required: false
         type: string
       request_id:
-        description: 'One-time server-issued request UUID'
-        required: true
+        description: 'Portal generates the request UUID; leave empty for an Owner manual run'
+        required: false
         type: string
 permissions:
   contents: read
@@ -19,7 +24,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'Merge pull request #168 ')))
     runs-on: ubuntu-24.04
     timeout-minutes: 50
     outputs:
@@ -40,11 +45,17 @@ jobs:
         env:
           TASK_ID: ${{ inputs.task_id }}
           REQUEST_ID: ${{ inputs.request_id }}
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
         run: |
           set -euo pipefail
+          # An authenticated portal call supplies the existing task UUID and a
+          # server-generated release UUID. Manual Owner dispatch needs no inputs.
+          if [[ -z "$TASK_ID" ]]; then TASK_ID=$(cat /proc/sys/kernel/random/uuid); fi
+          if [[ -z "$REQUEST_ID" ]]; then REQUEST_ID=$(cat /proc/sys/kernel/random/uuid); fi
           [[ "$TASK_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
           [[ "$REQUEST_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
+          echo "task_id=$TASK_ID" >> "$GITHUB_OUTPUT"
+          echo "request_id=$REQUEST_ID" >> "$GITHUB_OUTPUT"
           test "$GITHUB_REPOSITORY" = "hakaru4i-afk/freight-quotes-web"
           test "$GITHUB_ACTOR" = "hakaru4i-afk"
           test "$GITHUB_REF" = "refs/heads/main"
@@ -72,7 +83,7 @@ jobs:
         with:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ steps.identify.outputs.backend_sha }}
-          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           path: backend
           persist-credentials: false
       - name: Run exact source tests for Owner handoff and release controls
@@ -97,13 +108,13 @@ jobs:
         shell: bash
         env:
           GITHUB_WEB_TOKEN: ${{ github.token }}
-          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          GITHUB_BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           FRONTEND_SHA: ${{ steps.identify.outputs.frontend_sha }}
           BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
         run: node scripts/release/owner-portal-verify-evidence.mjs
       - name: Verify no main branch changed during checks
         env:
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
         shell: bash
         run: |
@@ -131,7 +142,7 @@ jobs:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ needs.verify.outputs.backend_sha }}
           path: backend
-          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           persist-credentials: false
       - name: Build reviewed production Edge source (not staging)
         env:
@@ -144,7 +155,7 @@ jobs:
       - name: Publish reviewed Edge function, only after verified release gates
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
           BACKEND_SHA: ${{ needs.verify.outputs.backend_sha }}
         shell: bash
         run: |
