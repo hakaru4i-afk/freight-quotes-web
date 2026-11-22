@@ -8,23 +8,28 @@ const functionText=main.match(/const isReleaseReady=.*?;\n/)[0];
 const sandbox={};
 runInNewContext(functionText+'\nglobalThis.check=isReleaseReady;',sandbox);
 test('root and staging keep exactly the same gate logic',()=>assert.equal(main,staging));
-test('owner and exact task READY are mandatory',()=>{
- const item={id:'task-4',status:'release'};
- assert.equal(sandbox.check(item,true,{taskId:'task-4',ready:true}),true);
+test('only 100% progress and four verified gates enable release',()=>{
+ const item={id:'task-4',status:'release'},ready={taskId:'task-4',ready:true,passed:4,total:4},done={progress:100,checksPassed:true};
+ assert.equal(sandbox.check(item,true,ready,done),true);
  for(const args of [
-  [item,false,{taskId:'task-4',ready:true}],
-  [item,true,{taskId:'other',ready:true}],
-  [item,true,{taskId:'task-4',ready:false}],
-  [{...item,status:'completed'},true,{taskId:'task-4',ready:true}],
-  [item,true,undefined]
+  [item,false,ready,done],
+  [item,true,{...ready,taskId:'other'},done],
+  [item,true,{...ready,ready:false},done],
+  [item,true,{...ready,passed:3},done],
+  [item,true,ready,{progress:50,checksPassed:false}],
+  [item,true,ready,{progress:90,checksPassed:true}],
+  [{...item,status:'completed'},true,ready,done],
+  [item,true,undefined,done]
  ])assert.equal(sandbox.check(...args),false);
 });
-test('browser can initiate release but cannot self-approve publication',()=>{
+test('browser cannot release before server readiness and 100 percent work',()=>{
  assert.match(main,/response\.ok&&result\.ok===true&&result\.ready===true&&result\.status==='READY'/);
  assert.match(main,/\.filter\(status=>status!=='completed'\)/);
  assert.match(main,/data-pf="release-update"/);
  assert.match(main,/Ожидаются тесты/);
- assert.match(main,/if\(data\.owner&&item&&\['in_progress','release'\]\.includes\(item\.status\)&&!busy\)/);
- assert.match(main,/isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+ assert.match(main,/if\(isReleaseReady\(item,data\.owner,releaseReadiness,executionByFeedback\.get\(item\?\.id\)\)&&!busy\)/);
+ assert.match(main,/!releaseReady\|\|isRunning\|\|isConfirmed\|\|busy\?'disabled':''/);
+ assert.match(main,/releaseGateLabel/);
+ assert.match(main,/readySummary:'Готово к выпуску'/);
  assert.match(main,/action:'release_update'/);
 });
