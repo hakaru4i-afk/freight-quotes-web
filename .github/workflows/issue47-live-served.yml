@@ -1,12 +1,6 @@
 name: Task2 exact live staging served checks
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'test/**'
-      - 'tests/issue47-live-served.test.mjs'
-      - '.github/workflows/issue47-live-served.yml'
 permissions:
   contents: read
 concurrency:

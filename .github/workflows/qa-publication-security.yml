@@ -2,9 +2,6 @@ name: QA publication privacy gate
 on:
   pull_request:
     paths: ['test/**', 'docs/**', 'scripts/qa-publication-gate.mjs', 'tests/qa-publication-gate.test.mjs', '.github/workflows/qa-publication-security.yml']
-  push:
-    branches: [main]
-    paths: ['test/**', 'docs/**', 'scripts/qa-publication-gate.mjs', 'tests/qa-publication-gate.test.mjs', '.github/workflows/qa-publication-security.yml']
   workflow_dispatch:
 permissions:
   contents: read
