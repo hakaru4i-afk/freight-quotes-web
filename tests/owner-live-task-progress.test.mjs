@@ -110,3 +110,11 @@ test('incomplete alignment cannot certify API parity',()=>{
  assert.equal(x.stages[4].passed,false);
  assert.equal(x.releaseReady,false);
 });
+
+test('both Owner entrypoints request up to 100 recent CI runs to avoid losing active jobs in busy branches',()=>{
+ for(const path of ['owner-live-task-progress-20261121.mjs','test/owner-live-task-progress-20261121.mjs']){
+  const source=readFileSync(path,'utf8');
+  assert.match(source,/actions\/runs\?branch=.*&per_page=100/);
+  assert.doesNotMatch(source,/actions\/runs\?branch=.*&per_page=50/);
+ }
+});
