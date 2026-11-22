@@ -82,6 +82,6 @@ test('Owner may start protected workflow without typing UUIDs, and API deploy st
  assert.match(workflow,/REQUEST_ID=\$\(cat \/proc\/sys\/kernel\/random\/uuid\)/);
  assert.match(workflow,/supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt/);
  assert.match(workflow,/needs: verify/);
- assert.match(workflow,/Verify independent authenticated E2E and fresh production restore before release/);
+ assert.match(workflow,/Verify recent main browser E2E and fresh encrypted production backup before release/);
  assert.match(workflow,/startsWith\(github\.event\.head_commit\.message, 'Merge pull request #168 '\)/);
 });

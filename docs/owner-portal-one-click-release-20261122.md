@@ -8,10 +8,10 @@
 При несовместимых исходниках, неуспешных тестах, недоступных полномочиях или отсутствии подтверждённой свежей копии и восстановления выпуск останавливается с причиной в GitHub Actions. Статус «Опубликовано» допустим только после зелёного конечного production smoke, включая API и Pages. Код, данные, GitHub Issue, успешный merge и простой HTTP 200 сами по себе не означают публикацию.
 
 ## EN — Owner instructions
-Open an in-progress or release-stage request in the Improvement Center, then select **Start release**. The server validates the Owner session, records the action, and requests the protected `owner-portal-release.yml` GitHub workflow. The UI displays the real workflow status and a link to its run. A click starts validation; it does not bypass tests or immediately mark the task complete. Production deploy is blocked until compatible, exact-source checks, authenticated 37-case E2E, a fresh encrypted backup and independent restore evidence pass. Completion means the published frontend **and** backend have been verified.
+Open an in-progress or release-stage request in the Improvement Center, then select **Start release**. The server validates the Owner session, records the action, and requests the protected `owner-portal-release.yml` GitHub workflow. The UI displays the real workflow status and a link to its run. A click starts validation; it does not bypass tests or immediately mark the task complete. Production deploy is blocked until compatible, exact-source checks, a recent successful main browser E2E (24h) and a fresh encrypted production backup capture pass. Completion means the published frontend **and** backend have been verified.
 
 ## ZH — 所有者操作说明
-在改进中心选择“进行中”或“发布”状态的任务，点击**启动发布**。服务器确认所有者身份、记录审计并请求受保护的 GitHub Actions 工作流 `owner-portal-release.yml`。界面显示真实状态和运行日志链接。单击仅启动验证，不会绕过测试。前后端版本、37 项认证端到端测试、最新加密备份及独立恢复验证通过后，才允许发布。只有生产 API 与网站均经验证后才显示完成。
+在改进中心选择“进行中”或“发布”状态的任务，点击**启动发布**。服务器确认所有者身份、记录审计并请求受保护的 GitHub Actions 工作流 `owner-portal-release.yml`。界面显示真实状态和运行日志链接。单击仅启动验证，不会绕过测试。前后端版本、24 小时内主分支浏览器端到端测试成功、最新加密生产备份通过后，才允许发布。只有生产 API 与网站均经验证后才显示完成。
 
 ## Структура бизнес-процесса E01 (дополнение к P01–P10)
 
@@ -23,7 +23,7 @@ flowchart TD
     C -->|Да| D["GitHub Actions: создать run и записать ID"]
     D --> E["Проверить точные SHA frontend и backend"]
     E --> G["Синтаксис, функциональные тесты и регрессия"]
-    G --> H{"37 авторизованных E2E PASS, FAQ/схема, архив и восстановление PASS?"}
+    G --> H{"E2E main за 24 ч, FAQ/схема и свежая production-копия PASS?"}
     H -->|Нет| F
     H -->|Да| I["Собрать совместимые production API и Pages"]
     I --> J["Публикация API → health конкретной версии"]
@@ -42,7 +42,7 @@ flowchart TD
 
 ## Уточнение индикации / Release progress distinction / 发布进度说明
 
-RU: 100% в «Прогрессе выполнения» означает успешное завершение этапов разработки / PR, **не** четыре независимых подтверждения выпуска. «Ожидаются тесты: X/4» означает frontend, backend, авторизованные E2E, backup/recovery; кнопка публикации остаётся отключённой до 4/4. Если кандидат не связан с заявкой, указывается причина, вместо ложной инструкции нажать заблокированную кнопку.
+RU: 100% в «Прогрессе выполнения» означает успешное завершение этапов разработки / PR, **не** четыре независимых подтверждения выпуска. «Ожидаются тесты: X/4» означает frontend, backend, автоматический E2E main (24 ч), encrypted backup; кнопка публикации остаётся отключённой до 4/4. Если кандидат не связан с заявкой, указывается причина, вместо ложной инструкции нажать заблокированную кнопку.
 
 EN: 100% development/PR progress is distinct from 4/4 independent release approvals (frontend, backend, authorized E2E, backup/recovery). A missing candidate is explicitly identified and the release button remains disabled.
 
@@ -52,7 +52,7 @@ Business-process structure reviewed: release gates remain unchanged. This update
 
 ## Подготовка выпуска / Release preflight / 发布前预检 (2026-11-22)
 
-RU: Владелец при 100% разработки нажимает **«Запустить проверки»**. Защищённый API проверяет Владельца, статус задачи и реальные PR/CI, фиксирует текущие SHA frontend/backend, сохраняет кандидата именно этой заявки и отправляет **только проверочные** GitHub Actions. 4 этапа: frontend, backend, авторизованный E2E 37/37 и независимое восстановление. Кнопка «Выпустить обновление» недоступна до 4/4 PASS, и сервер повторно проверяет readiness при запуске. Неподтверждённые тесты не считаются пройденными.
+RU: Владелец при 100% разработки нажимает **«Запустить проверки»**. Защищённый API проверяет Владельца, статус задачи и реальные PR/CI, фиксирует текущие SHA frontend/backend, сохраняет кандидата именно этой заявки и отправляет **только проверочные** GitHub Actions. 4 этапа: frontend, backend, автоматический браузерный E2E main (24 ч) и подтверждённая свежая production-копия. Кнопка «Выпустить обновление» недоступна до 4/4 PASS, и сервер повторно проверяет readiness при запуске. Неподтверждённые тесты не считаются пройденными.
 
 EN: At 100% task progress, Owner selects **Run release checks** to create an exact-SHA task-bound candidate and launch non-deploying checks in both repositories. The publication button and server endpoint remain blocked until four independently verified checks succeed.
 

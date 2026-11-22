@@ -58,7 +58,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Verify 37 authenticated real E2E scenarios and exact-SHA artifacts
+      - name: Verify latest successful automatic browser E2E on main (24h)
         env:
           INPUTS_JSON: ${{ toJSON(inputs) }}
           GITHUB_WEB_TOKEN: ${{ github.token }}

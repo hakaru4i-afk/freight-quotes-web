@@ -104,7 +104,7 @@ jobs:
           npx playwright install --with-deps chromium
           node --test --test-concurrency=2 tests/*.test.mjs
           (cd backend && node --test tests/*.test.mjs)
-      - name: Verify independent authenticated E2E and fresh production restore before release
+      - name: Verify recent main browser E2E and fresh encrypted production backup before release
         shell: bash
         env:
           GITHUB_WEB_TOKEN: ${{ github.token }}
