@@ -11,7 +11,7 @@ jobs:
   task-e2e:
     if: >-
       github.event.pull_request.head.repo.full_name == github.repository &&
-      startsWith(github.head_ref, 'owner-task/')
+      (startsWith(github.head_ref, 'owner-task/') || github.head_ref == 'fix/owner-portal-one-click-release-20261122')
     name: task-e2e
     runs-on: ubuntu-24.04
     timeout-minutes: 25
