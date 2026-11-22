@@ -34,3 +34,12 @@ test('Failed GitHub handoff remains an error, preserves retry and never reports 
  assert.match(source,/Это ещё не подтверждение запуска модели Codex/);
  assert.doesNotMatch(source,/localStorage\.setItem\([^\n]*TOKEN/);
 });
+
+test('Release control remains fail-closed across task selection and failed readiness reads',()=>{
+ assert.match(source,/const isReleaseReady=\(item,isOwner,readiness\)=>isOwner===true&&\['in_progress','release'\]\.includes\(item\?\.status\)&&readiness\?\.taskId===item\.id&&readiness\?\.ready===true/);
+ assert.match(source,/const releaseReady=isReleaseReady\(item,data\.owner,releaseReadiness\)/);
+ assert.match(source,/data-pf="release-update"/);
+ assert.match(source,/\(!releaseReady\|\|busy\?'disabled':''\)/);
+ assert.match(source,/response\.ok&&result\.ok===true&&result\.ready===true&&result\.status==='READY'/);
+ assert.match(source,/if\(seq!==releaseReadinessRequest\|\|selected!==item\.id\)return/);
+});
