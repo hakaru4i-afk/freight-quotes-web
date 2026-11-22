@@ -23,6 +23,6 @@ test('protected release checks evidence before deployment',()=>{
   const workflow=read('.github/workflows/owner-portal-release.yml');
   const check=workflow.indexOf('node scripts/release/owner-portal-verify-evidence.mjs');
   assert.ok(check>=0,'missing release evidence verification');
-  const deploy=workflow.search(/(?:deploy|publish).*production/i);
-  assert.ok(deploy<0||check<deploy,'evidence must precede production deploy');
+  const next=workflow.indexOf('Verify no main branch changed during checks');
+  assert.ok(next>check,'evidence must precede final release consistency checks');
 });
