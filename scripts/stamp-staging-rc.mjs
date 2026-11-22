@@ -41,13 +41,15 @@ collectVisual();visualAssets.sort();
 const visualSignature=Object.fromEntries(visualAssets.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));
 const signature=Object.fromEntries(files.map(name=>[name,hash(name==='app.js'?app.replace(pattern,'currentVersion:"BUILD_ID"'):readFileSync(resolve(root,'test',name)))]));
 // HTML order affects styling and execution even when every asset byte is unchanged.
-const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[a-zA-Z0-9-]+/g,'$1'));
+// Cache identity excludes only v= values (including percent-encoded releases),
+// retaining other query parameters such as rev= for a fail-closed HTML structure audit.
+const htmlStructureSha256=hash(html.replace(/(\.(?:js|mjs|css))\?v=[^"'&\s]+/g,'$1'));
 const buildId=hash(JSON.stringify({assets:signature,htmlStructureSha256,visualAssets:visualSignature,backendBundle:meta.stabilizationQa20261110.sharedBackendBundleSha256})).slice(0,20);
 const critical=files.filter(name=>html.includes('./'+name+'?v=')||html.includes('./'+name+'"'));
 if(process.argv.includes('--write')){
  if(meta.stagingAssetBuildId!==buildId||!meta.assetBuildRecordedAt)meta.assetBuildRecordedAt=new Date().toISOString();
  app=app.replace(pattern,'currentVersion:"'+buildId+'"');write('app.js',app);
- for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[a-z0-9-]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
+ for(const name of critical){if(html.includes('./'+name+'"'))html=html.replace('./'+name+'"','./'+name+'?v='+blob(name).slice(0,12)+'"');const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const re=new RegExp('('+escaped+'\\?v=)[^"&\\s]+','g');if([...html.matchAll(re)].length!==1)throw Error('CACHE_ENTRY_NOT_UNIQUE:'+name);html=html.replace(re,'$1'+blob(name).slice(0,12));}
  meta.servedStyleBlobSha=blob('style.css');meta.lateBidUiSha=blob(meta.lateBidUiScript);meta.task2.guidanceSha=blob(meta.task2.guidanceScript);meta.task2.i18n.sourceSha=blob('task2-i18n.js');meta.task2.isolatedQaBundleSha256=meta.stabilizationQa20261110.isolatedQaBundleSha256;
  meta.servedAppBlobSha=blob('app.js');meta.task2.frontendSha=blob(meta.task2.frontendScript);meta.task2.styleSha=blob('task2.css');meta.carrierAcceptance.blobSha=blob(meta.carrierAcceptance.script);meta.stagingAssetBuildId=buildId;meta.version=buildId;meta.releaseVersion=primaryVersion;
  meta.currentAssetSha256=Object.fromEntries(files.map(name=>[name,hash(readFileSync(resolve(root,'test',name)))]));status.version=buildId;

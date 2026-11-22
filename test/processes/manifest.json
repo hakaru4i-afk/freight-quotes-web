@@ -1,6 +1,6 @@
 {
   "version": "20261118-logic-12",
-  "modelSha256": "d3fadd06ea509ae3a711e2f2dda3701ab4e90941bc198e9b312fa893d1df169b",
+  "modelSha256": "269d79ce535f9a09ff5d88fcd1c8dda4f64eb569e363c1ef567fd6bf1adfcf56",
   "modelSnapshot": {
     "version": "20261118-logic-12",
     "date": "2026-11-18",
@@ -26,6 +26,16 @@
       "13.11 MAP-GEOCODE-01: координаты сохраняются сервером из исходных полей заявки, выбранной ставки и датированных отчётов. Неоднозначность подтверждается явно; городской центр не подтверждает точный остаток <1000 км. Маршрут и отчёты — разные слои общей 3D/2D-карты; отчёт не является GPS.",
       "18.11: шесть серверных стадий Carrier по утверждённому #124 — проекция существующего раунда, не новые задания или самостоятельный workflow. Модель 12 — только кандидат, приёмка Owner и публикация не подтверждены."
     ],
+    "feedbackRecovery": {
+      "title": "Восстановление обращений в Центре доработок",
+      "scope": "Кандидат DEV-20261122-GOD-01. Обычные обращения сотрудников на стадиях «Прочитано», «Оценено» и «В работе».",
+      "steps": [
+        "Владелец открывает обращение в Центре доработок и выбирает соседнюю стадию или закрытие. После закрытия через восстановление доступен возврат на исходную стадию.",
+        "Сервер проверяет действующий сеанс Владельца, текущую редакцию обращения и причину длиной 10–2000 символов.",
+        "Сервер сохраняет состояние и событие с исполнителем, временем, прежней и новой стадией и причиной в одной транзакции. Автор видит переход в истории своего обращения в «Предложениях»."
+      ],
+      "limits": "Обращения Владельца, завершённые обращения и выпуск находятся вне этого процесса. Проверки GitHub и подтверждение выпуска выполняются по обычной процедуре."
+    },
     "processes": [
       {
         "id": "P01",
@@ -601,7 +611,7 @@
       "test/task2-contrast-hotfix.css": "eaf63a6e55af6ae0d5e478970648e0375bb6f9fab6cf7d8470fd6cacab4dbe8b",
       "test/transport-readability-20261107.css": "21947d36ce00f94025588eae5b255a7c9c00d4bef1269db826de7b5e8c7ef919",
       "test/carrier-acceptance-workflow-20261107.css": "929353a9a86ca9128a9b99c51240112c26e73d39dc7741fb206d08c9d5ea53e3",
-      "test/portal-feedback-center-20261107.css": "da63fc8daa5f0b6df79793a08f429e1c5e4433dc146f8ba4e847b56384356b02",
+      "test/portal-feedback-center-20261107.css": "bc98ba5eaebf229fb32eea1dabbd332d192e5354dafc914b3024be7996601816",
       "test/carrier-dashboard-compact-20261107.css": "7beacb66d1c25ac50a32d6e8ec0e88408c8e7552ef52ac9600436a9809c15a6c",
       "test/lw2-staging-20261107.css": "6f1bd4d26407198fcebe0823d2cba2c2d52455025a8d5b2e580200bd8925a852",
       "test/carrier-defer-transport-application-20261107.css": "1f66be0e0b22cd27d86dc51e63a9e9d1ec4aa8f7af4d521b60973ad9d2d286ab",
@@ -630,6 +640,7 @@
       "test/owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
       "test/offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
+      "test/owner-register-task-actions-20261121.css": "8524771e2a88cc2f0f52f593ec712d8577a155940849389ca60c99a86076e7e9",
       "test/app.js": "da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
@@ -639,7 +650,8 @@
       "test/carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",
       "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
       "test/carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
-      "test/portal-feedback-center-20261107.js": "911152c13edd7824378bc16e1dc370f332d443a57ed19c7be7f0517fc98d87bc",
+      "test/portal-feedback-center-20261107.js": "4638a2828df1227f76b692fa8640dc66ddcbf272448a97413358a7f7ca7c35d4",
+      "test/feedback-recovery.js": "3e647a5019613a31597a065aaed693070daf70eccf65a0f3a1569f1f4e915542",
       "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
       "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
       "test/carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
@@ -648,10 +660,11 @@
       "test/lw-premium-landing-20261108.js": "1c01094e1c60d867c74941de420097719a81aec6f8ec76a3eb36f4d2e96789ce",
       "test/lw-approved-dark-20261108.js": "fcae5ead0dbbbcbaa600c2db03689890e0b7a244eec540ee5ef878df71bb0029",
       "test/lw-public-cooperation-20261108.js": "2a7586e0ba859c1bc751c4001688f223d5f20c6adc08a9d910e9aecceee482ce",
-      "test/current-workspace-help-20261108.js": "a7cf10677d0ba5aa9fff1f8474e99df096c8f7e388c458999fb4315f25d2bd2a",
+      "test/current-workspace-help-20261108.js": "4dc70a322656204be10f2766a2675cbcf31e832c2e4f9effd0bd03a18de8d911",
       "test/owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
       "test/owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
-      "test/owner-registers-20261111.js": "e763828fc4e81a27bdff763ec7b2f7cd5e401d927d92734baa0ed6e9f643dbec",
+      "test/owner-register-task-actions-20261121.js": "fd2f350bf60cf96cb0089a5baea258ca135f457e155524d27fdf92ea2142b5ae",
+      "test/owner-registers-20261111.js": "0f5ac5c1e9c4ab190553a14029cf40469fdcc7cb2b71917ff218486ff7f557c2",
       "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
       "test/global-view/view.mjs": "b0490ef5a0cc20f7b85b89725b499d52cd69ae63006f36aa88d522bff2c08d48",
       "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
@@ -673,7 +686,7 @@
       "test/global-view/globe.mjs": "82877a69450c88626bef92baae962cf2dabd9065ca8ff1bdb027bee084293894",
       "test/global-view/map.mjs": "9ad569f40f59f517f8d429bb61f18e15a8a4ca071e3f517e35d81b0ee2cc1f13"
     },
-    "reviewedBackendSourceCommit": "fd74bdabc7170173945fb71b85feb27d24133cd5",
+    "reviewedBackendSourceCommit": "fba3d5a566f931906e834f55b65143b1552f6abb",
     "previousVersion": "20261113-logic-11",
     "technicalContext": "Кандидат FE PR129 / backend PR102, source bec4fa5596a32cfdba01253388f3039ad5ebdd42. Проверены 276 backend tests и PostgreSQL; UI Owner/Carrier и RU/EN/ZH проверены отдельно. Это не hosted authenticated E2E. Published FE main1e1e4fb, production API46, staging API115, QA44; source binding shared115 не подтверждён. Полная приёмка и публикация остаются RELEASE_BLOCKED."
   },

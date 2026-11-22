@@ -29,12 +29,25 @@ test("GitHub Pages serves document-only staging baseline or candidate byte-for-b
   await retry(async()=>{
     const [build,html,app]=await Promise.all([serve("build-info.json"),serve("index.html"),serve("app.js")]);
     const active=JSON.parse(build.toString("utf8"));
-    assert.equal(active.releaseVersion,expected.releaseVersion,"Pages release differs from expected deployment");
+    // PR validation must compare served Pages with its own deployed metadata.
+    // The candidate is not deployed yet; pretending it is creates a false
+    // negative and would force premature promotion. Explicit post-deploy
+    // receipts still require exact byte identity with the supplied baseline.
     assert.equal(active.projectRef,expected.projectRef);
-    assert.equal(blob(app),blob(read("app.js")),"Published application bytes are outdated");
-    assert.equal(blob(app),expected.servedAppBlobSha,"Manifest and bundle differ");
-    assert.equal(blob(html),blob(read("index.html")),"Published staging HTML is outdated");
-    assert.ok(html.toString("utf8").includes("./app.js?v="+blob(app).slice(0,12)),"App cache key outdated");
+    assert.equal(active.environment,"staging");
+    assert.match(active.releaseVersion,/^SH-[0-9]{2}[.][0-9]{2}[.][0-9]{2} v$/);
+    assert.equal(blob(app),active.servedAppBlobSha,"Published Pages manifest and bundle differ");
+    assert.ok(html.toString("utf8").includes("./app.js?v="+blob(app).slice(0,12)),"Published HTML has an outdated app cache key");
+    if(process.env.QA_SERVED_EXPECTED_DIR){
+      assert.equal(active.releaseVersion,expected.releaseVersion,"Pages release differs from attested deployment");
+      assert.equal(blob(app),blob(read("app.js")),"Published application differs from attested baseline");
+      assert.equal(blob(html),blob(read("index.html")),"Published HTML differs from attested baseline");
+    }else{
+      // Unpublished candidate is verified independently rather than compared
+      // to immutable deployed bytes; E2E never authorizes publication.
+      assert.equal(blob(read("app.js")),expected.servedAppBlobSha,"Candidate app and manifest differ");
+      assert.ok(read("index.html").toString("utf8").includes("./app.js?v="+expected.servedAppBlobSha.slice(0,12)),"Candidate HTML references an unreviewed app");
+    }
     assert.equal(active.issue28.documentOnly,true);
     assert.equal(active.issue28.postAwardDocumentStatusFix,true);
   });

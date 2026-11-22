@@ -14,7 +14,7 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    for(const name of ['process-editor-20261111.mjs','process-model-graph.mjs','process-model-diff.mjs'])await page.route('**/'+name+'*',r=>r.fulfill({path:'test/'+name,contentType:'text/javascript'}));
    const errors=[];page.on("pageerror",e=>errors.push(e.message));
    await page.goto(url+"?page=login&owqa=01112026",{waitUntil:"domcontentloaded",timeout:45000});
-   await page.waitForFunction(()=>window.owOwnerRegistersVersion==="OW-01.30.47 v",{timeout:20000});
+   await page.waitForFunction(()=>window.owOwnerRegistersVersion==="OW-REG-20261117-ACCEPTANCE",{timeout:20000});
    await page.evaluate(()=>{
     const fixture=document.createElement("section");fixture.className="cabinet-app staff-portal";fixture.dataset.cabinetRole="owner";
     fixture.innerHTML='<div class="cabinet-layout"><aside class="cabinet-sidebar mobile-open"><nav class="lw-owner-nav">'+
@@ -26,8 +26,8 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    });
    await page.addScriptTag({type:'module',url:new URL('process-editor-20261111.mjs',url).href});
    const nav=page.locator('.cabinet-app[data-cabinet-role="owner"] [data-ow-register]');
-   await page.waitForFunction(()=>document.querySelectorAll('.cabinet-app[data-cabinet-role="owner"] a[data-ow-register]').length===5,{timeout:16000});
-   assert.equal(await nav.count(),5);
+   await page.waitForFunction(()=>document.querySelectorAll('.cabinet-app[data-cabinet-role="owner"] a[data-ow-register]').length===6,{timeout:16000});
+   assert.equal(await nav.count(),6,'Three engineering registers plus acceptance, processes and cooperation');
    assert.match(await page.locator('.cabinet-app[data-cabinet-role="owner"] .cabinet-sidebar nav a[href="#help"]').innerText(),/FAQ и инструкции/);
    await page.locator('[data-ow-register="updates"]').click();
    await page.waitForFunction(id=>document.querySelector('#ow-workspace')?.dataset.archiveName===id,'updates');
@@ -39,6 +39,9 @@ test("Owner menu DOM integration: five distinct screens, error handling and real
    await page.locator('[data-ow-register="developments"]').click();
    await page.waitForFunction(id=>document.querySelector('#ow-workspace')?.dataset.archiveName===id,'developments');
    assert.match(await page.locator("#ow-workspace h2").innerText(),/Реестр разработок/);
+   await page.locator('[data-ow-register="acceptance"]').click();
+   await page.waitForFunction(()=>document.querySelector('#ow-workspace')?.dataset.archiveName==='acceptance' || document.querySelector('#ow-workspace h2')?.textContent?.includes('Реестр приёмки владельцем'),null,{timeout:12000});
+   assert.match(await page.locator('#ow-workspace h2').innerText(),/Реестр приёмки владельцем/);
    await page.locator('[data-ow-register="process"]').click();
    await page.locator('#ow-process-editor').waitFor({timeout:12000});
    assert.equal(await page.locator('#ow-process-frame').count(),0,'Editor replaces the old iframe viewer');

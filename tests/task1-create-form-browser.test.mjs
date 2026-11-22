@@ -82,6 +82,7 @@ const input=(page,label)=>{
   "Вес брутто, кг":'input[placeholder^="Например, 1250"]',
   "Конечная точка прибытия":'input[placeholder^="Страна, город, адрес доставки"]',
   "Условия перевозки · Incoterms":'fieldset.request-owner-fields select',
+  "Место поставки Incoterms":'fieldset.request-owner-fields input[name="incoterm_place"]',
   "Дата готовности":'fieldset.request-owner-fields input[type=date]',
   "Объём, м³":'input[placeholder^="Например, 8,4"]',
   "Груз":'input[placeholder^="Наименование, упаковка"]',
@@ -131,6 +132,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Вес брутто, кг").fill("1250");
  await input(page,"Конечная точка прибытия").fill("Minsk, Belarus");
  await input(page,"Условия перевозки · Incoterms").selectOption("EXW");
+ await input(page,"Место поставки Incoterms").fill("Ningbo, China");
  await input(page,"Дата готовности").fill("2027-06-05");
  await input(page,"Объём, м³").fill("12.5");
  await input(page,"Груз").fill("QA packaged cargo");
@@ -139,6 +141,18 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await page.locator("fieldset.request-owner-fields select").nth(1).selectOption("yes");
  assert.equal(await publish.isEnabled(),false,"Dangerous goods yes without details must stay disabled");
  await page.locator('input[placeholder^="UN номер"]').fill("UN3481, Class 9, QA test only");
+ // React validates the dependent dangerous-goods field on an asynchronous
+ // render. The positive acceptance must wait for the real button to become
+ // enabled; timing cannot turn an invalid request into a passing test.
+ try {
+   await page.waitForFunction(() => {
+     const button=[...document.querySelectorAll('button')].find(x=>x.textContent?.trim()==='Опубликовать и уведомить перевозчиков');
+     return button&&!button.disabled;
+   },null,{timeout:7500});
+ } catch (e) {
+   throw Error("Complete request did not enable publication after settled validation. "+
+     JSON.stringify({errors,unNumber:await page.locator('input[placeholder^="UN номер"]').inputValue(),ready:await publish.isEnabled()}));
+ }
  assert.equal(await publish.isEnabled(),true,"Complete request must enable publication");
  await page.screenshot({path:"reports/t1-01-filled-owner-form.png",fullPage:true});
  await page.getByRole("button",{name:"Опубликовать и уведомить перевозчиков"}).click();
@@ -149,6 +163,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  assert.equal(p.logistics.destination,"Minsk, Belarus");
  assert.equal(p.logistics.ready_date,"2027-06-05");
  assert.equal(p.logistics.incoterm,"EXW");
+ assert.equal(p.logistics.incoterm_place,"Ningbo, China");
  assert.equal(p.logistics.cargo,"QA packaged cargo");
  assert.equal(p.logistics.volume,"12.5");
  assert.equal(p.logistics.dangerous_goods,"yes");
