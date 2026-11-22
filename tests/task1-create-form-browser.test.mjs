@@ -82,6 +82,7 @@ const input=(page,label)=>{
   "Вес брутто, кг":'input[placeholder^="Например, 1250"]',
   "Конечная точка прибытия":'input[placeholder^="Страна, город, адрес доставки"]',
   "Условия перевозки · Incoterms":'fieldset.request-owner-fields select',
+  "Место поставки Incoterms":'fieldset.request-owner-fields input[name="incoterm_place"]',
   "Дата готовности":'fieldset.request-owner-fields input[type=date]',
   "Объём, м³":'input[placeholder^="Например, 8,4"]',
   "Груз":'input[placeholder^="Наименование, упаковка"]',
@@ -131,6 +132,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  await input(page,"Вес брутто, кг").fill("1250");
  await input(page,"Конечная точка прибытия").fill("Minsk, Belarus");
  await input(page,"Условия перевозки · Incoterms").selectOption("EXW");
+ await input(page,"Место поставки Incoterms").fill("Ningbo, China");
  await input(page,"Дата готовности").fill("2027-06-05");
  await input(page,"Объём, м³").fill("12.5");
  await input(page,"Груз").fill("QA packaged cargo");
@@ -161,6 +163,7 @@ test("T1-01 isolated browser: complete shipment preserves data in publication re
  assert.equal(p.logistics.destination,"Minsk, Belarus");
  assert.equal(p.logistics.ready_date,"2027-06-05");
  assert.equal(p.logistics.incoterm,"EXW");
+ assert.equal(p.logistics.incoterm_place,"Ningbo, China");
  assert.equal(p.logistics.cargo,"QA packaged cargo");
  assert.equal(p.logistics.volume,"12.5");
  assert.equal(p.logistics.dangerous_goods,"yes");
