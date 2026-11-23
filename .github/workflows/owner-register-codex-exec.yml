@@ -51,8 +51,13 @@ jobs:
       TASK_BASE_SHA: ${{ inputs.base_sha }}
       TASK_TITLE: ${{ inputs.task_title }}
       TASK_DESCRIPTION: ${{ inputs.task_description }}
-      GH_TOKEN: ${{ github.token }}
     steps:
+      - name: Set up per-attempt diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          dir="$(mktemp -d "$RUNNER_TEMP/owner-codex.$GITHUB_RUN_ID.$GITHUB_RUN_ATTEMPT.XXXXXXXX")"
+          echo "OWNER_CODEX_TEMP=$dir" >> "$GITHUB_ENV"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -76,100 +81,174 @@ jobs:
             test -n "$bin"
             install -m 0755 "$bin" "$HOME/.local/bin/gh"
           fi
-      - name: Verify Owner-issued branch, issue and Codex login
+      - name: Verify GitHub handoff and check for existing work
+        id: handoff
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          [[ "$TASK_UUID" =~ ^[a-f0-9]{8}-[a-f0-9-]{27}$ ]]
-          [[ "$TASK_FEEDBACK_ID" =~ ^[a-f0-9]{8}-[a-f0-9-]{27}$ ]]
+          echo CODEX_HANDOFF_REQUIRED > "$OWNER_CODEX_TEMP/failure"
+          uuid_pattern='^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$'
+          [[ "$TASK_UUID" =~ $uuid_pattern ]]
+          [[ "$TASK_FEEDBACK_ID" =~ $uuid_pattern ]]
           [[ "$TASK_BASE_SHA" =~ ^[a-f0-9]{40}$ ]]
           [[ "$TASK_REGISTER" =~ ^(developments|remarks|updates)$ ]]
           [[ "$TASK_RECORD_ID" =~ ^[A-Za-z0-9_.:-]{1,120}$ ]]
           test -n "$TASK_TITLE" && test -n "$TASK_DESCRIPTION"
           test "${#TASK_DESCRIPTION}" -le 3000
-          command -v gh
-          gh auth status
-          command -v codex
-          codex --version
-          codex login status
-          gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/owner-task/$TASK_UUID" >/dev/null
-          ISSUE="$(gh issue list --state all --search "$TASK_UUID in:title" --json number,title --jq '.[0].number // empty')"
-          if [ -z "$ISSUE" ]; then
-            echo "::error::GITHUB_HANDOFF_REQUIRED: no authorized branch/Issue for this task"
-            exit 1
+          issue_title="Engineering task [$TASK_UUID] · $TASK_REGISTER/$TASK_RECORD_ID"
+          issue="$(gh issue list --state all --search "$TASK_UUID in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$issue_title\")] | first | .number // empty")"
+          test -n "$issue"
+          echo "TASK_ISSUE=$issue" >> "$GITHUB_ENV"
+          branch="owner-task/$TASK_UUID"
+          git fetch --no-tags origin "refs/heads/$branch"
+          git switch --detach FETCH_HEAD
+          echo "TASK_BRANCH=$branch" >> "$GITHUB_ENV"
+          echo "TASK_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+          echo CODEX_PR_LOOKUP_FAILED > "$OWNER_CODEX_TEMP/failure"
+          existing_pr="$(gh pr list --state all --base main --head "$branch" --json state,url,isCrossRepository \
+            --jq 'map(select(.isCrossRepository == false and (.state == "OPEN" or .state == "MERGED"))) | first | .url // empty')"
+          if [ -n "$existing_pr" ]; then
+            echo "Existing task PR: $existing_pr" >> "$GITHUB_STEP_SUMMARY"
+            echo 'mode=done' >> "$GITHUB_OUTPUT"
+          elif [ "$(git log -1 --format='%(trailers:key=Owner-Codex-Dispatch,valueonly)')" = "$TASK_UUID" ]; then
+            echo 'mode=publish' >> "$GITHUB_OUTPUT"
+          else
+            echo 'mode=generate' >> "$GITHUB_OUTPUT"
           fi
-          echo "TASK_ISSUE=$ISSUE" >> "$GITHUB_ENV"
-          echo "TASK_BRANCH=owner-task/$TASK_UUID" >> "$GITHUB_ENV"
-          echo 'CODEX_AUTH_AND_GITHUB_HANDOFF_VERIFIED'
-      - name: Run Codex (non-interactive)
+          rm -f "$OWNER_CODEX_TEMP/failure"
+      - name: Verify Codex login
+        if: steps.handoff.outputs.mode == 'generate'
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin "refs/heads/$TASK_BRANCH:refs/remotes/origin/$TASK_BRANCH"
-          git switch --create "$TASK_BRANCH" --track "origin/$TASK_BRANCH"
+          echo CODEX_CLI_NOT_INSTALLED > "$OWNER_CODEX_TEMP/failure"
+          command -v codex
+          codex --version
+          echo CODEX_AUTH_EXPIRED > "$OWNER_CODEX_TEMP/failure"
+          codex login status
+          rm -f "$OWNER_CODEX_TEMP/failure"
+      - name: Run Codex (non-interactive)
+        if: steps.handoff.outputs.mode == 'generate'
+        shell: bash
+        run: |
+          set -euo pipefail
+          prompt="$OWNER_CODEX_TEMP/prompt.txt"
           {
             printf '%s\n' 'Implement the approved Owner task. Change actual source and only relevant fast tests. Keep RU/EN/ZH help synchronized and verify business-process notes when applicable.'
             printf '%s\n' 'Do not deploy, publish, or modify production or databases. No paid services or subscription changes.'
             printf 'Task: %s\n' "$TASK_TITLE"
             printf 'Record: %s | Deadline: %s\n' "$TASK_RECORD_ID" "$TASK_DEADLINE"
             printf 'Owner brief:\n%s\n' "$TASK_DESCRIPTION"
-            printf '\nFinish after code and fast tests. GitHub will create a draft PR.\n'
-          } > "$RUNNER_TEMP/owner-codex-prompt.txt"
-          echo "CODEX_STARTED: issue=$TASK_ISSUE, prompt_bytes=$(wc -c < "$RUNNER_TEMP/owner-codex-prompt.txt")"
-          set +e
-          env -u GH_TOKEN -u GITHUB_TOKEN codex exec --ephemeral --sandbox workspace-write - \
-            < "$RUNNER_TEMP/owner-codex-prompt.txt" > "$RUNNER_TEMP/owner-codex-output.log" 2>&1
-          result=$?
-          set -e
-          if [ "$result" -ne 0 ]; then
-            reason=CODEX_EXEC_FAILED
-            if grep -Eqi '403 Forbidden|Unable to load site|workspace routing discovery failed' "$RUNNER_TEMP/owner-codex-output.log"; then
-              reason=CODEX_NETWORK_BLOCKED_403
-            elif grep -Eqi '429 Too Many Requests|rate limit' "$RUNNER_TEMP/owner-codex-output.log"; then
-              reason=CODEX_RATE_LIMITED
-            elif grep -Eqi 'not logged in|authentication required|unauthorized' "$RUNNER_TEMP/owner-codex-output.log"; then
-              reason=CODEX_AUTH_EXPIRED
-            elif grep -Eqi 'sandbox.*denied|permission denied' "$RUNNER_TEMP/owner-codex-output.log"; then
-              reason=CODEX_SANDBOX_DENIED
+            printf '\nFinish after code and fast tests. Leave the changes in the working tree. GitHub will commit them and create a draft PR.\n'
+          } > "$prompt"
+
+          echo CODEX_EXEC_FAILED > "$OWNER_CODEX_TEMP/failure"
+          for attempt in 1 2 3; do
+            log="$OWNER_CODEX_TEMP/exec-$attempt.log"
+            echo "CODEX_STARTED: issue=$TASK_ISSUE, attempt=$attempt"
+            if env -u GH_TOKEN -u GITHUB_TOKEN codex exec --ephemeral --sandbox workspace-write - < "$prompt" > "$log" 2>&1; then
+              break
+            else
+              result=$?
             fi
-            echo "$reason" > "$RUNNER_TEMP/owner-codex-failure.code"
-            echo "::error::$reason: Codex exited with $result on Mac runner; workflow run $GITHUB_RUN_ID"
-            echo "Codex failed: $reason (exit $result). See run $GITHUB_RUN_ID" >> "$GITHUB_STEP_SUMMARY"
+            reason=CODEX_EXEC_FAILED
+            if grep -Eqi '403 (Forbidden|\(Forbidden\))|status( code)?:? 403|Unable to load site' "$log"; then
+              reason=CODEX_NETWORK_BLOCKED_403
+            elif grep -Eqi '429 (Too Many Requests|\(Too Many Requests\))|status( code)?:? 429|rate limit|usage limit' "$log"; then
+              reason=CODEX_RATE_LIMITED
+            elif grep -Eqi '401 (Unauthorized|\(Unauthorized\))|status( code)?:? 401|not logged in|authentication required|unauthorized|refresh token.*(expired|invalid)' "$log"; then
+              reason=CODEX_AUTH_EXPIRED
+            elif grep -Eqi 'sandbox.*(denied|failed)|permission denied' "$log"; then
+              reason=CODEX_SANDBOX_DENIED
+            elif grep -Eqi 'unexpected status (500|502|503|504)|50[0234] (Internal Server Error|Bad Gateway|Service Unavailable|Gateway Timeout)|connection (reset|refused|timed out)|could not resolve host|error sending request|stream disconnected|timed out|workspace routing discovery failed' "$log"; then
+              reason=CODEX_NETWORK_TRANSIENT
+            elif grep -Eqi 'unexpected argument|unrecognized option|unknown flag' "$log"; then
+              reason=CODEX_CLI_INCOMPATIBLE
+            fi
+            echo "$reason" > "$OWNER_CODEX_TEMP/failure"
+            if [ "$reason" = CODEX_NETWORK_BLOCKED_403 ] && \
+               grep -Eqi 'Unable to load site|If you are using a VPN|Cloudflare Ray ID' "$log"; then
+              echo 'Codex received an access-block page from the ChatGPT network edge.' | tee -a "$GITHUB_STEP_SUMMARY"
+              exit "$result"
+            fi
+            if { [ "$reason" = CODEX_NETWORK_TRANSIENT ] || [ "$reason" = CODEX_NETWORK_BLOCKED_403 ]; } && \
+               [ "$attempt" -lt 3 ] && \
+               [ "$(git rev-parse HEAD)" = "$TASK_HEAD" ] && [ -z "$(git status --porcelain)" ]; then
+              echo "::warning::$reason: Codex exited with $result; retrying ($attempt/3)"
+              sleep "$((attempt * 15))"
+              continue
+            fi
+            echo "Codex failed on attempt $attempt/3: $reason (exit $result)." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$reason" = CODEX_NETWORK_BLOCKED_403 ]; then
+              status="$(curl --silent --connect-timeout 5 --max-time 10 --output /dev/null --write-out '%{http_code}' \
+                'https://chatgpt.com/backend-api/codex/models' || true)"
+              if [[ "$status" =~ ^[0-9]{3}$ ]]; then
+                echo "ChatGPT Codex endpoint from Mac without credentials: HTTP $status" | tee -a "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
+            exit "$result"
+          done
+          if [ "$(git rev-parse HEAD)" != "$TASK_HEAD" ]; then
+            echo CODEX_UNEXPECTED_COMMIT > "$OWNER_CODEX_TEMP/failure"
             exit 1
           fi
-          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
-            echo CODEX_NO_CODE_CHANGES > "$RUNNER_TEMP/owner-codex-failure.code"
+          if [ -z "$(git status --porcelain)" ]; then
+            echo CODEX_NO_CODE_CHANGES > "$OWNER_CODEX_TEMP/failure"
             echo "::error::CODEX_NO_CODE_CHANGES: model returned but produced no source changes"
             exit 1
           fi
+          rm -f "$OWNER_CODEX_TEMP/failure"
           echo "CODEX_CODE_CHANGED"
       - name: Commit code and open draft PR
+        if: steps.handoff.outputs.mode == 'generate' || steps.handoff.outputs.mode == 'publish'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ steps.handoff.outputs.mode }}
         run: |
           set -euo pipefail
-          git add -A
-          git diff --cached --quiet && { echo CODEX_NO_CODE_CHANGES > "$RUNNER_TEMP/owner-codex-failure.code"; exit 1; }
-          git -c user.name="freight-owner-codex" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "feat(owner-task): implement $TASK_RECORD_ID"
-          gh auth setup-git
-          git push origin "HEAD:refs/heads/$TASK_BRANCH"
-          EXISTING="$(gh pr list --state all --head "$TASK_BRANCH" --json number --jq '.[0].number // empty')"
-          if [ -z "$EXISTING" ]; then
-            gh pr create --draft --base main --head "$TASK_BRANCH" \
-              --title "Owner task $TASK_RECORD_ID — $TASK_TITLE" \
-              --body "Codex implementation for Owner-approved Issue #$TASK_ISSUE. Inspect PR and checks before merging. No production publish."
-          else
-            echo "DRAFT_PR_ALREADY_EXISTS=$EXISTING"
+          if [ "$MODE" = generate ]; then
+            echo CODEX_COMMIT_FAILED > "$OWNER_CODEX_TEMP/failure"
+            git add -A
+            if git diff --cached --quiet; then
+              echo CODEX_NO_CODE_CHANGES > "$OWNER_CODEX_TEMP/failure"
+              exit 1
+            fi
+            git -c user.name="freight-owner-codex" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "feat(owner-task): implement $TASK_RECORD_ID" -m "Owner-Codex-Dispatch: $TASK_UUID"
+            echo CODEX_PUSH_FAILED > "$OWNER_CODEX_TEMP/failure"
+            git -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+              push origin "HEAD:refs/heads/$TASK_BRANCH"
           fi
-          echo "CODEX_PR_READY: branch=$TASK_BRANCH" >> "$GITHUB_STEP_SUMMARY"
+          echo CODEX_PR_CREATE_FAILED > "$OWNER_CODEX_TEMP/failure"
+          url="$(gh pr create --draft --base main --head "$TASK_BRANCH" \
+            --title "Owner task $TASK_RECORD_ID — $TASK_TITLE" \
+            --body "Codex implementation for Owner-approved Issue #$TASK_ISSUE. Inspect PR and checks before merging. No production publish.")"
+          echo "Draft PR: $url" >> "$GITHUB_STEP_SUMMARY"
+          rm -f "$OWNER_CODEX_TEMP/failure"
       - name: Publish concise Codex failure to GitHub Issue for CRM UI
         if: failure()
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          reason="$(cat "$RUNNER_TEMP/owner-codex-failure.code" 2>/dev/null || echo CODEX_WORKFLOW_FAILED)"
+          reason="$(cat "${OWNER_CODEX_TEMP:-/dev/null}/failure" 2>/dev/null || echo CODEX_WORKFLOW_FAILED)"
           echo "::error::$reason"
+          echo "Failure code: $reason" >> "$GITHUB_STEP_SUMMARY"
           if [ -n "${TASK_ISSUE:-}" ]; then
             gh issue comment "$TASK_ISSUE" --body "CODEX_FAILURE_CODE: $reason
           CODEX_RUN_ID: $GITHUB_RUN_ID
-          Explanation: Codex did not finish writing code. See GitHub Actions run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. No completion is claimed." || true
+          GitHub Actions: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. Review the failed step before retrying." || true
+          fi
+      - name: Remove temporary Codex prompt and logs
+        if: always()
+        shell: bash
+        run: |
+          if [ -n "${OWNER_CODEX_TEMP:-}" ]; then
+            rm -rf -- "$OWNER_CODEX_TEMP"
           fi
