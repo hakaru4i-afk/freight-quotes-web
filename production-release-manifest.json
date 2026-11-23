@@ -201,7 +201,8 @@
     "ved-single-workspace-20261108.css": "68837f2b8ae30c0b36f7bb2bba36186e86f7a81f13b1f007871738dbeb7211b7",
     "ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
     "test/portal-feedback-center-20261107.js": "3a27a7dfec921f0aed7b8b037bf3bb2b7d727cd9cc2d0539ab924136ed6618a1",
-    "test/index.html": "9bf2b50744f0afa3820ad4e3a5ec4bb0a24eeb26878662b8ea0fd1080d4327b5"
+    "test/index.html": "9bf2b50744f0afa3820ad4e3a5ec4bb0a24eeb26878662b8ea0fd1080d4327b5",
+    "offer-scoring.mjs": "d66f8b2cc5407b2aa56047f2c6f327f491a94bdce1b54c4668885ae29144a8b9"
   },
   "acceptance": {
     "qaRun": "44011863098",
@@ -279,5 +280,13 @@
   "frontendSourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
   "backendSourceCommit": "63a61bb4ff67d81cfaa9579fb1f80f678acdebe2",
   "backendApiVersion": 58,
-  "releaseDate": "2026-11-23"
+  "releaseDate": "2026-11-23",
+  "emergencyHotfix": {
+    "reason": "SH62 Pages package accidentally omitted app.js static import offer-scoring.mjs",
+    "repairedOn": "2026-11-23",
+    "repairSourceCommit": "cbcb14abd5b3bfd292e387c51a10bf13d1a76d42",
+    "dataChanged": false,
+    "versionChanged": false,
+    "restoredModuleSha256": "d66f8b2cc5407b2aa56047f2c6f327f491a94bdce1b54c4668885ae29144a8b9"
+  }
 }
