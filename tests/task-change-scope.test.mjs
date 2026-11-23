@@ -5,7 +5,7 @@ import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {lightweightChange} from '../scripts/release/task-change-scope.mjs';
+import {lightweightChange,fastUiChange} from '../scripts/release/task-change-scope.mjs';
 
 const classifier = fileURLToPath(new URL('../scripts/release/task-change-scope.mjs',import.meta.url));
 const record = (path,{status='M',oldMode='100644',newMode='100644'}={}) =>
@@ -42,4 +42,19 @@ test('release guard permits CSS advances on main and rejects code changes and re
   assert.equal(run('classify',pinned,mixed).stdout.trim(),'full');
   assert.notEqual(run('guard-main',pinned,mixed).status,0);
   assert.notEqual(run('guard-main',css,pinned).status,0);
+});
+
+
+test('CRM fast path uses syntax and build for known Owner UI module copies',()=>{
+  const ui=record('portal-feedback-center-20261107.js')
+    +record('test/portal-feedback-center-20261107.js')
+    +record('release/owner-portal-feedback-center-20261122.js');
+  assert.equal(fastUiChange(ui),true);
+  assert.equal(lightweightChange(ui),false); // never relax release source pin
+  assert.equal(fastUiChange(ui+record('src/auth.js')),false);
+  assert.equal(fastUiChange(ui+record('.github/workflows/owner-portal-release.yml')),false);
+  assert.equal(fastUiChange(record('src/api.mjs')),false);
+  assert.equal(fastUiChange(record('portal-feedback-center-20261107.js',{status:'A',oldMode:'000000'})),false);
+  assert.equal(fastUiChange(record('portal-feedback-center-20261107.js',{newMode:'100755'})),false);
+  assert.equal(fastUiChange(record('style.css')+record('docs/ru-help.md')),true);
 });

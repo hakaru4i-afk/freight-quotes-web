@@ -78,3 +78,9 @@ RU: Владелец после 100% проверенного выполнени
 EN: After verified 100% task completion, the Owner presses **Start release** once. The server confirms the Owner and completed work, then a self-hosted Mac checks syntax, builds and publishes API and Pages, verifies production, and records the result. Backup/Drive and deep E2E run separately and do not block an ordinary release.
 ZH: 当任务完成度达到经验证的 100% 时，所有者只需点击一次**发布更新**。服务器确认所有者权限与任务完成状态，Mac 运行快速语法检测、构建并发布 API 和网页，验证生产结果。备份与深入 E2E 独立运行，不阻止日常发布。
 E01 (новая последовательность): 100% задачи → Владелец → один запуск на Mac → быстрые проверки → API → Pages → production-подтверждение → журнал. Бизнес-процессы перевозок P01–P10 не менялись. Тексты кабинета Владельца RU/EN/ZH обновлены.
+
+
+## CRM quick-change classification (23.11.2026)
+RU: Для изменения CSS, текстов Markdown и трёх существующих копий интерфейса кабинета Владельца запускаются проверки синтаксиса JS, CSS-сборки и краткий контроль кнопки публикации. Браузерный E2E не требуется для этой категории. Изменения API, авторизации, рабочих процессов, конфигурации CI, исходников другого типа или смешанные наборы проходят полные проверки; публикацию по-прежнему подтверждает Владелец отдельным нажатием. Резервное копирование и восстановление не блокируют обычные PR и доступны отдельно вручную/по расписанию. Контроль целостности фиксируемого кода при выпуске сохраняется.
+EN: Ordinary CSS, Markdown text and the three Owner UI presentation module copies use syntax, CSS build and small release-button checks, not browser E2E. API, authentication, CI and mixed modifications use full verification. Owner approval still triggers the only production deployment. Backups and recovery are independent.
+ZH: 常规 CSS、Markdown 文本及三个所有者界面文件只执行语法、CSS 构建和发布按钮的快速检测，不需要浏览器端到端测试。API、身份验证、CI 及混合修改仍使用完整验证。生产发布只由所有者确认触发，备份与恢复独立执行。

@@ -1,7 +1,7 @@
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 
-// Only edits to ordinary CSS and changes to Markdown docs qualify.
+// Restrictive identity check for release pins: CSS and Markdown only.
 // Executable modes, symlinks and mixed changes take the full test path.
 export function lightweightChange(rawDiff) {
   if (!rawDiff || !rawDiff.endsWith('\0')) return false;
@@ -11,6 +11,33 @@ export function lightweightChange(rawDiff) {
     const [metadata, path] = entries.slice(index,index+2);
     const file = /^:(000000|100644) (000000|100644) [0-9a-f]+ [0-9a-f]+ ([AMD])$/.exec(metadata);
     if (!file || /[\r\n]/.test(path)) return false;
+    if (path.endsWith('.css') && file[3] === 'M') continue;
+    if (path === 'README.md' || /^docs\/.+\.md$/.test(path)) continue;
+    return false;
+  }
+  return true;
+}
+
+
+/**
+ * CRM fast path for existing presentation-only frontend modules.
+ * Business/API/auth/CI changes still use full regressions.
+ * Release source identity stays strict via lightweightChange below.
+ */
+const fastUiScripts = new Set([
+  'portal-feedback-center-20261107.js',
+  'test/portal-feedback-center-20261107.js',
+  'release/owner-portal-feedback-center-20261122.js'
+]);
+export function fastUiChange(rawDiff) {
+  if (!rawDiff || !rawDiff.endsWith('\0')) return false;
+  const entries = rawDiff.slice(0,-1).split('\0');
+  if (entries.length % 2 !== 0) return false;
+  for (let index=0; index<entries.length; index+=2) {
+    const [metadata,path] = entries.slice(index,index+2);
+    const file = /^:(000000|100644) (000000|100644) [0-9a-f]+ [0-9a-f]+ ([AMD])$/.exec(metadata);
+    if (!file || /[\r\n]/.test(path)) return false;
+    if (fastUiScripts.has(path) && file[3] === 'M') continue;
     if (path.endsWith('.css') && file[3] === 'M') continue;
     if (path === 'README.md' || /^docs\/.+\.md$/.test(path)) continue;
     return false;
@@ -31,7 +58,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     throw Error('INVALID_CHANGE_SCOPE_ARGUMENTS');
   }
   if (mode === 'classify') {
-    console.log(lightweightChange(diff(base,head))?'lightweight':'full');
+    console.log(fastUiChange(diff(base,head))?'lightweight':'full');
   } else if (base !== head) {
     git(['merge-base','--is-ancestor',base,head]);
     if (!lightweightChange(diff(base,head))) throw Error('FRONTEND_MAIN_MOVED_WITH_FULL_SCOPE_CHANGES');

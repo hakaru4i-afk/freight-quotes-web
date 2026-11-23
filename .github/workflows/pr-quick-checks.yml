@@ -55,7 +55,23 @@ jobs:
             count=$((count+1))
           done < /tmp/changed-js.txt
           echo "SYNTAX_PASS: $count changed JavaScript files"
+      - name: Classify PR: quick CRM UI or wider change
+        id: scope
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          scope=full
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            scope=$(node scripts/release/task-change-scope.mjs classify "$BASE_SHA" "$HEAD_SHA")
+          fi
+          case "$scope" in lightweight|full) ;; *) exit 1 ;; esac
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          echo "CRM_QA_SCOPE=$scope"
       - name: Fast deterministic regressions (no network, browser or deployment)
+        if: steps.scope.outputs.scope == 'full'
         run: |
           node --test --test-concurrency=2 \
             tests/issue47-late-ui.test.mjs \

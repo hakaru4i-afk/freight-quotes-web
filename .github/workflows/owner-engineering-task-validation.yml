@@ -50,9 +50,12 @@ jobs:
           fi
           case "$scope" in lightweight|full) ;; *) exit 1 ;; esac
           echo "scope=$scope" >> "$GITHUB_OUTPUT"
-      - name: Check CSS bundle and order for CSS and documentation changes
+      - name: Quick CRM UI syntax, bundle and Owner button safety
         if: steps.scope.outputs.scope == 'lightweight'
-        run: node scripts/build-css-bundle.mjs --check
+        run: |
+          set -euo pipefail
+          node scripts/build-css-bundle.mjs --check
+          node --test tests/owner-ci-release-control.test.mjs tests/owner-portal-one-click-release.test.mjs
       # Full suite includes real Chromium tests; install the pinned toolchain before importing them.
       - name: Install Playwright (same version as dedicated browser workflows)
         if: steps.scope.outputs.scope == 'full'
