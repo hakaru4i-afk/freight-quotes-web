@@ -1,4 +1,5 @@
 name: SH62 Owner-approved P0 production release and Codex diagnostic
+# Retry after updating legacy tests to verify P0 text stages and real manifest.
 run-name: SH62 P0 publish and Mac Codex check
 on:
   push:
