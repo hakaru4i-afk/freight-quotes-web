@@ -45,7 +45,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   negative-test:
-    if: github.event_name == 'pull_request'
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
@@ -82,7 +84,9 @@ jobs:
           cmp -s /tmp/before.json /tmp/after.json || { echo "::error::Production changed during rejection test"; exit 1; }
           echo 'BLOCKING_TEST_PASS; SERVED_PRODUCTION_UNCHANGED; NO_DEPLOYMENT'
   verify-evidence:
-    if: github.event_name == 'workflow_dispatch'
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     outputs:
@@ -163,7 +167,9 @@ jobs:
           echo 'accepted=true' >> "$GITHUB_OUTPUT"
           echo 'OWNER_AND_EXACT_RELEASE_PAIR_VERIFIED; STILL_NOT_DEPLOYED'
   publish:
-    if: github.event_name == 'workflow_dispatch' && needs.verify-evidence.result == 'success' && needs.verify-evidence.outputs.accepted == 'true'
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name == 'workflow_dispatch' && needs.verify-evidence.result == 'success' && needs.verify-evidence.outputs.accepted == 'true'
     needs: [verify-evidence]
     runs-on: ubuntu-24.04
     timeout-minutes: 12
