@@ -170,6 +170,11 @@ jobs:
               reason=CODEX_CLI_INCOMPATIBLE
             fi
             echo "$reason" > "$OWNER_CODEX_TEMP/failure"
+            if [ "$reason" = CODEX_NETWORK_BLOCKED_403 ] && \
+               grep -Eqi 'Unable to load site|If you are using a VPN|Cloudflare Ray ID' "$log"; then
+              echo 'Codex received an access-block page from the ChatGPT network edge.' | tee -a "$GITHUB_STEP_SUMMARY"
+              exit "$result"
+            fi
             if { [ "$reason" = CODEX_NETWORK_TRANSIENT ] || [ "$reason" = CODEX_NETWORK_BLOCKED_403 ]; } && \
                [ "$attempt" -lt 3 ] && \
                [ "$(git rev-parse HEAD)" = "$TASK_HEAD" ] && [ -z "$(git status --porcelain)" ]; then
@@ -178,6 +183,13 @@ jobs:
               continue
             fi
             echo "Codex failed on attempt $attempt/3: $reason (exit $result)." >> "$GITHUB_STEP_SUMMARY"
+            if [ "$reason" = CODEX_NETWORK_BLOCKED_403 ]; then
+              status="$(curl --silent --connect-timeout 5 --max-time 10 --output /dev/null --write-out '%{http_code}' \
+                'https://chatgpt.com/backend-api/codex/models' || true)"
+              if [[ "$status" =~ ^[0-9]{3}$ ]]; then
+                echo "ChatGPT Codex endpoint from Mac without credentials: HTTP $status" | tee -a "$GITHUB_STEP_SUMMARY"
+              fi
+            fi
             exit "$result"
           done
           if [ "$(git rev-parse HEAD)" != "$TASK_HEAD" ]; then
