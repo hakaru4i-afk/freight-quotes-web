@@ -41,6 +41,14 @@ await Promise.all(Array.from({length:8},async()=>{
   write(p,bytes);
  }
 }));
+// The SH64 manifest enumerates production roots but omitted staging/build-info.
+// Verify the live staging identity against the reviewed repository file, then
+// include it in the immutable SH65 asset receipt (without changing staging).
+const reviewedStagingInfo=readFileSync('test/build-info.json');
+const liveStagingInfo=await get('test/build-info.json');
+if(sha(reviewedStagingInfo)!==sha(liveStagingInfo))throw Error('UNREVIEWED_STAGING_BUILD_INFO');
+write('test/build-info.json',liveStagingInfo);
+manifest.assets['test/build-info.json']=sha(liveStagingInfo);
 const oldBuild=json('build-info.json');
 const oldRelease=json('release-status.json');
 if(oldBuild.releaseVersion!=='SH-01.30.64 v'||oldRelease.version!=='SH-01.30.64 v')

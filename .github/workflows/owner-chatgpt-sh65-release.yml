@@ -56,6 +56,7 @@ jobs:
           echo SH65_API_OWNER_GUARD_PASS
       - name: Verify live SH64 file digests and build SH65 full-site artifact
         run: node scripts/release/owner-chatgpt-sh65-publish.mjs
+      # SH65 retry 2: include verified staging/build-info before full integrity gate.
       - name: Verify release artifact and SHA256 before deploy
         shell: bash
         run: |
