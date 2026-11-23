@@ -292,7 +292,7 @@ async function load(id,host,expected){
  finally{if(n===request){loading=false;if(!failed){await refreshWork(true);await refreshExecution(id);paintArchive(host,id);}}}
 }
 
-let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={};
+let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={},acceptanceExecutions=new Map();
 const minskDay=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const acceptanceTaskFor=row=>{
  const marker=row.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
@@ -300,11 +300,15 @@ const acceptanceTaskFor=row=>{
    (String(x.description||'').includes(archiveMarker(row.register,row.id))||
     (marker&&String(x.description||'').includes(marker))));
 };
-const acceptedByOwner=(row)=>acceptanceTaskFor(row)?.status==='completed';
+const acceptanceExecutionFor=row=>acceptanceExecutions.get(row.register+':'+row.id);
+const acceptedByOwner=row=>acceptanceTaskFor(row)?.status==='completed'||acceptanceExecutionFor(row)?.decision==='accepted';
 function approvalState(row,job){
  if(job?.status==='completed')return 'Опубликовано и в архиве';
  if(job?.status==='denied')return 'Отклонено';
- if(job?.status==='release')return 'Ожидает подтверждения владельца';
+ const exec=acceptanceExecutionFor(row);
+ if(exec?.decision==='accepted')return 'Принято; ожидает публикации';
+ if(exec?.decision==='review_pending')return 'На приёмке владельца';
+ if(job?.status==='release')return 'Устаревший статус: требуется сверка';
  if(job?.status==='in_progress')return 'В работе';
  if(['fixed_review','checking','ready','published','production_verified'].includes(row.status))
    return 'Техническое исправление · приёмка не подтверждена';
@@ -314,7 +318,7 @@ async function refreshAcceptance(){
  if(acceptanceBusy)return;acceptanceBusy=true;acceptanceError='';
  const host=document.getElementById('ow-workspace');
  try{
-  const records=[],nextRevisions={};
+  const records=[],nextRevisions={},nextExecutions=new Map();
   for(const id of ['remarks','developments','updates']){
    const response=await fetch('/api/engineering-registers?name='+id,{cache:'no-store'});
    const data=await response.json();
@@ -323,9 +327,14 @@ async function refreshAcceptance(){
    if(sha!==data.sha256)throw Error('Несовпадение контрольной суммы: '+id);
    records.push(...(data.records||[]));
    nextRevisions[id]=data.liveRevision||'';
+   const er=await fetch('/api/owner-register-execution?register='+id,{cache:'no-store'});
+   const ex=await er.json();
+   if(!er.ok||!ex.ok)throw Error('Не удалось подтвердить статусы приёмки: '+id);
+   for(const entry of ex.items||[])if(entry.recordId)nextExecutions.set(id+':'+entry.recordId,entry);
   }
   await refreshWork();
   acceptanceRevisions=nextRevisions;
+  acceptanceExecutions=nextExecutions;
   acceptanceRows=records;
   acceptanceReady=true;acceptanceNote='';
  }catch(e){acceptanceError=String(e.message||e);acceptanceReady=true;}
@@ -363,7 +372,7 @@ function paintAcceptance(host){
  const selectedRows=acceptanceRows.filter(row=>{
   const job=acceptanceTaskFor(row);
   if(acceptanceView==='today')return String(row.detectedAt||'').slice(0,10)===day;
-  if(acceptanceView==='accepted')return job?.status==='completed';
+  if(acceptanceView==='accepted')return acceptedByOwner(row);
   if(acceptanceView==='pending')return job?.status==='release'||(['fixed_review','checking','ready','published','production_verified'].includes(row.status)&&job?.status!=='completed');
   return true;
  }).sort((a,b)=>String(b.detectedAt||'').localeCompare(String(a.detectedAt||''))||String(a.id).localeCompare(String(b.id)));
