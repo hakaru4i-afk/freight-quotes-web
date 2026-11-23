@@ -14,26 +14,6 @@ const titleTranslations={
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="active",message="",error="",busy=false,lastRoot=null;
-const feedbackTargetFromUrl=()=>new URL(location.href).searchParams.get('feedbackTask')||'';
-function applyFeedbackTarget(){
- const id=feedbackTargetFromUrl();
- if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)||!data.owner)return false;
- const item=data.items.find(x=>x.id===id&&x.sender_role==='owner');
- if(!item)return false;
- selected=item.id;
- registry='all';
- statusFilter=['completed','denied'].includes(item.status)?'archive':'active';
- return true;
-}
-function focusSelectedFeedback(){
- requestAnimationFrame(()=>root()?.querySelector('.pf-item.pf-selected')?.scrollIntoView({block:'nearest'}));
-}
-function syncFeedbackTarget(){
- if(!loaded)return;
- if(applyFeedbackTarget()){
-  render();focusSelectedFeedback();void refreshReleaseReadiness();void refreshReleaseProgress();
- }
-}
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 const releaseWords={
@@ -52,12 +32,8 @@ const taskStatusLabels={
  en:{label:'Development status',codex_queued:'Codex queued',codex_failed:'Codex failed',codex_complete:'Codex finished; checking PR',task_queued:'Task queued',branch_awaiting_codex:'GitHub task ready for implementation in ChatGPT',codex_writing:'Codex is writing code (Running)',ready_for_review:'Checks passed, ready for review',github_unavailable:'Unable to verify task with GitHub',dispatch_pending:'Waiting to send to GitHub',dispatch_failed:'GitHub dispatch failed',branch_pending:'Task queued',branch_created:'GitHub task ready for implementation in ChatGPT',code_committed_pr_required:'In progress. Waiting for a pull request',pr_unavailable:'Could not verify the pull request',checks_unavailable:'Check results unavailable',tests_running:'GitHub is running checks',basic_checks_failed:'Quick checks failed',task_e2e_failed:'The task-e2e check failed',tests_failed:'Some GitHub checks failed',required_tests_missing:'Code ready, PR opened',owner_returned_for_rework:'The Owner returned the task for rework',unknown:'Waiting for GitHub confirmation'},
  zh:{label:'开发状态',codex_queued:'Codex 排队中',codex_failed:'Codex 执行失败',codex_complete:'Codex 已完成，正在检查 PR',task_queued:'任务排队中',branch_awaiting_codex:'GitHub 任务已准备好，等待通过 ChatGPT 开发',codex_writing:'Codex 正在编写代码（运行中）',ready_for_review:'检查已通过，等待验收',github_unavailable:'无法连接 GitHub 验证任务',dispatch_pending:'等待发送到 GitHub',dispatch_failed:'发送到 GitHub 失败',branch_pending:'任务排队中',branch_created:'GitHub 任务已准备好，等待通过 ChatGPT 开发',code_committed_pr_required:'开发中，等待拉取请求',pr_unavailable:'无法验证拉取请求',checks_unavailable:'检查结果暂不可用',tests_running:'GitHub 正在运行检查',basic_checks_failed:'快速检查失败',task_e2e_failed:'task-e2e 检查失败',tests_failed:'部分 GitHub 检查失败',required_tests_missing:'代码已完成，PR 已创建',owner_returned_for_rework:'所有者已退回返工',unknown:'等待 GitHub 确认'}
 };
-function taskStatusText(execution,item){
+function taskStatusText(execution){
  const labels=taskStatusLabels[byLang];
- if(item?.status==='completed'){
-  if(execution?.publicationVerified===true&&execution?.step==='stored')return {ru:'Завершено и архивировано · публикация подтверждена',en:'Completed and archived · publication verified',zh:'已完成并归档 · 发布已验证'}[byLang];
-  return {ru:'Завершено и архивировано · протокол публикации не подтверждён',en:'Completed and archived · publication receipt unverified',zh:'已完成并归档 · 发布凭据未验证'}[byLang];
- }
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review') return labels.ready_for_review;
  if(execution?.step==='ready_for_review'&&execution?.checksPassed!==true)return labels.required_tests_missing;
  // The work branch may predate main: SHA mismatch is not proof Codex has run.
@@ -144,17 +120,14 @@ function detail(){
  const githubRegistered=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
  const githubHandoffReady=githubRegistered&&['branch_awaiting_codex','code_committed_pr_required','checks_running','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing','ready_for_review','codex_failed'].includes(execution?.step);
- const progressText=alreadyPublished?(byLang==='en'?'Deadline fix published in SH64. Historic task-e2e failure belongs to the pre-release PR.':byLang==='zh'?'截止日期修复已随 SH64 发布。旧的 task-e2e 错误属于发布前的 PR。':'Исправление дедлайна опубликовано в SH64. Старая ошибка task-e2e относится к PR до выпуска.'):taskStatusText(execution,item);
+ const progressText=alreadyPublished?(byLang==='en'?'Deadline fix published in SH64. Historic task-e2e failure belongs to the pre-release PR.':byLang==='zh'?'截止日期修复已随 SH64 发布。旧的 task-e2e 错误属于发布前的 PR。':'Исправление дедлайна опубликовано в SH64. Старая ошибка task-e2e относится к PR до выпуска.'):taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
  const deadlineStage=deadlineState(item,execution);
  const deadlinePanel=!alreadyPublished&&deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
- const archiveProofEvent=item.status==='completed'&&execution?.publicationVerified===true?data.events.find(e=>e.request_id===item.id&&e.action==='completed'&&e.status==='completed'):null;
- const archiveProofUrl=(String(archiveProofEvent?.description||'').match(/https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+/)||[])[0]||'';
  const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
-  (!alreadyPublished&&item.status!=='completed'&&execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
-  (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(item.status==='completed'?{ru:'Исторический запуск GitHub',en:'Historical GitHub run',zh:'历史 GitHub 运行'}[byLang]:'GitHub Actions')+'</a>':'')+
-  (archiveProofUrl?'<a href="'+esc(archiveProofUrl)+'" target="_blank" rel="noopener noreferrer">'+esc({ru:'Подтверждение публикации',en:'Publication evidence',zh:'发布证明'}[byLang])+'</a>':'')+'</section>':'';
+  (!alreadyPublished&&execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
+  (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
  const words=byLang==='en'?{send:'Start development',tip:'Creates a GitHub issue and branch without Codex or paid API. To implement code, paste the copied prompt into ChatGPT.',date:'Completion deadline',copy:'Copy task for ChatGPT',registered:'Task registered in GitHub. To implement the code, paste the task into ChatGPT.',issues:'Open GitHub issues'}:
   byLang==='zh'?{send:'启动开发',tip:'在 GitHub 创建任务和分支，无需 Codex 或付费 API。编写代码需要将任务发送给 ChatGPT。',date:'完成截止日期',copy:'复制 ChatGPT 开发任务',registered:'任务已登记至 GitHub。将任务粘贴到 ChatGPT 以开始编写代码。',issues:'打开 GitHub 任务'}:
   {send:'Запустить разработку',tip:'Создаёт задачу и ветку GitHub без Codex и платного API. Для написания кода отправьте запрос в ChatGPT.',date:'Дедлайн исполнения',copy:'Скопировать задание для ChatGPT',registered:'Задача зарегистрирована в GitHub. Отправьте скопированный запрос в ChatGPT для написания кода.',issues:'Открыть задачи GitHub'};
@@ -241,7 +214,7 @@ async function fetchExecutions(){
 }
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";await Promise.all([fetchExecutions(),fetchPublishedReceipt()]);const targeted=applyFeedbackTarget();if(!targeted&&selected&&!data.items.some(i=>i.id===selected))selected="";render();if(targeted)focusSelectedFeedback();void refreshReleaseReadiness();void refreshReleaseProgress();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";await Promise.all([fetchExecutions(),fetchPublishedReceipt()]);if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();void refreshReleaseProgress();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
 }
 async function refreshReleaseReadiness(){
@@ -327,7 +300,7 @@ async function runAction(payload){
 document.addEventListener("click",ev=>{
  const r=root();if(!r||!r.contains(ev.target))return;
  const id=ev.target.closest("[data-pf-id]")?.dataset.pfId;
- if(id){selected=id;if(data.owner){const url=new URL(location.href);url.searchParams.set('feedbackTask',id);history.replaceState(history.state,'',url);}render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else {void refreshReleaseReadiness();void refreshReleaseProgress();}return;}
+ if(id){selected=id;render();const i=data.items.find(x=>x.id===id);if(data.owner&&i?.status==="sent")void runAction({action:"set_status",id,expectedStatus:"sent",status:"read",note:""});else {void refreshReleaseReadiness();void refreshReleaseProgress();}return;}
  const action=ev.target.closest("[data-pf]")?.dataset.pf;
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
@@ -371,9 +344,6 @@ document.addEventListener("submit",ev=>{
   if(item)void runGithubHandoff(item,form.elements.deadline.value);
  }
 });
-window.addEventListener('portal-feedback-target-changed',syncFeedbackTarget);
-window.addEventListener('hashchange',syncFeedbackTarget);
-window.addEventListener('popstate',syncFeedbackTarget);
 let pending=false;
 const obs=new MutationObserver(()=>{
  if(pending)return;
