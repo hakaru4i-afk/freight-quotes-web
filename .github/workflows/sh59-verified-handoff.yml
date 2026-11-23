@@ -71,6 +71,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Make GitHub CLI available on self-hosted Mac
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Login shells and Actions jobs may have different PATH values.
+          echo /opt/homebrew/bin >> "$GITHUB_PATH"
+          echo /usr/local/bin >> "$GITHUB_PATH"
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          if ! command -v gh >/dev/null 2>&1; then
+            if [ -x /opt/homebrew/bin/brew ]; then
+              /opt/homebrew/bin/brew install gh
+            elif [ -x /usr/local/bin/brew ]; then
+              /usr/local/bin/brew install gh
+            else
+              echo "::error::GH_CLI_MISSING_ON_MAC_AND_HOMEBREW_UNAVAILABLE"
+              exit 1
+            fi
+          fi
+          gh --version
       - name: Read signed 37/37 audit from GitHub, never from current candidate report files
         shell: bash
         run: |
