@@ -7,9 +7,9 @@ const registerLabels={remarks:"Реестр замечаний",developments:"Р
 const statusLabels={sent:"Отправлено",read:"Прочитано",evaluated:"Оценено",in_progress:"В работе",release:"Выпуск",denied:"Отказано в разработке",completed:"Завершено"};
 const transitions={sent:["read","denied"],read:["evaluated","denied"],evaluated:["in_progress","denied"],in_progress:["release","denied"],release:["completed","in_progress"],denied:[],completed:[]};
 const titleTranslations={
- ru:{owner:"Центр доработок",author:"Предложения",new:"Создать заявку",category:"Тип обращения",choose:"Выберите тип",description:"Описание",prompt:"Опишите, что нужно изменить или разработать",submit:"Отправить",cancel:"Отмена",my:"Мои заявки",all:"Все обращения",empty:"Заявок пока нет",refresh:"Обновить",status:"Статус",register:"Реестр",created:"Создано",authorLabel:"Автор",note:"Комментарий / причина",selectStatus:"Новый статус",date:"Плановая дата публикации",save:"Изменить статус",history:"История обработки",open:"Подробнее",clear:"Выберите заявку из списка",error:"Не удалось выполнить действие",success:"Заявка отправлена и зарегистрирована",releaseHint:"Дата публикации будет видна автору и Владельцу",read:"Прочитать",summary:"Отправлено / В работе / Планируется выпуск",noAccess:"Не удалось подтвердить доступ",intro:"Обращения по улучшению сайта. Ставки и перевозки обрабатываются отдельно."},
- en:{owner:"Improvement center",author:"Suggestions",new:"Create request",category:"Request type",choose:"Select a type",description:"Description",prompt:"Describe the proposed improvement or fix",submit:"Submit",cancel:"Cancel",my:"My requests",all:"All requests",empty:"No requests yet",refresh:"Refresh",status:"Status",register:"Register",created:"Created",authorLabel:"Submitted by",note:"Comment / reason",selectStatus:"Next status",date:"Planned release date",save:"Update status",history:"History",open:"Details",clear:"Select a request",error:"Action failed",success:"Request submitted",releaseHint:"Publication date will be visible to the submitter",read:"Mark as read",summary:"Submitted / In progress / Release planned",noAccess:"Access could not be verified",intro:"Website improvement requests, separate from freight offers."},
- zh:{owner:"改进管理中心",author:"建议",new:"创建申请",category:"申请类型",choose:"选择类型",description:"说明",prompt:"请描述需要改进或修复的内容",submit:"提交",cancel:"取消",my:"我的申请",all:"所有申请",empty:"暂无申请",refresh:"刷新",status:"状态",register:"登记册",created:"创建时间",authorLabel:"提交人",note:"备注 / 原因",selectStatus:"新状态",date:"计划发布日期",save:"更新状态",history:"处理记录",open:"详情",clear:"请选择申请",error:"操作失败",success:"申请已提交",releaseHint:"发布日期对提交人可见",read:"标记已读",summary:"已提交 / 处理中 / 计划发布",noAccess:"无法验证访问权限",intro:"网站改进建议，与运输报价分开。"}
+ ru:{owner:"Центр доработок",author:"Предложения",new:"Создать заявку",category:"Тип обращения",choose:"Выберите тип",description:"Описание",prompt:"Опишите, что нужно изменить или разработать",submit:"Отправить",cancel:"Отмена",my:"Мои заявки",all:"Все обращения",empty:"Заявок пока нет",refresh:"Обновить",status:"Статус",register:"Реестр",created:"Создано",authorLabel:"Автор",note:"Комментарий / причина",selectStatus:"Новый статус",date:"Дедлайн исполнения",save:"Изменить статус",history:"История обработки",open:"Подробнее",clear:"Выберите заявку из списка",error:"Не удалось выполнить действие",success:"Заявка отправлена и зарегистрирована",releaseHint:"Дедлайн сохраняется при смене статуса; это не дата выпуска",read:"Прочитать",summary:"Отправлено / В работе / Выпуск (дедлайн отдельно)",noAccess:"Не удалось подтвердить доступ",intro:"Обращения по улучшению сайта. Ставки и перевозки обрабатываются отдельно."},
+ en:{owner:"Improvement center",author:"Suggestions",new:"Create request",category:"Request type",choose:"Select a type",description:"Description",prompt:"Describe the proposed improvement or fix",submit:"Submit",cancel:"Cancel",my:"My requests",all:"All requests",empty:"No requests yet",refresh:"Refresh",status:"Status",register:"Register",created:"Created",authorLabel:"Submitted by",note:"Comment / reason",selectStatus:"Next status",date:"Completion deadline",save:"Update status",history:"History",open:"Details",clear:"Select a request",error:"Action failed",success:"Request submitted",releaseHint:"The deadline is kept across statuses; it is not a publication date",read:"Mark as read",summary:"Submitted / In progress / Release (deadline separate)",noAccess:"Access could not be verified",intro:"Website improvement requests, separate from freight offers."},
+ zh:{owner:"改进管理中心",author:"建议",new:"创建申请",category:"申请类型",choose:"选择类型",description:"说明",prompt:"请描述需要改进或修复的内容",submit:"提交",cancel:"取消",my:"我的申请",all:"所有申请",empty:"暂无申请",refresh:"刷新",status:"状态",register:"登记册",created:"创建时间",authorLabel:"提交人",note:"备注 / 原因",selectStatus:"新状态",date:"完成截止日期",save:"更新状态",history:"处理记录",open:"详情",clear:"请选择申请",error:"操作失败",success:"申请已提交",releaseHint:"状态变化不会清除截止日期；截止日期不是发布日期",read:"标记已读",summary:"已提交 / 处理中 / 发布阶段（截止日期单独显示）",noAccess:"无法验证访问权限",intro:"网站改进建议，与运输报价分开。"}
 };
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -47,7 +47,17 @@ let executionByFeedback=new Map(),handoffBusy=false,codexBusy=false;
 const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
-const requestStatus=i=>i.status==="release"&&i.release_date?"Выпуск · "+i.release_date:latestStatus(i.status);
+// Existing release_date is an execution deadline; it never proves a publication.
+const requestStatus=i=>latestStatus(i.status);
+const minskToday=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
+const deadlineState=(item,execution)=>{
+ if(!['in_progress','release'].includes(item?.status))return '';
+ const labels=byLang==='en'?{ready:'Ready to release',late:'Overdue',blocked:'Blocked: tests have not passed',working:'In progress'}:byLang==='zh'?{ready:'准备发布',late:'已逾期',blocked:'已阻止：测试未通过',working:'处理中'}:{ready:'Готово к выпуску',late:'Просрочено',blocked:'Заблокировано: тесты не пройдены',working:'В работе'};
+ if(execution?.checksPassed===true&&execution?.step==='ready_for_review')return labels.ready;
+ if(/^\d{4}-\d{2}-\d{2}$/.test(String(item.release_date||''))&&minskToday()>item.release_date)return labels.late;
+ if(['codex_failed','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing'].includes(execution?.step)||execution?.checksPassed===false&&item.status==='release')return labels.blocked;
+ return labels.working;
+};
 const categories=()=>({improvement:t().category==="Request type"?"Improvement":t().category==="申请类型"?"改进":categoryLabels.improvement,fix:byLang==="en"?"Fix":byLang==="zh"?"修复":categoryLabels.fix,development:byLang==="en"?"Development":byLang==="zh"?"开发":categoryLabels.development});
 function root(){return document.getElementById(rootId);}
 function notices(){return (error?'<div class="pf-error" role="alert">'+esc(error)+'</div>':"")+(message?'<div class="pf-success" role="status">'+esc(message)+'</div>':"");}
@@ -93,6 +103,8 @@ function detail(){
  const progressText=taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
+ const deadlineStage=deadlineState(item,execution);
+ const deadlinePanel=deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
  const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
   (execution.lastError?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
   (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
@@ -125,7 +137,7 @@ function detail(){
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
  '<label>'+esc(t().note)+'<textarea rows="3" name="note" maxlength="2000" placeholder="'+esc(t().note)+'"></textarea></label>'+
- '<label class="pf-date-field" hidden>'+esc(t().date)+'<input type="date" name="releaseDate" disabled/><small>'+esc(t().releaseHint)+'</small></label>'+
+ '<label class="pf-date-field">'+esc(t().date)+'<input type="date" name="releaseDate" value="'+esc(item.release_date||'')+'"/><small>'+esc(t().releaseHint)+'</small></label>'+
  '<button class="pf-primary" type="submit" '+(busy?'disabled':'')+'>'+esc(t().save)+'</button></form>':"";
  return '<article class="pf-detail"><div class="pf-item-top"><h3>'+esc(item.code)+'</h3>'+badge(item)+'</div>'+
  '<p class="pf-type">'+esc(categoryLabels[item.category])+' · '+esc(registerLabels[item.journal])+'</p>'+
@@ -134,7 +146,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- progressPanel+handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ progressPanel+deadlinePanel+handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
@@ -255,10 +267,6 @@ document.addEventListener("change",ev=>{
  if(ev.target.name==="category"&&ev.target.closest("#pf-create")){draftCategory=ev.target.value;render();root()?.querySelector("#pf-create textarea")?.focus();}
  if(ev.target.id==="pf-register"){registry=ev.target.value;render();}
  if(ev.target.id==="pf-status-filter"){statusFilter=ev.target.value;render();}
- if(ev.target.name==="status"&&ev.target.closest("#pf-update")){
-  const wrap=ev.target.closest("form").querySelector(".pf-date-field"),need=ev.target.value==="release";
-  wrap.hidden=!need;const input=wrap.querySelector("input");input.disabled=!need;input.required=need;
- }
 });
 document.addEventListener("submit",ev=>{
  if(!root()?.contains(ev.target))return;
