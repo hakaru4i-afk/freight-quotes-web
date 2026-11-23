@@ -10,14 +10,14 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pr-quick-${{ github.event.pull_request.number || github.ref }}
+  group: pr-quick-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   fast:
     name: Syntax and fast Node tests
     if: >-
       (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -82,6 +82,7 @@ jobs:
             tests/task2-contrast.test.mjs \
             tests/issue47-owner-optional-reason.test.mjs \
             tests/owner-ci-release-control.test.mjs \
+            tests/owner-feedback-navigation-archive.test.mjs \
             tests/feedback-deadline-issue173.test.mjs
       - name: Validate generated CSS bundle and asset ordering
         run: |
