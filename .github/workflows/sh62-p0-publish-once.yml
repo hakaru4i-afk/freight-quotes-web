@@ -1,0 +1,127 @@
+name: SH62 Owner-approved P0 production release and Codex diagnostic
+run-name: SH62 P0 publish and Mac Codex check
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh62-p0-publish-once.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  actions: read
+concurrency:
+  group: sh62-owner-p0-production
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      github.event.head_commit.message == 'release(sh62): Owner approved P0 production publication'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    env:
+      PORTAL_BACKEND_SHA: 63a61bb4ff67d81cfaa9579fb1f80f678acdebe2
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check approved P0 source and fast tests (no heavy E2E or restore)
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          cmp test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          node --check release/owner-portal-feedback-center-20261122.js
+          node --check scripts/release/owner-ui-live-bootstrap.mjs
+          node --check scripts/release/sh62-finalize.mjs
+          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-ci-release-control.test.mjs
+          grep -Fq 'Codex пишет код (Работает)' release/owner-portal-feedback-center-20261122.js
+          echo SH62_P0_SOURCE_AND_FAST_TESTS_PASS
+      - name: Verify production API responds and Owner access is protected
+        shell: bash
+        run: |
+          set -euo pipefail
+          response="$RUNNER_TEMP/sh62-api.json"
+          code="$(curl -L --retry 3 --max-time 30 -sS -o "$response" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks')"
+          test "$code" = 403
+          grep -Fq OWNER_ONLY "$response"
+          echo SH62_PRODUCTION_API_OWNER_GUARD_PASS
+      - name: Retrieve and integrity-check actual live SH61 Pages assets
+        run: node scripts/release/owner-ui-live-bootstrap.mjs
+      - name: Build approved SH62 static release and metadata
+        run: node scripts/release/sh62-finalize.mjs
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Confirm production version and exact published P0 script
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 25 "$base/build-info.json?sh62=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/build-sh62.json" &&
+               curl -fsSL --max-time 25 "$base/release-status.json?sh62=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/status-sh62.json" &&
+               curl -fsSL --max-time 25 "$base/portal-feedback-center-20261107.js?sh62=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/ui-sh62.js" &&
+               cmp -s "$RUNNER_TEMP/ui-sh62.js" .release-pages/portal-feedback-center-20261107.js &&
+               node -e 'const b=require(process.argv[1]),s=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.62 v"&&b.releaseStatus==="PUBLISHED"&&b.backendApiVersion===58&&s.version===b.releaseVersion&&s.status==="released"?0:1)' "$RUNNER_TEMP/build-sh62.json" "$RUNNER_TEMP/status-sh62.json"; then
+              echo SH62_PRODUCTION_VERIFIED
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo '::error::SH62_PRODUCTION_NOT_VERIFIED'; exit 1; fi
+            sleep 6
+          done
+      - name: Synchronize only successfully published version metadata back to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js; do
+            cp ".release-pages/$file" "$file"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js
+          if git diff --cached --quiet; then
+            echo SH62_VERSION_ALREADY_COMMITTED
+          else
+            git commit -m "release(production): SH-01.30.62 v verified P0 Codex statuses"
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+            echo SH62_RELEASE_METADATA_COMMITTED
+          fi
+  codex-diagnostic:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      github.event.head_commit.message == 'release(sh62): Owner approved P0 production publication'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 8
+    steps:
+      - name: Check Codex availability and authentication on exact Mac runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v codex >/dev/null 2>&1; then
+            echo '::error::CODEX_CLI_NOT_INSTALLED; macOS runner freight-mac-qa needs Codex CLI'
+            echo 'CODEX_CLI_NOT_INSTALLED'
+            exit 1
+          fi
+          codex --version
+          if ! codex login status; then
+            echo '::error::CODEX_NOT_AUTHENTICATED; log in as the same macOS runner account'
+            echo 'CODEX_NOT_AUTHENTICATED'
+            exit 1
+          fi
+          echo CODEX_AUTH_OK
