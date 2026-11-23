@@ -37,6 +37,28 @@ test('SH69 Improvement Center resolves direct link and opens archive filter',()=
  assert.match(center,/window\.addEventListener\('portal-feedback-target-changed',syncFeedbackTarget\)/);
 });
 
+test('SH69 deep link fails closed for unknown, malformed and cross-role IDs',()=>{
+ const start=center.indexOf('const feedbackTargetFromUrl=');
+ const end=center.indexOf('let releaseReadiness=',start);
+ assert.ok(start>0&&end>start);
+ const valid='f5912bc9-0a72-4d87-b6fe-6330c1510c30';
+ for(const scenario of [
+  {target:valid,owner:true,items:[]},
+  {target:valid,owner:true,items:[{id:valid,sender_role:'carrier',status:'completed'}]},
+  {target:valid,owner:false,items:[{id:valid,sender_role:'owner',status:'completed'}]},
+  {target:'not-a-uuid',owner:true,items:[{id:valid,sender_role:'owner',status:'completed'}]}
+ ]){
+  const ctx={URL,location:{href:'https://example.test/portal?feedbackTask='+scenario.target},
+   data:{owner:scenario.owner,items:scenario.items},selected:'original',registry:'developments',statusFilter:'active'};
+  runInNewContext(center.slice(start,end)+'\\nglobalThis.probe=()=>({applied:applyFeedbackTarget(),selected,registry,statusFilter});',ctx);
+  const result=ctx.probe();
+  assert.equal(result.applied,false);
+  assert.equal(result.selected,'original');
+  assert.equal(result.registry,'developments');
+  assert.equal(result.statusFilter,'active');
+ }
+});
+
 test('SH69 archive status is verified by receipt, never an old failed Codex run',()=>{
  const start=center.indexOf('const taskStatusLabels=');
  const end=center.indexOf('const readinessReasonKeys=',start);
