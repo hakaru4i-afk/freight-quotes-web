@@ -41,7 +41,7 @@ jobs:
         env:
           TASK_ID: ${{ inputs.task_id }}
           REQUEST_ID: ${{ inputs.request_id }}
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
         run: |
           set -euo pipefail
           # An authenticated portal call supplies the existing task UUID and a
@@ -59,11 +59,22 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git fetch --no-tags origin refs/heads/main
           node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
-          backend=$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+          # The frontend repository's GITHUB_TOKEN cannot read our private backend.
+          # Never silently substitute it for the explicit read-only credential.
+          test -n "$BACKEND_TOKEN" || {
+            echo "::error title=Private backend access::BACKEND_RELEASE_READ_TOKEN is missing. Set an Actions repository secret with read-only Contents access to hakaru4i-afk/freight-quotes."
+            exit 1
+          }
+          code=$(curl --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --output "$RUNNER_TEMP/backend-main.json" --write-out '%{http_code}' \
             --header "Authorization: Bearer $BACKEND_TOKEN" \
             --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
-            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main")
+          test "$code" = 200 || {
+            echo "::error title=Private backend access::GitHub returned HTTP $code. BACKEND_RELEASE_READ_TOKEN must have Contents read permission for hakaru4i-afk/freight-quotes."
+            exit 1
+          }
+          backend=$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).sha' "$RUNNER_TEMP/backend-main.json")
           [[ "$backend" =~ ^[a-f0-9]{40}$ ]]
           version=$(node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
@@ -83,7 +94,7 @@ jobs:
         with:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ steps.identify.outputs.backend_sha }}
-          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
           path: backend
           persist-credentials: false
       - name: Run exact source tests for Owner handoff and release controls
@@ -108,18 +119,22 @@ jobs:
           (cd backend && node --test tests/owner-portal-release.test.mjs)
       - name: Verify that main advances preserve the tested release scope
         env:
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
           BACKEND_SHA: ${{ steps.identify.outputs.backend_sha }}
         shell: bash
         run: |
           set -euo pipefail
           git fetch --no-tags origin refs/heads/main
           node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
-          test "$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+          test -n "$BACKEND_TOKEN" || { echo "::error::BACKEND_RELEASE_READ_TOKEN_NOT_CONFIGURED"; exit 1; }
+          code=$(curl --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --output "$RUNNER_TEMP/backend-main.json" --write-out '%{http_code}' \
             --header "Authorization: Bearer $BACKEND_TOKEN" \
             --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
-            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')" = "$BACKEND_SHA"
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main")
+          test "$code" = 200 || { echo "::error::BACKEND_PRIVATE_READ_FAILED_HTTP_$code"; exit 1; }
+          live_backend=$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).sha' "$RUNNER_TEMP/backend-main.json")
+          test "$live_backend" = "$BACKEND_SHA" || { echo "::error::BACKEND_MAIN_MOVED_AFTER_VERIFY"; exit 1; }
 
   deploy-api:
     needs: verify
@@ -141,7 +156,7 @@ jobs:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ needs.verify.outputs.backend_sha }}
           path: backend
-          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          token: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
           persist-credentials: false
       - name: Build reviewed production Edge source (not staging)
         env:
@@ -154,17 +169,21 @@ jobs:
       - name: Publish reviewed Edge function, only after verified release gates
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN || github.token }}
+          BACKEND_TOKEN: ${{ secrets.BACKEND_RELEASE_READ_TOKEN }}
           BACKEND_SHA: ${{ needs.verify.outputs.backend_sha }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN_NOT_CONFIGURED"; exit 1; }
-          test "$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+          test -n "$BACKEND_TOKEN" || { echo "::error::BACKEND_RELEASE_READ_TOKEN_NOT_CONFIGURED"; exit 1; }
+          code=$(curl --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --output "$RUNNER_TEMP/backend-main.json" --write-out '%{http_code}' \
             --header "Authorization: Bearer $BACKEND_TOKEN" \
             --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
-            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')" = "$BACKEND_SHA"
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main")
+          test "$code" = 200 || { echo "::error::BACKEND_PRIVATE_READ_FAILED_HTTP_$code"; exit 1; }
+          live_backend=$(node -p 'JSON.parse(require("node:fs").readFileSync(process.argv[1],"utf8")).sha' "$RUNNER_TEMP/backend-main.json")
+          test "$live_backend" = "$BACKEND_SHA" || { echo "::error::BACKEND_MAIN_MOVED_AFTER_VERIFY"; exit 1; }
           supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt
       - name: Confirm real production API build and environment
         env:
