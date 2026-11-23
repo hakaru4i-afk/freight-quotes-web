@@ -36,7 +36,7 @@ function taskStatusText(execution){
  const labels=taskStatusLabels[byLang];
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review') return labels.ready_for_review;
  if(execution?.step==='ready_for_review'&&execution?.checksPassed!==true)return labels.required_tests_missing;
- if(execution?.dispatchStatus==='failed') return labels.dispatch_failed;
+ if(execution?.dispatchStatus==='failed') return String(execution.lastError||'').startsWith('CODEX_')?labels.codex_failed:labels.dispatch_failed;
  return Object.hasOwn(labels,execution?.step)?labels[execution.step]:labels.unknown;
 }
 const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
