@@ -1,0 +1,132 @@
+name: Owner-approved SH65 GitHub development handoff (one-shot)
+run-name: SH65 free GitHub development handoff
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/owner-chatgpt-sh65-release.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      startsWith(github.event.head_commit.message, 'release(owner-chatgpt): approved SH65 free GitHub handoff')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    env:
+      PORTAL_BACKEND_SHA: a2a7fea9e6bad5b829052606d4fd9cb827fc4678
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate one-click Owner candidate, 3 languages and release checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/release/owner-chatgpt-sh65-publish.mjs
+          node --check release/candidates/owner-chatgpt-handoff-20261123.js
+          node --test tests/owner-chatgpt-handoff.test.mjs tests/feedback-deadline-issue173.test.mjs tests/p0-two-button-codex.test.mjs tests/owner-portal-one-click-release.test.mjs
+          ! grep -Fq "action:'run_codex'" release/candidates/owner-chatgpt-handoff-20261123.js
+          ! grep -Fq 'data-pf="start-codex"' release/candidates/owner-chatgpt-handoff-20261123.js
+          grep -Fq 'await call('"'start'"')' release/candidates/owner-chatgpt-handoff-20261123.js
+          grep -Fq 'await call('"'dispatch'"')' release/candidates/owner-chatgpt-handoff-20261123.js
+          echo SH65_SOURCE_AND_SAFE_HANDOFF_PASS
+      - name: Verify existing production API remains Owner-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sSL --retry 2 --max-time 25 -o "$RUNNER_TEMP/api-check.json" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks')"
+          test "$code" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/api-check.json"
+          echo SH65_API_OWNER_GUARD_PASS
+      - name: Verify live SH64 file digests and build SH65 full-site artifact
+        run: node scripts/release/owner-chatgpt-sh65-publish.mjs
+      - name: Verify release artifact and SHA256 before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/portal-feedback-center-20261107.js release/candidates/owner-chatgpt-handoff-20261123.js
+          cmp .release-pages/test/portal-feedback-center-20261107.js release/candidates/owner-chatgpt-handoff-20261123.js
+          node --check .release-pages/app.js
+          node --check .release-pages/portal-feedback-center-20261107.js
+          test -s .release-pages/offer-scoring.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const m=assertProductionReleaseIntegrity('.release-pages');
+          const b=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
+          assert.equal(m.businessVersion,'SH-01.30.65 v');
+          assert.equal(m.backendApiVersion,65);
+          assert.equal(b.backendApiVersion,65);
+          assert.equal(m.ownerChatgptHandoff?.codeImplementationRequiresChatRequest,true);
+          console.log('SH65_PRODUCTION_INTEGRITY_PASS',Object.keys(m.assets).length);
+          NODE
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Confirm exact SH65 website, asset digest and version
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/build-info.json?sh65=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-build.json" &&
+               curl -fsSL --max-time 20 "$base/portal-feedback-center-20261107.js?sh65=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-ui.js" &&
+               curl -fsSL --max-time 20 "$base/production-release-manifest.json?sh65=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-manifest.json" &&
+               cmp -s "$RUNNER_TEMP/live-ui.js" release/candidates/owner-chatgpt-handoff-20261123.js &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.65 v"&&b.backendApiVersion===65&&m.businessVersion===b.releaseVersion&&m.ownerChatgptHandoff?.codeImplementationRequiresChatRequest===true?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+              echo SH65_LIVE_VERIFIED
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo "::error::SH65_LIVE_NOT_VERIFIED"; exit 1; fi
+            sleep 5
+          done
+      - name: Nonempty production page smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$browser" || { echo "::error::SH65_CHROME_UNAVAILABLE"; exit 1; }
+          timeout 55 "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=14000 --dump-dom 'https://hakaru4i-afk.github.io/freight-quotes-web/?sh65=verify' > "$RUNNER_TEMP/dom.html" 2> "$RUNNER_TEMP/chrome.log" || true
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const h=readFileSync(process.env.RUNNER_TEMP+'/dom.html','utf8');
+          const root=h.match(/<div id="root"[^>]*>([\s\S]*?)<\/div>/);
+          if(!root||!root[1].trim())throw Error('SH65_BLANK_PAGE');
+          console.log('SH65_BROWSER_PASS');
+          NODE
+      - name: Mirror only verified SH65 production bytes into main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in build-info.json release-status.json site-status.json production-release-manifest.json index.html test/index.html app.js portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js; do
+            cp ".release-pages/$f" "$f"
+          done
+          cp .release-pages/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-info.json release-status.json site-status.json production-release-manifest.json index.html test/index.html app.js portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.65 v verified free GitHub development handoff'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH65_LIVE_AND_GIT_SYNC_COMPLETE
