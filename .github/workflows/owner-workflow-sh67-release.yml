@@ -34,6 +34,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      # SH67 retry: static test now checks the blocked manual release transition precisely.
       - name: Validate one-click Owner candidate, 3 languages and release checks
         shell: bash
         run: |
