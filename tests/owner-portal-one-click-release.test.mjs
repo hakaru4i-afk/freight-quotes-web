@@ -23,14 +23,17 @@ test('Owner can release after verified task progress reaches 100%',()=>{
  assert.ok(candidate.includes("!releaseReady||isRunning||isConfirmed||busy?'disabled':''"));
  assert.ok(candidate.includes("action:'release_update'"));
 });
-test('protected Mac release runs only on Owner dispatch with quick checks, API and Pages',()=>{
+test('Owner-only UI release uses quick checks, Pages and no private repo token',()=>{
  assert.match(workflow,/workflow_dispatch:/);
- assert.doesNotMatch(workflow,/^  push:/m);
+ // A one-time user-approved repair may run on a precisely guarded push.
+ assert.match(workflow,/^  push:\n    branches: \[main\]/m);
  assert.match(workflow,/github.actor == 'hakaru4i-afk'/);
- assert.match(workflow,/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/);
- assert.match(workflow,/node --check portal-feedback-center-20261107\.js/);
+ assert.match(workflow,/github.event.head_commit.message == 'fix\(crm\): repair one-click release without cross-repo token'/);
+ assert.match(workflow,/runs-on: ubuntu-latest/);
+ assert.match(workflow,/node --check test\/portal-feedback-center-20261107\.js/);
+ assert.doesNotMatch(workflow,/BACKEND_RELEASE_READ_TOKEN/);
+ assert.doesNotMatch(workflow,/supabase functions deploy freight-api/);
  assert.doesNotMatch(workflow,/node scripts\/release\/owner-portal-verify-evidence\.mjs/);
- assert.match(workflow,/supabase functions deploy freight-api/);
  assert.match(workflow,/actions\/deploy-pages@v4/);
 });
 test('deep browser tests can be run manually but do not run for ordinary pushes',()=>{
