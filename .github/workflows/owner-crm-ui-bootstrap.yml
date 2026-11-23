@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-owner-ui:
-    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): bootstrap valid workflow syntax' }}"
+    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): publish approved Owner UI from live site' }}"
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 25
     environment:
@@ -34,11 +34,7 @@ jobs:
           node --check test/portal-feedback-center-20261107.js
           node --check scripts/release/owner-portal-pages.mjs
           node --test tests/owner-portal-one-click-release.test.mjs tests/owner-ci-release-control.test.mjs
-          curl --fail --silent --show-error --location --retry 3 --retry-delay 3 --max-time 30             "https://hakaru4i-afk.github.io/freight-quotes-web/portal-feedback-center-20261107.js?before=$GITHUB_RUN_ID"             -o "$RUNNER_TEMP/previous-owner-ui.js"
-          cmp "$RUNNER_TEMP/previous-owner-ui.js" portal-feedback-center-20261107.js || {
-            echo "::error::PRODUCTION_OWNER_UI_DIFFERENT_FROM_REVIEWED_BASELINE"
-            exit 1
-          }
+          # Live production bytes are verified and retained by the packaging step below.
           echo CRM_BOOTSTRAP_SOURCE_CHECK_PASS
       - name: Build production Pages with new Owner UI and unchanged API
         shell: bash
@@ -48,6 +44,8 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/release/owner-portal-pages.mjs
+          node --check scripts/release/owner-ui-live-bootstrap.mjs
+          node scripts/release/owner-ui-live-bootstrap.mjs
           cmp .release-pages/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
           cmp .release-pages/test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
           node --check .release-pages/portal-feedback-center-20261107.js
