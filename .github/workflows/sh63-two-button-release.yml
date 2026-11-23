@@ -1,0 +1,121 @@
+name: SH63 Owner-approved two-button Codex release
+run-name: SH63 publish Owner GitHub/Codex controls
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh63-two-button-release.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: sh63-owner-codex-production
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.event.head_commit.message == 'release(sh63): publish Owner-approved two-button Codex UI'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    env:
+      PORTAL_BACKEND_SHA: 4f31af215b6381fd919310be03c47c3f70c7d552
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Quick checks for exactly approved P0 (no E2E, backups or Linux DB)
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/release/sh63-two-button.mjs
+          node --check release/owner-portal-feedback-center-20261122.js
+          cmp release/owner-portal-feedback-center-20261122.js portal-feedback-center-20261107.js
+          cmp release/owner-portal-feedback-center-20261122.js test/portal-feedback-center-20261107.js
+          node --test tests/p0-two-button-codex.test.mjs tests/owner-portal-one-click-release.test.mjs tests/owner-ci-release-control.test.mjs
+          echo SH63_FAST_CHECKS_PASS
+      - name: Verify protected production API v59 is reachable
+        shell: bash
+        run: |
+          set -euo pipefail
+          status="$(curl -sSL --retry 2 --max-time 30 -o "$RUNNER_TEMP/api.json" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks')"
+          test "$status" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/api.json"
+          echo SH63_OWNER_API_GUARD_PASS
+      - name: Repackage complete SHA-verified live SH62 site with new controls
+        run: node scripts/release/sh63-two-button.mjs
+      - name: Validate every app.js import and candidate before upload
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check .release-pages/app.js
+          node --check .release-pages/portal-feedback-center-20261107.js
+          node --check .release-pages/offer-scoring.mjs
+          test -s .release-pages/offer-scoring.mjs
+          node -e 'const b=require("./.release-pages/build-info.json"),m=require("./.release-pages/production-release-manifest.json");if(b.releaseVersion!=="SH-01.30.63 v"||b.backendApiVersion!==59||m.businessVersion!==b.releaseVersion||!m.assets["offer-scoring.mjs"]||Object.keys(m.assets).length<196)process.exit(1)'
+          echo SH63_PACKAGE_COMPLETE
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Confirm published version, JS bytes, and required static modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/build-info.json?sh63=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/build.json" &&
+               curl -fsSL --max-time 20 "$base/release-status.json?sh63=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/release.json" &&
+               curl -fsSL --max-time 20 "$base/portal-feedback-center-20261107.js?sh63=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/ui.js" &&
+               curl -fsSL --max-time 20 "$base/offer-scoring.mjs?sh63=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/scoring.mjs" &&
+               cmp -s "$RUNNER_TEMP/ui.js" .release-pages/portal-feedback-center-20261107.js &&
+               cmp -s "$RUNNER_TEMP/scoring.mjs" .release-pages/offer-scoring.mjs &&
+               node -e 'const b=require(process.argv[1]),r=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.63 v"&&b.backendApiVersion===59&&b.releaseStatus==="PUBLISHED"&&r.version===b.releaseVersion?0:1)' "$RUNNER_TEMP/build.json" "$RUNNER_TEMP/release.json"; then
+              echo SH63_LIVE_BYTES_AND_VERSION_VERIFIED
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo '::error::SH63_SITE_NOT_VERIFIED'; exit 1; fi
+            sleep 5
+          done
+      - name: Browser smoke must render nonempty root
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$browser" || { echo "::error::CHROME_NOT_FOUND"; exit 1; }
+          timeout 55 "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+            --virtual-time-budget=14000 --dump-dom \
+            'https://hakaru4i-afk.github.io/freight-quotes-web/?sh63-verify=1' > "$RUNNER_TEMP/dom.html" 2> "$RUNNER_TEMP/chrome.log" || true
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const html=readFileSync(process.env.RUNNER_TEMP+'/dom.html','utf8');
+          const root=html.match(/<div id="root"[^>]*>([\s\S]*?)<\/div>/);
+          if(!root||root[1].trim()==='')throw Error('SH63_BLANK_PAGE_REGRESSION');
+          console.log('SH63_BROWSER_RENDER_PASS');
+          NODE
+      - name: Mirror only verified release metadata to repository main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js; do
+            cp ".release-pages/$f" "$f"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.63 v verified two-button Codex'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH63_PUBLISHED_AND_RECORDED
