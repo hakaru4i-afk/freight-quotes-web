@@ -8,7 +8,7 @@ const paths=[
  'test/portal-feedback-center-20261107.js',
  'release/owner-portal-feedback-center-20261122.js'
 ];
-// Unpublished candidate. Keep protected production asset checks unchanged.
+// Approved Issue #173 candidate was promoted to production in SH64.
 const source=readFileSync('release/candidates/issue173-deadline-20261123.js','utf8');
 
 function probe(){
@@ -28,10 +28,10 @@ function probe(){
  return context.__probe;
 }
 
-test('published/staging/release bytes are unchanged by the unpublished candidate',()=>{
+test('published/staging/release bytes include the approved Issue #173 fix',()=>{
  const published=readFileSync(paths[0],'utf8');
  for(const p of paths.slice(1))assert.equal(readFileSync(p,'utf8'),published,p);
- assert.notEqual(source,published,'candidate must remain isolated before protected release');
+ assert.equal(source,published,'approved candidate must match the published asset byte-for-byte');
 });
 
 test('legacy release_date is labelled as a deadline, never a publication date',()=>{
