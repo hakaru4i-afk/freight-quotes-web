@@ -51,8 +51,8 @@ app=app.replace(marker,'currentVersion:"'+build+'"');
 write('app.js',app);
 for(const name of ['index.html','test/index.html']){
  let html=read(name).toString('utf8');
- if(!/app\.js\?v=[a-f0-9]{20}/.test(html))throw Error('APP_REFERENCE_MISSING:'+name);
- html=html.replace(/app\.js\?v=[a-f0-9]{20}/g,'app.js?v='+build);
+ if(!/app\.js\?v=[a-f0-9]{12,20}/.test(html))throw Error('APP_REFERENCE_MISSING:'+name);
+ html=html.replace(/app\.js\?v=[a-f0-9]{12,20}/g,'app.js?v='+build);
  html=html.replace(/portal-release-status-20261117\.js\?v=SH-01\.30\.61%20v/g,
   'portal-release-status-20261117.js?v=SH-01.30.62%20v');
  write(name,html);
