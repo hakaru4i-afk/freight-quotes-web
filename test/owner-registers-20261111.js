@@ -157,12 +157,12 @@ function drawWork(host){
    const cleaned=plain(item.description).split('Источник реестра:')[0].replace(/ARCHIVE:[^\s]+/g,'').trim();
    body.append(el('strong',short(cleaned,120)||short(item.code,110)),el('small',workStatus(item)));
    body.append(workMeter(item));
-   const action=el('button',w.open,{type:'button'});action.onclick=()=>{navigate('');location.hash='#portal-feedback';};
+   const action=el('button',w.open,{type:'button'});action.onclick=()=>openFeedbackItem(item.id);
    card.append(body,action);list.append(card);
   }panel.append(list);
  }else if(workReady&&!workError)panel.append(el('p',w.empty,{class:'ow-board-help'}));
  const open=el('button',['Центр доработок — все задания','Development center — all tasks','开发中心 — 全部任务'][l],{type:'button',class:'ow-board-link'});
- open.onclick=()=>{navigate('');location.hash='#portal-feedback';};panel.append(open);host.append(panel);
+ open.onclick=()=>openFeedbackItem('');panel.append(open);host.append(panel);
 }
 async function startWork(id,recordId,title,description){
  if(workBusy)return;
@@ -193,6 +193,16 @@ function confirmWork(row){
 
 const selected=()=>new URL(location.href).searchParams.get('ownerView')||'';
 function navigate(id){const u=new URL(location.href);if(id)u.searchParams.set('ownerView',id);else u.searchParams.delete('ownerView');history.pushState({},'',u);key='';source=null;query='';filters={version:'',role:'',status:'',priority:'',area:'',from:'',to:'',view:'all'};request++;loading=false;schedule();window.dispatchEvent(new Event('ow-workspace-changed'));}
+function openFeedbackItem(feedbackId){
+ navigate('');
+ const url=new URL(location.href);
+ if(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(feedbackId||'')))
+  url.searchParams.set('feedbackTask',String(feedbackId));
+ else url.searchParams.delete('feedbackTask');
+ history.replaceState(history.state,'',url);
+ location.hash='#portal-feedback';
+ window.dispatchEvent(new Event('portal-feedback-target-changed'));
+}
 function sections(){if(!source)return[];return (source.legacyEntries||source.markdown.split(/(?=^## )/m).map((text,i)=>({id:'archive-'+i,markdown:text}))).map(x=>({id:x.id,text:x.markdown}));}
 const humanStatuses={accepted:'Принято владельцем',new:'Новое',awaiting_decision:'Ожидает решения',in_progress:'В работе',fixed_review:'Исправлено, ожидает проверки',checking:'Проверяется',ready:'Готово к выпуску',published:'Опубликовано',production_verified:'Проверено в рабочей среде',rejected:'Отклонено',deferred:'Отложено'};
 const priorityNames={P0:'Критический',P1:'Высокий',P2:'Обычный',P3:'Низкий'};
@@ -261,7 +271,7 @@ function paintArchive(host,id){
    // No database write or GitHub workflow is performed by these three buttons.
    if(transferred(row)){
     const link=el('a','Задача перенесена в Центр доработок — открыть',{href:'#portal-feedback',class:'ow-board-link'});
-    link.onclick=e=>{e.preventDefault();navigate('');location.hash='#portal-feedback';};card.append(link);
+    link.onclick=e=>{e.preventDefault();openFeedbackItem(execution?.feedbackId||job?.id);};card.append(link);
    }else{
     const taskControls=window.OWRegisterTaskActions?.render({register:id,row,job,state,execution,onAction:executeRecordAction});
     if(!taskControls)throw Error('OWNER_REGISTER_TASK_UI_MISSING');
@@ -272,7 +282,7 @@ function paintArchive(host,id){
    const events=workEvents.filter(x=>x.request_id===job?.id);
    for(const event of events)history.append(el('p',new Date(event.created_at).toLocaleString('ru-RU',{timeZone:'Europe/Minsk'})+' · '+event.description+' · '+event.actor_login));
    if(!events.length)history.append(el('p','Решение владельца ещё не зафиксировано. Источник и прежние проверки — в технической информации.'));
-   if(job){const open=el('a','Открыть существующую задачу',{href:'#portal-feedback'});open.onclick=e=>{e.preventDefault();navigate('');location.hash='#portal-feedback';};history.append(open);}
+   if(job){const open=el('a','Открыть существующую задачу',{href:'#portal-feedback'});open.onclick=e=>{e.preventDefault();openFeedbackItem(execution?.feedbackId||job.id);};history.append(open);}
    actions.append(history);card.append(actions);
    const technical=el('details',null,{class:'ow-technical-history'});technical.append(el('summary','Техническая информация'),el('pre',JSON.stringify({id:row.id,sourceTaskKey:row.sourceTaskKey,...row.technical},null,2)));card.append(technical);target.append(card);
   }
@@ -417,7 +427,7 @@ function paintAcceptance(host){
   }
   if(job){
    const open=el('button','Открыть Центр доработок',{type:'button'});
-   open.onclick=()=>{navigate('');location.hash='#portal-feedback';};
+   open.onclick=()=>openFeedbackItem(acceptanceExecutionFor(row)?.feedbackId||job.id);
    controls.append(open);
   }
   card.append(controls);wrap.append(card);
