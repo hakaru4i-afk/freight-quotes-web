@@ -1,0 +1,120 @@
+name: Issue 173 Owner-approved SH64 deadline release (one-shot)
+run-name: SH64 publish Issue 173 confirmed deadline fix
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/issue173-sh64-release-once.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      startsWith(github.event.head_commit.message, 'release(issue173): approved SH64 deadline fix')
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    env:
+      PORTAL_BACKEND_SHA: a9869aaf94a928d5b2649311a62ce9a2f45766c4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact Owner-approved candidate and focused regression
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/release/issue173-sh64-publish.mjs
+          node --check release/candidates/issue173-deadline-20261123.js
+          node --test tests/feedback-deadline-issue173.test.mjs
+          grep -Fq 'Дедлайн исполнения' release/candidates/issue173-deadline-20261123.js
+          grep -Fq '!codexNetworkBlocked' release/candidates/issue173-deadline-20261123.js
+          echo SH64_CANDIDATE_TESTS_PASS
+      - name: Check production API is Owner-only (no auth bypass)
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sSL --retry 2 --max-time 30 -o "$RUNNER_TEMP/api.json" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks')"
+          test "$code" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/api.json"
+          echo SH64_API_GUARD_PASS
+      - name: Verify live SH63 asset hashes and assemble complete SH64 Pages artifact
+        run: node scripts/release/issue173-sh64-publish.mjs
+      - name: Validate production package before deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/portal-feedback-center-20261107.js release/candidates/issue173-deadline-20261123.js
+          cmp .release-pages/test/portal-feedback-center-20261107.js release/candidates/issue173-deadline-20261123.js
+          node --check .release-pages/app.js
+          node --check .release-pages/portal-feedback-center-20261107.js
+          test -s .release-pages/offer-scoring.mjs
+          node -e 'const b=require("./.release-pages/build-info.json"),m=require("./.release-pages/production-release-manifest.json");if(b.releaseVersion!=="SH-01.30.64 v"||b.backendApiVersion!==64||m.businessVersion!==b.releaseVersion||m.backendApiVersion!==64||Object.keys(m.assets).length<196)process.exit(1)'
+          echo SH64_COMPLETE_PACKAGE_VERIFIED
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify live Pages version and byte-identical JS after publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/build-info.json?issue173=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/build.json" &&
+               curl -fsSL --max-time 20 "$base/portal-feedback-center-20261107.js?issue173=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/ui.js" &&
+               curl -fsSL --max-time 20 "$base/production-release-manifest.json?issue173=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/manifest.json" &&
+               cmp -s "$RUNNER_TEMP/ui.js" release/candidates/issue173-deadline-20261123.js &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);if(b.releaseVersion!=="SH-01.30.64 v"||b.backendApiVersion!==64||b.releaseStatus!=="PUBLISHED"||m.issue173DeadlineFix?.backendRuntimeVersion!==64)process.exit(1)' "$RUNNER_TEMP/build.json" "$RUNNER_TEMP/manifest.json"; then
+              echo SH64_LIVE_PRODUCTION_VERIFIED
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo "::error::SH64_LIVE_SITE_NOT_VERIFIED"; exit 1; fi
+            sleep 5
+          done
+      - name: Browser smoke for nonempty portal
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$browser" || { echo "::error::SH64_CHROME_UNAVAILABLE"; exit 1; }
+          timeout 55 "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=14000 --dump-dom             'https://hakaru4i-afk.github.io/freight-quotes-web/?issue173=verify' > "$RUNNER_TEMP/dom.html" 2> "$RUNNER_TEMP/chrome.log" || true
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const h=readFileSync(process.env.RUNNER_TEMP+'/dom.html','utf8');
+          const root=h.match(/<div id="root"[^>]*>([\s\S]*?)<\/div>/);
+          if(!root||!root[1].trim())throw Error('SH64_BLANK_PAGE');
+          console.log('SH64_BROWSER_PASS');
+          NODE
+      - name: Mirror only verified published assets to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in build-info.json release-status.json site-status.json production-release-manifest.json index.html test/index.html app.js portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js; do
+            cp ".release-pages/$f" "$f"
+          done
+          cp .release-pages/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-info.json release-status.json site-status.json production-release-manifest.json index.html test/index.html app.js portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.64 v verified Issue 173 deadline'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH64_LIVE_AND_GIT_SYNC_COMPLETE
