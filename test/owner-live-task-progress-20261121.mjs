@@ -28,7 +28,9 @@ export function summarize({pr,audit,runs=[],job=null,parity=null,publication=nul
  const passed=stages.filter(x=>x.passed).length;
  const currentByWorkflow=[];const seen=new Set();for(const run of sorted){if(!seen.has(run.name)){seen.add(run.name);currentByWorkflow.push(run)}}
  const running=currentByWorkflow.find(x=>['queued','in_progress','waiting','requested','pending'].includes(x.status));
- const failed=currentByWorkflow.find(x=>['failure','timed_out','cancelled','action_required','startup_failure'].includes(x.conclusion));
+ const failed=currentByWorkflow.find(x=>['failure','timed_out','cancelled','startup_failure'].includes(x.conclusion));
+ // GitHub may report action_required with zero jobs when a PR workflow awaits approval.
+ // It is not an executed test failure; keep all stages unverified until a real PASS.
  const current=running||failed||currentByWorkflow[0];
  const state=releasePassed?'released':running?'running':failed?'failed':current?'checked':'unverified';
  let action=running?'GitHub Actions выполняет: ':failed?'Ошибка GitHub Actions: ':current?'Последняя проверка: ':'По текущему коммиту новых проверок нет';
