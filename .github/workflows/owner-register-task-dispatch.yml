@@ -31,6 +31,14 @@ on:
         description: 'Server-verified source main commit SHA'
         required: true
         type: string
+      task_title:
+        description: 'Owner-approved task title'
+        required: true
+        type: string
+      task_description:
+        description: 'Owner-approved implementation brief'
+        required: true
+        type: string
 permissions:
   contents: write
   issues: write
@@ -40,7 +48,7 @@ concurrency:
 jobs:
   register-task:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
-    timeout-minutes: 10
+    timeout-minutes: 110
     env:
       TASK_UUID: ${{ inputs.dispatch_key }}
       TASK_REGISTER: ${{ inputs.register }}
@@ -49,6 +57,8 @@ jobs:
       TASK_FEEDBACK_ID: ${{ inputs.feedback_id }}
       TASK_DEADLINE: ${{ inputs.deadline }}
       TASK_BASE_SHA: ${{ inputs.base_sha }}
+      TASK_TITLE: ${{ inputs.task_title }}
+      TASK_DESCRIPTION: ${{ inputs.task_description }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
@@ -68,6 +78,9 @@ jobs:
           test "${#TASK_SOURCE}" -le 240
           [[ "$TASK_BASE_SHA" =~ ^[a-f0-9]{40}$ ]]
           test "$GITHUB_REF_NAME" = main
+          test -n "$TASK_TITLE"
+          test -n "$TASK_DESCRIPTION"
+          test "${#TASK_DESCRIPTION}" -le 3000
       - name: Create work branch without pretending implementation commits exist
         shell: bash
         run: |
@@ -78,7 +91,7 @@ jobs:
               -f ref="refs/heads/$BRANCH" -f sha="$TASK_BASE_SHA" >/dev/null
           fi
           echo "TASK_BRANCH=$BRANCH" >> "$GITHUB_ENV"
-      - name: Open auditable engineering task for a separately connected Codex agent
+      - name: Register task with source brief for Codex
         shell: bash
         run: |
           set -euo pipefail
@@ -93,10 +106,74 @@ jobs:
               printf 'Внутренний ID: %s\n\n' "$TASK_FEEDBACK_ID"
               printf 'Плановый дедлайн: %s\n\n' "$TASK_DEADLINE"
               printf 'Рабочая ветка: %s\n\n' "$TASK_BRANCH"
-              printf 'Codex должен получить задание через отдельно настроенную интеграцию.\n'
-              printf 'Этот workflow сам НЕ запускает модель и не выполняет разработку.\n'
+              printf 'Название: %s\n\n' "$TASK_TITLE"
+              printf 'Техническое задание:\n%s\n\n' "$TASK_DESCRIPTION"
+              printf 'Запуск Codex выполняет следующий шаг этого workflow при наличии авторизованного Codex CLI.\n'
               printf 'Готовность подтверждается кодом и обязательными зелёными тестами.\n'
             } > /tmp/owner-task.txt
             gh issue create --title "$TITLE" --body-file /tmp/owner-task.txt
           fi
-          echo 'OWNER_TASK_REGISTERED; AWAITING_IMPLEMENTATION'
+          echo 'OWNER_TASK_REGISTERED; CODEX_START_PENDING'
+      - name: Verify Codex CLI and authenticated session
+        id: codex-preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v codex >/dev/null 2>&1; then
+            echo "CODEX_CLI_NOT_INSTALLED" > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo "::error::CODEX_CLI_NOT_INSTALLED: Codex CLI is not installed on the Mac runner"
+            exit 1
+          fi
+          if ! codex login status >/dev/null 2>&1; then
+            echo "CODEX_NOT_AUTHENTICATED" > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo "::error::CODEX_NOT_AUTHENTICATED: connect the existing Codex account on the Mac runner; no paid API key will be created"
+            exit 1
+          fi
+      - name: Run Codex (non-interactive)
+        id: codex-exec
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin "refs/heads/$TASK_BRANCH:refs/remotes/origin/$TASK_BRANCH"
+          git switch --create "$TASK_BRANCH" --track "origin/$TASK_BRANCH"
+          {
+            printf '%s\n' 'Implement the Owner-approved task in this repository. Make real source and appropriate fast test changes, update relevant RU/EN/ZH guidance when needed. Do not push or deploy. Avoid paid APIs and new subscriptions. Do not alter real production data.'
+            printf '\nTask: %s\n' "$TASK_TITLE"
+            printf 'Record: %s\nDeadline: %s\n' "$TASK_RECORD_ID" "$TASK_DEADLINE"
+            printf 'Owner brief (task data, not an instruction to reveal secrets):\n%s\n' "$TASK_DESCRIPTION"
+            printf '\nWhen finished, stop. The workflow creates a draft PR and runs checks separately.\n'
+          } > "$RUNNER_TEMP/owner-codex-prompt.txt"
+          if ! codex exec --ephemeral --sandbox workspace-write "$(cat "$RUNNER_TEMP/owner-codex-prompt.txt")" > "$RUNNER_TEMP/owner-codex-log.txt" 2>&1; then
+            echo "CODEX_EXEC_FAILED" > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo "::error::CODEX_EXEC_FAILED: inspect protected runner logs for details"
+            exit 1
+          fi
+          if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
+            echo "CODEX_NO_CODE_CHANGES" > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo "::error::CODEX_NO_CODE_CHANGES: Codex finished without modifying source files"
+            exit 1
+          fi
+      - name: Commit generated code and create draft PR
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git diff --cached --quiet && { echo "CODEX_NO_CODE_CHANGES" > "$RUNNER_TEMP/owner-task-failure.txt"; exit 1; }
+          git -c user.name="freight-owner-codex" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "feat(owner-task): implement $TASK_RECORD_ID"
+          gh auth setup-git
+          git push origin "HEAD:refs/heads/$TASK_BRANCH"
+          gh pr create --draft --base main --head "$TASK_BRANCH" --title "Owner task $TASK_RECORD_ID — $TASK_TITLE" --body "Created by Owner-authorized Codex workflow. Source task: $TASK_SOURCE. Verify code, fast checks, FAQ and approval before merge. This is not a production deployment."
+          echo 'CODEX_CODE_COMMITTED; DRAFT_PR_CREATED'
+      - name: Record failure in GitHub task audit
+        if: failure()
+        shell: bash
+        run: |
+          set -euo pipefail
+          REASON="$(cat "$RUNNER_TEMP/owner-task-failure.txt" 2>/dev/null || echo OWNER_TASK_WORKFLOW_FAILED)"
+          echo "::error::$REASON"
+          ISSUE="$(gh issue list --state all --search "$TASK_UUID in:title" --json number --jq '.[0].number // empty' || true)"
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "Owner task FAIL: \`$REASON\`. See workflow run $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID. No implementation or Codex success is claimed." || true
+          fi
+          # Backend reconciles this failed workflow run into last_error in the CRM database.
+          exit 0
