@@ -1,0 +1,131 @@
+name: Owner-approved SH68 all registers lifecycle (one-shot)
+run-name: SH68 All owner registers lifecycle
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/owner-registers-sh68-release.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      startsWith(github.event.head_commit.message, 'release(owner-registers): approved SH68 all register lifecycle')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    env:
+      PORTAL_BACKEND_SHA: 36a923120dee1c4cbe06baaa9d710913cdb5f5a9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify all three register lifecycle tests and existing review workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/release/owner-register-lifecycle-sh68-publish.mjs
+          node --check release/candidates/owner-registers-lifecycle-sh68.js
+          node --test tests/owner-all-registers-lifecycle.test.mjs tests/owner-workflow-lifecycle.test.mjs tests/owner-issue173-publication-receipt.test.mjs tests/owner-chatgpt-handoff.test.mjs tests/feedback-deadline-issue173.test.mjs tests/p0-two-button-codex.test.mjs tests/owner-portal-one-click-release.test.mjs
+          ! grep -Fq "action:'set_status'" release/candidates/owner-registers-lifecycle-sh68.js
+          grep -Fq 'acceptanceExecutions=nextExecutions' release/candidates/owner-registers-lifecycle-sh68.js
+          echo SH68_ALL_REGISTERS_TESTS_PASS
+      - name: Verify production API remains restricted to Owner
+        shell: bash
+        run: |
+          set -euo pipefail
+          code="$(curl -sSL --retry 2 --max-time 25 -o "$RUNNER_TEMP/api-check.json" -w '%{http_code}' 'https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks')"
+          test "$code" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/api-check.json"
+          echo SH68_API_GUARD_PASS
+      - name: Download and checksum verified SH67 live assets; build SH68
+        run: node scripts/release/owner-register-lifecycle-sh68-publish.mjs
+      - name: Verify complete SH68 production artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/owner-registers-20261111.js release/candidates/owner-registers-lifecycle-sh68.js
+          node --check .release-pages/app.js
+          node --check .release-pages/owner-registers-20261111.js
+          test -s .release-pages/offer-scoring.mjs
+          ! grep -Fq "action:'set_status'" .release-pages/owner-registers-20261111.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const m=assertProductionReleaseIntegrity('.release-pages');
+          const b=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
+          assert.equal(m.businessVersion,'SH-01.30.68 v');
+          assert.equal(b.releaseVersion,'SH-01.30.68 v');
+          assert.equal(m.backendApiVersion,66);
+          assert.equal(b.backendApiVersion,66);
+          assert.equal(m.ownerRegisterLifecycle?.apiVersion,66);
+          assert.deepEqual(m.ownerRegisterLifecycle?.registers,['remarks','developments','updates']);
+          console.log('SH68_PRODUCTION_INTEGRITY_PASS',Object.keys(m.assets).length);
+          NODE
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify published SH68 version, exact UI bytes and receipt
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/build-info.json?sh68=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-build.json" &&
+               curl -fsSL --max-time 20 "$base/owner-registers-20261111.js?sh68=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-ui.js" &&
+               curl -fsSL --max-time 20 "$base/production-release-manifest.json?sh68=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-manifest.json" &&
+               cmp -s "$RUNNER_TEMP/live-ui.js" release/candidates/owner-registers-lifecycle-sh68.js &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.68 v"&&b.backendApiVersion===66&&m.businessVersion===b.releaseVersion&&m.ownerRegisterLifecycle?.apiVersion===66?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+              echo SH68_LIVE_VERIFIED
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo "::error::SH68_LIVE_NOT_VERIFIED"; exit 1; fi
+            sleep 5
+          done
+      - name: Confirm published page renders content
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          test -n "$browser" || { echo "::error::SH68_CHROME_UNAVAILABLE"; exit 1; }
+          timeout 55 "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=14000 --dump-dom 'https://hakaru4i-afk.github.io/freight-quotes-web/?sh68=verify' > "$RUNNER_TEMP/dom.html" 2> "$RUNNER_TEMP/chrome.log" || true
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const h=readFileSync(process.env.RUNNER_TEMP+'/dom.html','utf8');
+          const root=h.match(/<div id="root"[^>]*>([\s\S]*?)<\/div>/);
+          if(!root||!root[1].trim())throw Error('SH68_BLANK_PAGE');
+          console.log('SH68_BROWSER_PASS');
+          NODE
+      - name: Mirror only verified SH68 production into main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js owner-registers-20261111.js; do
+            cp ".release-pages/$f" "$f"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-info.json release-status.json site-status.json production-release-manifest.json index.html app.js owner-registers-20261111.js
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.68 v unified Owner registers'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH68_LIVE_AND_GIT_SYNC_COMPLETE
