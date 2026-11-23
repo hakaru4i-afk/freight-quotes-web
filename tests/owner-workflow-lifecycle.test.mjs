@@ -8,7 +8,7 @@ test('owner task lifecycle requires real checked review, then acceptance before 
  assert.match(ui,/data-pf="submit-review"/);
  assert.match(ui,/data-pf="accept-review"/);
  assert.match(ui,/action==='submit-review'\?'submit_review':'accept'/);
- assert.doesNotMatch(ui,/transitions\[item\.status\].*\[.completed.,.release.\]/);
+ assert.match(ui,/filter\(status=>!\['completed','release'\]\.includes\(status\)/);
 });
 test('rework form has required comment, history, and GitHub relay',()=>{
  assert.match(ui,/id="pf-rework"/);
