@@ -67,3 +67,10 @@ test('both production deployment jobs are downstream of the verified evidence ga
   assert.match(pagesJob,/needs:\s*\[verify,\s*deploy-api\]/);
   assert.match(apiJob,/environment:\s*production/);
 });
+
+test('missing isolated restore proof blocks before remote evidence checks',()=>{
+  const gate=read('scripts/release/owner-portal-verify-evidence.mjs');
+  const guard=gate.indexOf("throw Error('RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED')");
+  assert.ok(guard>=0,'missing hard restore blocker');
+  assert.doesNotMatch(gate.slice(0,guard),/owner-portal-verify-evidence-frontend\.mjs|owner-portal-verify-evidence-backend\.mjs/);
+});
