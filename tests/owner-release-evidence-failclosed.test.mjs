@@ -48,3 +48,21 @@ test('browser verifier rejects missing exact SHA before GitHub API access',()=>{
   assert.notEqual(result.status,0);
   assert.match(result.stderr,/E2E_EXACT_FRONTEND_SHA_REQUIRED/);
 });
+
+test('both production deployment jobs are downstream of the verified evidence gate',()=>{
+  const workflow=read('.github/workflows/owner-portal-release.yml');
+  const verify=workflow.indexOf('\n  verify:');
+  const api=workflow.indexOf('\n  deploy-api:');
+  const pages=workflow.indexOf('\n  deploy-pages:');
+  assert.ok(verify>=0&&api>verify&&pages>api,'expected ordered release jobs');
+  const verifyJob=workflow.slice(verify,api);
+  const apiJob=workflow.slice(api,pages);
+  const pagesJob=workflow.slice(pages);
+  assert.match(verifyJob,/node scripts\/release\/owner-portal-verify-evidence\.mjs/);
+  assert.match(verifyJob,/github\.actor == 'hakaru4i-afk'/);
+  assert.match(verifyJob,/github\.ref == 'refs\/heads\/main'/);
+  assert.match(verifyJob,/github\.event_name == 'workflow_dispatch'/);
+  assert.match(apiJob,/needs:\s*verify\b/);
+  assert.match(pagesJob,/needs:\s*\[verify,\s*deploy-api\]/);
+  assert.match(apiJob,/environment:\s*production/);
+});
