@@ -1,15 +1,15 @@
 {
   "environment": "production",
-  "version": "8c5fecef72121b63aec1",
-  "releaseVersion": "SH-01.30.62 v",
+  "version": "75496009cd57704db71d",
+  "releaseVersion": "SH-01.30.63 v",
   "projectRef": "ooclsrndeygojtofuyte",
-  "build": "8c5fecef72121b63aec1",
+  "build": "75496009cd57704db71d",
   "releaseStatus": "PUBLISHED",
   "sourceStagingBuild": "e49dd78d09811370c74d",
   "ownerReleaseVersion": "OW-01.30.52 v",
   "releaseNotes": "release-status.json",
   "releaseDate": "2026-11-23",
-  "frontendSourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
-  "backendSourceCommit": "63a61bb4ff67d81cfaa9579fb1f80f678acdebe2",
-  "backendApiVersion": 58
+  "frontendSourceCommit": "f8d346e4938625685d072c25441f55659f688be7",
+  "backendSourceCommit": "4f31af215b6381fd919310be03c47c3f70c7d552",
+  "backendApiVersion": 59
 }
