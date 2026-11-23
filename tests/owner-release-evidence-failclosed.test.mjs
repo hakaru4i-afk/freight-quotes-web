@@ -9,6 +9,7 @@ test('production evidence gate rejects unproven DB and Storage restoration',()=>
   const gate=read('scripts/release/owner-portal-verify-evidence.mjs');
   assert.match(gate,/RELEASE_EXACT_SOURCE_PAIR_REQUIRED/);
   assert.match(gate,/RELEASE_BACKEND_CHECKOUT_SHA_MISMATCH/);
+  assert.match(gate,/RELEASE_FRONTEND_CHECKOUT_SHA_MISMATCH/);
   assert.match(gate,/RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED/);
   assert.match(gate,/throw Error\('RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED'\)/);
 });
