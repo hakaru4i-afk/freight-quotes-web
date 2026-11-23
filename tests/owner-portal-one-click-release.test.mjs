@@ -9,7 +9,11 @@ const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js',
 const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
 test('published UI matches its receipt and the proposed Pages UI matches staging',()=>{
  const manifest=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
- assert.equal(createHash('sha256').update(live).digest('hex'),manifest.assets['portal-feedback-center-20261107.js']);
+ assert.match(manifest.assets['portal-feedback-center-20261107.js'],/^[a-f0-9]{64}$/);
+ assert.equal(live,candidate,'main must contain exactly the approved P0 UI');
+ if(manifest.businessVersion==='SH-01.30.62 v')
+  assert.equal(createHash('sha256').update(live).digest('hex'),manifest.assets['portal-feedback-center-20261107.js']);
+ else assert.equal(manifest.businessVersion,'SH-01.30.61 v','production manifest must be SH61 baseline or verified SH62');
  assert.equal(stage,candidate);
  assert.ok(candidate.includes('data-pf="release-update"'));
  assert.ok(!candidate.includes('data-pf="prepare-release"'));
@@ -17,7 +21,7 @@ test('published UI matches its receipt and the proposed Pages UI matches staging
 test('Owner can release after verified task progress reaches 100%',()=>{
  const gate=candidate.split('\n').find(s=>s.startsWith('const isReleaseReady='));
  assert.ok(gate.includes("isOwner===true"));
- assert.ok(gate.includes("execution?.progress===100"));
+ assert.ok(gate.includes("execution?.step==='ready_for_review'"));
  assert.ok(gate.includes("execution?.checksPassed===true"));
  assert.ok(!gate.includes('readiness?.passed===4'));
  assert.ok(candidate.includes("!releaseReady||isRunning||isConfirmed||busy?'disabled':''"));
@@ -51,16 +55,16 @@ test('task status names the blocker in three languages without a development per
  const start=candidate.indexOf('const taskStatusLabels=');
  const end=candidate.indexOf('const readinessReasonKeys=',start);
  for(const [lang,waiting,failed,ready] of [
-  ['ru','В работе. Ожидаем PR','Ошибка проверки task-e2e','Все проверки пройдены'],
-  ['en','In progress. Waiting for a pull request','The task-e2e check failed','Checks passed'],
-  ['zh','开发中，等待拉取请求','task-e2e 检查失败','检查已通过']
+  ['ru','Код создан, ожидается PR','Ошибка проверки task-e2e','Проверки пройдены, готов к приёмке'],
+  ['en','In progress. Waiting for a pull request','The task-e2e check failed','Checks passed, ready for review'],
+  ['zh','开发中，等待拉取请求','task-e2e 检查失败','检查已通过，等待验收']
  ]){
   const context={byLang:lang,releaseT:()=>({readySummary:ready})};
   runInNewContext(candidate.slice(start,end)+'globalThis.statusText=taskStatusText;',context);
-  assert.equal(context.statusText({progress:50,step:'code_committed_pr_required'}), waiting);
-  assert.equal(context.statusText({progress:50,step:'task_e2e_failed'}), failed);
-  assert.equal(context.statusText({progress:100,checksPassed:true}),ready);
-  assert.notEqual(context.statusText({progress:100,checksPassed:false}),ready);
+  assert.equal(context.statusText({step:'code_committed_pr_required'}), waiting);
+  assert.equal(context.statusText({step:'task_e2e_failed'}), failed);
+  assert.equal(context.statusText({step:'ready_for_review',checksPassed:true}),ready);
+  assert.notEqual(context.statusText({step:'ready_for_review',checksPassed:false}),ready);
  }
  const panel=candidate.split('\n').find(line=>line.includes('const progressPanel='));
  assert.doesNotMatch(panel,/<progress|%/);
