@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-owner-ui:
-    if: ${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): owner-approved publish working release UI without private token' }}
+    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): bootstrap valid workflow syntax' }}"
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 25
     environment:
