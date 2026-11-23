@@ -11,7 +11,7 @@ on:
         description: 'Owner release request UUID'
         required: false
         type: string
-  # This exact Owner-approved repair may publish once automatically.
+  # The Owner-approved failed task/release UUIDs above allow a one-time guarded recovery.
   # All later ordinary pushes are excluded from production publication.
   push:
     branches: [main]
