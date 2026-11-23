@@ -1,5 +1,5 @@
 name: SH62 Owner-approved P0 production release and Codex diagnostic
-# P0 verified release retry after enforcing ready-for-review only with green GitHub checks.
+# P0 SH62: verified UI, API v58 and both 12/20-character app cache tokens in production/staging.
 run-name: SH62 P0 publish and Mac Codex check
 on:
   push:
