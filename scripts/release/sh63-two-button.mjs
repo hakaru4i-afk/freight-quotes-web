@@ -11,7 +11,7 @@ const safe=p=>typeof p==='string'&&/^[a-zA-Z0-9._/-]+$/.test(p)&&!p.startsWith('
 const local=p=>resolve(root,p);
 const read=p=>readFileSync(local(p));
 const json=p=>JSON.parse(read(p).toString('utf8'));
-const write=(p,v)=>{const file=local(p);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,typeof v==='string'?v:JSON.stringify(v,null,2)+'\n')};
+const write=(p,v)=>{const file=local(p);mkdirSync(dirname(file),{recursive:true});writeFileSync(file,Buffer.isBuffer(v)||typeof v==='string'?v:JSON.stringify(v,null,2)+'\n')};
 const version='SH-01.30.63 v',date='2026-11-23';
 const web=process.env.GITHUB_SHA||'',api=process.env.PORTAL_BACKEND_SHA||'';
 if(!/^[a-f0-9]{40}$/.test(web)||! /^[a-f0-9]{40}$/.test(api))throw Error('SH63_APPROVED_SHA_MISSING');
