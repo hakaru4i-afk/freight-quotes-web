@@ -10,7 +10,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: pr-quick-${{ github.event.pull_request.number || github.ref }}
+  group: pr-quick-linux-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   fast:
