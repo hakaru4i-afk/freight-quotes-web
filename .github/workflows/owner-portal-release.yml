@@ -100,7 +100,7 @@ jobs:
           node --check scripts/release/owner-portal-api-production.mjs
           node --check scripts/release/owner-portal-pages.mjs
           node --check backend/src/transport-application/owner-portal-release.mjs
-          node --test tests/owner-ci-release-control.test.mjs tests/owner-register-publication.test.mjs
+          node --test tests/owner-ci-release-control.test.mjs tests/owner-register-publication.test.mjs tests/owner-release-evidence-fail-closed.test.mjs
           (cd backend && node --test tests/owner-portal-release.test.mjs)
       - name: Require protected E2E and backup evidence before any production deployment
         shell: bash
