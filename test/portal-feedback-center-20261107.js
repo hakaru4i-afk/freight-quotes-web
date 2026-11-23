@@ -36,7 +36,7 @@ function taskStatusText(execution){
 const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
 const releaseReason=()=>!releaseReadiness.ready?(releaseT()[readinessReasonKeys[releaseReadiness.reason]||'checksPending']||''):'';
 let executionByFeedback=new Map(),handoffBusy=false;
-const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true;
+const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 const requestStatus=i=>i.status==="release"&&i.release_date?"Выпуск · "+i.release_date:latestStatus(i.status);
