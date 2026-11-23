@@ -118,3 +118,5 @@ test('both Owner entrypoints request up to 100 recent CI runs to avoid losing ac
   assert.doesNotMatch(source,/actions\/runs\?branch=.*&per_page=50/);
  }
 });
+
+test('green CI without release evidence explicitly remains blocked in Owner activity',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name))});assert.equal(x.releaseReady,false);assert.match(x.action,/production не подтверждён/);});
