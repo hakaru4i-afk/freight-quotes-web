@@ -39,3 +39,12 @@ test('malformed release pair is rejected before checkout or network evidence rea
   assert.match(result.stderr,/RELEASE_EXACT_SOURCE_PAIR_REQUIRED/);
  }
 });
+
+test('synthetic but well-formed wrong frontend SHA is rejected before evidence API calls', () => {
+ const result=spawnSync(process.execPath,[verifier],{
+  encoding:'utf8',timeout:10000,
+  env:{...process.env,GITHUB_WEB_TOKEN:'synthetic-no-network',GITHUB_BACKEND_TOKEN:'synthetic-no-network',FRONTEND_SHA:'0'.repeat(40),BACKEND_SHA:'1'.repeat(40)}
+ });
+ assert.notEqual(result.status,0);
+ assert.match(result.stderr,/RELEASE_FRONTEND_CHECKOUT_SHA_MISMATCH/);
+});
