@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-const live=readFileSync('portal-feedback-center-20261107.js','utf8');
+const live=readFileSync('release/owner-portal-feedback-center-20261122.js','utf8');
 const testCopy=readFileSync('test/portal-feedback-center-20261107.js','utf8');
 const gate=live.match(/const isReleaseReady=.*?;\n/);
-test('root and test share one release gate',()=>assert.equal(live,testCopy));
+test('Pages candidate and staging share one release gate',()=>assert.equal(live,testCopy));
 test('Owner-only gate requires confirmed 100 percent work, not backup or SHA certificates',()=>{
  assert.ok(gate);
  const ctx={};runInNewContext(gate[0]+'\nglobalThis.ready=isReleaseReady;',ctx);

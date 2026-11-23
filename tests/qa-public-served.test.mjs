@@ -7,12 +7,12 @@ const base='https://hakaru4i-afk.github.io/freight-quotes-web/test/';
 const expected=fs.readFileSync(new URL('../test/qa-public-status.json',import.meta.url),'utf8');
 async function get(path){
   let last;
-  for(let i=0;i<12;i++){
-    try{const r=await fetch(base+path+'?qa-verification='+Date.now(),{cache:'no-store'});
+  for(let i=0;i<3;i++){
+    try{const r=await fetch(base+path+'?qa-verification='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(8000)});
       if(!r.ok)throw Error('HTTP '+r.status);
       const body=await r.text();if(body.length>0)return body;
     }catch(e){last=e}
-    await new Promise(resolve=>setTimeout(resolve,3000));
+    if(i<2)await new Promise(resolve=>setTimeout(resolve,1000));
   }
   throw last||Error('Pages unavailable');
 }

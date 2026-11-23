@@ -17,7 +17,7 @@ concurrency:
 jobs:
   publish-reviewed-button:
     if: "github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (startsWith(github.event.head_commit.message, 'Merge pull request #168 ') || github.event.head_commit.message == 'fix(owner): activate verified one-time release button bootstrap' || github.event.head_commit.message == 'fix(owner): publish four-stage release button gate UI' || github.event.head_commit.message == 'fix(owner): publish verified release gate diagnostic UI' || github.event.head_commit.message == 'fix(owner): bootstrap safe release preflight button' || github.event.head_commit.message == 'fix(owner): publish passing preflight UI and locale tests')"
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 30
     environment:
       name: github-pages

@@ -39,7 +39,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   register-task:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     env:
       TASK_UUID: ${{ inputs.dispatch_key }}

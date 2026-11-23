@@ -1,19 +1,5 @@
 name: SH59 isolated QA20 staging-only Pages promotion
 on:
-  pull_request:
-    paths:
-      - .github/workflows/sh59-staging-only-pages.yml
-      - scripts/release/build-staging-only-package.mjs
-      - scripts/release/verify-published-root.mjs
-      - scripts/release/verify-staging-preview-browser.mjs
-      - tests/build-staging-only-package.test.mjs
-      - tests/verify-published-root.test.mjs
-  # A one-time owner-authorized staging-only release commit on main.
-  # No root assets change. All published root bytes must match before/after.
-  push:
-    branches: [main, ci/isolated-sh59-staging-pages-20261121]
-    paths:
-      - .github/workflows/sh59-staging-only-pages.yml
   workflow_dispatch:
     inputs:
       handoff_run_id:
@@ -32,7 +18,9 @@ concurrency:
   cancel-in-progress: false
 jobs:
   unit-and-negative:
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
@@ -52,8 +40,8 @@ jobs:
   prepare:
     needs: unit-and-negative
     if: >-
-      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
-      ((github.event_name == 'pull_request' &&
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      (github.repository == 'hakaru4i-afk/freight-quotes-web' && ((github.event_name == 'pull_request' &&
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.actor == 'hakaru4i-afk') ||
        (github.event_name == 'workflow_dispatch' &&
@@ -63,8 +51,8 @@ jobs:
         github.actor == 'hakaru4i-afk' &&
         (github.ref == 'refs/heads/main' ||
          github.ref == 'refs/heads/ci/isolated-sh59-staging-pages-20261121') &&
-        startsWith(github.event.head_commit.message, 'release(staging): deploy verified SH59 QA20 to Pages test only')))
-    runs-on: ubuntu-24.04
+        startsWith(github.event.head_commit.message, 'release(staging): deploy verified SH59 QA20 to Pages test only'))))
+    runs-on: [self-hosted, Linux, freight-mac-ci-vm]
     timeout-minutes: 28
     permissions:
       contents: read
@@ -178,8 +166,10 @@ jobs:
 
   deploy:
     needs: prepare
-    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
-    runs-on: ubuntu-24.04
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 18
     environment:
       name: github-pages
@@ -205,7 +195,7 @@ jobs:
             curl --fail --silent --show-error --location --retry 4 --max-time 30 \
               -H 'Cache-Control: no-cache' \
               "https://hakaru4i-afk.github.io/freight-quotes-web/$rel?root_proof=$GITHUB_RUN_ID" -o /tmp/sh59-verified-root
-            actual=$(sha256sum /tmp/sh59-verified-root | cut -d' ' -f1)
+            actual=$(shasum -a 256 /tmp/sh59-verified-root | cut -d' ' -f1)
             test "$actual" = "$expected" || { echo "::error::Production root changed: $rel"; exit 1; }
           done < verified/production-root-sha256.txt
       - name: Confirm published staging pair receipt, not production release approval
@@ -221,11 +211,9 @@ jobs:
   verify-published:
     # Exact committed opt-in; read-only verification of an already-deployed QA site.
     if: >-
-      github.event_name == 'push' &&
-      github.ref == 'refs/heads/main' &&
-      github.actor == 'hakaru4i-afk' &&
-      startsWith(github.event.head_commit.message, 'verify(staging): confirm published SH59 API20 and root parity')
-    runs-on: ubuntu-24.04
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
+      github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && startsWith(github.event.head_commit.message, 'verify(staging): confirm published SH59 API20 and root parity')
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 18
     permissions:
       contents: read
@@ -284,7 +272,7 @@ jobs:
             rel="${path#'.qa-pages/'}"
             curl --retry 4 --fail --silent --show-error --location --max-time 30 \
               -H 'Cache-Control: no-cache' "$base/$rel?prodcheck=$GITHUB_RUN_ID" -o /tmp/verified-root
-            actual=$(sha256sum /tmp/verified-root | cut -d' ' -f1)
+            actual=$(shasum -a 256 /tmp/verified-root | cut -d' ' -f1)
             test "$expected" = "$actual" || { echo "::error::Production root changed: $rel"; exit 1; }
           done < verified/production-root-sha256.txt
           echo 'STAGING_QA20_PUBLISHED; ALL_PRODUCTION_ROOT_BYTES_UNCHANGED; FRESH_37_E2E_PENDING'

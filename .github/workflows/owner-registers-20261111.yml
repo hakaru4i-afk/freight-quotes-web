@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   static:
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,7 +34,7 @@ jobs:
   served:
     if: github.event_name == 'workflow_dispatch'
     needs: static
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 9
     steps:
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
   browser:
     if: github.event_name == 'workflow_dispatch'
     needs: served
-    runs-on: ubuntu-24.04
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -73,7 +73,7 @@ jobs:
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
       - run: npm install --no-save playwright@1.56.1
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - run: node --test tests/owner-registers-browser.test.mjs tests/role-help-browser.test.mjs
       - if: always()
         uses: actions/upload-artifact@v4

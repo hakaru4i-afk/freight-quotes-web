@@ -12,8 +12,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   publish:
-    if: github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
+    if: >-
+      github.sha == '384839f23815d96b85f68cf0d45c3617e45d9563' &&
+      github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 30
     environment:
       name: github-pages
