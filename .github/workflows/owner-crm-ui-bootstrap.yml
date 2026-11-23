@@ -10,10 +10,10 @@ permissions:
   id-token: write
 concurrency:
   group: owner-crm-pages-bootstrap
-  cancel-in-progress: false
+  cancel-in-progress: true
 jobs:
   publish-owner-ui:
-    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): publish UI via free GitHub runner' }}"
+    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): unblock one-time Pages publication queue' }}"
     # A standard GitHub-hosted runner is free in this public UI repository.
     # This one-time publication needs no Mac or Linux VM administered by the Owner.
     runs-on: ubuntu-latest
