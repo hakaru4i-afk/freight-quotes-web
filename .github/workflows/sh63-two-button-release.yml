@@ -1,4 +1,5 @@
 name: SH63 Owner-approved two-button Codex release
+# Retry after correcting the stale source-vs-published SH62/SH63 manifest unit assertion.
 run-name: SH63 publish Owner GitHub/Codex controls
 on:
   push:
