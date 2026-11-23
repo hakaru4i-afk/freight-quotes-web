@@ -74,9 +74,9 @@ jobs:
           import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
           const m=assertProductionReleaseIntegrity('.release-pages');
           const b=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
-          assert.equal(m.businessVersion,'SH-01.30.66 v');
-          assert.equal(m.backendApiVersion,65);
-          assert.equal(b.backendApiVersion,65);
+          assert.equal(m.businessVersion,'SH-01.30.67 v');
+          assert.equal(m.backendApiVersion,66);
+          assert.equal(b.backendApiVersion,66);
           assert.equal(m.ownerWorkflowLifecycle?.apiVersion,66);
           console.log('SH67_PRODUCTION_INTEGRITY_PASS',Object.keys(m.assets).length);
           NODE
@@ -95,7 +95,7 @@ jobs:
                curl -fsSL --max-time 20 "$base/portal-feedback-center-20261107.js?sh65=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-ui.js" &&
                curl -fsSL --max-time 20 "$base/production-release-manifest.json?sh65=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/live-manifest.json" &&
                cmp -s "$RUNNER_TEMP/live-ui.js" release/candidates/owner-workflow-lifecycle-20261123.js &&
-               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.66 v"&&b.backendApiVersion===65&&m.businessVersion===b.releaseVersion&&m.ownerWorkflowLifecycle?.apiVersion===66?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.67 v"&&b.backendApiVersion===66&&m.businessVersion===b.releaseVersion&&m.ownerWorkflowLifecycle?.apiVersion===66?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
               echo SH67_LIVE_VERIFIED
               break
             fi
@@ -128,7 +128,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add build-info.json release-status.json site-status.json production-release-manifest.json index.html test/index.html app.js portal-feedback-center-20261107.js test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
           if ! git diff --cached --quiet; then
-            git commit -m 'release(production): SH-01.30.66 v verified free GitHub development handoff'
+            git commit -m 'release(production): SH-01.30.67 v verified free GitHub development handoff'
             git pull --rebase origin main
             git push origin HEAD:refs/heads/main
           fi
