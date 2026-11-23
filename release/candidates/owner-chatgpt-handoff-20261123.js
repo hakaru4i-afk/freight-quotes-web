@@ -96,6 +96,7 @@ function detail(){
   (['not_requested','pending'].includes(execution.dispatchStatus)||(execution.dispatchStatus==='failed'&&!String(execution.lastError||'').startsWith('CODEX_'))));
  const githubRegistered=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
+ const githubHandoffReady=githubRegistered&&['branch_awaiting_codex','code_committed_pr_required','checks_running','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing','ready_for_review','codex_failed'].includes(execution?.step);
  const progressText=taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
@@ -108,7 +109,7 @@ function detail(){
   byLang==='zh'?{send:'启动开发',tip:'在 GitHub 创建任务和分支，无需 Codex 或付费 API。编写代码需要将任务发送给 ChatGPT。',date:'完成截止日期',copy:'复制 ChatGPT 开发任务',registered:'任务已登记至 GitHub。将任务粘贴到 ChatGPT 以开始编写代码。',issues:'打开 GitHub 任务'}:
   {send:'Запустить разработку',tip:'Создаёт задачу и ветку GitHub без Codex и платного API. Для написания кода отправьте запрос в ChatGPT.',date:'Дедлайн исполнения',copy:'Скопировать задание для ChatGPT',registered:'Задача зарегистрирована в GitHub. Отправьте скопированный запрос в ChatGPT для написания кода.',issues:'Открыть задачи GitHub'};
  const handoffPanel=(handoff?'<form id="pf-development-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||item.release_date||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
-  (githubRegistered?'<section class="pf-development-chatgpt"><p>'+esc(words.registered)+'</p><button type="button" class="pf-secondary" data-pf="copy-development-prompt" '+(busy||handoffBusy?'disabled':'')+'>'+esc(words.copy)+'</button><p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/issues" target="_blank" rel="noopener noreferrer">'+esc(words.issues)+'</a></p></section>':'');
+  (githubHandoffReady?'<section class="pf-development-chatgpt"><p>'+esc(words.registered)+'</p><button type="button" class="pf-secondary" data-pf="copy-development-prompt" '+(busy||handoffBusy?'disabled':'')+'>'+esc(words.copy)+'</button><p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/issues" target="_blank" rel="noopener noreferrer">'+esc(words.issues)+'</a></p></section>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
