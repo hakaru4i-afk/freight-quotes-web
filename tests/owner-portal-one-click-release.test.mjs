@@ -11,9 +11,9 @@ test('published UI matches its receipt and the proposed Pages UI matches staging
  const manifest=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
  assert.match(manifest.assets['portal-feedback-center-20261107.js'],/^[a-f0-9]{64}$/);
  assert.equal(live,candidate,'main must contain exactly the approved P0 UI');
- if(manifest.businessVersion==='SH-01.30.63 v')
-  assert.equal(createHash('sha256').update(live).digest('hex'),manifest.assets['portal-feedback-center-20261107.js']);
- else assert.equal(manifest.businessVersion,'SH-01.30.62 v','production receipt remains SH62 until verified SH63 Pages release');
+ const releaseMatch=/^SH-01\.30\.(\d+) v$/.exec(manifest.businessVersion);
+ assert.ok(releaseMatch&&Number(releaseMatch[1])>=64,'Issue #173 requires the approved SH64 (or later) production receipt');
+ assert.equal(createHash('sha256').update(live).digest('hex'),manifest.assets['portal-feedback-center-20261107.js'],'published Owner UI must match the verified production asset digest');
  assert.equal(stage,candidate);
  assert.ok(candidate.includes('data-pf="release-update"'));
  assert.ok(!candidate.includes('data-pf="prepare-release"'));
