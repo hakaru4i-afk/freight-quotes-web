@@ -184,7 +184,7 @@ async function refreshReleaseProgress(){
  }catch{if(seq!==releaseProgressRequest||selected!==item.id)return;releaseRun={taskId:item.id,status:'unknown'};}
  render();
 }
-async function runCodexHandoff(item,deadline){
+async function runGithubHandoff(item,deadline){
  if(handoffBusy||busy)return;
  const execution=executionByFeedback.get(item.id);
  if(!data.owner||!execution||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(deadline)){
@@ -200,11 +200,26 @@ async function runCodexHandoff(item,deadline){
  try{
   await call('start');
   const result=await call('dispatch');
-  message='GitHub принял задание. Это ещё не подтверждение запуска модели Codex.';
-  if(result.already)message='Задание уже отправлено в GitHub.';
+  message=byLang==='en'?'GitHub handoff requested; Codex not started.':byLang==='zh'?'GitHub 已受理，Codex 尚未启动。':'Передача в GitHub запрошена. Codex ещё не запущен.';
+  if(result.already)message=byLang==='en'?'Already registered on GitHub.':byLang==='zh'?'已在 GitHub 登记。':'Задача уже передана в GitHub.';
  }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
  finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
+async function runCodexStart(item){
+ if(busy||handoffBusy||codexBusy||!data.owner)return;
+ const execution=executionByFeedback.get(item.id);
+ if(!execution)return;
+ codexBusy=true;error='';message='';render();
+ try{
+  const response=await fetch('/api/owner-register-execution',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({action:'run_codex',register:execution.register,recordId:execution.recordId})});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok||result.ok!==true)throw Error([result.error||'HTTP '+response.status,result.detail].filter(Boolean).join(': '));
+  message=byLang==='en'?'Codex launch queued; see GitHub status.':byLang==='zh'?'Codex 已排队，请查看 GitHub 状态。':'Запуск Codex поставлен в очередь. Следите за статусом GitHub.';
+ }catch(e){error='Codex: '+(e?.message||'UNKNOWN_ERROR');}
+ finally{const failure=error;codexBusy=false;await load();if(failure)error=failure;render();}
+}
+
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
@@ -219,6 +234,10 @@ document.addEventListener("click",ev=>{
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
+ if(action==='start-codex'){
+  const item=data.items.find(i=>i.id===selected);
+  if(item&&!codexBusy)void runCodexStart(item);
+ }
  if(action==="release-update"){
   const item=data.items.find(i=>i.id===selected);
   if(isReleaseReady(item,data.owner,releaseReadiness,executionByFeedback.get(item?.id))&&!busy)
@@ -245,7 +264,7 @@ document.addEventListener("submit",ev=>{
  if(ev.target.id==="pf-update"){ev.preventDefault();const f=ev.target,item=data.items.find(i=>i.id===f.dataset.id);if(!item)return;void runAction({action:"set_status",id:item.id,expectedStatus:item.status,status:f.elements.status.value,note:f.elements.note.value,releaseDate:f.elements.releaseDate.value});}
  if(ev.target.id==='pf-codex-handoff'){
   ev.preventDefault();const form=ev.target,item=data.items.find(i=>i.id===form.dataset.id);
-  if(item)void runCodexHandoff(item,form.elements.deadline.value);
+  if(item)void runGithubHandoff(item,form.elements.deadline.value);
  }
 });
 let pending=false;
