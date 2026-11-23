@@ -50,7 +50,7 @@ test('SH69 deep link fails closed for unknown, malformed and cross-role IDs',()=
  ]){
   const ctx={URL,location:{href:'https://example.test/portal?feedbackTask='+scenario.target},
    data:{owner:scenario.owner,items:scenario.items},selected:'original',registry:'developments',statusFilter:'active'};
-  runInNewContext(center.slice(start,end)+'\\nglobalThis.probe=()=>({applied:applyFeedbackTarget(),selected,registry,statusFilter});',ctx);
+  runInNewContext(center.slice(start,end)+'\nglobalThis.probe=()=>({applied:applyFeedbackTarget(),selected,registry,statusFilter});',ctx);
   const result=ctx.probe();
   assert.equal(result.applied,false);
   assert.equal(result.selected,'original');
