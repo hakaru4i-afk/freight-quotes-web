@@ -38,6 +38,9 @@ test('legacy release_date is labelled as a deadline, never a publication date',(
  assert.doesNotMatch(source,/Плановая дата публикации|Planned release date|计划发布日期/);
  assert.match(source,/name="releaseDate" value=/);
  assert.doesNotMatch(source,/name="releaseDate" disabled/);
+ assert.match(source,/!codexNetworkBlocked/);
+ assert.match(source,/Задача сохранена в GitHub/);
+
  const x=probe();
  assert.equal(x.requestStatus({status:'release',release_date:'2026-11-22'}),'Выпуск');
 });
