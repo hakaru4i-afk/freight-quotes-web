@@ -13,8 +13,10 @@ concurrency:
   cancel-in-progress: false
 jobs:
   publish-owner-ui:
-    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): ship Mac-compatible Pages package' }}"
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'fix(crm): publish UI via free GitHub runner' }}"
+    # A standard GitHub-hosted runner is free in this public UI repository.
+    # This one-time publication needs no Mac or Linux VM administered by the Owner.
+    runs-on: ubuntu-latest
     timeout-minutes: 25
     environment:
       name: github-pages
@@ -51,50 +53,6 @@ jobs:
           node --check .release-pages/portal-feedback-center-20261107.js
           echo CRM_OWNER_UI_PAGES_BUILD_PASS
       - uses: actions/configure-pages@v5
-      - name: Provide a verified tar archiver for GitHub Pages on Mac
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/crm-bin"
-          cat > "$RUNNER_TEMP/crm-bin/gtar" <<'PY'
-          #!/usr/bin/env python3
-          import os,sys,tarfile
-          args=sys.argv[1:]
-          directory=None; output=None; exclude=[]; i=0
-          while i<len(args):
-              flag=args[i]
-              if flag=='--directory':
-                  i+=1; directory=args[i]
-              elif flag=='-cvf':
-                  i+=1; output=args[i]
-              elif flag.startswith('--exclude='):
-                  exclude.append(flag.partition('=')[2])
-              elif flag in ('--dereference','--hard-dereference','.', '-v'):
-                  pass
-              else:
-                  raise SystemExit('UNSUPPORTED_GTAR_ARGUMENT:'+flag)
-              i+=1
-          if not directory or not output:
-              raise SystemExit('PAGES_ARCHIVE_INPUT_MISSING')
-          directory=os.path.realpath(directory)
-          count=0
-          with tarfile.open(output,'w',format=tarfile.GNU_FORMAT,dereference=True) as archive:
-              for folder,subdirs,files in os.walk(directory,followlinks=False):
-                  subdirs[:]=sorted(n for n in subdirs if not n.startswith('.'))
-                  for name in sorted(files):
-                      if name.startswith('.'): continue
-                      full=os.path.join(folder,name)
-                      if os.path.islink(full):
-                          raise SystemExit('PAGES_ARCHIVE_SYMLINK_FORBIDDEN')
-                      rel=os.path.relpath(full,directory).replace(os.sep,'/')
-                      archive.add(full,arcname='./'+rel,recursive=False)
-                      count+=1
-          print('CRM_PAGES_ARCHIVE_OK files='+str(count)+' bytes='+str(os.stat(output).st_size))
-          PY
-          chmod 755 "$RUNNER_TEMP/crm-bin/gtar"
-          "$RUNNER_TEMP/crm-bin/gtar" --directory .release-pages -cvf "$RUNNER_TEMP/crm-archive-probe.tar" --exclude=.git .
-          rm -f "$RUNNER_TEMP/crm-archive-probe.tar"
-          echo "$RUNNER_TEMP/crm-bin" >> "$GITHUB_PATH"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
