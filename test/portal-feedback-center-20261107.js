@@ -13,7 +13,7 @@ const titleTranslations={
 };
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
+let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="active",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 const releaseWords={
@@ -49,7 +49,7 @@ const issue173Marker='[WORK:owner-directive:20261122:deadline-not-release]';
 function issue173Published(item){
  const e=executionByFeedback.get(item?.id);
  const proof=publishedReceipt?.issue173DeadlineFix;
- return item?.sender_role==='owner'&&String(item.description||'').includes(issue173Marker)&&
+ return item?.status!=='completed'&&item?.sender_role==='owner'&&String(item.description||'').includes(issue173Marker)&&
   e?.register==='remarks'&&e?.recordId==='RM-20261122-DEADLINE-01'&&
   publishedReceipt?.environment==='production'&&/^SH-01\.30\.(?:6[4-9]|[7-9][0-9]) v$/.test(publishedReceipt.businessVersion)&&
   proof?.ownerApproved===true&&proof?.backendRuntimeVersion===64&&/^[a-f0-9]{64}$/.test(proof.uiSha256||'');
@@ -64,7 +64,7 @@ async function fetchPublishedReceipt(){
   if(receipt?.environment==='production'&&typeof receipt.businessVersion==='string')publishedReceipt=receipt;
  }catch{publishedReceipt=null;}
 }
-const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
+const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&item?.status==='release'&&execution?.decision==='accepted'&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 // Existing release_date is an execution deadline; it never proves a publication.
@@ -96,11 +96,13 @@ function itemsList(){
    const ids=new Set(data.events.filter(e=>e.journal===registry).map(e=>e.request_id));
    rows=rows.filter(i=>registry==="updates"?ids.has(i.id):i.journal===registry);
   }
-  if(statusFilter!=="all")rows=rows.filter(i=>i.status===statusFilter);
+  if(statusFilter==='active')rows=rows.filter(i=>!['completed','denied'].includes(i.status));
+  else if(statusFilter==='archive')rows=rows.filter(i=>['completed','denied'].includes(i.status));
+  else if(statusFilter!=="all")rows=rows.filter(i=>i.status===statusFilter);
  }
  const filters=data.owner?'<div class="pf-filters"><label>'+esc(t().register)+'<select id="pf-register"><option value="all">'+esc(t().all)+'</option>'+
  Object.entries(registerLabels).map(([key,label])=>'<option value="'+key+'"'+(registry===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label>'+
- '<label>'+esc(t().status)+'<select id="pf-status-filter"><option value="all">'+esc(t().all)+'</option>'+
+ '<label>'+esc(t().status)+'<select id="pf-status-filter"><option value="active"'+(statusFilter==='active'?' selected':'')+'>'+esc(byLang==='en'?'Active':byLang==='zh'?'进行中':'Активные')+'</option><option value="archive"'+(statusFilter==='archive'?' selected':'')+'>'+esc(byLang==='en'?'Archive':byLang==='zh'?'归档':'Архив')+'</option><option value="all"'+(statusFilter==='all'?' selected':'')+'>'+esc(t().all)+'</option>'+
  Object.entries(statusLabels).map(([k,label])=>'<option value="'+k+'"'+(statusFilter===k?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
  return filters+'<div class="pf-list">'+(rows.length?rows.map(i=>'<button type="button" class="pf-item '+(selected===i.id?'pf-selected':'')+'" data-pf-id="'+esc(i.id)+'" aria-label="'+esc(i.code)+'">'+
  '<span class="pf-item-top"><strong>'+esc(i.code)+'</strong>'+badge(i)+'</span><span class="pf-item-type">'+esc(categoryLabels[i.category]||i.category)+' · '+esc(registerLabels[i.journal]||"")+'</span>'+
@@ -132,7 +134,7 @@ function detail(){
  const handoffPanel=alreadyPublished?'<section class="pf-published-receipt"><p>'+esc(byLang==='en'?'Already published. No second Codex launch or release needed.':byLang==='zh'?'已发布，无需再次运行 Codex 或重新发布。':'Уже опубликовано. Повторный запуск Codex или выпуска не требуется.')+'</p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/45224707351" target="_blank" rel="noopener noreferrer">'+esc(byLang==='en'?'Verified SH64 release':byLang==='zh'?'已验证的 SH64 发布':'Подтверждённый выпуск SH64')+'</a></section>':(handoff?'<form id="pf-development-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||item.release_date||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
   (githubHandoffReady?'<section class="pf-development-chatgpt"><p>'+esc(words.registered)+'</p><button type="button" class="pf-secondary" data-pf="copy-development-prompt" '+(busy||handoffBusy?'disabled':'')+'>'+esc(words.copy)+'</button><p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/issues" target="_blank" rel="noopener noreferrer">'+esc(words.issues)+'</a></p></section>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
- const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
+ const choices=(transitions[item.status]||[]).filter(status=>!['completed','release'].includes(status)&&!alreadyPublished&&!['in_progress','review_pending','accepted'].includes(execution?.decision));
  // Completing an item manually is never a substitute for a verified production deployment.
  const releaseEligible=data.owner&&!alreadyPublished&&['in_progress','release'].includes(item.status);
  const releaseReady=isReleaseReady(item,data.owner,releaseReadiness,execution);
@@ -150,6 +152,23 @@ function detail(){
   (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||busy?'disabled':'')+'>'+
     esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+ const l=byLang==='en'?{send:'Submit for review',accept:'Accept implementation',return:'Return for rework',reason:'What is wrong and how to fix it? Required comment (at least 10 characters)',archive:'Confirm publication and archive',accepted:'Implementation accepted. Publish before archiving.',waiting:'Development must pass GitHub tests before review.',archiveReady:'Publication has been verified. Confirm archive.'}:
+ byLang==='zh'?{send:'提交验收',accept:'接受开发结果',return:'退回修改',reason:'请说明错误和必要的修改（必填至少10字）',archive:'确认发布并归档',accepted:'已接受开发结果，须发布后归档。',waiting:'需通过 GitHub 检查才能提交验收。',archiveReady:'发布已验证，请确认归档。'}:
+ {send:'Отправить на приёмку',accept:'Принять разработку',return:'Вернуть на доработку',reason:'Что не так и что нужно исправить? Обязательный комментарий (не менее 10 символов)',archive:'Подтвердить выпуск и в архив',accepted:'Разработка принята. После публикации можно закрыть задачу.',waiting:'Сначала нужны успешные проверки GitHub; статус «Выпуск» вручную не выбирается.',archiveReady:'Публикация подтверждена. Можно закрыть задачу и перенести в архив.'};
+ const reviewPhase=execution?.decision==='review_pending'&&item.status==='release';
+ const acceptedPhase=execution?.decision==='accepted'&&item.status==='release';
+ const canSubmit=execution?.decision==='in_progress'&&item.status==='in_progress'&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
+ const canArchive=data.owner&&!['completed','denied'].includes(item.status)&&(alreadyPublished||(acceptedPhase&&runState.status==='published'));
+ const workflowPanel=!data.owner?'':canArchive?
+  '<section class="pf-workflow-actions"><p>'+esc(l.archiveReady)+'</p><button class="pf-primary" data-pf="archive-published" type="button" '+(busy?'disabled':'')+'>'+esc(l.archive)+'</button></section>':
+  reviewPhase||acceptedPhase?
+   '<section class="pf-workflow-actions">'+
+   (reviewPhase?'<button class="pf-primary" data-pf="accept-review" type="button" '+(busy?'disabled':'')+'>'+esc(l.accept)+'</button>':'<p>'+esc(l.accepted)+'</p>')+
+   '<form id="pf-rework" class="pf-form" data-id="'+esc(item.id)+'"><label>'+esc(l.reason)+'<textarea name="reason" minlength="10" maxlength="1000" rows="4" required placeholder="'+esc(l.reason)+'"></textarea></label>'+
+   '<small>'+esc(byLang==='en'?'Feedback is saved in the history and sent to the linked GitHub Issue for ChatGPT.':byLang==='zh'?'评论保存在历史记录中并发送到 GitHub Issue，供 ChatGPT 读取。':'Комментарий сохранится в истории и будет отправлен в GitHub Issue для ChatGPT.')+'</small>'+
+   '<button type="submit" class="pf-secondary" '+(busy?'disabled':'')+'>'+esc(l.return)+'</button></form></section>':
+  execution?.decision==='in_progress'&&item.status==='in_progress'?
+   '<section class="pf-workflow-actions"><p>'+esc(l.waiting)+'</p><button class="pf-primary" data-pf="submit-review" type="button" '+(!canSubmit||busy?'disabled':'')+'>'+esc(l.send)+'</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -163,7 +182,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- progressPanel+deadlinePanel+handoffPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ progressPanel+deadlinePanel+handoffPanel+workflowPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
@@ -254,10 +273,28 @@ async function copyDevelopmentPrompt(item){
  render();
 }
 
+async function ownerReviewAction(item,action,reason=''){
+ if(busy||!data.owner)return;
+ const e=executionByFeedback.get(item.id);
+ if(!e?.register||!e?.recordId){error='Нет связанной задачи GitHub';render();return;}
+ if(action==='return_for_rework'&&reason.trim().length<10){error='Укажите причину доработки от 10 символов';render();return;}
+ busy=true;error='';message='';render();
+ try{
+  const response=await fetch('/api/owner-register-execution',{method:'POST',headers:{'Content-Type':'application/json'},cache:'no-store',
+   body:JSON.stringify({action,register:e.register,recordId:e.recordId,...(reason?{reason:reason.trim()}:{})})});
+  const out=await response.json().catch(()=>({}));
+  if(!response.ok||out.ok!==true)throw Error([out.error||'HTTP '+response.status,out.detail].filter(Boolean).join(': '));
+  await load();selected=item.id;
+  message=action==='return_for_rework'?'Задача возвращена в разработку; комментарий сохранён в истории и GitHub.':
+   action==='accept'?'Разработка принята. Требуется публикация.':'Отправлено на приёмку.';
+  render();
+ }catch(err){error='Действие не выполнено: '+(err?.message||'неизвестная ошибка');render();}
+ finally{busy=false;render();}
+}
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
- try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
+ try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;if(payload.action==='archive_published')statusFilter='archive';await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
  catch(e){busy=false;error=t().error+": "+e.message;render();}
 }
 document.addEventListener("click",ev=>{
@@ -268,6 +305,12 @@ document.addEventListener("click",ev=>{
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
+ if(action==='submit-review'||action==='accept-review'){
+  const item=data.items.find(i=>i.id===selected);if(item)void ownerReviewAction(item,action==='submit-review'?'submit_review':'accept');
+ }
+ if(action==='archive-published'){
+  const item=data.items.find(i=>i.id===selected);if(item&&!busy)void runAction({action:'archive_published',id:item.id,expectedStatus:item.status});
+ }
  if(action==='copy-development-prompt'){
   const item=data.items.find(i=>i.id===selected);
   if(item)void copyDevelopmentPrompt(item);
@@ -292,6 +335,10 @@ document.addEventListener("submit",ev=>{
  if(!root()?.contains(ev.target))return;
  if(ev.target.id==="pf-create"){ev.preventDefault();const f=ev.target;const desc=f.description?.value||draftText;void runAction({action:"create",category:f.category.value,description:desc});}
  if(ev.target.id==="pf-update"){ev.preventDefault();const f=ev.target,item=data.items.find(i=>i.id===f.dataset.id);if(!item)return;void runAction({action:"set_status",id:item.id,expectedStatus:item.status,status:f.elements.status.value,note:f.elements.note.value,releaseDate:f.elements.releaseDate.value});}
+ if(ev.target.id==='pf-rework'){
+  ev.preventDefault();const f=ev.target,item=data.items.find(i=>i.id===f.dataset.id);
+  if(item)void ownerReviewAction(item,'return_for_rework',f.elements.reason.value);
+ }
  if(ev.target.id==='pf-development-handoff'){
   ev.preventDefault();const form=ev.target,item=data.items.find(i=>i.id===form.dataset.id);
   if(item)void runGithubHandoff(item,form.elements.deadline.value);
