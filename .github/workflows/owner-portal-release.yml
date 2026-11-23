@@ -59,7 +59,11 @@ jobs:
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git fetch --no-tags origin refs/heads/main
           node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
-          backend=$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)
+          backend=$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --header "Authorization: Bearer $BACKEND_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
+            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')
           [[ "$backend" =~ ^[a-f0-9]{40}$ ]]
           version=$(node --input-type=module <<'JS'
           import {readFileSync} from 'node:fs';
@@ -111,7 +115,11 @@ jobs:
           set -euo pipefail
           git fetch --no-tags origin refs/heads/main
           node scripts/release/task-change-scope.mjs guard-main "$GITHUB_SHA" "$(git rev-parse FETCH_HEAD)"
-          test "$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)" = "$BACKEND_SHA"
+          test "$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --header "Authorization: Bearer $BACKEND_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
+            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')" = "$BACKEND_SHA"
 
   deploy-api:
     needs: verify
@@ -152,7 +160,11 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::SUPABASE_ACCESS_TOKEN_NOT_CONFIGURED"; exit 1; }
-          test "$(GH_TOKEN="$BACKEND_TOKEN" gh api repos/hakaru4i-afk/freight-quotes/commits/main --jq .sha)" = "$BACKEND_SHA"
+          test "$(curl --fail --silent --show-error --location --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 45 \
+            --header "Authorization: Bearer $BACKEND_TOKEN" \
+            --header "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/hakaru4i-afk/freight-quotes/commits/main" \
+            | node -p 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).sha')" = "$BACKEND_SHA"
           supabase functions deploy freight-api --project-ref ooclsrndeygojtofuyte --no-verify-jwt
       - name: Confirm real production API build and environment
         env:
