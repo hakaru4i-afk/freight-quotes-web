@@ -1,0 +1,102 @@
+name: SH62 emergency restore missing module and check live Pages
+run-name: Repair blank production page (SH62 module import)
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh62-blank-screen-hotfix.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: sh62-emergency-blank-page
+  cancel-in-progress: false
+jobs:
+  repair:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      github.event.head_commit.message == 'fix(production): publish SH62 missing-module hotfix'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Restore exact live SH62 assets and required scoring import
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check scripts/release/sh62-emergency-module-repair.mjs
+          node --check offer-scoring.mjs
+          node scripts/release/sh62-emergency-module-repair.mjs
+          node --check .release-pages/app.js
+          node --check .release-pages/offer-scoring.mjs
+          node -e 'const x=require("./.release-pages/production-release-manifest.json");if(x.businessVersion!=="SH-01.30.62 v"||!x.assets["offer-scoring.mjs"]||!x.emergencyHotfix||x.emergencyHotfix.versionChanged)process.exit(1)'
+          echo 'SH62_IMPORT_AND_SOURCE_PACKAGE_OK'
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify live scoring import, app bundle and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for attempt in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/offer-scoring.mjs?recovery=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/score.mjs" &&
+               curl -fsSL --max-time 20 "$base/app.js?recovery=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/app.js" &&
+               curl -fsSL --max-time 20 "$base/production-release-manifest.json?recovery=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/manifest.json" &&
+               curl -fsSL --max-time 20 "$base/build-info.json?recovery=$GITHUB_RUN_ID-$attempt" -o "$RUNNER_TEMP/build.json" &&
+               cmp -s "$RUNNER_TEMP/score.mjs" offer-scoring.mjs &&
+               cmp -s "$RUNNER_TEMP/app.js" .release-pages/app.js &&
+               node -e 'const m=require(process.argv[1]),b=require(process.argv[2]);process.exit(m.businessVersion==="SH-01.30.62 v"&&m.assets["offer-scoring.mjs"]&&m.emergencyHotfix?.dataChanged===false&&b.releaseVersion===m.businessVersion?0:1)' "$RUNNER_TEMP/manifest.json" "$RUNNER_TEMP/build.json"; then
+              echo 'SH62_HOTFIX_PRODUCTION_IMPORT_PRESENT'
+              break
+            fi
+            if [ "$attempt" = 30 ]; then echo '::error::PRODUCTION_JS_MODULE_STILL_MISSING'; exit 1; fi
+            sleep 5
+          done
+      - name: Browser smoke — site actually renders instead of empty root
+        shell: bash
+        run: |
+          set -euo pipefail
+          browser="$(command -v google-chrome || command -v google-chrome-stable || true)"
+          if [ -z "$browser" ]; then
+            echo '::warning::CHROME_MISSING_ON_RUNNER; import and live HTTP checks passed'
+          else
+            timeout 55 "$browser" --headless --no-sandbox --disable-gpu --disable-dev-shm-usage \
+              --virtual-time-budget=14000 --dump-dom \
+              'https://hakaru4i-afk.github.io/freight-quotes-web/?sh62-hotfix=1' > "$RUNNER_TEMP/site.html" 2> "$RUNNER_TEMP/chrome.log" || true
+            node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          const html=readFileSync(process.env.RUNNER_TEMP+'/site.html','utf8');
+          const root=html.match(/<div id="root"[^>]*>([\s\S]*?)<\/div>/);
+          if(!root||root[1].trim()==='')throw Error('BLANK_PAGE_PERSISTS_AFTER_IMPORT_HOTFIX');
+          console.log('SH62_BROWSER_RENDERED_NONEMPTY_ROOT');
+          JS
+          fi
+      - name: Record repaired artifact manifest in main
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp .release-pages/production-release-manifest.json production-release-manifest.json
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add production-release-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'fix(production): record restored SH62 scoring module and hashes'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH62_BLANK_PAGE_HOTFIX_COMPLETE
