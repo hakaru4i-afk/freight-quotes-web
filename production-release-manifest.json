@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "environment": "production",
-  "businessVersion": "SH-01.30.61 v",
-  "frontendBuild": "a2fa3b55db6a9fa1a579",
+  "businessVersion": "SH-01.30.62 v",
+  "frontendBuild": "8c5fecef72121b63aec1",
   "sourceStagingBuild": "e49dd78d09811370c74d",
   "sourceStagingFrontendCommit": "6a961e5c98231c174522b66364de5fcbe1aa8482",
   "publicationState": "PUBLISHED",
@@ -10,8 +10,8 @@
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "a2423bd36a045bb34bfdaef1d2ddb2f679ac7769ea88cb97575af47ecc02f249",
-    "build-info.json": "9bb6e16230d586779820da58348421c0d3b638c0d8d440cf81ebc7200933c057",
+    "app.js": "40bd43312f59d815b9288fd6fe080ca2a466242cd2db1b036d049ecf83cea8af",
+    "build-info.json": "6cd815a0effcf7f446ff28540ad4fd3b8a9940ac9e7e71e6634ef790c6951141",
     "bundle.css": "c3ef7c714a45b25f2930312e114016585d9e784fdecc0819f3609bd748598216",
     "business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "business-process-current.svg": "1e4e9898402df2043830d345513e4fa14758986815136844ec1e27b6124bcdb3",
@@ -46,7 +46,7 @@
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
     "global-view/view.mjs": "5785e4142b7e387ffa653326b19b948646e04a7fa36a5f8a56c32037c942d744",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "index.html": "c3cdf9df37c43396a12eb70ce8e0a3cadcc0fae0d1148fa507fc348e710a453e",
+    "index.html": "9c638041fd27f0f7fd35ed3c0f602415c1ab59224cfa5d827258aa719e9c8e3a",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "0cf45e9cbff113d560bbfed7d3affa676a401befbc8913e7548fa3d1781bc82a",
     "logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
@@ -87,7 +87,7 @@
     "owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
     "portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
     "portal-feedback-center-20261107.css": "bc98ba5eaebf229fb32eea1dabbd332d192e5354dafc914b3024be7996601816",
-    "portal-feedback-center-20261107.js": "4638a2828df1227f76b692fa8640dc66ddcbf272448a97413358a7f7ca7c35d4",
+    "portal-feedback-center-20261107.js": "3a27a7dfec921f0aed7b8b037bf3bb2b7d727cd9cc2d0539ab924136ed6618a1",
     "portal-release-status-20261117.js": "23555e5c7ad2f73d1c42d7f45aeb984a2c05b25db51f278faee02474a01cc38e",
     "process-editor-20261111.mjs": "ceb63cbc4355ff2190a486f2f57e7b37503145badf4148e89aa03ec5741f4e24",
     "process-history/20261110-logic-1/business-process-current.svg": "dec0de89b2f018df6d35e6fd1218a82769fa85c63761b5a54ededdd08e91fcd1",
@@ -179,10 +179,10 @@
     "recognition-pdf-worker-6.4.299.mjs": "9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18",
     "recognition-runtime-v1.mjs": "472a534573b6bf7d1f10f553d32e038cceeacd085391297b78de10b429e52a2f",
     "recognition-tesseract-worker-7.0.0.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
-    "release-status.json": "0318d06a100ab7eba98e226b6fb25fd485bab4a21797ef93eae81082111c879f",
+    "release-status.json": "548c12e571c0402c1deb2bb3aaf4a835db0fe527a503e154a426798882f6f6f0",
     "role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-    "site-status.json": "b77f82cecf7c73f2631ec5fb84084bb4e6e76cfa58d167e30d4aa22068ca1127",
+    "site-status.json": "189f5fde0986a39263c5f5c1276237fb25875201c35b413411dac32d70ad510d",
     "staging-api-region.mjs": "b170528b03b5b5214192964afab36f1638e85b587c3de4c2c9515ebdd5245723",
     "staging-transport-20261111.js": "9495140d1bdfb4ad9267042218e8ac82eb1fdc69a526757994c9c7fe2014ece0",
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
@@ -199,7 +199,9 @@
     "transport-application.css": "8c1633145fccf4539d83b808a7a4a654352c1fae75df523c8287dcf1cc7cde29",
     "transport-readability-20261107.css": "21947d36ce00f94025588eae5b255a7c9c00d4bef1269db826de7b5e8c7ef919",
     "ved-single-workspace-20261108.css": "68837f2b8ae30c0b36f7bb2bba36186e86f7a81f13b1f007871738dbeb7211b7",
-    "ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26"
+    "ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
+    "test/portal-feedback-center-20261107.js": "3a27a7dfec921f0aed7b8b037bf3bb2b7d727cd9cc2d0539ab924136ed6618a1",
+    "test/index.html": "9bf2b50744f0afa3820ad4e3a5ec4bb0a24eeb26878662b8ea0fd1080d4327b5"
   },
   "acceptance": {
     "qaRun": "44011863098",
@@ -257,6 +259,25 @@
   },
   "candidateSourceCommit": "fb2eab606c53ac0357548b341e4e7d4324d41fb5",
   "candidateIntegrityState": "HASHES_REBUILT_IN_PR; NOT_PRODUCTION_APPROVED; OWNER_AND_RECOVERY_GATES_PENDING",
-  "sourceProductionCommit": "76b186c4ec8d3a9856fa154a7815868015503ee2",
-  "ownerReleaseApproval": "2026-11-22: Owner explicitly requested SH61 release after production API v47 deployment"
+  "sourceProductionCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
+  "ownerReleaseApproval": "2026-11-23: Owner authorized P0 SH62 production release and API deployment",
+  "ownerReleaseButtonBootstrap": {
+    "sourceCommit": "3b1b3b69c01f04973582bd9d23f638b15b8ea686",
+    "kind": "owner-approved-UI-only",
+    "apiDeployment": false
+  },
+  "ownerUiHotfix": {
+    "type": "P0_CODEX_WORKFLOW_AND_STATUS",
+    "sourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
+    "previousRootScriptSha256": "ff51c4ce4dcc894c1d7f52cf230b6122a9dcf5f92beebf8b4d34207317022302",
+    "newRootScriptSha256": "3a27a7dfec921f0aed7b8b037bf3bb2b7d727cd9cc2d0539ab924136ed6618a1",
+    "backendChanged": true,
+    "publishedAt": "2026-11-23T14:05:11.836Z",
+    "frontendSourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
+    "backendSourceCommit": "63a61bb4ff67d81cfaa9579fb1f80f678acdebe2"
+  },
+  "frontendSourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
+  "backendSourceCommit": "63a61bb4ff67d81cfaa9579fb1f80f678acdebe2",
+  "backendApiVersion": 58,
+  "releaseDate": "2026-11-23"
 }
