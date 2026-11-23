@@ -25,10 +25,10 @@ test('Owner can release after verified task progress reaches 100%',()=>{
 });
 test('Owner-only UI release uses quick checks, Pages and no private repo token',()=>{
  assert.match(workflow,/workflow_dispatch:/);
- // A one-time user-approved repair may run on a precisely guarded push.
- assert.match(workflow,/^  push:\n    branches: \[main\]/m);
+ // Every future production publication must originate from the Owner button.
+ assert.doesNotMatch(workflow,/^  push:/m);
  assert.match(workflow,/github.actor == 'hakaru4i-afk'/);
- assert.match(workflow,/github.event.head_commit.message == 'fix\(crm\): repair one-click release without cross-repo token'/);
+ assert.match(workflow,/github.event_name == 'workflow_dispatch'/);
  assert.match(workflow,/runs-on: ubuntu-latest/);
  assert.match(workflow,/node --check test\/portal-feedback-center-20261107\.js/);
  assert.doesNotMatch(workflow,/BACKEND_RELEASE_READ_TOKEN/);

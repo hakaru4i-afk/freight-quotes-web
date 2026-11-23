@@ -1,5 +1,5 @@
 name: Owner portal one-click production release
-run-name: Portal release ${{ inputs.task_id || (github.event_name == 'push' && 'd19f6625-a814-4c82-a415-9332eb06c4e2') || 'owner-manual' }} / ${{ inputs.request_id || (github.event_name == 'push' && 'f471504c-245b-4a64-9f9f-4a45fa1ce944') || github.run_id }}
+run-name: Portal release ${{ inputs.task_id || 'owner-manual' }} / ${{ inputs.request_id || github.run_id }}
 on:
   workflow_dispatch:
     inputs:
@@ -11,12 +11,6 @@ on:
         description: 'Owner release request UUID'
         required: false
         type: string
-  # The Owner-approved failed task/release UUIDs above allow a one-time guarded recovery.
-  # All later ordinary pushes are excluded from production publication.
-  push:
-    branches: [main]
-    paths:
-      - .github/workflows/owner-portal-release.yml
 permissions:
   contents: read
   pages: write
@@ -26,7 +20,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   verify:
-    if: "${{ github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.event.head_commit.message == 'fix(crm): repair one-click release without cross-repo token')) }}"
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
