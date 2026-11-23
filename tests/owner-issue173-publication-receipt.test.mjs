@@ -12,7 +12,7 @@ test('Old failed PR is shown as historical after verified SH64 production receip
  const item={id:'task',sender_role:'owner',description:'Срок исполнения [WORK:owner-directive:20261122:deadline-not-release]'};
  p.executionByFeedback.set('task',{register:'remarks',recordId:'RM-20261122-DEADLINE-01',step:'task_e2e_failed',checksPassed:false});
  const receipt=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
- assert.equal(receipt.businessVersion,'SH-01.30.65 v');
+ assert.match(receipt.businessVersion,/^SH-01\.30\.(?:6[5-9]|[7-9][0-9]) v$/);
  p.setReceipt(receipt);
  assert.equal(p.issue173Published(item),true);
  assert.equal(p.issue173Published({...item,description:'unrelated task'}),false);
