@@ -23,9 +23,9 @@ const releaseWords={
 };
 const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
 const codexErrorLabels={
- ru:{CODEX_NETWORK_BLOCKED_403:'Нет доступа к Codex с Mac (HTTP 403). Проверьте сеть/VPN.',CODEX_RATE_LIMITED:'Лимит запросов Codex.',CODEX_AUTH_EXPIRED:'Авторизация Codex истекла.',CODEX_SANDBOX_DENIED:'Codex не может изменять файлы.',CODEX_NO_CODE_CHANGES:'Codex не внёс изменений.',CODEX_WORKFLOW_FAILED:'Ошибка Codex. Откройте GitHub Actions.'},
- en:{CODEX_NETWORK_BLOCKED_403:'Mac cannot reach Codex (HTTP 403). Check network/VPN.',CODEX_RATE_LIMITED:'Codex rate limit.',CODEX_AUTH_EXPIRED:'Codex login expired.',CODEX_SANDBOX_DENIED:'Codex cannot edit files.',CODEX_NO_CODE_CHANGES:'Codex made no changes.',CODEX_WORKFLOW_FAILED:'Codex failed. Open GitHub Actions.'},
- zh:{CODEX_NETWORK_BLOCKED_403:'Mac 无法访问 Codex (HTTP 403)，检查网络/VPN。',CODEX_RATE_LIMITED:'Codex 请求限制。',CODEX_AUTH_EXPIRED:'Codex 登录已过期。',CODEX_SANDBOX_DENIED:'Codex 无法编辑文件。',CODEX_NO_CODE_CHANGES:'Codex 未修改代码。',CODEX_WORKFLOW_FAILED:'Codex 执行失败，请查看 GitHub Actions。'}
+ ru:{CODEX_NETWORK_BLOCKED_403:'Запуск Codex с Mac отклонён (HTTP 403); повторные нажатия не помогут.',CODEX_RATE_LIMITED:'Лимит запросов Codex.',CODEX_AUTH_EXPIRED:'Авторизация Codex истекла.',CODEX_SANDBOX_DENIED:'Codex не может изменять файлы.',CODEX_NO_CODE_CHANGES:'Codex не внёс изменений.',CODEX_WORKFLOW_FAILED:'Ошибка Codex. Откройте GitHub Actions.'},
+ en:{CODEX_NETWORK_BLOCKED_403:'Codex launch from Mac was rejected (HTTP 403); retrying will not help.',CODEX_RATE_LIMITED:'Codex rate limit.',CODEX_AUTH_EXPIRED:'Codex login expired.',CODEX_SANDBOX_DENIED:'Codex cannot edit files.',CODEX_NO_CODE_CHANGES:'Codex made no changes.',CODEX_WORKFLOW_FAILED:'Codex failed. Open GitHub Actions.'},
+ zh:{CODEX_NETWORK_BLOCKED_403:'Mac 上的 Codex 请求遭到拒绝（HTTP 403）；重试无效。',CODEX_RATE_LIMITED:'Codex 请求限制。',CODEX_AUTH_EXPIRED:'Codex 登录已过期。',CODEX_SANDBOX_DENIED:'Codex 无法编辑文件。',CODEX_NO_CODE_CHANGES:'Codex 未修改代码。',CODEX_WORKFLOW_FAILED:'Codex 执行失败，请查看 GitHub Actions。'}
 };
 const taskStatusLabels={
  ru:{label:'Статус разработки',codex_queued:'Codex в очереди',codex_failed:'Ошибка выполнения Codex',codex_complete:'Codex завершил работу; проверяется PR',task_queued:'Задача в очереди',branch_awaiting_codex:'Ветка создана, ожидает Codex',codex_writing:'Codex пишет код (Работает)',ready_for_review:'Проверки пройдены, готов к приёмке',github_unavailable:'Нет связи с GitHub для проверки задания',dispatch_pending:'Ожидает отправки в GitHub',dispatch_failed:'Ошибка отправки в GitHub',branch_pending:'Задача в очереди',branch_created:'Ветка создана, ожидает Codex',code_committed_pr_required:'Код создан, ожидается PR',pr_unavailable:'Не удалось проверить PR',checks_unavailable:'Результаты проверок недоступны',tests_running:'Код готов, открыт PR; идут проверки',basic_checks_failed:'Ошибка быстрых проверок',task_e2e_failed:'Ошибка проверки task-e2e',tests_failed:'Есть неуспешные проверки GitHub',required_tests_missing:'Код готов, открыт PR',owner_returned_for_rework:'Владелец вернул задачу на доработку',unknown:'Ожидаем подтверждения GitHub'},
@@ -97,7 +97,8 @@ function detail(){
  const codexAvailable=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
  const codexRunning=['codex_queued','codex_writing'].includes(execution?.codexStatus);
- const codexCanStart=codexAvailable&&!codexRunning&&execution?.codexStatus!=='codex_complete'&&
+  const codexNetworkBlocked=execution?.lastError==='CODEX_NETWORK_BLOCKED_403';
+ const codexCanStart=codexAvailable&&!codexRunning&&!codexNetworkBlocked&&execution?.codexStatus!=='codex_complete'&&
   (execution?.codexStatus==='branch_awaiting_codex'||execution?.step==='branch_awaiting_codex'||execution?.step==='codex_failed'||
    (execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_')));
  const progressText=taskStatusText(execution);
@@ -111,9 +112,10 @@ function detail(){
  const words=byLang==='en'?{send:'Send to GitHub',launch:'Start Codex',tip:'First create branch and Issue; then launch Codex.',date:'Deadline',wait:'Waiting for GitHub branch and Issue'}:
   byLang==='zh'?{send:'提交到 GitHub',launch:'启动 Codex',tip:'先创建分支和 Issue，再单独启动 Codex。',date:'截止日期',wait:'等待 GitHub 分支和 Issue'}:
   {send:'Передать в GitHub',launch:'Запустить Codex',tip:'Сначала создаются ветка и Issue. Написание кода запускается отдельно.',date:'Дедлайн',wait:'Ожидаем создания ветки и Issue'};
+ const blockedNote=byLang==='en'?'Codex is unavailable. The engineering task is kept in GitHub and can be implemented directly without a paid API.':byLang==='zh'?'Codex 暂不可用。任务保留在 GitHub，可以直接开发，不需要付费 API。':'Codex недоступен. Задача сохранена в GitHub; исправления можно внести напрямую без платного API.';
  const handoffPanel=(handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy||codexBusy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
   (codexAvailable?'<section class="pf-codex-actions"><p>'+esc(words.tip)+'</p><button type="button" class="pf-primary" data-pf="start-codex" '+(!codexCanStart||busy||codexBusy||handoffBusy?'disabled':'')+'>'+esc(codexBusy?taskStatusLabels[byLang].codex_queued:words.launch)+'</button>'+
-   (!codexCanStart&&execution?.codexStatus!=='codex_complete'?'<small>'+esc(words.wait)+'</small>':'')+'</section>':'');
+   (!codexCanStart&&execution?.codexStatus!=='codex_complete'?'<small>'+esc(codexNetworkBlocked?blockedNote:words.wait)+'</small>':'')+'</section>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
