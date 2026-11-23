@@ -21,7 +21,7 @@ jobs:
       github.ref == 'refs/heads/main' &&
       github.event_name == 'push' &&
       github.event.head_commit.message == 'release(sh62): Owner approved P0 production publication'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     environment:
       name: github-pages
