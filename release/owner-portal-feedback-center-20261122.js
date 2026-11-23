@@ -28,9 +28,9 @@ const codexErrorLabels={
  zh:{CODEX_NETWORK_BLOCKED_403:'Mac 上的 Codex 请求遭到拒绝（HTTP 403）；重试无效。',CODEX_RATE_LIMITED:'Codex 请求限制。',CODEX_AUTH_EXPIRED:'Codex 登录已过期。',CODEX_SANDBOX_DENIED:'Codex 无法编辑文件。',CODEX_NO_CODE_CHANGES:'Codex 未修改代码。',CODEX_WORKFLOW_FAILED:'Codex 执行失败，请查看 GitHub Actions。'}
 };
 const taskStatusLabels={
- ru:{label:'Статус разработки',codex_queued:'Codex в очереди',codex_failed:'Ошибка выполнения Codex',codex_complete:'Codex завершил работу; проверяется PR',task_queued:'Задача в очереди',branch_awaiting_codex:'Ветка создана, ожидает Codex',codex_writing:'Codex пишет код (Работает)',ready_for_review:'Проверки пройдены, готов к приёмке',github_unavailable:'Нет связи с GitHub для проверки задания',dispatch_pending:'Ожидает отправки в GitHub',dispatch_failed:'Ошибка отправки в GitHub',branch_pending:'Задача в очереди',branch_created:'Ветка создана, ожидает Codex',code_committed_pr_required:'Код создан, ожидается PR',pr_unavailable:'Не удалось проверить PR',checks_unavailable:'Результаты проверок недоступны',tests_running:'Код готов, открыт PR; идут проверки',basic_checks_failed:'Ошибка быстрых проверок',task_e2e_failed:'Ошибка проверки task-e2e',tests_failed:'Есть неуспешные проверки GitHub',required_tests_missing:'Код готов, открыт PR',owner_returned_for_rework:'Владелец вернул задачу на доработку',unknown:'Ожидаем подтверждения GitHub'},
- en:{label:'Development status',codex_queued:'Codex queued',codex_failed:'Codex failed',codex_complete:'Codex finished; checking PR',task_queued:'Task queued',branch_awaiting_codex:'Branch created, waiting for Codex',codex_writing:'Codex is writing code (Running)',ready_for_review:'Checks passed, ready for review',github_unavailable:'Unable to verify task with GitHub',dispatch_pending:'Waiting to send to GitHub',dispatch_failed:'GitHub dispatch failed',branch_pending:'Task queued',branch_created:'Branch created, waiting for Codex',code_committed_pr_required:'In progress. Waiting for a pull request',pr_unavailable:'Could not verify the pull request',checks_unavailable:'Check results unavailable',tests_running:'GitHub is running checks',basic_checks_failed:'Quick checks failed',task_e2e_failed:'The task-e2e check failed',tests_failed:'Some GitHub checks failed',required_tests_missing:'Code ready, PR opened',owner_returned_for_rework:'The Owner returned the task for rework',unknown:'Waiting for GitHub confirmation'},
- zh:{label:'开发状态',codex_queued:'Codex 排队中',codex_failed:'Codex 执行失败',codex_complete:'Codex 已完成，正在检查 PR',task_queued:'任务排队中',branch_awaiting_codex:'分支已创建，等待 Codex',codex_writing:'Codex 正在编写代码（运行中）',ready_for_review:'检查已通过，等待验收',github_unavailable:'无法连接 GitHub 验证任务',dispatch_pending:'等待发送到 GitHub',dispatch_failed:'发送到 GitHub 失败',branch_pending:'任务排队中',branch_created:'分支已创建，等待 Codex',code_committed_pr_required:'开发中，等待拉取请求',pr_unavailable:'无法验证拉取请求',checks_unavailable:'检查结果暂不可用',tests_running:'GitHub 正在运行检查',basic_checks_failed:'快速检查失败',task_e2e_failed:'task-e2e 检查失败',tests_failed:'部分 GitHub 检查失败',required_tests_missing:'代码已完成，PR 已创建',owner_returned_for_rework:'所有者已退回返工',unknown:'等待 GitHub 确认'}
+ ru:{label:'Статус разработки',codex_queued:'Codex в очереди',codex_failed:'Ошибка выполнения Codex',codex_complete:'Codex завершил работу; проверяется PR',task_queued:'Задача в очереди',branch_awaiting_codex:'Задача в GitHub, ожидает разработки через ChatGPT',codex_writing:'Codex пишет код (Работает)',ready_for_review:'Проверки пройдены, готов к приёмке',github_unavailable:'Нет связи с GitHub для проверки задания',dispatch_pending:'Ожидает отправки в GitHub',dispatch_failed:'Ошибка отправки в GitHub',branch_pending:'Задача в очереди',branch_created:'Задача в GitHub, ожидает разработки через ChatGPT',code_committed_pr_required:'Код создан, ожидается PR',pr_unavailable:'Не удалось проверить PR',checks_unavailable:'Результаты проверок недоступны',tests_running:'Код готов, открыт PR; идут проверки',basic_checks_failed:'Ошибка быстрых проверок',task_e2e_failed:'Ошибка проверки task-e2e',tests_failed:'Есть неуспешные проверки GitHub',required_tests_missing:'Код готов, открыт PR',owner_returned_for_rework:'Владелец вернул задачу на доработку',unknown:'Ожидаем подтверждения GitHub'},
+ en:{label:'Development status',codex_queued:'Codex queued',codex_failed:'Codex failed',codex_complete:'Codex finished; checking PR',task_queued:'Task queued',branch_awaiting_codex:'GitHub task ready for implementation in ChatGPT',codex_writing:'Codex is writing code (Running)',ready_for_review:'Checks passed, ready for review',github_unavailable:'Unable to verify task with GitHub',dispatch_pending:'Waiting to send to GitHub',dispatch_failed:'GitHub dispatch failed',branch_pending:'Task queued',branch_created:'GitHub task ready for implementation in ChatGPT',code_committed_pr_required:'In progress. Waiting for a pull request',pr_unavailable:'Could not verify the pull request',checks_unavailable:'Check results unavailable',tests_running:'GitHub is running checks',basic_checks_failed:'Quick checks failed',task_e2e_failed:'The task-e2e check failed',tests_failed:'Some GitHub checks failed',required_tests_missing:'Code ready, PR opened',owner_returned_for_rework:'The Owner returned the task for rework',unknown:'Waiting for GitHub confirmation'},
+ zh:{label:'开发状态',codex_queued:'Codex 排队中',codex_failed:'Codex 执行失败',codex_complete:'Codex 已完成，正在检查 PR',task_queued:'任务排队中',branch_awaiting_codex:'GitHub 任务已准备好，等待通过 ChatGPT 开发',codex_writing:'Codex 正在编写代码（运行中）',ready_for_review:'检查已通过，等待验收',github_unavailable:'无法连接 GitHub 验证任务',dispatch_pending:'等待发送到 GitHub',dispatch_failed:'发送到 GitHub 失败',branch_pending:'任务排队中',branch_created:'GitHub 任务已准备好，等待通过 ChatGPT 开发',code_committed_pr_required:'开发中，等待拉取请求',pr_unavailable:'无法验证拉取请求',checks_unavailable:'检查结果暂不可用',tests_running:'GitHub 正在运行检查',basic_checks_failed:'快速检查失败',task_e2e_failed:'task-e2e 检查失败',tests_failed:'部分 GitHub 检查失败',required_tests_missing:'代码已完成，PR 已创建',owner_returned_for_rework:'所有者已退回返工',unknown:'等待 GitHub 确认'}
 };
 function taskStatusText(execution){
  const labels=taskStatusLabels[byLang];
@@ -38,12 +38,12 @@ function taskStatusText(execution){
  if(execution?.step==='ready_for_review'&&execution?.checksPassed!==true)return labels.required_tests_missing;
  // The work branch may predate main: SHA mismatch is not proof Codex has run.
  if(execution?.codexStatus==='branch_awaiting_codex'&&execution?.step==='code_committed_pr_required')return labels.branch_awaiting_codex;
- if(execution?.dispatchStatus==='failed') return String(execution.lastError||'').startsWith('CODEX_')?labels.codex_failed:labels.dispatch_failed;
+ if(execution?.dispatchStatus==='failed') return String(execution.lastError||'').startsWith('CODEX_')?labels.branch_awaiting_codex:labels.dispatch_failed;
  return Object.hasOwn(labels,execution?.step)?labels[execution.step]:labels.unknown;
 }
 const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
 const releaseReason=()=>!releaseReadiness.ready?(releaseT()[readinessReasonKeys[releaseReadiness.reason]||'checksPending']||''):'';
-let executionByFeedback=new Map(),handoffBusy=false,codexBusy=false;
+let executionByFeedback=new Map(),handoffBusy=false;
 const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
@@ -55,7 +55,7 @@ const deadlineState=(item,execution)=>{
  const labels=byLang==='en'?{ready:'Ready to release',late:'Overdue',blocked:'Blocked: tests have not passed',working:'In progress'}:byLang==='zh'?{ready:'准备发布',late:'已逾期',blocked:'已阻止：测试未通过',working:'处理中'}:{ready:'Готово к выпуску',late:'Просрочено',blocked:'Заблокировано: тесты не пройдены',working:'В работе'};
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review')return labels.ready;
  if(/^\d{4}-\d{2}-\d{2}$/.test(String(item.release_date||''))&&minskToday()>item.release_date)return labels.late;
- if(['codex_failed','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing'].includes(execution?.step)||execution?.checksPassed===false&&item.status==='release')return labels.blocked;
+ if(['basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing'].includes(execution?.step)||execution?.checksPassed===false&&item.status==='release')return labels.blocked;
  return labels.working;
 };
 const categories=()=>({improvement:t().category==="Request type"?"Improvement":t().category==="申请类型"?"改进":categoryLabels.improvement,fix:byLang==="en"?"Fix":byLang==="zh"?"修复":categoryLabels.fix,development:byLang==="en"?"Development":byLang==="zh"?"开发":categoryLabels.development});
@@ -94,28 +94,22 @@ function detail(){
  const execution=executionByFeedback.get(item.id);
  const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&
   (['not_requested','pending'].includes(execution.dispatchStatus)||(execution.dispatchStatus==='failed'&&!String(execution.lastError||'').startsWith('CODEX_'))));
- const codexAvailable=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
+ const githubRegistered=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
- const codexRunning=['codex_queued','codex_writing'].includes(execution?.codexStatus);
-  const codexNetworkBlocked=execution?.lastError==='CODEX_NETWORK_BLOCKED_403';
- const codexCanStart=codexAvailable&&!codexRunning&&!codexNetworkBlocked&&execution?.codexStatus!=='codex_complete'&&
-  (execution?.codexStatus==='branch_awaiting_codex'||execution?.step==='branch_awaiting_codex'||execution?.step==='codex_failed'||
-   (execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_')));
+ const githubHandoffReady=githubRegistered&&['branch_awaiting_codex','code_committed_pr_required','checks_running','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing','ready_for_review','codex_failed'].includes(execution?.step);
  const progressText=taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
  const deadlineStage=deadlineState(item,execution);
  const deadlinePanel=deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
  const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
-  (execution.lastError?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
+  (execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
   (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
- const words=byLang==='en'?{send:'Send to GitHub',launch:'Start Codex',tip:'First create branch and Issue; then launch Codex.',date:'Deadline',wait:'Waiting for GitHub branch and Issue'}:
-  byLang==='zh'?{send:'提交到 GitHub',launch:'启动 Codex',tip:'先创建分支和 Issue，再单独启动 Codex。',date:'截止日期',wait:'等待 GitHub 分支和 Issue'}:
-  {send:'Передать в GitHub',launch:'Запустить Codex',tip:'Сначала создаются ветка и Issue. Написание кода запускается отдельно.',date:'Дедлайн',wait:'Ожидаем создания ветки и Issue'};
- const blockedNote=byLang==='en'?'Codex is unavailable. The engineering task is kept in GitHub and can be implemented directly without a paid API.':byLang==='zh'?'Codex 暂不可用。任务保留在 GitHub，可以直接开发，不需要付费 API。':'Codex недоступен. Задача сохранена в GitHub; исправления можно внести напрямую без платного API.';
- const handoffPanel=(handoff?'<form id="pf-codex-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy||codexBusy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
-  (codexAvailable?'<section class="pf-codex-actions"><p>'+esc(words.tip)+'</p><button type="button" class="pf-primary" data-pf="start-codex" '+(!codexCanStart||busy||codexBusy||handoffBusy?'disabled':'')+'>'+esc(codexBusy?taskStatusLabels[byLang].codex_queued:words.launch)+'</button>'+
-   (!codexCanStart&&execution?.codexStatus!=='codex_complete'?'<small>'+esc(codexNetworkBlocked?blockedNote:words.wait)+'</small>':'')+'</section>':'');
+ const words=byLang==='en'?{send:'Start development',tip:'Creates a GitHub issue and branch without Codex or paid API. To implement code, paste the copied prompt into ChatGPT.',date:'Completion deadline',copy:'Copy task for ChatGPT',registered:'Task registered in GitHub. To implement the code, paste the task into ChatGPT.',issues:'Open GitHub issues'}:
+  byLang==='zh'?{send:'启动开发',tip:'在 GitHub 创建任务和分支，无需 Codex 或付费 API。编写代码需要将任务发送给 ChatGPT。',date:'完成截止日期',copy:'复制 ChatGPT 开发任务',registered:'任务已登记至 GitHub。将任务粘贴到 ChatGPT 以开始编写代码。',issues:'打开 GitHub 任务'}:
+  {send:'Запустить разработку',tip:'Создаёт задачу и ветку GitHub без Codex и платного API. Для написания кода отправьте запрос в ChatGPT.',date:'Дедлайн исполнения',copy:'Скопировать задание для ChatGPT',registered:'Задача зарегистрирована в GitHub. Отправьте скопированный запрос в ChatGPT для написания кода.',issues:'Открыть задачи GitHub'};
+ const handoffPanel=(handoff?'<form id="pf-development-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||item.release_date||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
+  (githubHandoffReady?'<section class="pf-development-chatgpt"><p>'+esc(words.registered)+'</p><button type="button" class="pf-secondary" data-pf="copy-development-prompt" '+(busy||handoffBusy?'disabled':'')+'>'+esc(words.copy)+'</button><p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/issues" target="_blank" rel="noopener noreferrer">'+esc(words.issues)+'</a></p></section>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
@@ -216,24 +210,27 @@ async function runGithubHandoff(item,deadline){
  try{
   await call('start');
   const result=await call('dispatch');
-  message=byLang==='en'?'GitHub handoff requested; Codex not started.':byLang==='zh'?'GitHub 已受理，Codex 尚未启动。':'Передача в GitHub запрошена. Codex ещё не запущен.';
+  message=byLang==='en'?'Development request sent to GitHub; code writing requires a ChatGPT chat.':byLang==='zh'?'开发任务已发送至 GitHub；请在 ChatGPT 对话中发送任务以编写代码。':'Разработка зарегистрирована в GitHub. Для написания кода отправьте задание в ChatGPT.';
   if(result.already)message=byLang==='en'?'Already registered on GitHub.':byLang==='zh'?'已在 GitHub 登记。':'Задача уже передана в GitHub.';
  }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
  finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
-async function runCodexStart(item){
- if(busy||handoffBusy||codexBusy||!data.owner)return;
- const execution=executionByFeedback.get(item.id);
- if(!execution)return;
- codexBusy=true;error='';message='';render();
+function developmentChatPrompt(execution){
+ const record=String(execution?.recordId||'');
+ const register=String(execution?.register||'');
+ if(!/^[A-Za-z0-9_.:-]{1,120}$/.test(record)||!['developments','remarks','updates'].includes(register))return '';
+ return 'Возьми в разработку задачу '+register+'/'+record+' из GitHub репозитория hakaru4i-afk/freight-quotes-web. Найди связанный Issue и ветку owner-task/, внеси реальные изменения, создай PR и проверь тесты. Не используй платный OpenAI API или Codex на Mac. Не публикуй изменения без подтверждения владельца.';
+}
+async function copyDevelopmentPrompt(item){
+ const prompt=developmentChatPrompt(executionByFeedback.get(item.id));
+ if(!data.owner||!prompt){error='Задача GitHub ещё не найдена';render();return;}
  try{
-  const response=await fetch('/api/owner-register-execution',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({action:'run_codex',register:execution.register,recordId:execution.recordId})});
-  const result=await response.json().catch(()=>({}));
-  if(!response.ok||result.ok!==true)throw Error([result.error||'HTTP '+response.status,result.detail].filter(Boolean).join(': '));
-  message=byLang==='en'?'Codex launch queued; see GitHub status.':byLang==='zh'?'Codex 已排队，请查看 GitHub 状态。':'Запуск Codex поставлен в очередь. Следите за статусом GitHub.';
- }catch(e){error='Codex: '+(e?.message||'UNKNOWN_ERROR');}
- finally{const failure=error;codexBusy=false;await load();if(failure)error=failure;render();}
+  if(!navigator.clipboard?.writeText)throw Error('CLIPBOARD_UNAVAILABLE');
+  await navigator.clipboard.writeText(prompt);
+  message=byLang==='en'?'Task copied. Paste it into ChatGPT to begin implementation.':byLang==='zh'?'任务已复制，请粘贴到 ChatGPT 开始开发。':'Задание скопировано. Отправьте его в ChatGPT для начала разработки.';
+  error='';
+ }catch{error=byLang==='en'?'Copy failed. Open the GitHub task in ChatGPT.':byLang==='zh'?'复制失败，请在 ChatGPT 中打开 GitHub 任务。':'Копирование недоступно. Откройте задачу GitHub и передайте её в ChatGPT.';}
+ render();
 }
 
 async function runAction(payload){
@@ -250,9 +247,9 @@ document.addEventListener("click",ev=>{
  if(action==="new"){showForm=true;render();}
  if(action==="cancel"){showForm=false;draftCategory="";draftText="";render();}
  if(action==="refresh")void load();
- if(action==='start-codex'){
+ if(action==='copy-development-prompt'){
   const item=data.items.find(i=>i.id===selected);
-  if(item&&!codexBusy)void runCodexStart(item);
+  if(item)void copyDevelopmentPrompt(item);
  }
  if(action==="release-update"){
   const item=data.items.find(i=>i.id===selected);
@@ -274,7 +271,7 @@ document.addEventListener("submit",ev=>{
  if(!root()?.contains(ev.target))return;
  if(ev.target.id==="pf-create"){ev.preventDefault();const f=ev.target;const desc=f.description?.value||draftText;void runAction({action:"create",category:f.category.value,description:desc});}
  if(ev.target.id==="pf-update"){ev.preventDefault();const f=ev.target,item=data.items.find(i=>i.id===f.dataset.id);if(!item)return;void runAction({action:"set_status",id:item.id,expectedStatus:item.status,status:f.elements.status.value,note:f.elements.note.value,releaseDate:f.elements.releaseDate.value});}
- if(ev.target.id==='pf-codex-handoff'){
+ if(ev.target.id==='pf-development-handoff'){
   ev.preventDefault();const form=ev.target,item=data.items.find(i=>i.id===form.dataset.id);
   if(item)void runGithubHandoff(item,form.elements.deadline.value);
  }
