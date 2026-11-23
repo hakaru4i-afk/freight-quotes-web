@@ -48,8 +48,8 @@ if(oldBuild.releaseVersion!=='SH-01.30.62 v'||oldRelease.version!=='SH-01.30.62 
 const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js');
 for(const p of ['portal-feedback-center-20261107.js','test/portal-feedback-center-20261107.js'])
  if(!readFileSync(p).equals(candidate))throw Error('STAGING_RELEASE_UI_DIVERGENCE:'+p);
-for(const marker of ['Передать в GitHub','Запустить Codex','action:\\'run_codex\\'','CODEX_NETWORK_BLOCKED_403','codex_failed','data-pf="start-codex"'])
- if(!candidate.toString('utf8').includes(marker.replaceAll("\\'","'")))throw Error('P0_UI_MARKER_MISSING:'+marker);
+for(const marker of ['Передать в GitHub','Запустить Codex',"action:'run_codex'",'CODEX_NETWORK_BLOCKED_403','codex_failed','data-pf="start-codex"'])
+ if(!candidate.toString('utf8').includes(marker))throw Error('P0_UI_MARKER_MISSING:'+marker);
 for(const p of ['portal-feedback-center-20261107.js','test/portal-feedback-center-20261107.js'])write(p,candidate);
 const releaseChanges=[
  'В Центре доработок две отдельные кнопки: «Передать в GitHub» и «Запустить Codex».',
