@@ -1,4 +1,4 @@
-name: Owner register GitHub handoff only
+name: Owner GitHub development queue (free, no Codex)
 run-name: Owner task ${{ inputs.dispatch_key }}
 on:
   workflow_dispatch:
@@ -98,6 +98,7 @@ jobs:
               -f ref="refs/heads/$BRANCH" -f sha="$TASK_BASE_SHA" >/dev/null
           fi
           echo "TASK_BRANCH=$BRANCH" >> "$GITHUB_ENV"
+      # Keep step name until API v65 registration reconciliation is migrated.
       - name: Register task with source brief for Codex
         shell: bash
         run: |
@@ -115,14 +116,14 @@ jobs:
               printf 'Рабочая ветка: %s\n\n' "$TASK_BRANCH"
               printf 'Название: %s\n\n' "$TASK_TITLE"
               printf 'Техническое задание:\n%s\n\n' "$TASK_DESCRIPTION"
-              printf 'Codex запускается отдельно по кнопке Владельца «Запустить Codex».\n'
+              printf 'Задача готова для разработки через ChatGPT с подключённым GitHub. Модель запускается только по запросу в чате; платный API и Mac не используются.\n'
               printf 'Готовность подтверждается кодом и обязательными зелёными тестами.\n'
             } > /tmp/owner-task.txt
             gh issue create --title "$TITLE" --body-file /tmp/owner-task.txt
           fi
-          echo 'GITHUB_BRANCH_AND_ISSUE_READY; CODEX_REQUIRES_SEPARATE_OWNER_ACTION'
+          echo 'GITHUB_BRANCH_AND_ISSUE_READY; CHATGPT_HANDOFF_REQUIRES_CHAT_REQUEST'
       - name: Explain registration failure
         if: failure()
         shell: bash
         run: |
-          echo "::error::GITHUB_HANDOFF_FAILED: branch or Issue was not created. Codex was not started."
+          echo "::error::GITHUB_HANDOFF_FAILED: branch or Issue was not created. ChatGPT code implementation was not started."
