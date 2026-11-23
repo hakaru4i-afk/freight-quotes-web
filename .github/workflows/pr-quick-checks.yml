@@ -55,7 +55,7 @@ jobs:
             count=$((count+1))
           done < /tmp/changed-js.txt
           echo "SYNTAX_PASS: $count changed JavaScript files"
-      - name: Classify PR: quick CRM UI or wider change
+      - name: Classify quick CRM UI or wider change
         id: scope
         shell: bash
         env:
