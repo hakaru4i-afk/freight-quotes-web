@@ -8,7 +8,8 @@ const paths=[
  'test/portal-feedback-center-20261107.js',
  'release/owner-portal-feedback-center-20261122.js'
 ];
-const source=readFileSync(paths[0],'utf8');
+// Unpublished candidate. Keep protected production asset checks unchanged.
+const source=readFileSync('release/candidates/issue173-deadline-20261123.js','utf8');
 
 function probe(){
  const fixed=new Date('2026-11-23T08:00:00Z');
@@ -27,8 +28,10 @@ function probe(){
  return context.__probe;
 }
 
-test('three published/staging/release center sources remain identical',()=>{
- for(const p of paths.slice(1))assert.equal(readFileSync(p,'utf8'),source,p);
+test('published/staging/release bytes are unchanged by the unpublished candidate',()=>{
+ const published=readFileSync(paths[0],'utf8');
+ for(const p of paths.slice(1))assert.equal(readFileSync(p,'utf8'),published,p);
+ assert.notEqual(source,published,'candidate must remain isolated before protected release');
 });
 
 test('legacy release_date is labelled as a deadline, never a publication date',()=>{

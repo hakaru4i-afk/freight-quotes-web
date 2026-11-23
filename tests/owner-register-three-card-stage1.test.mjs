@@ -61,7 +61,7 @@ test('review and progress have a single authoritative place: Improvement Center'
  assert.equal(cls(review,'ow-task-owner-review').length,0);
  const center=source('portal-feedback-center-20261107.js');
  assert.match(center,/pf-codex-handoff/);
- assert.match(center,/runCodexHandoff/);
+ assert.match(center,/runGithubHandoff/);
  assert.match(center,/fetchExecutions/);
  assert.match(center,/releaseReadiness/);
  assert.match(center,/data-pf="release-update"/);
