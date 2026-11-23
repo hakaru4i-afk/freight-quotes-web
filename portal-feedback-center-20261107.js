@@ -43,12 +43,32 @@ function taskStatusText(execution){
 }
 const readinessReasonKeys={TASK_CANDIDATE_NOT_LINKED:'candidateMissing',EXACT_SHA_MISSING:'candidateInvalid',REQUIRED_CHECK_GROUPS_MISSING:'candidateInvalid',CHECK_SHA_OR_REPOSITORY_MISMATCH:'candidateInvalid',CHECKS_NOT_ALL_SUCCESSFUL:'checksPending',GITHUB_CHECKS_UNAVAILABLE:'checksUnavailable',CHECK_PROVIDER_UNAVAILABLE:'checksUnavailable'};
 const releaseReason=()=>!releaseReadiness.ready?(releaseT()[readinessReasonKeys[releaseReadiness.reason]||'checksPending']||''):'';
-let executionByFeedback=new Map(),handoffBusy=false;
+let executionByFeedback=new Map(),handoffBusy=false,publishedReceipt=null;
+// A successful released production receipt is distinct from an old task PR check run.
+const issue173Marker='[WORK:owner-directive:20261122:deadline-not-release]';
+function issue173Published(item){
+ const e=executionByFeedback.get(item?.id);
+ const proof=publishedReceipt?.issue173DeadlineFix;
+ return item?.sender_role==='owner'&&String(item.description||'').includes(issue173Marker)&&
+  e?.register==='remarks'&&e?.recordId==='RM-20261122-DEADLINE-01'&&
+  publishedReceipt?.environment==='production'&&/^SH-01\.30\.(?:6[4-9]|[7-9][0-9]) v$/.test(publishedReceipt.businessVersion)&&
+  proof?.ownerApproved===true&&proof?.backendRuntimeVersion===64&&/^[a-f0-9]{64}$/.test(proof.uiSha256||'');
+}
+async function fetchPublishedReceipt(){
+ publishedReceipt=null;
+ try{
+  const url=new URL('production-release-manifest.json',document.baseURI);
+  const response=await fetch(url.href,{cache:'no-store'});
+  if(!response.ok)return;
+  const receipt=await response.json();
+  if(receipt?.environment==='production'&&typeof receipt.businessVersion==='string')publishedReceipt=receipt;
+ }catch{publishedReceipt=null;}
+}
 const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&['in_progress','release'].includes(item?.status)&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 // Existing release_date is an execution deadline; it never proves a publication.
-const requestStatus=i=>latestStatus(i.status);
+const requestStatus=i=>issue173Published(i)?(byLang==='en'?'Published SH64':byLang==='zh'?'已发布 SH64':'Выпущено SH64'):latestStatus(i.status);
 const minskToday=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const deadlineState=(item,execution)=>{
  if(!['in_progress','release'].includes(item?.status))return '';
@@ -68,7 +88,7 @@ function form(){
  (draftCategory?'<label>'+esc(t().description)+'<textarea name="description" required maxlength="5000" minlength="10" rows="6" placeholder="'+esc(t().prompt)+'">'+esc(draftText)+'</textarea><small>10–5000 '+(byLang==="en"?"characters":byLang==="zh"?"个字符":"символов")+'</small></label>':'')+
  '<div class="pf-actions"><button type="submit" class="pf-primary" '+(!draftCategory||busy?'disabled':'')+'>'+esc(t().submit)+'</button><button type="button" class="pf-secondary" data-pf="cancel">'+esc(t().cancel)+'</button></div></form>';
 }
-function badge(i){return '<span class="pf-status pf-status-'+esc(i.status)+'">'+esc(requestStatus(i))+'</span>';}
+function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':i.status)+'">'+esc(requestStatus(i))+'</span>';}
 function itemsList(){
  let rows=data.items;
  if(data.owner){
@@ -92,28 +112,29 @@ function detail(){
  const item=data.items.find(i=>i.id===selected);
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
  const execution=executionByFeedback.get(item.id);
+ const alreadyPublished=issue173Published(item);
  const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&
   (['not_requested','pending'].includes(execution.dispatchStatus)||(execution.dispatchStatus==='failed'&&!String(execution.lastError||'').startsWith('CODEX_'))));
  const githubRegistered=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
  const githubHandoffReady=githubRegistered&&['branch_awaiting_codex','code_committed_pr_required','checks_running','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing','ready_for_review','codex_failed'].includes(execution?.step);
- const progressText=taskStatusText(execution);
+ const progressText=alreadyPublished?(byLang==='en'?'Deadline fix published in SH64. Historic task-e2e failure belongs to the pre-release PR.':byLang==='zh'?'截止日期修复已随 SH64 发布。旧的 task-e2e 错误属于发布前的 PR。':'Исправление дедлайна опубликовано в SH64. Старая ошибка task-e2e относится к PR до выпуска.'):taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
  const deadlineStage=deadlineState(item,execution);
- const deadlinePanel=deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
+ const deadlinePanel=!alreadyPublished&&deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
  const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
-  (execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
+  (!alreadyPublished&&execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
   (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
  const words=byLang==='en'?{send:'Start development',tip:'Creates a GitHub issue and branch without Codex or paid API. To implement code, paste the copied prompt into ChatGPT.',date:'Completion deadline',copy:'Copy task for ChatGPT',registered:'Task registered in GitHub. To implement the code, paste the task into ChatGPT.',issues:'Open GitHub issues'}:
   byLang==='zh'?{send:'启动开发',tip:'在 GitHub 创建任务和分支，无需 Codex 或付费 API。编写代码需要将任务发送给 ChatGPT。',date:'完成截止日期',copy:'复制 ChatGPT 开发任务',registered:'任务已登记至 GitHub。将任务粘贴到 ChatGPT 以开始编写代码。',issues:'打开 GitHub 任务'}:
   {send:'Запустить разработку',tip:'Создаёт задачу и ветку GitHub без Codex и платного API. Для написания кода отправьте запрос в ChatGPT.',date:'Дедлайн исполнения',copy:'Скопировать задание для ChatGPT',registered:'Задача зарегистрирована в GitHub. Отправьте скопированный запрос в ChatGPT для написания кода.',issues:'Открыть задачи GitHub'};
- const handoffPanel=(handoff?'<form id="pf-development-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||item.release_date||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
+ const handoffPanel=alreadyPublished?'<section class="pf-published-receipt"><p>'+esc(byLang==='en'?'Already published. No second Codex launch or release needed.':byLang==='zh'?'已发布，无需再次运行 Codex 或重新发布。':'Уже опубликовано. Повторный запуск Codex или выпуска не требуется.')+'</p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/actions/runs/45224707351" target="_blank" rel="noopener noreferrer">'+esc(byLang==='en'?'Verified SH64 release':byLang==='zh'?'已验证的 SH64 发布':'Подтверждённый выпуск SH64')+'</a></section>':(handoff?'<form id="pf-development-handoff" class="pf-form" data-id="'+esc(item.id)+'"><h4>'+esc(words.send)+'</h4><p>'+esc(words.tip)+'</p><label>'+esc(words.date)+'<input type="date" name="deadline" required value="'+esc(execution.deadline||item.release_date||'')+'"/></label><button type="submit" class="pf-primary" '+(handoffBusy||busy?'disabled':'')+'>'+esc(words.send)+'</button></form>':'')+
   (githubHandoffReady?'<section class="pf-development-chatgpt"><p>'+esc(words.registered)+'</p><button type="button" class="pf-secondary" data-pf="copy-development-prompt" '+(busy||handoffBusy?'disabled':'')+'>'+esc(words.copy)+'</button><p><a href="https://github.com/hakaru4i-afk/freight-quotes-web/issues" target="_blank" rel="noopener noreferrer">'+esc(words.issues)+'</a></p></section>':'');
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>status!=='completed');
  // Completing an item manually is never a substitute for a verified production deployment.
- const releaseEligible=data.owner&&['in_progress','release'].includes(item.status);
+ const releaseEligible=data.owner&&!alreadyPublished&&['in_progress','release'].includes(item.status);
  const releaseReady=isReleaseReady(item,data.owner,releaseReadiness,execution);
  const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
  const isRunning=['queued','in_progress'].includes(runState.status);
@@ -174,7 +195,7 @@ async function fetchExecutions(){
 }
 async function load(){
  if(busy)return;
- try{const json=await apiCall("load");data=json;loaded=true;error="";await fetchExecutions();if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();void refreshReleaseProgress();}
+ try{const json=await apiCall("load");data=json;loaded=true;error="";await Promise.all([fetchExecutions(),fetchPublishedReceipt()]);if(selected&&!data.items.some(i=>i.id===selected))selected="";render();void refreshReleaseReadiness();void refreshReleaseProgress();}
  catch(e){loaded=true;data={...data,items:[],events:[]};error=t().noAccess+": "+e.message;render();}
 }
 async function refreshReleaseReadiness(){
@@ -184,7 +205,7 @@ async function refreshReleaseReadiness(){
 async function refreshReleaseProgress(){
  const item=data.items.find(i=>i.id===selected);
  const seq=++releaseProgressRequest;
- if(!data.owner||!item||!['in_progress','release'].includes(item.status)){releaseRun={taskId:'',status:'not_started'};return;}
+ if(!data.owner||!item||issue173Published(item)||!['in_progress','release'].includes(item.status)){releaseRun={taskId:'',status:'not_started'};return;}
  try{
   const response=await fetch(api+'?releaseProgress='+encodeURIComponent(item.id),{cache:'no-store'});
   const body=await response.json();
