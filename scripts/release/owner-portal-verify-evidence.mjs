@@ -4,6 +4,8 @@ import {execFileSync} from 'node:child_process';
 const env={...process.env};
 if(!env.GITHUB_WEB_TOKEN||!env.GITHUB_BACKEND_TOKEN)throw Error('RELEASE_GITHUB_TOKENS_MISSING');
 if(!/^[a-f0-9]{40}$/.test(env.FRONTEND_SHA||'')||!/^[a-f0-9]{40}$/.test(env.BACKEND_SHA||''))throw Error('RELEASE_EXACT_SOURCE_PAIR_REQUIRED');
+const actualFrontend=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+if(actualFrontend!==env.FRONTEND_SHA)throw Error('RELEASE_FRONTEND_CHECKOUT_SHA_MISMATCH');
 const actualBackend=execFileSync('git',['-C','backend','rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(actualBackend!==env.BACKEND_SHA)throw Error('RELEASE_BACKEND_CHECKOUT_SHA_MISMATCH');
 execFileSync(process.execPath,['scripts/release/owner-portal-verify-evidence-frontend.mjs'],{env,stdio:'inherit',timeout:90000});
