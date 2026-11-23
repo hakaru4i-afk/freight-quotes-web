@@ -74,6 +74,33 @@ jobs:
           set -euo pipefail
           mkdir -p "$HOME/.local/bin"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Install free GitHub CLI in the existing Mac runner account if absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v gh >/dev/null 2>&1; then
+            echo "GH_CLI_MISSING; installing pinned official CLI without sudo"
+            version='2.105.0'
+            archive="$RUNNER_TEMP/gh-${version}-macOS-arm64.zip"
+            url="https://github.com/cli/cli/releases/download/v${version}/gh_${version}_macOS_arm64.zip"
+            if ! curl --fail --location --retry 3 --max-time 90 --silent --show-error "$url" --output "$archive"; then
+              echo "GH_CLI_DOWNLOAD_FAILED" > "$RUNNER_TEMP/owner-task-failure.txt"
+              exit 1
+            fi
+            mkdir -p "$RUNNER_TEMP/gh-cli-install"
+            if ! unzip -q "$archive" -d "$RUNNER_TEMP/gh-cli-install"; then
+              echo "GH_CLI_ARCHIVE_INVALID" > "$RUNNER_TEMP/owner-task-failure.txt"
+              exit 1
+            fi
+            gh_bin="$(find "$RUNNER_TEMP/gh-cli-install" -type f -path '*/bin/gh' -print -quit)"
+            if [ -z "$gh_bin" ]; then
+              echo "GH_CLI_BINARY_NOT_FOUND" > "$RUNNER_TEMP/owner-task-failure.txt"
+              exit 1
+            fi
+            install -m 0755 "$gh_bin" "$HOME/.local/bin/gh"
+          fi
+          gh --version
+          GH_TOKEN="$GH_TOKEN" gh auth status
       - name: Validate server-issued fields
         shell: bash
         run: |
