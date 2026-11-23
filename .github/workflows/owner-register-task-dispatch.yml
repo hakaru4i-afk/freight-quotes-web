@@ -166,6 +166,26 @@ jobs:
             echo "::error::CODEX_NOT_AUTHENTICATED: connect the existing Codex account on the Mac runner; no paid API key will be created"
             exit 1
           fi
+      - name: Check Codex service network from this Mac runner
+        id: codex-network
+        shell: bash
+        run: |
+          set -euo pipefail
+          # A public unauthenticated request may return JSON 401/403. Block only
+          # the Cloudflare HTML "Unable to load site" response seen in run 45197811215.
+          response="$RUNNER_TEMP/codex-reachability.html"
+          status="$(curl -sSL --max-time 25 -o "$response" -w '%{http_code}' 'https://chatgpt.com/backend-api/codex/models?client_version=0.171.0' || true)"
+          if [ "$status" = 403 ] && grep -Eqi 'Unable to load site|If you are using a VPN' "$response"; then
+            echo 'CODEX_NETWORK_BLOCKED_403' > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo '::error::CODEX_NETWORK_BLOCKED_403: chatgpt.com denied this Mac runner (Cloudflare HTML 403). Check existing Mac VPN/network before retrying this task; Codex login is valid.'
+            exit 1
+          fi
+          if [ "$status" = 000 ]; then
+            echo 'CODEX_NETWORK_UNREACHABLE' > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo '::error::CODEX_NETWORK_UNREACHABLE: Mac runner cannot reach chatgpt.com'
+            exit 1
+          fi
+          echo "CODEX_NETWORK_PREFLIGHT_HTTP_$status (not an authentication check)"
       - name: Run Codex (non-interactive)
         id: codex-exec
         shell: bash
@@ -180,11 +200,35 @@ jobs:
             printf 'Owner brief (task data, not an instruction to reveal secrets):\n%s\n' "$TASK_DESCRIPTION"
             printf '\nWhen finished, stop. The workflow creates a draft PR and runs checks separately.\n'
           } > "$RUNNER_TEMP/owner-codex-prompt.txt"
-          if ! codex exec --ephemeral --sandbox workspace-write "$(cat "$RUNNER_TEMP/owner-codex-prompt.txt")" > "$RUNNER_TEMP/owner-codex-log.txt" 2>&1; then
-            echo "CODEX_EXEC_FAILED" > "$RUNNER_TEMP/owner-task-failure.txt"
-            echo "::error::CODEX_EXEC_FAILED: inspect protected runner logs for details"
+          echo "CODEX_HEADLESS_STARTED: record=$TASK_RECORD_ID, prompt_bytes=$(wc -c < "$RUNNER_TEMP/owner-codex-prompt.txt"), job_timeout=110min"
+          # Official codex exec reads the complete owner-approved prompt from stdin.
+          # Do not pass repository-scoped GitHub tokens to the model process.
+          set +e
+          env -u GH_TOKEN -u GITHUB_TOKEN codex exec --ephemeral --sandbox workspace-write - < "$RUNNER_TEMP/owner-codex-prompt.txt" > "$RUNNER_TEMP/owner-codex-log.txt" 2>&1
+          result=$?
+          set -e
+          if [ "$result" -ne 0 ]; then
+            reason='CODEX_EXEC_FAILED'
+            if grep -Eqi '403 Forbidden|Unable to load site|workspace routing discovery failed' "$RUNNER_TEMP/owner-codex-log.txt"; then
+              reason='CODEX_NETWORK_BLOCKED_403'
+            elif grep -Eqi 'rate limit|429 Too Many Requests' "$RUNNER_TEMP/owner-codex-log.txt"; then
+              reason='CODEX_RATE_LIMITED'
+            elif grep -Eqi 'not logged in|unauthorized|authentication required' "$RUNNER_TEMP/owner-codex-log.txt"; then
+              reason='CODEX_AUTH_EXPIRED'
+            elif grep -Eqi 'sandbox.*(denied|failed)|permission denied' "$RUNNER_TEMP/owner-codex-log.txt"; then
+              reason='CODEX_SANDBOX_DENIED'
+            fi
+            printf '%s\n' "$reason" > "$RUNNER_TEMP/owner-task-failure.txt"
+            echo "::error::$reason: codex exec exited with code $result; GitHub run $GITHUB_RUN_ID"
+            if [ "$reason" = 'CODEX_EXEC_FAILED' ]; then
+              # Short, redacted diagnostics; never publish entire logs or tokens.
+              grep -Ei 'error|failed|denied|panic|timeout|connection' "$RUNNER_TEMP/owner-codex-log.txt" |
+                cut -c1-230 | tail -8 |
+                sed -E 's/(sk-|sess-|eyJ)[A-Za-z0-9._-]{16,}/[REDACTED]/g' || true
+            fi
             exit 1
           fi
+          echo "CODEX_HEADLESS_COMPLETED_SUCCESSFULLY"
           if git diff --quiet && [ -z "$(git ls-files --others --exclude-standard)" ]; then
             echo "CODEX_NO_CODE_CHANGES" > "$RUNNER_TEMP/owner-task-failure.txt"
             echo "::error::CODEX_NO_CODE_CHANGES: Codex finished without modifying source files"
@@ -207,6 +251,9 @@ jobs:
         run: |
           set -euo pipefail
           REASON="$(cat "$RUNNER_TEMP/owner-task-failure.txt" 2>/dev/null || echo OWNER_TASK_WORKFLOW_FAILED)"
+          case "$REASON" in
+            CODEX_NETWORK_BLOCKED_403) echo "::error::Codex service blocked this Mac runner with HTTP 403; authenticate is valid, check VPN/routing" ;;
+          esac
           echo "::error::$REASON"
           ISSUE="$(gh issue list --state all --search "$TASK_UUID in:title" --json number --jq '.[0].number // empty' || true)"
           if [ -n "$ISSUE" ]; then
