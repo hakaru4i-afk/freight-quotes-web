@@ -23,3 +23,19 @@ test('backup-only proof is not isolated DB and Storage restore', () => {
  assert.match(source,/owner-portal-verify-evidence-frontend\.mjs/);
  assert.match(source,/owner-portal-verify-evidence-backend\.mjs/);
 });
+
+test('malformed release pair is rejected before checkout or network evidence reads', () => {
+ for (const [frontend,backend] of [
+  ['','a'.repeat(40)],
+  ['a'.repeat(40),''],
+  ['a'.repeat(39)+'Z','b'.repeat(40)],
+  ['a'.repeat(40),'b'.repeat(39)],
+ ]) {
+  const result=spawnSync(process.execPath,[verifier],{
+   encoding:'utf8',
+   env:{PATH:process.env.PATH||'',GITHUB_WEB_TOKEN:'synthetic-not-used',GITHUB_BACKEND_TOKEN:'synthetic-not-used',FRONTEND_SHA:frontend,BACKEND_SHA:backend}
+  });
+  assert.notEqual(result.status,0);
+  assert.match(result.stderr,/RELEASE_EXACT_SOURCE_PAIR_REQUIRED/);
+ }
+});
