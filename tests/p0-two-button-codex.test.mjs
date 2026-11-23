@@ -5,7 +5,16 @@ const read=name=>readFileSync(name,'utf8');
 const ui=read('release/owner-portal-feedback-center-20261122.js');
 const handoff=read('.github/workflows/owner-register-task-dispatch.yml');
 const codex=read('.github/workflows/owner-register-codex-exec.yml');
-test('Owner has two separate buttons with distinct actions and RU EN ZH labels',()=>{
+const release=JSON.parse(read('production-release-manifest.json'));
+const sh65plus=Number(/^SH-01\.30\.(\d+) v$/.exec(release.businessVersion)?.[1]||0)>=65;
+test('Owner UI matches approved release mode in RU EN ZH',()=>{
+ if(sh65plus){
+  for(const label of ['Запустить разработку','Start development','启动开发'])assert.ok(ui.includes(label));
+  assert.match(ui,/id="pf-development-handoff"/);
+  assert.match(ui,/data-pf="copy-development-prompt"/);
+  assert.doesNotMatch(ui,/data-pf="start-codex"|action:'run_codex'/);
+  return;
+ }
  assert.match(ui,/Передать в GitHub/);
  assert.match(ui,/Запустить Codex/);
  assert.match(ui,/Send to GitHub/);
@@ -36,7 +45,13 @@ test('Production, test and approved release scripts are byte-identical',()=>{
  assert.equal(read('test/portal-feedback-center-20261107.js'),ui);
 });
 
-test('Confirmed Codex handoff stage allows starting despite an outdated main SHA',()=>{
+test('Owner handoff state is explicit after GitHub dispatch and not falsely completed',()=>{
+ if(sh65plus){
+  assert.match(ui,/githubHandoffReady/);
+  assert.match(ui,/branch_awaiting_codex/);
+  assert.doesNotMatch(ui,/runCodexStart\(/);
+  return;
+ }
  assert.match(ui,/execution\?\.codexStatus==='branch_awaiting_codex'\|\|execution\?\.step==='branch_awaiting_codex'/);
  assert.match(ui,/execution\?\.codexStatus==='branch_awaiting_codex'&&execution\?\.step==='code_committed_pr_required'/);
 });

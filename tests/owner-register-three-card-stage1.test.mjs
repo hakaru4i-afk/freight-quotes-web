@@ -60,7 +60,8 @@ test('review and progress have a single authoritative place: Improvement Center'
   execution:{decision:'review_pending',progress:100,checksPassed:true},onAction:async()=>{}});
  assert.equal(cls(review,'ow-task-owner-review').length,0);
  const center=source('portal-feedback-center-20261107.js');
- assert.match(center,/pf-codex-handoff/);
+ const sh65plus=Number(/^SH-01\.30\.(\d+) v$/.exec(JSON.parse(source('production-release-manifest.json')).businessVersion)?.[1]||0)>=65;
+ assert.match(center,sh65plus?/pf-development-handoff/:/pf-codex-handoff/);
  assert.match(center,/runGithubHandoff/);
  assert.match(center,/fetchExecutions/);
  assert.match(center,/releaseReadiness/);

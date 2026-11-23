@@ -31,7 +31,12 @@ function probe(){
 test('published/staging/release bytes include the approved Issue #173 fix',()=>{
  const published=readFileSync(paths[0],'utf8');
  for(const p of paths.slice(1))assert.equal(readFileSync(p,'utf8'),published,p);
- assert.equal(source,published,'approved candidate must match the published asset byte-for-byte');
+ const manifest=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
+ if(manifest.businessVersion==='SH-01.30.64 v')assert.equal(source,published,'SH64 must include the approved Issue 173 asset');
+ else{
+  assert.match(manifest.businessVersion,/^SH-01\.30\.(?:6[5-9]|[7-9][0-9]) v$/);
+  assert.notEqual(source,published,'Later reviewed releases preserve historic SH64 evidence separately');
+ }
 });
 
 test('legacy release_date is labelled as a deadline, never a publication date',()=>{
