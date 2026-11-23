@@ -1,22 +1,11 @@
 name: SH59 immutable tested-source handoff (staging only)
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/sh59-verified-handoff.yml'
-      - 'scripts/release/prepare-tested-candidate.mjs'
-      - 'scripts/release/check-sh59-staging-import.mjs'
-      - 'tests/prepare-tested-candidate.test.mjs'
-      - 'tests/production-release-integrity.test.mjs'
   workflow_dispatch:
     inputs:
       audit_run_id:
         description: 'Successful signed 37/37 audit run ID; never substitute an unverified status report'
         required: true
         type: string
-  workflow_run:
-    workflows: ['SH59 strict 37-of-37 protected E2E audit (QA only)']
-    types: [completed]
-    branches: [main]
 permissions:
   contents: read
   actions: read

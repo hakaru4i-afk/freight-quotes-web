@@ -1,10 +1,6 @@
 name: Carrier124 live OIDC acceptance on isolated SH59 (11 roles)
 run-name: SH59 QA20 ${{ inputs.fixture_only && 'fixture' || inputs.full_suite && 'full' || 'smoke' }}
 on:
-  pull_request:
-    paths:
-      - '.github/workflows/carrier124-main-oidc-smoke.yml'
-      - '.github/workflows/sh59-protected-37-audit.yml'
   workflow_dispatch:
     inputs:
       full_suite:

@@ -1,19 +1,5 @@
 name: SH59 isolated QA20 staging-only Pages promotion
 on:
-  pull_request:
-    paths:
-      - .github/workflows/sh59-staging-only-pages.yml
-      - scripts/release/build-staging-only-package.mjs
-      - scripts/release/verify-published-root.mjs
-      - scripts/release/verify-staging-preview-browser.mjs
-      - tests/build-staging-only-package.test.mjs
-      - tests/verify-published-root.test.mjs
-  # A one-time owner-authorized staging-only release commit on main.
-  # No root assets change. All published root bytes must match before/after.
-  push:
-    branches: [main, ci/isolated-sh59-staging-pages-20261121]
-    paths:
-      - .github/workflows/sh59-staging-only-pages.yml
   workflow_dispatch:
     inputs:
       handoff_run_id:
