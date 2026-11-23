@@ -42,6 +42,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: write
 concurrency:
   group: owner-task-${{ inputs.dispatch_key }}
   cancel-in-progress: false
