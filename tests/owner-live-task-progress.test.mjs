@@ -120,3 +120,11 @@ test('both Owner entrypoints request up to 100 recent CI runs to avoid losing ac
 });
 
 test('green CI without release evidence explicitly remains blocked in Owner activity',()=>{const x=summarize({pr:pr(),audit:audit(),runs:names.map(name=>run(name))});assert.equal(x.releaseReady,false);assert.match(x.action,/production не подтверждён/);});
+
+test('action_required without executed jobs is not reported as a failed test',()=>{
+ const pending=run(names[1],{conclusion:'action_required',id:987});
+ const x=summarize({pr:pr(),audit:audit(),runs:[pending]});
+ assert.notEqual(x.state,'failed');
+ assert.equal(x.stages[2].passed,false);
+ assert.equal(x.releaseReady,false);
+});
