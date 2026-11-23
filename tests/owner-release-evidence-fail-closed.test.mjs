@@ -20,8 +20,8 @@ test('missing evidence credentials fails closed', () => {
 test('backup-only proof is not isolated DB and Storage restore', () => {
  const source=readFileSync(verifier,'utf8');
  assert.match(source,/RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED/);
- assert.match(source,/owner-portal-verify-evidence-frontend\.mjs/);
- assert.match(source,/owner-portal-verify-evidence-backend\.mjs/);
+ assert.doesNotMatch(source,/owner-portal-verify-evidence-frontend\\.mjs|owner-portal-verify-evidence-backend\\.mjs/);
+ assert.match(source,/throw Error\\('RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED'\\)/);
 });
 
 test('malformed release pair is rejected before checkout or network evidence reads', () => {
