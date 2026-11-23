@@ -41,14 +41,14 @@ await Promise.all(Array.from({length:8},async()=>{
   write(p,bytes);
  }
 }));
-// The SH64 manifest enumerates production roots but omitted staging/build-info.
-// Verify the live staging identity against the reviewed repository file, then
-// include it in the immutable SH65 asset receipt (without changing staging).
+// The live SH64 Pages site omitted test/build-info.json (HTTP 404), although
+// the reviewed source repository has its staging build receipt. Include the
+// exact repository source bytes in SH65 and hash them in the new manifest.
 const reviewedStagingInfo=readFileSync('test/build-info.json');
-const liveStagingInfo=await get('test/build-info.json');
-if(sha(reviewedStagingInfo)!==sha(liveStagingInfo))throw Error('UNREVIEWED_STAGING_BUILD_INFO');
-write('test/build-info.json',liveStagingInfo);
-manifest.assets['test/build-info.json']=sha(liveStagingInfo);
+const stageInfo=JSON.parse(reviewedStagingInfo.toString('utf8'));
+if(stageInfo.environment!=='staging'||stageInfo.projectRef!=='ibclzdkxiozbzmniiygv'||!stageInfo.stabilizationQa20261110)throw Error('STAGING_BUILD_INFO_UNVERIFIED');
+write('test/build-info.json',reviewedStagingInfo);
+manifest.assets['test/build-info.json']=sha(reviewedStagingInfo);
 const oldBuild=json('build-info.json');
 const oldRelease=json('release-status.json');
 if(oldBuild.releaseVersion!=='SH-01.30.64 v'||oldRelease.version!=='SH-01.30.64 v')
