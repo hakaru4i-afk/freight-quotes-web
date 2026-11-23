@@ -8,9 +8,6 @@ const actualFrontend=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).
 if(actualFrontend!==env.FRONTEND_SHA)throw Error('RELEASE_FRONTEND_CHECKOUT_SHA_MISMATCH');
 const actualBackend=execFileSync('git',['-C','backend','rev-parse','HEAD'],{encoding:'utf8'}).trim();
 if(actualBackend!==env.BACKEND_SHA)throw Error('RELEASE_BACKEND_CHECKOUT_SHA_MISMATCH');
-execFileSync(process.execPath,['scripts/release/owner-portal-verify-evidence-frontend.mjs'],{env,stdio:'inherit',timeout:90000});
-execFileSync(process.execPath,['backend/scripts/release/owner-portal-verify-evidence-backend.mjs'],{env,stdio:'inherit',timeout:90000});
-// Backend's current verifier proves encrypted capture/readback only, not isolated restoration.
-// Keep production blocked until a separate machine-verifiable DB+Storage restore receipt
-// is bound to this exact release pair; do not convert a backup-only PASS into restore PASS.
+// Fail before any remote evidence calls when restoration is not independently proven.
+// No receipt validator is installed yet; never accept an env flag or a backup capture as proof.
 throw Error('RELEASE_ISOLATED_DB_STORAGE_RESTORE_RECEIPT_REQUIRED');
