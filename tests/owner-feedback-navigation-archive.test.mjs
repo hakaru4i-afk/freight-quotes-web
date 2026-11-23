@@ -16,6 +16,29 @@ test('SH69 owner register links carry the exact existing feedback ID',()=>{
  assert.doesNotMatch(registers,/action:'set_status'/);
 });
 
+test('SH69 direct navigation propagates only a valid existing UUID',()=>{
+ const start=registers.indexOf('function openFeedbackItem(');
+ const end=registers.indexOf('function sections(){',start);
+ assert.ok(start>0&&end>start);
+ const id='432cbdd4-4c52-45cf-b631-053fd95c247b';
+ const state={};
+ const ctx={
+  URL,location:{href:'https://example.test/?ownerView=developments#registers',hash:'#registers'},
+  history:{state:{},replaceState(_state,_title,url){state.url=String(url);}},
+  navigate(view){state.view=view;},
+  window:{dispatchEvent(ev){state.event=ev.type;}},
+  Event:class{constructor(type){this.type=type;}}
+ };
+ runInNewContext(registers.slice(start,end)+'\nglobalThis.go=openFeedbackItem;',ctx);
+ ctx.go(id);
+ assert.equal(new URL(state.url).searchParams.get('feedbackTask'),id);
+ assert.equal(ctx.location.hash,'#portal-feedback');
+ assert.equal(state.event,'portal-feedback-target-changed');
+ assert.equal(state.view,'');
+ ctx.go('invalid/other-task');
+ assert.equal(new URL(state.url).searchParams.has('feedbackTask'),false);
+});
+
 test('SH69 Improvement Center resolves direct link and opens archive filter',()=>{
  assert.doesNotThrow(()=>new Function(center));
  const start=center.indexOf('const feedbackTargetFromUrl=');
