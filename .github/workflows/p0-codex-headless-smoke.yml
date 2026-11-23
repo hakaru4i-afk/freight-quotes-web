@@ -1,0 +1,51 @@
+name: P0 Codex noninteractive Mac smoke
+run-name: Codex exec smoke on Mac (no code changes)
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/p0-codex-headless-smoke.yml
+permissions:
+  contents: read
+concurrency:
+  group: p0-codex-smoke-only
+  cancel-in-progress: true
+jobs:
+  diagnose:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Make logged-in CLI visible
+        shell: bash
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Check CLI and reproduce a minimal headless exec
+        shell: bash
+        run: |
+          set -euo pipefail
+          codex --version
+          codex login status
+          printf '%s\n' 'Answer only READY. Do not change files, run commands or inspect secrets.' > "$RUNNER_TEMP/codex-smoke-prompt.txt"
+          set +e
+          codex exec --ephemeral --sandbox workspace-write - < "$RUNNER_TEMP/codex-smoke-prompt.txt" > "$RUNNER_TEMP/codex-smoke-output.log" 2>&1
+          result=$?
+          set -e
+          echo "CODEX_EXEC_SMOKE_EXIT=$result"
+          if [ "$result" -ne 0 ]; then
+            echo "::error::CODEX_HEADLESS_SMOKE_FAILED: error excerpts follow; no credentials printed"
+            grep -Ein 'error|failed|denied|not supported|sandbox|permission|authentication|authorization|connection|network|status|panic|endpoint|unknown|invalid|certificate|timeout|HTTP|API' "$RUNNER_TEMP/codex-smoke-output.log" | tail -35 | sed -E 's/(sk-|sess-|eyJ)[A-Za-z0-9._-]{16,}/[REDACTED]/g' || true
+            echo 'Codex output (redacted last 15 lines):'
+            tail -15 "$RUNNER_TEMP/codex-smoke-output.log" | sed -E 's/(sk-|sess-|eyJ)[A-Za-z0-9._-]{16,}/[REDACTED]/g' || true
+            exit "$result"
+          fi
+          if ! grep -q READY "$RUNNER_TEMP/codex-smoke-output.log"; then
+            echo "::error::CODEX_HEADLESS_SMOKE_NO_MODEL_RESPONSE"
+            exit 1
+          fi
+          echo CODEX_HEADLESS_EXEC_SUCCESS
