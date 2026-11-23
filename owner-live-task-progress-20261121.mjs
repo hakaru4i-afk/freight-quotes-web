@@ -33,6 +33,7 @@ export function summarize({pr,audit,runs=[],job=null,parity=null,publication=nul
  const state=releasePassed?'released':running?'running':failed?'failed':current?'checked':'unverified';
  let action=running?'GitHub Actions выполняет: ':failed?'Ошибка GitHub Actions: ':current?'Последняя проверка: ':'По текущему коммиту новых проверок нет';
  if(current)action+=current.name+(state==='checked'?' — '+String(current.conclusion||'ожидает'): '');
+ if(!releasePassed&&!running&&!failed)action+='; production не подтверждён: требуется полный release gate и фактический readback';
  if(running&&job?.runId===running.id)action+=' / '+job.name+(job.step?' / '+job.step:'');
  return {title:TASK.title,prUrl:'https://github.com/'+TASK.repo+'/pull/'+TASK.pr,sha,stages,passed,total:stages.length,percent:Math.round(100*passed/stages.length),state,action,runId:current?.id||null,runUrl:current?.id?'https://github.com/'+TASK.repo+'/actions/runs/'+current.id:null,releaseReady:releasePassed===true};
 }
