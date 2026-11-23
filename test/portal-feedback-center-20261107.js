@@ -36,6 +36,8 @@ function taskStatusText(execution){
  const labels=taskStatusLabels[byLang];
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review') return labels.ready_for_review;
  if(execution?.step==='ready_for_review'&&execution?.checksPassed!==true)return labels.required_tests_missing;
+ // The work branch may predate main: SHA mismatch is not proof Codex has run.
+ if(execution?.codexStatus==='branch_awaiting_codex'&&execution?.step==='code_committed_pr_required')return labels.branch_awaiting_codex;
  if(execution?.dispatchStatus==='failed') return String(execution.lastError||'').startsWith('CODEX_')?labels.codex_failed:labels.dispatch_failed;
  return Object.hasOwn(labels,execution?.step)?labels[execution.step]:labels.unknown;
 }
@@ -86,7 +88,7 @@ function detail(){
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
  const codexRunning=['codex_queued','codex_writing'].includes(execution?.codexStatus);
  const codexCanStart=codexAvailable&&!codexRunning&&execution?.codexStatus!=='codex_complete'&&
-  (execution?.step==='branch_awaiting_codex'||execution?.step==='codex_failed'||
+  (execution?.codexStatus==='branch_awaiting_codex'||execution?.step==='branch_awaiting_codex'||execution?.step==='codex_failed'||
    (execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_')));
  const progressText=taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;

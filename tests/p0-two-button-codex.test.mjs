@@ -35,3 +35,8 @@ test('Production, test and approved release scripts are byte-identical',()=>{
  assert.equal(read('portal-feedback-center-20261107.js'),ui);
  assert.equal(read('test/portal-feedback-center-20261107.js'),ui);
 });
+
+test('Confirmed Codex handoff stage allows starting despite an outdated main SHA',()=>{
+ assert.match(ui,/execution\?\.codexStatus==='branch_awaiting_codex'\|\|execution\?\.step==='branch_awaiting_codex'/);
+ assert.match(ui,/execution\?\.codexStatus==='branch_awaiting_codex'&&execution\?\.step==='code_committed_pr_required'/);
+});
