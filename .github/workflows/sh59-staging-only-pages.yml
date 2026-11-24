@@ -171,6 +171,9 @@ jobs:
       (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 18
+    concurrency:
+      group: owner-portal-production-release
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.pages.outputs.page_url }}
@@ -180,12 +183,26 @@ jobs:
       actions: read
       contents: read
     steps:
-      - uses: actions/deploy-pages@v4
-        id: pages
       - uses: actions/download-artifact@v4
         with:
           name: sh59-staging-only-root-receipt
           path: verified
+      - name: Reject a stale production root before staging deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(awk '$2 == ".qa-pages/production-release-manifest.json" {print $1}' verified/production-root-sha256.txt)"
+          [[ "$expected" =~ ^[a-f0-9]{64}$ ]]
+          curl --fail --silent --show-error --location --retry 2 --max-time 25 \
+            "https://hakaru4i-afk.github.io/freight-quotes-web/production-release-manifest.json?staging_gate=$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" \
+            -o "$RUNNER_TEMP/staging-gate-production-manifest.json"
+          actual="$(shasum -a 256 "$RUNNER_TEMP/staging-gate-production-manifest.json" | cut -d' ' -f1)"
+          if [ "$actual" != "$expected" ]; then
+            echo '::error::Production was updated after the staging package was built. Rebuild staging from the current production root.'
+            exit 1
+          fi
+      - uses: actions/deploy-pages@v4
+        id: pages
       - name: Confirm every served production root asset still matches the prior bytes
         shell: bash
         run: |
