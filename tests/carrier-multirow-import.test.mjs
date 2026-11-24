@@ -204,9 +204,12 @@ test("XLSX: more than 20 populated rates rejected without silently ignoring rows
  await assert.rejects(async()=>api.xlsxToCsv(await api.unzip(bytes.buffer)),/не более 20/);
 });
 
-test("Production assets stay unchanged until the protected release",()=>{
+test("SH69 published carrier assets remain signed when subsequent UI changes are prepared",()=>{
  const current=readFileSync("task2-guidance-42dc6ccc8a20.js","utf8");
  const existingCodec=readFileSync("carrier-csv-wps-hotfix.js","utf8");
- assert.notEqual(current,guidance);
- assert.notEqual(existingCodec,codec);
+ const manifest=JSON.parse(readFileSync("production-release-manifest.json","utf8"));
+ assert.match(manifest.businessVersion,/^SH-\d{2}\.\d{2}\.\d{2} v$/);
+ assert.equal(current,guidance,"The approved SH69 carrier importer must stay unchanged");
+ assert.equal(existingCodec,codec,"The approved SH69 XLSX codec must stay unchanged");
+ assert.equal(manifest.carrierMultirowExcel?.maxVariantsPerFile,20);
 });
