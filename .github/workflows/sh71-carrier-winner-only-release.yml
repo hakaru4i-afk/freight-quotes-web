@@ -7,6 +7,7 @@ on:
       - '.github/workflows/sh71-carrier-winner-only-release.yml'
 permissions:
   contents: write
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -84,6 +85,22 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
+      - name: Wait for GitHub Pages artifact to appear in Actions API
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 24); do
+            artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[] | select(.name=="github-pages" and .expired==false) | .id' | head -n1)" || true
+            if [ -n "$artifact_id" ]; then
+              echo "SH71_ARTIFACT_REGISTERED:$artifact_id"
+              sleep 10
+              break
+            fi
+            if [ "$n" = 24 ]; then echo '::error::Pages artifact metadata not registered'; exit 1; fi
+            sleep 5
+          done
       - uses: actions/deploy-pages@v4
       - name: Verify live SH71, inbox script, html and manifest byte-for-byte
         shell: bash
