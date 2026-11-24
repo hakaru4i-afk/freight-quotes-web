@@ -364,7 +364,7 @@ async function importQuoteRows(form,rows,quote){
  const shown=summary.join("\n").slice(0,1700);
  if(!confirm("В файле найдено ставок: "+variants.length+".\n"+
    "Будет создано новых вариантов: "+newCount+".\n"+
-   "Общие поля и существующие варианты будут обновлены.\n\n"+shown+
+   "Общие поля будут обновлены, значения каждого варианта полностью заменены строкой файла.\n\n"+shown+
    "\n\nПеренести ставки в форму? Это НЕ отправка на сервер."))return;
  for(let n=quote.prefixes.length;n<variants.length;n++){
    const before=quoteFormLayout(form)?.prefixes.length||0;
@@ -388,9 +388,14 @@ async function importQuoteRows(form,rows,quote){
  }
  for(let i=0;i<variants.length;i++){
    const prefix=current.prefixes[i];
-   for(const [suffix,value] of variants[i]){
+   // Explicitly clear omitted cells within this variant: stale inputs from a
+   // previously edited rate must never leak into another imported quote.
+   for(const templateField of current.template){
+     if(current.shared.includes(templateField))continue;
+     const suffix=templateField.name.slice(current.first.length);
      const field=byName.get(prefix+suffix);
      if(!field)throw Error("Вариант "+(i+1)+": поле "+suffix+" отсутствует");
+     const value=variants[i].get(suffix)||"";
      validateCsvCell(field,value,suffix);
      changes.push({field,value});
    }
