@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "environment": "production",
-  "businessVersion": "SH-01.30.69 v",
-  "frontendBuild": "6db6c5a4d2f66499e9f7",
+  "businessVersion": "SH-01.30.70 v",
+  "frontendBuild": "fe03ce569f7f46c846ee",
   "sourceStagingBuild": "e49dd78d09811370c74d",
   "sourceStagingFrontendCommit": "6a961e5c98231c174522b66364de5fcbe1aa8482",
   "publicationState": "PUBLISHED",
@@ -10,8 +10,8 @@
     "action-layout-hotfix.css": "86974b0594d3dca6530309cdda6c86771078961d1a272066ff5675d75560db11",
     "alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
     "alignment-role-help.json": "e58fafaf4fa0ffb268167650e0d50a5c649bb3066548e9c6662de8a13f8297a3",
-    "app.js": "f8d6d13ab8bf9eaa8518705e1084e41e212ba9cd74f2427f7de3315c618276ec",
-    "build-info.json": "bffec50b84a2e67803dd6b68e8d22443b86eebf4c567b1b00de5d114af3c5c6d",
+    "app.js": "5e1ab2a903a65e2d25ed34cd41088020c60de72c3e8e91ed9e0164fc61791cfc",
+    "build-info.json": "536c55c108c89252b05334a463b0828c87ff6229c6bf7318db390b1014e98d9f",
     "bundle.css": "c3ef7c714a45b25f2930312e114016585d9e784fdecc0819f3609bd748598216",
     "business-process-current-20261107.svg": "aeef5f989ae0f4ba2d93415ea3d39f264d00e4d30222137a9d5726d12686ec0e",
     "business-process-current.svg": "1e4e9898402df2043830d345513e4fa14758986815136844ec1e27b6124bcdb3",
@@ -46,7 +46,7 @@
     "global-view/view.css": "9b1f036ad191969cb840d0a48fb696346b5ce1d792ea3643853142861159654e",
     "global-view/view.mjs": "5785e4142b7e387ffa653326b19b948646e04a7fa36a5f8a56c32037c942d744",
     "incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
-    "index.html": "5a88a115675e08d191185d44be5087c22a259b120ebfa5f3b6bae1b3d072bed9",
+    "index.html": "73b40910125f1e2e847c0d777ccd88cb19b7c5f480845be43885d9087a940bad",
     "issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
     "late-bid-staging-3ff2c9ab03f5.js": "0cf45e9cbff113d560bbfed7d3affa676a401befbc8913e7548fa3d1781bc82a",
     "logistics-world.png": "366da084de1262629d2e4557191a6da9b3d53dc42c5c644db8fdd5fc8e43ba7a",
@@ -179,10 +179,10 @@
     "recognition-pdf-worker-6.4.299.mjs": "9536359f1b8367850d485731ca1d5e45c159a7b7a0912325e539937aa21ceb18",
     "recognition-runtime-v1.mjs": "472a534573b6bf7d1f10f553d32e038cceeacd085391297b78de10b429e52a2f",
     "recognition-tesseract-worker-7.0.0.js": "576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d",
-    "release-status.json": "6fb602dd56d30a3250e3d7b91b805147d2e61648c477c0350f1e259fd1ff807c",
+    "release-status.json": "0ed128e6bf9d32a7f8009a1f9994877531b70dc8db5845e672c94c897bb1735d",
     "role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
     "role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
-    "site-status.json": "13f3be792c34685a5076204d055f1d74780a1b751548503be432f5c586e1a305",
+    "site-status.json": "4ca20cbfc543a75868ad8ea33c11813457379d1ce5dffe3f599a4975552c0cbf",
     "staging-api-region.mjs": "b170528b03b5b5214192964afab36f1638e85b587c3de4c2c9515ebdd5245723",
     "staging-transport-20261111.js": "9495140d1bdfb4ad9267042218e8ac82eb1fdc69a526757994c9c7fe2014ece0",
     "style.css": "b3e8d8466463a9d2b3db42da4b136c507e4c7a28a07bc4c07e01ec0a684e87f4",
@@ -202,7 +202,7 @@
     "ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
     "test/portal-feedback-center-20261107.js": "a8da1939dae23c8a7a81705c624e3cd3a2088836facec1fa0b05470a71760ce4",
     "test/index.html": "bb4992acc2698a081767ae3bb0afe00fa21d8e0e009601be5c50ed08c556f6a2",
-    "offer-scoring.mjs": "d66f8b2cc5407b2aa56047f2c6f327f491a94bdce1b54c4668885ae29144a8b9",
+    "offer-scoring.mjs": "6e4955df1bc4463a3049bf691bf09469a248f39424408581a417d6fed8f07654",
     "test/build-info.json": "098c6a8cdf9dc18045cc21d4e60f9c0fccb9a04a66857112ecb7c2b4151b6a53"
   },
   "acceptance": {
@@ -278,7 +278,7 @@
     "frontendSourceCommit": "e18748ed0bf8e903b79cedc23190155ed2d182d2",
     "backendSourceCommit": "63a61bb4ff67d81cfaa9579fb1f80f678acdebe2"
   },
-  "frontendSourceCommit": "83a8c33d6ff4d921aa34827bc4d1fe5e83bef7fa",
+  "frontendSourceCommit": "03d0491cc18e2d1641f4ec3358446ce5bd9ad899",
   "backendSourceCommit": "36a923120dee1c4cbe06baaa9d710913cdb5f5a9",
   "backendApiVersion": 66,
   "releaseDate": "2026-11-24",
@@ -356,5 +356,20 @@
     "automaticSubmission": false,
     "productionOnly": true,
     "independentStagingPreserved": true
+  },
+  "offerScoreClarity": {
+    "ownerRequested": true,
+    "sourcePullRequests": [
+      182,
+      183
+    ],
+    "scoreMathUnchanged": true,
+    "carrierReliabilityUnchanged": true,
+    "manualWinnerOnly": true,
+    "materiallyWorseCeiling": 69,
+    "materialGapMin": 10,
+    "scorerSha256": "6e4955df1bc4463a3049bf691bf09469a248f39424408581a417d6fed8f07654",
+    "appSha256": "5e1ab2a903a65e2d25ed34cd41088020c60de72c3e8e91ed9e0164fc61791cfc",
+    "stagingUnchanged": true
   }
 }
