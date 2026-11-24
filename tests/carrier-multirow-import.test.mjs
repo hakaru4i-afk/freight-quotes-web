@@ -100,6 +100,15 @@ test("CSV: only one filled rate uses existing single-row import and creates no d
  assert.equal(h.lookup("initial","amount").value,"1200");
 });
 
+test("CSV: 1 rate does not silently leave a second existing quote for submission",async()=>{
+ const h=harness();
+ h.form.querySelector(".add-variant").click();
+ assert.equal(h.prefixes.length,2);
+ await assert.rejects(h.api.importCSV(h.form,file("Сумма ставки;Маршрут\n1200;Ningbo - Minsk\n")),/лишние варианты/i);
+ assert.equal(h.lookup("initial","amount").value,"");
+ assert.equal(h.lookup("variant-2","amount").value,"");
+});
+
 test("CSV: invalid last row rejects entire file before changing any field",async()=>{
  const h=harness();
  await assert.rejects(h.api.importCSV(h.form,file(
