@@ -293,7 +293,8 @@ function validateCsvCell(element,value,key){
 }
 /* Match Excel choices to the actual live dropdown, not to translated labels or placeholders. */
 function normalizeExcelChoice(element,raw,key){
- const value=String(raw??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ");
+ const original=String(raw??"").replace(/\u00a0/g," ");
+ const value=element.tagName==="TEXTAREA"?original.trim():original.trim().replace(/\s+/g," ");
  if(element.type==="date"&&value!=="")return normalizeExcelDate(value,key);
  if(element.type==="number"&&value!=="")return value.replace(/\s/g,"").replace(",",".");
  if(element.tagName!=="SELECT"||element.multiple||value==="")return value;
