@@ -207,3 +207,20 @@ test('the deployment graph puts confirmed backup and API health before publishin
   assert.ok(workflow.indexOf('locked-release-api.mjs publish') < workflow.indexOf('actions/deploy-pages@v4'));
   assert.doesNotMatch(legacy, /actions\/deploy-pages@|^  workflow_dispatch:/m);
 });
+
+test('QA reads the private backend with separate environment credential and fails closed', async () => {
+  const {checkQaCredentials}=await import('../scripts/release/check-qa-credentials.mjs');
+  const env={BACKEND_QA_READ_TOKEN:'synthetic-not-real',SUPABASE_ACCESS_TOKEN:'synthetic-not-real'};
+  const mock=async()=>({ok:true,json:async()=>({sha:lock.backendSha})});
+  assert.equal(await checkQaCredentials('e2e',env,mock,lock),'BACKEND_QA_EXACT_SOURCE_READ_PASS');
+  await assert.rejects(checkQaCredentials('e2e',{},mock,lock),/MISSING_QA_SECRET:BACKEND_QA_READ_TOKEN,SUPABASE_ACCESS_TOKEN/);
+  await assert.rejects(checkQaCredentials('backend',env,async()=>({ok:false,status:403}),lock),/BACKEND_QA_READ_HTTP_403/);
+  await assert.rejects(checkQaCredentials('backend',env,async()=>({ok:true,json:async()=>({sha:'0'.repeat(40)})}),lock),/BACKEND_QA_READ_SHA_MISMATCH/);
+  for(const path of ['.github/workflows/locked-backend-regression.yml','.github/workflows/isolated-qa-oidc-browser.yml']){
+    const workflow=readFileSync(path,'utf8');
+    assert.match(workflow,/environment: isolated-qa/);
+    assert.match(workflow,/secrets\.BACKEND_QA_READ_TOKEN/);
+    assert.doesNotMatch(workflow,/secrets\.BACKEND_RELEASE_TOKEN/);
+    assert.match(workflow,/check-qa-credentials\.mjs/);
+  }
+});
