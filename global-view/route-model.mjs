@@ -116,6 +116,14 @@ export function placeIndex(rows) {
       source:'gazetteer locality parsed from mixed-language address'};
   };
   return label => {
+    // UN/LOCODE RU ZBK = Zabaykal'sk. A route stop entered as
+    // "ZBK" must resolve to a geographic preview, not "no coordinates".
+    // This is the settlement centre, NOT an exact customs/rail checkpoint.
+    const borderCode=normal(label).replace(/^(?:погранпереход|пограничный переход|border crossing|checkpoint)\s*[:：-]?\s*/u,'');
+    if (/^(?:ru\s*)?zbk$|^забайкальск$|^zabaikalsk$|^zabaykalsk$/u.test(borderCode)) {
+      return {lat:49.65139,lng:117.32694,approximate:true,precision:'city',
+        confirmed:false,source:'Zabaykalsk settlement centre (RU ZBK, UN/LOCODE)'};
+    }
     const coordinate = label.match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
     if (coordinate) {
       const [, lat, lng] = coordinate.map(Number);
