@@ -33,7 +33,8 @@ test('Owner-only release requires the locked pair, backup and verified API befor
  assert.doesNotMatch(workflow,/^  push:/m);
  assert.match(workflow,/github.actor == 'hakaru4i-afk'/);
  assert.match(workflow,/github.event_name == 'workflow_dispatch'/);
- assert.match(workflow,/runs-on: ubuntu-latest/);
+ assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length,3);
+ assert.match(workflow,/release-tests:\n    if: github.event_name == 'pull_request'\n    runs-on: ubuntu-latest/);
  assert.match(workflow,/locked-release\.mjs evidence/);
  assert.match(workflow,/locked-release\.mjs backup/);
  assert.match(workflow,/needs\.backup\.result == 'success'/);
