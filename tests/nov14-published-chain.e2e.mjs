@@ -18,6 +18,6 @@ run('owner','QA_NOV14_PHASE','start-review');run('ved','QA_NOV14_PHASE','remarks
 run('owner','QA_OWNER_REGISTERS');
 console.log(ordinary?'NOV14_REAL_ORDINARY_NO_CONTAINER_CHAIN_PASS':'NOV14_REAL_FULL_CHAIN_PASS');
 if(!ordinary&&process.env.QA_NOV14_INCLUDE_ORDINARY==='true'){
- const r=spawnSync(process.execPath,['tests/nov14-published-chain.e2e.mjs'],{env:{...process.env,QA_NOV14_ORDINARY:'true',QA_MAP_ORDER:'QA-NOV14-ORDINARY-'+process.env.GITHUB_RUN_ID,QA_NOV14_EVIDENCE_DIR:'reports/nov14-ordinary'},stdio:'inherit',timeout:900000});
+ const r=spawnSync(process.execPath,['tests/nov14-published-chain.e2e.mjs'],{env:{...process.env,QA_NOV14_ORDINARY:'true',QA_MAP_ORDER:'QA-NOV14-ORDINARY-'+process.env.GITHUB_RUN_ID+(process.env.GITHUB_RUN_ATTEMPT?'-'+process.env.GITHUB_RUN_ATTEMPT:''),QA_NOV14_EVIDENCE_DIR:'reports/nov14-ordinary'},stdio:'inherit',timeout:900000});
  if(r.error)throw r.error;if(r.status!==0)throw Error('Ordinary no-claim no-container lifecycle failed');
 }

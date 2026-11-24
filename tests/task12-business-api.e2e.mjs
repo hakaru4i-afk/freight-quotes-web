@@ -7,7 +7,9 @@ const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa
 const root='/tmp/freight-ci-qa',sessions=JSON.parse(await readFile(root+'/sessions.json','utf8')),actors=JSON.parse(await readFile(root+'/actors.json','utf8'));
 assert.equal(process.env.GITHUB_REPOSITORY,'hakaru4i-afk/freight-quotes-web');assert.equal(process.env.GITHUB_REF,'refs/heads/main');assert.match(process.env.GITHUB_RUN_ID||'',/^\d+$/);
 for(const [id,a]of Object.entries(actors))assert.equal(a.login,'rc20261110-'+id.toLowerCase());
-const report={environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:process.env.GITHUB_SHA,productionDataUsed:false,checks:[],calls:[]};
+const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
+const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
+const report={startedAt:new Date().toISOString(),runtime,runAttempt:process.env.GITHUB_RUN_ATTEMPT,environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:runtime?.frontendSha||process.env.GITHUB_SHA,productionDataUsed:false,checks:[],calls:[]};
 async function call(actor,path,body,method){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
  const r=await fetch(url,{method:method||(body?'POST':'GET'),headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(60000)});
@@ -52,4 +54,4 @@ try{
   sessions[actor]=old;assert.equal((await call(actor,'/api/session')).data.authenticated,false);for(const token of created){sessions[actor]=token;assert.equal((await call(actor,'/api/session')).data.authenticated,true);}let r;for(let i=0;i<3;i++){r=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});assert.equal(r.status,401);}assert.equal(r.data.recoveryRequested,true);for(const token of created){sessions[actor]=token;ok(await call(actor,'/api/auth',{action:'logout'}));}sessions[actor]=old;return{oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true};
  });
  report.result=report.checks.length===8&&report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';if(report.result!=='PASS')process.exitCode=1;
-}finally{await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/business-api-real.json',JSON.stringify(report,null,2)+'\n');}
+}finally{report.completedAt=new Date().toISOString();await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/business-api-real.json',JSON.stringify(report,null,2)+'\n');}

@@ -3,7 +3,9 @@
 import{chromium}from'playwright';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash}from'node:crypto';import assert from'node:assert/strict';
 const origin='https://hakaru4i-afk.github.io',prefix='/freight-quotes-web/',qa='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE,'utf8'));
-const report={mode:'PUBLISHED_PREVIOUS_PRODUCTION_UI_WITH_REAL_ISOLATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:process.env.GITHUB_SHA,productionApiAccessed:false,productionWrites:false,assets:{},roles:[],calls:[]};
+const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
+const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
+const report={startedAt:new Date().toISOString(),runtime,runAttempt:process.env.GITHUB_RUN_ATTEMPT,mode:'PUBLISHED_PREVIOUS_PRODUCTION_UI_WITH_REAL_ISOLATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:runtime?.frontendSha||process.env.GITHUB_SHA,productionApiAccessed:false,productionWrites:false,assets:{},roles:[],calls:[]};
 await mkdir('reports/isolated-rc',{recursive:true});
 const browser=await chromium.launch({headless:true});
 try{for(const actor of['owner','carrierA']){
@@ -28,4 +30,4 @@ try{for(const actor of['owner','carrierA']){
  const dataResponse=await mandatoryData;if(dataResponse.error)throw dataResponse.error;assert.equal(dataResponse.status(),200);assert.equal((report.transportErrors||[]).filter(e=>e.actor===actor).length,0);
  assert.ok(report.calls.some(c=>c.actor===actor&&c.path==='/api/session'&&c.status===200));assert.equal(report.calls.filter(c=>c.actor===actor&&(c.blockedMutation||c.status>=500)).length,0);assert.deepEqual(errors,[]);assert.equal(await page.getByText('Не удалось открыть раздел',{exact:true}).count(),0);
  const screenshot='reports/isolated-rc/'+actor+'-previous-production-compatibility.png';await page.screenshot({path:screenshot});report.roles.push({actor,status:'PASS',readOnly:true,screenshot,sha256:createHash('sha256').update(await readFile(screenshot)).digest('hex')});transport.closing=true;for(const controller of transport.controllers)controller.abort();await context.close();console.log('PREVIOUS_PRODUCTION_UI_COMPATIBILITY_PASS',actor);
-}report.result='PASS';}finally{await browser.close();await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/previous-production-ui-compatibility.json',JSON.stringify(report,null,2)+'\n');}
+}report.result='PASS';}finally{report.completedAt=new Date().toISOString();await browser.close();await mkdir('reports/isolated-rc',{recursive:true});await writeFile('reports/isolated-rc/previous-production-ui-compatibility.json',JSON.stringify(report,null,2)+'\n');}

@@ -4,10 +4,12 @@ import{readFile,mkdir,writeFile}from'node:fs/promises';import{execFileSync}from'
 import assert from'node:assert/strict';
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE,'utf8'));
+const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
+const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
 const info=JSON.parse(await readFile('test/build-info.json','utf8')).stabilizationQa20261110;
 const completed=JSON.parse(await readFile('reports/nov14-published/browser-results-owner.json','utf8')).roles[0];
 const winner=completed.selection.winnerActor;assert.ok(['carrierA','carrierB'].includes(winner));
-const report={status:'RUNNING',mocks:false,environment:'isolated-qa-rc20261110',frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendSourceCommit:info.backendSourceCommit,backendVersion:info.isolatedQaVersion,backendBundle:info.isolatedQaBundleSha256,startedAt:new Date().toISOString(),roles:[]};
+const report={runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,status:'RUNNING',mocks:false,environment:'isolated-qa-rc20261110',frontendSha:runtime?.frontendSha||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendSourceCommit:runtime?.sourceCommit||info.backendSourceCommit,backendVersion:runtime?.version||info.isolatedQaVersion,backendBundle:runtime?.bundle||info.isolatedQaBundleSha256,startedAt:new Date().toISOString(),roles:[]};
 const read=async(actor,path)=>{
  const start=performance.now(),r=await fetch(base+path,{headers:{Authorization:'Bearer '+sessions[actor],Origin:'https://hakaru4i-afk.github.io','Cache-Control':'no-store'},signal:AbortSignal.timeout(15000)});
  const body=await r.json();assert.equal(r.status,200,actor+' '+path.split('?')[0]+' HTTP '+r.status);

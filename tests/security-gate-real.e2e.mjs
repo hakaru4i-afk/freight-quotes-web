@@ -2,7 +2,7 @@
 import assert from'node:assert/strict';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash,randomUUID}from'node:crypto';
 const dir=process.env.QA_SCENARIO_STATE_DIR||'/tmp/freight-rc20261110-private',sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||dir+'/sessions.json','utf8')),actors=JSON.parse(await readFile(process.env.QA_ACTORS_FILE||dir+'/actors.json','utf8'));
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
-const report={gate:'SECURITY-GATE-12NOV',startedAt:new Date().toISOString(),environment:'isolated-qa-rc20261110',mocks:false,checks:[],calls:[]};
+const report={runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,gate:'SECURITY-GATE-12NOV',startedAt:new Date().toISOString(),environment:'isolated-qa-rc20261110',mocks:false,checks:[],calls:[]};
 const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE||'test/build-info.json','utf8'));const runtime=proof.function?proof:{function:'freight-api-qa-rc20261110',version:proof.stabilizationQa20261110.isolatedQaVersion,bundle:proof.stabilizationQa20261110.isolatedQaBundleSha256,sourceCommit:proof.stabilizationQa20261110.isolatedQaSourceCommit};report.runtime=runtime;assert.equal(runtime.function,'freight-api-qa-rc20261110');assert.match(runtime.bundle,/^[a-f0-9]{64}$/);
 let state={nonce:Date.now()};try{state=JSON.parse(await readFile(dir+'/security-state.json','utf8'));}catch{}
 const checkpoint=()=>writeFile(dir+'/security-state.json',JSON.stringify(state),{mode:0o600});await checkpoint();

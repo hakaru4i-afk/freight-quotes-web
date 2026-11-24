@@ -21,8 +21,12 @@ const map50=process.env.QA_MAP50==='true';
 assert.equal(execFileSync('git',['diff','--name-only','--diff-filter=U'],{encoding:'utf8'}).trim(),'','Resolve merge conflicts before QA');
 const sourceTreeDirty=execFileSync('git',['diff','HEAD','--name-only','--','test'],{encoding:'utf8'}).trim().length>0;
 if(process.env.QA_BROWSER_PUBLISHED==='true')assert.equal(sourceTreeDirty,false,'Commit runtime source before published QA');
+const lockedCandidate=process.env.QA_LOCKED_FRONTEND_DIR;
+const gitRoot=lockedCandidate||'.';
+const gitSha=execFileSync('git',['-C',gitRoot,'rev-parse','HEAD'],{encoding:'utf8'}).trim();
+if(lockedCandidate)assert.equal(execFileSync('git',['-C',gitRoot,'status','--porcelain','--','test'],{encoding:'utf8'}).trim(),'');
 const frozenSource=await mkdtemp('/tmp/freight-browser-source-');
-await cp(resolve('test'),resolve(frozenSource,'test'),{recursive:true});
+await cp(resolve(gitRoot,'test'),resolve(frozenSource,'test'),{recursive:true});
 const qaRun=process.env.QA_ISOLATED_RUN||'rc20261110';
 assert.ok(['rc20261110','carrier124nov18'].includes(qaRun),'Unapproved QA target');
 const qaFunction='freight-api-qa-'+qaRun;
@@ -32,6 +36,7 @@ const metadata=qaRun==='carrier124nov18'
 // An isolated backend candidate can be verified before changing published metadata.
 if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
  const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE,'utf8'));
+ if(lockedCandidate)assert.equal(proof.frontendSha,gitSha);
  assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
  Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
 }
@@ -45,7 +50,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),backendFunction:qaFunction,backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-'+qaRun,transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+const browser=await chromium.launch({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:gitSha,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,backendFunction:qaFunction,backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-'+qaRun,transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
 const html=await readFile(resolve(root,'test/index.html'),'utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile(resolve(root,'test',name))).digest('hex');}
@@ -57,8 +62,11 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
  const realTransport=async route=>{
   const req=route.request(),url=new URL(req.url());
   if(url.hostname==='ooclsrndeygojtofuyte.supabase.co')throw Error('PRODUCTION_REQUEST_BLOCKED');
-  const path=url.hostname==='ibclzdkxiozbzmniiygv.supabase.co'?url.pathname.split('/freight-api')[1]:url.pathname.startsWith('/api/')?url.pathname:null;
-  if(path){
+  const path=url.hostname==='ibclzdkxiozbzmniiygv.supabase.co'
+   ?url.pathname.replace(/^\/functions\/v1\/freight-api(?:-qa-[a-z0-9]+)?(?=\/api\/)/,'')
+   :url.origin===origin?url.pathname:null;
+  const apiPath=path?.startsWith('/api/')?path:null;
+  if(apiPath){
    if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
    let r;try{r=await fetch(base+path+url.search,{method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
@@ -67,9 +75,9 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await route.fulfill({status:r.status,headers:out,body});return;
   }
   if(published&&url.origin===origin&&url.pathname.startsWith('/freight-quotes-web/test/')){
-   const r=await fetch(url.href,{signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await r.arrayBuffer());
+   const r=await fetch(url.href,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(60000)});const bytes=Buffer.from(await r.arrayBuffer());
    const name=decodeURIComponent(url.pathname.slice('/freight-quotes-web/test/'.length))||'index.html';
-   if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
+   if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(lockedCandidate||/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
    const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];await route.fulfill({status:r.status,headers,body:bytes});return;
   }
   if(map50&&url.hostname==='router.project-osrm.org'&&url.pathname.startsWith('/route/v1/driving/')&&req.method()==='GET'){
