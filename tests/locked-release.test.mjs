@@ -99,7 +99,11 @@ test('Pages bind the new route while retaining staging and the release history',
 test('the deployment graph puts confirmed backup and API health before publishing Pages', () => {
   const workflow = readFileSync('.github/workflows/owner-portal-release.yml', 'utf8');
   const legacy = readFileSync('.github/workflows/controlled-sh59-publish.yml', 'utf8');
-  assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length, 4);
+  assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length, 3);
+  // The coordinator must not occupy the only Mac runner while awaiting backend offline-safety.
+  const backupJob = workflow.split('\n  backup:\n')[1].split('\n  deploy-pages:')[0];
+  assert.match(backupJob, /runs-on: ubuntu-latest/);
+  assert.doesNotMatch(backupJob, /self-hosted|Check native Mac release toolchain/);
   assert.match(workflow, /release-tests:\n    if: github.event_name == 'pull_request'\n    runs-on: ubuntu-latest/);
   assert.match(workflow, /needs: \[verify, backup\]/);
   assert.match(workflow, /needs\.backup\.result == 'success'/);
