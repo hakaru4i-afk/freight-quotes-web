@@ -1,0 +1,88 @@
+name: Owner-approved SH72 answer filters publication
+run-name: SH72 · Owner answers date and status filters
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh72-owner-answer-filters-release.yml'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.event_name == 'push' &&
+      startsWith(github.event.head_commit.message, 'release(owner): approved SH72 answer filters')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Fast checks for owner filters and existing carrier rules
+        run: |
+          set -euo pipefail
+          node --check owner-answer-filters-20261124.js
+          node --check scripts/release/sh72-owner-answer-filters-publish.mjs
+          node --test tests/owner-answer-filters.test.mjs tests/lw-carrier-winner-only-sh71.test.mjs
+          echo SH72_PREPUBLISH_QUICK_CHECKS_PASS
+      - name: Prepare from current signed production and verify each asset SHA256
+        run: node scripts/release/sh72-owner-answer-filters-publish.mjs
+      - name: Verify package and UI-only release contract
+        run: |
+          set -euo pipefail
+          cmp owner-answer-filters-20261124.js .release-pages/owner-answer-filters-20261124.js
+          node --check .release-pages/app.js
+          node --check .release-pages/owner-answer-filters-20261124.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const read=p=>readFileSync('.release-pages/'+p);
+          const hash=x=>createHash('sha256').update(x).digest('hex');
+          const manifest=JSON.parse(read('production-release-manifest.json'));
+          const info=JSON.parse(read('build-info.json'));
+          const html=read('index.html').toString();
+          assert.equal(manifest.businessVersion,'SH-01.30.72 v');
+          assert.equal(info.releaseVersion,manifest.businessVersion);
+          assert.equal(manifest.ownerAnswerFilters.sourcePullRequest,188);
+          assert.match(html,/owner-answer-filters-20261124\\.js\\?v=[a-f0-9]{12}/);
+          for(const [p,sha] of Object.entries(manifest.assets))assert.equal(hash(read(p)),sha,p);
+          console.log('SH72_ASSETS_VERIFIED',Object.keys(manifest.assets).length);
+          NODE
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify public SH72 and answer filter assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://hakaru4i-afk.github.io/freight-quotes-web
+          for i in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/production-release-manifest.json?sh72=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-manifest.json" &&
+               curl -fsSL --max-time 20 "$base/index.html?sh72=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-index.html" &&
+               curl -fsSL --max-time 20 "$base/owner-answer-filters-20261124.js?sh72=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-filter.js" &&
+               cmp -s "$RUNNER_TEMP/live-manifest.json" .release-pages/production-release-manifest.json &&
+               cmp -s "$RUNNER_TEMP/live-index.html" .release-pages/index.html &&
+               cmp -s "$RUNNER_TEMP/live-filter.js" owner-answer-filters-20261124.js; then
+              echo SH72_PRODUCTION_VERIFIED
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::SH72_PRODUCTION_NOT_VERIFIED"
+          exit 1
