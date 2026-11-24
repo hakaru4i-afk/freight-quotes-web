@@ -120,6 +120,21 @@ test("CSV: shared carrier identity cannot differ between quote rows",async()=>{
  assert.equal(h.clicks(),0);
 });
 
+test("CSV: imported rates replace stale values in existing form variants",async()=>{
+ const h=harness();
+ h.lookup("initial","route").value="OLD: must not be submitted";
+ h.lookup("initial","note").value="OLD NOTE";
+ await h.api.importCSV(h.form,file(
+  "Сумма ставки;Контактное лицо\n"+
+  "1500;Отдел логистики\n"+
+  "1600;\n"
+ ));
+ assert.equal(h.lookup("initial","amount").value,"1500");
+ assert.equal(h.lookup("initial","route").value,"");
+ assert.equal(h.lookup("initial","note").value,"");
+ assert.equal(h.lookup("variant-2","amount").value,"1600");
+});
+
 test("CSV: hard 20 variants per file and no silent truncation",()=>{
  const h=harness();
  const input="Сумма ставки;Маршрут\n"+Array.from({length:21},(_,i)=>(1000+i)+";Route "+i).join("\n");
