@@ -1,4 +1,4 @@
-name: SH59 controlled owner-only publication
+name: Controlled owner-only publication (version independent)
 on:
   pull_request:
     paths:
@@ -10,6 +10,10 @@ on:
       - 'tests/production-gate-negative.test.mjs'
   workflow_dispatch:
     inputs:
+      release_version:
+        description: 'Exact reviewed business version, e.g. SH-01.30.73 v'
+        type: string
+        required: true
       frontend_sha:
         description: Reviewed exact frontend SHA
         type: string
@@ -41,7 +45,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: sh59-owner-controlled-release
+  group: owner-portal-production-release
   cancel-in-progress: false
 jobs:
   negative-test:
@@ -71,6 +75,7 @@ jobs:
           node --check scripts/release/production-gate.mjs
           node --check scripts/release/assemble-production-evidence.mjs
           node --check scripts/release/build-pages-package.mjs
+          node --check scripts/release/check-release-version.mjs
       - name: Test rejection of incompatible source, missing roles, missing restore and no Owner approval
         run: node --test tests/production-gate-negative.test.mjs
       - name: Confirm served production bytes unchanged by negative validation
@@ -154,6 +159,7 @@ jobs:
       - name: Verify GitHub provenance, actual 37 E2E, backup, restore and Owner consent
         id: approval
         env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
           RELEASE_WEB_SHA: ${{ inputs.frontend_sha }}
           RELEASE_API_SHA: ${{ inputs.backend_sha }}
           FRONTEND_RUN_ID: ${{ inputs.frontend_run_id }}
@@ -163,6 +169,7 @@ jobs:
           OWNER_COMMENT_ID: ${{ inputs.owner_comment_id }}
         run: |
           set -euo pipefail
+          node scripts/release/check-release-version.mjs
           node scripts/release/assemble-production-evidence.mjs
           echo 'accepted=true' >> "$GITHUB_OUTPUT"
           echo 'OWNER_AND_EXACT_RELEASE_PAIR_VERIFIED; STILL_NOT_DEPLOYED'
@@ -191,13 +198,19 @@ jobs:
       - name: Check exact reviewed source again after Owner approval
         shell: bash
         env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
           RELEASE_WEB_SHA: ${{ inputs.frontend_sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$RELEASE_WEB_SHA"
           test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$RELEASE_WEB_SHA"
       - name: Package reviewed production and /test assets
-        run: node scripts/release/build-pages-package.mjs
+        env:
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          set -euo pipefail
+          node scripts/release/check-release-version.mjs
+          node scripts/release/build-pages-package.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:

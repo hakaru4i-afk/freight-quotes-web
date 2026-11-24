@@ -4,7 +4,7 @@ import {assertProductionReleaseIntegrity} from '../../tests/helpers/production-r
 
 const root=process.cwd(),output=resolve(root,'.release-pages');
 const manifest=assertProductionReleaseIntegrity(root);
-if(manifest.businessVersion!=='SH-01.30.59 v')throw Error('ONLY_VERIFIED_SH59_MAY_BE_PACKAGED');
+if(!/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(process.env.RELEASE_VERSION||'')||manifest.businessVersion!==process.env.RELEASE_VERSION)throw Error('ONLY_EXACT_VERIFIED_RELEASE_MAY_BE_PACKAGED');
 if(!manifest.assets||Object.keys(manifest.assets).length<4)throw Error('INCOMPLETE_PRODUCTION_ASSET_MANIFEST');
 const allowed=/\.(?:js|mjs|css|html|json|svg|webp|png|jpe?g|gif|ico|wasm|gz|woff2?|ttf|otf|txt)$/i;
 const publicDirs=new Set(['test','global-view','processes','process-history']);

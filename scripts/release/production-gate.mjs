@@ -3,6 +3,8 @@ import {fileURLToPath} from 'node:url';
 
 const hex40=/^[0-9a-f]{40}$/;
 const hex64=/^[0-9a-f]{64}$/;
+export const parseReleaseVersion=value=>{const m=/^SH-(\d{2})\.(\d{2})\.(\d{2}) v$/.exec(value||'');return m?m.slice(1).map(Number):null;};
+export function isNewerRelease(candidate,current){const a=parseReleaseVersion(candidate),b=parseReleaseVersion(current);if(!a||!b)return false;for(let i=0;i<3;i++){if(a[i]!==b[i])return a[i]>b[i];}return false;}
 const requiredIds=[...Array.from({length:11},(_,i)=>'T1-'+String(i+1).padStart(2,'0')),...Array.from({length:26},(_,i)=>'T2-'+String(i+1).padStart(2,'0'))];
 const OWNER='hakaru4i-afk';
 const WEB=OWNER+'/freight-quotes-web';
@@ -12,7 +14,7 @@ export function inspectProductionGate({context={},target={},manifest={},build={}
   const check=(name,ok)=>{if(ok!==true)blockers.push(name)};
   check('MANUAL_OWNER_MAIN_ONLY',context.event==='workflow_dispatch'&&context.actor===OWNER&&context.ref==='refs/heads/main'&&context.repository===WEB);
   check('EXACT_SHA_AND_MAIN_HEAD',hex40.test(target.frontendSha||'')&&hex40.test(target.backendSha||'')&&context.checkoutSha===target.frontendSha&&context.mainSha===target.frontendSha);
-  check('SH59_PRODUCTION_IDENTITY',target.businessVersion==='SH-01.30.59 v'&&manifest.environment==='production'&&manifest.businessVersion===target.businessVersion&&build.environment==='production'&&build.releaseVersion===target.businessVersion&&stage.primaryBusinessVersion===target.businessVersion&&build.build===manifest.frontendBuild);
+  check('PRODUCTION_RELEASE_IDENTITY',Boolean(parseReleaseVersion(target.businessVersion))&&manifest.environment==='production'&&manifest.businessVersion===target.businessVersion&&build.environment==='production'&&build.releaseVersion===target.businessVersion&&stage.primaryBusinessVersion===target.businessVersion&&build.build===manifest.frontendBuild);
   check('PROVENANCE_PAIR',reports.pair?.frontendSha===target.frontendSha&&reports.pair?.backendSha===target.backendSha&&hex64.test(reports.pair?.apiBundleSha256||'')&&reports.pair?.servedFrontendSha===target.frontendSha&&reports.pair?.servedApiVerified===true);
   const requiredRuns={frontend:{repo:WEB,sha:target.frontendSha},backend:{repo:BACKEND,sha:target.backendSha},e2e:{repo:WEB,sha:null},recovery:{repo:BACKEND,sha:target.backendSha}};
   for(const [key,expected] of Object.entries(requiredRuns)){
@@ -31,7 +33,7 @@ export function inspectProductionGate({context={},target={},manifest={},build={}
   check('AUTHORIZED_37_OF_37',evidence?.authorized===true&&evidence?.environment==='isolated-qa'&&evidence?.frontendSha===target.frontendSha&&evidence?.backendSha===target.backendSha&&Array.isArray(evidence.criticalDefects)&&evidence.criticalDefects.length===0&&allPassed);
   check('PRODUCTION_BACKUP',reports.backup?.result==='PASS'&&reports.backup?.source==='production'&&reports.backup?.encrypted===true&&reports.backup?.readbackSha256===true&&hex64.test(reports.backup?.sha256||'')&&reports.backup?.databaseCaptured===true&&reports.backup?.storageCaptured===true);
   check('INDEPENDENT_RESTORE_AND_ROLLBACK',reports.restore?.result==='PASS'&&reports.restore?.backendSha===target.backendSha&&reports.restore?.databaseRestored===true&&reports.restore?.storageRestored===true&&reports.restore?.isolationVerified===true&&reports.restore?.verifiedRollback===true&&reports.restore?.sourceBackupSha256===reports.backup?.sha256);
-  const approvalText='APPROVE SH59 FRONTEND='+target.frontendSha+' BACKEND='+target.backendSha;
+  const approvalText='APPROVE '+target.businessVersion+' FRONTEND='+target.frontendSha+' BACKEND='+target.backendSha;
   check('EXPLICIT_OWNER_APPROVAL',ownerComment?.user?.login===OWNER&&ownerComment?.body?.trim()===approvalText&&ownerComment?.created_at&&runs.e2e?.updated_at&&Date.parse(ownerComment.created_at)>=Date.parse(runs.e2e.updated_at)&&Number.isFinite(Date.parse(ownerComment.created_at)));
   return {allowed:blockers.length===0,status:blockers.length?'RELEASE_BLOCKED':'READY_FOR_MANUAL_PUBLICATION',blockers};
 }

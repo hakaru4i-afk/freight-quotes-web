@@ -5,7 +5,8 @@ import {inspectProductionGate} from './production-gate.mjs';
 
 const read=p=>JSON.parse(readFileSync(p,'utf8'));
 const hex40=/^[0-9a-f]{40}$/;
-const target={frontendSha:process.env.RELEASE_WEB_SHA,backendSha:process.env.RELEASE_API_SHA,businessVersion:'SH-01.30.59 v'};
+const target={frontendSha:process.env.RELEASE_WEB_SHA,backendSha:process.env.RELEASE_API_SHA,businessVersion:process.env.RELEASE_VERSION};
+if(!/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(target.businessVersion||''))throw Error('EXACT_RELEASE_VERSION_REQUIRED');
 if(!hex40.test(target.frontendSha||'')||!hex40.test(target.backendSha||''))throw Error('EXACT_COMMIT_SHA_REQUIRED');
 const runIds={frontend:process.env.FRONTEND_RUN_ID,backend:process.env.BACKEND_RUN_ID,e2e:process.env.E2E_RUN_ID,recovery:process.env.RECOVERY_RUN_ID};
 const runs={};

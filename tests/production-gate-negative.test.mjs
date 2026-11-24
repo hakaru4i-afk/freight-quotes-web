@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {inspectProductionGate} from '../scripts/release/production-gate.mjs';
+import {inspectProductionGate,isNewerRelease} from '../scripts/release/production-gate.mjs';
 import {mkdtempSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
 
 const WEB='a'.repeat(40),API='b'.repeat(40),BUNDLE='c'.repeat(64),BACKUP='d'.repeat(64);
-const ownerText='APPROVE SH59 FRONTEND='+WEB+' BACKEND='+API;
+const ownerText='APPROVE SH-01.30.59 v FRONTEND='+WEB+' BACKEND='+API;
 function valid(){
   const run=(repository,sha,id)=>({repository,head_sha:sha,status:'completed',conclusion:'success',event:'workflow_dispatch',id,updated_at:'2026-11-20T16:00:00Z'});
   return {
@@ -35,7 +35,7 @@ test('restore without Storage blocks',()=>{const x=valid();x.reports.restore.sto
 test('approval for different SHA by other person blocks',()=>{const x=valid();x.ownerComment.body='APPROVE ANY';x.ownerComment.user.login='someoneelse';assert.ok(inspectProductionGate(x).blockers.includes('EXPLICIT_OWNER_APPROVAL'))});
 test('branch push is not authorization',()=>{const x=valid();x.context.event='push';assert.ok(inspectProductionGate(x).blockers.includes('MANUAL_OWNER_MAIN_ONLY'))});
 test('missing backend run fails closed',()=>{const x=valid();delete x.runs.backend;assert.ok(inspectProductionGate(x).blockers.includes('VERIFIED_GITHUB_RUN_BACKEND'))});
-test('old production manifest blocks',()=>{const x=valid();x.manifest.businessVersion='SH-01.30.52 v';assert.ok(inspectProductionGate(x).blockers.includes('SH59_PRODUCTION_IDENTITY'))});
+test('old production manifest blocks',()=>{const x=valid();x.manifest.businessVersion='SH-01.30.52 v';assert.ok(inspectProductionGate(x).blockers.includes('PRODUCTION_RELEASE_IDENTITY'))});
 
 test('actual release gate CLI rejects a mismatched API SHA with exit code 1',()=>{
   const dir=mkdtempSync(join(tmpdir(),'sh59-reject-'));
@@ -53,3 +53,6 @@ test('actual release gate CLI rejects a mismatched API SHA with exit code 1',()=
     rmSync(dir,{recursive:true,force:true});
   }
 });
+
+test('later release requires exact version approval and all original evidence',()=>{const x=valid();x.target.businessVersion=x.manifest.businessVersion=x.build.releaseVersion=x.stage.primaryBusinessVersion='SH-01.30.73 v';assert.equal(inspectProductionGate(x).allowed,false);x.ownerComment.body='APPROVE '+x.target.businessVersion+' FRONTEND='+WEB+' BACKEND='+API;assert.equal(inspectProductionGate(x).allowed,true);x.reports.e2e.scenarios.pop();assert.equal(inspectProductionGate(x).allowed,false);});
+test('reject same version, downgrade and malformed version',()=>{assert.equal(isNewerRelease('SH-01.30.73 v','SH-01.30.72 v'),true);assert.equal(isNewerRelease('SH-01.31.00 v','SH-01.30.99 v'),true);for(const x of ['SH-01.30.72 v','SH-01.30.61 v','SH73',''])assert.equal(isNewerRelease(x,'SH-01.30.72 v'),false);});

@@ -1,0 +1,10 @@
+import {readFileSync} from 'node:fs';
+import {isNewerRelease} from './production-gate.mjs';
+const target=process.env.RELEASE_VERSION;
+const candidate=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
+if(candidate.environment!=='production'||candidate.businessVersion!==target)throw Error('CANDIDATE_RELEASE_VERSION_MISMATCH');
+const response=await fetch('https://hakaru4i-afk.github.io/freight-quotes-web/production-release-manifest.json?gate='+encodeURIComponent(process.env.GITHUB_RUN_ID||'manual')+'-'+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(25000)});
+if(!response.ok)throw Error('LIVE_PRODUCTION_VERSION_UNVERIFIED');
+const current=await response.json();
+if(current.environment!=='production'||!isNewerRelease(target,current.businessVersion))throw Error('RELEASE_NOT_NEWER_THAN_LIVE_PRODUCTION');
+console.log('RELEASE_VERSION_ADVANCES_LIVE_PRODUCTION',current.businessVersion,'->',target);
