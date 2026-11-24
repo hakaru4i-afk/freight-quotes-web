@@ -104,7 +104,7 @@ function xlsxToCsv(files){
  const xfs=styles?[...styles.getElementsByTagNameNS("*","cellXfs")].flatMap(n=>[...n.getElementsByTagNameNS("*","xf")]):[];
  const custom=new Map(styles?[...styles.getElementsByTagNameNS("*","numFmt")].map(n=>[Number(n.getAttribute("numFmtId")),n.getAttribute("formatCode")||""]):[]);
  const rows=[];
- for(const row of [...xml.getElementsByTagNameNS("*","row")].slice(0,2)){
+ for(const row of [...xml.getElementsByTagNameNS("*","row")]){
    const cells=[];
    for(const c of row.getElementsByTagNameNS("*","c")){
      const ref=c.getAttribute("r")||"",label=(ref.match(/^[A-Z]+/)||[])[0]||"A";
@@ -120,12 +120,16 @@ function xlsxToCsv(files){
      }
      cells[idx]=val;
    }
-   rows.push(cells);
+   // A formatted but empty Excel row is not a carrier quote.
+   if(cells.some(value=>String(value??"").trim()!=="")){
+     rows.push(cells);
+     if(rows.length>21)throw Error("В Excel допускается не более 20 заполненных строк со ставками");
+   }
  }
  if(rows.length<2||rows[0].length<2)throw Error("В Excel должны быть заголовки и строка значений");
  const width=rows[0].length;
  const quote=x=>'"'+String(x??"").replace(/"/g,'""')+'"';
- return "\uFEFF"+rows.slice(0,2).map(r=>Array.from({length:width},(_,i)=>quote(r[i])).join(";")).join("\r\n")+"\r\n";
+ return "\uFEFF"+rows.map(r=>Array.from({length:width},(_,i)=>quote(r[i])).join(";")).join("\r\n")+"\r\n";
 }
 window.freightXlsxInterop=Object.freeze({makeXlsx,unzip,xlsxToCsv});
 })();

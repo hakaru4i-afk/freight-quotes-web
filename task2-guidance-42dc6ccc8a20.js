@@ -162,12 +162,32 @@ function csvFieldColumns(fields){
   return {field,title:count===1?title:title+" ("+count+")"};
  });
 }
+
+/* A worksheet row represents one freight variant, not a second set of
+   columns. Shared carrier/contact cells are carried by the first row. */
+function quoteFormLayout(form){
+ const add=form.querySelector?.(".add-variant");
+ if(!add)return null;
+ const all=controls(form);
+ const prefixes=[...new Set(all.filter(f=>/\.amount$/.test(f.name)).map(f=>f.name.slice(0,-7)))];
+ if(!prefixes.length)return null;
+ const shared=all.filter(f=>!f.name.includes("."));
+ const template=all.filter(f=>shared.includes(f)||f.name.startsWith(prefixes[0]+"."));
+ return {add,all,prefixes,shared,template,first:prefixes[0]};
+}
 function exportXlsx(form){
  const api=window.freightXlsxInterop;
  if(!api)throw Error("Модуль Excel-шаблонов не загружен. Обновите страницу.");
- const fields=controls(form),columns=csvFieldColumns(fields);
+ const quote=quoteFormLayout(form),fields=quote?.template||controls(form),columns=csvFieldColumns(fields);
  if(!fields.length)throw Error("В форме нет полей для экспорта");
- const bytes=api.makeXlsx([columns.map(c=>c.title),fields.map(f=>f.value)]);
+ const values=quote?quote.prefixes.map((prefix,index)=>{
+   const byName=new Map(quote.all.map(f=>[f.name,f]));
+   return fields.map(f=>{
+     if(quote.shared.includes(f))return index===0?f.value:"";
+     return byName.get(prefix+f.name.slice(quote.first.length))?.value||"";
+   });
+ }):[fields.map(f=>f.value)];
+ const bytes=api.makeXlsx([columns.map(c=>c.title),...values]);
  const url=URL.createObjectURL(new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
  const a=document.createElement("a");a.href=url;a.download="freight-form-"+(form.id||"fields")+".xlsx";
  document.body.appendChild(a);a.click();a.remove();
@@ -189,9 +209,10 @@ function parseCSV(text){
  if(!max)throw Error("В CSV не найден разделитель колонок");
  const variants=Object.keys(counts).filter(k=>counts[k]===max);
  if(variants.length!==1)throw Error("Неоднозначный разделитель CSV: укажите один разделитель (, ; или TAB)");
- const sep=variants[0],rows=[];let row=[],cell="",inQuotes=false,closedQuote=false,fieldStarted=false;
+ const sep=variants[0],rows=[],sourceRows=[];let row=[],cell="",inQuotes=false,closedQuote=false,fieldStarted=false,line=1,recordStart=1;
  for(let i=0;i<text.length;i++){
   const c=text[i];
+  if(c==="\r"||(c==="\n"&&text[i-1]!=="\r"))line++;
   if(inQuotes){
    if(c==='"'&&text[i+1]==='"'){cell+='"';i++;}
    else if(c==='"'){inQuotes=false;closedQuote=true;}
@@ -200,8 +221,8 @@ function parseCSV(text){
    row.push(cell);cell="";closedQuote=false;fieldStarted=false;
   }else if(c==="\r"||c==="\n"){
    if(c==="\r"&&text[i+1]==="\n")i++;
-   row.push(cell);if(row.some(x=>x!==""))rows.push(row);
-   row=[];cell="";closedQuote=false;fieldStarted=false;
+   row.push(cell);if(row.some(x=>String(x).trim()!=="")){rows.push(row);sourceRows.push(recordStart);}
+   row=[];cell="";closedQuote=false;fieldStarted=false;recordStart=line;
   }else if(c==='"'){
    if(fieldStarted||closedQuote)throw Error("Недопустимая кавычка в CSV, позиция "+(i+1));
    inQuotes=true;fieldStarted=true;
@@ -211,11 +232,13 @@ function parseCSV(text){
   }
  }
  if(inQuotes)throw Error("Незакрытые кавычки в CSV");
- if(row.length||cell!==""){row.push(cell);if(row.some(x=>x!==""))rows.push(row);}
- if(rows.length!==2)throw Error("CSV должен содержать заголовок и ровно одну строку данных");
- if(rows[0].length!==rows[1].length)throw Error("Количество столбцов CSV и значений не совпадает");
+ if(row.length||cell!==""){row.push(cell);if(row.some(x=>String(x).trim()!=="")){rows.push(row);sourceRows.push(recordStart);}}
+ if(rows.length<2)throw Error("CSV должен содержать заголовок и хотя бы одну заполненную строку ставки");
+ if(rows.length>21)throw Error("В одном файле допускается не более 20 заполненных строк со ставками");
+ for(let i=1;i<rows.length;i++)if(rows[0].length!==rows[i].length)throw Error("Строка "+sourceRows[i]+": количество столбцов и значений не совпадает");
  const names=new Set(rows[0]);
  if(names.size!==rows[0].length||names.has(""))throw Error("CSV содержит дублирующиеся или пустые имена столбцов");
+ Object.defineProperty(rows,"sourceRows",{value:sourceRows});
  return rows;
 }
 function setReactValue(element,value){
@@ -270,7 +293,8 @@ function validateCsvCell(element,value,key){
 }
 /* Match Excel choices to the actual live dropdown, not to translated labels or placeholders. */
 function normalizeExcelChoice(element,raw,key){
- const value=String(raw??"").trim().replace(/\u00a0/g," ").replace(/\s+/g," ");
+ const original=String(raw??"").replace(/\u00a0/g," ");
+ const value=element.tagName==="TEXTAREA"?original.trim():original.trim().replace(/\s+/g," ");
  if(element.type==="date"&&value!=="")return normalizeExcelDate(value,key);
  if(element.type==="number"&&value!=="")return value.replace(/\s/g,"").replace(",",".");
  if(element.tagName!=="SELECT"||element.multiple||value==="")return value;
@@ -290,6 +314,96 @@ function normalizeExcelChoice(element,raw,key){
  const allowed=options.map(o=>o.textContent.trim()||o.value).join(" / ");
  throw Error("Поле "+key+": «"+value+"» не является допустимым значением. Выберите: "+allowed+". Остальные поля формы не изменены.");
 }
+
+/* Validate every populated worksheet row before creating any new variant or
+   writing a form field. No action here sends a quote to the server. */
+async function importQuoteRows(form,rows,quote){
+ const [headers,...dataRows]=rows;
+ if(dataRows.length>20)throw Error("В одном файле допускается не более 20 вариантов ставок");
+ const fields=quote.template,known=new Map(fields.map(f=>[f.name,f]));
+ for(const column of csvFieldColumns(fields))known.set(column.title,column.field);
+ const honeypot=form.querySelector?.('.hp input[name="website"]');
+ const isWebsite=key=>Boolean(honeypot)&&/^(?:website|сайт)$/i.test(String(key).trim());
+ const unknown=headers.filter(h=>!known.has(h)&&!isWebsite(h));
+ if(unknown.length)throw Error("Недоступные поля Excel/CSV: "+unknown.join(", ").slice(0,400));
+ const mapped=headers.map((h,i)=>isWebsite(h)?null:{field:known.get(h),key:h,index:i}).filter(Boolean);
+ const seen=new Set();
+ for(const column of mapped){
+   if(seen.has(column.field.name))throw Error("Одна колонка ставки указана дважды: "+column.key);
+   seen.add(column.field.name);
+ }
+ const shared=new Map(),variants=[],summary=[];
+ for(let i=0;i<dataRows.length;i++){
+   const fileRow=rows.sourceRows?.[i+1]||i+2,values=new Map();
+   for(const {field,key,index} of mapped){
+     const raw=dataRows[i][index]??"";
+     if(!String(raw).trim())continue;
+     let value;
+     try{
+       value=normalizeExcelChoice(field,raw,key);
+       validateCsvCell(field,value,key);
+     }catch(error){throw Error("Строка "+fileRow+": "+error.message);}
+     if(!value)continue;
+     if(quote.shared.includes(field)){
+       if(shared.has(field.name)&&shared.get(field.name)!==value)
+         throw Error("Строка "+fileRow+": общее поле «"+key+"» отличается от предыдущей строки");
+       shared.set(field.name,value);
+     }else{
+       const suffix=field.name.slice(quote.first.length);
+       values.set(suffix,value);
+       if(summary.length<18)summary.push("Строка "+fileRow+" · "+key+": "+value);
+     }
+   }
+   if(!values.size)throw Error("Строка "+fileRow+": заполнены только общие поля; укажите хотя бы одно поле ставки");
+   variants.push(values);
+ }
+ if(!variants.length)throw Error("В файле нет заполненных вариантов ставок");
+ if(quote.prefixes.length>variants.length)throw Error("На форме уже "+quote.prefixes.length+" вариантов. В файле только "+variants.length+". Сначала удалите лишние варианты, чтобы не отправить их повторно.");
+ const newCount=variants.length-quote.prefixes.length;
+ if(newCount>0&&quote.add.disabled)throw Error("Добавление вариантов в форме сейчас заблокировано");
+ const shown=summary.join("\n").slice(0,1700);
+ if(!confirm("В файле найдено ставок: "+variants.length+".\n"+
+   "Будет создано новых вариантов: "+newCount+".\n"+
+   "Общие поля будут обновлены, значения каждого варианта полностью заменены строкой файла.\n\n"+shown+
+   "\n\nПеренести ставки в форму? Это НЕ отправка на сервер."))return;
+ for(let n=quote.prefixes.length;n<variants.length;n++){
+   const before=quoteFormLayout(form)?.prefixes.length||0;
+   const button=form.querySelector(".add-variant");
+   if(!button||button.disabled)throw Error("Не удалось добавить вариант "+(n+1)+": ограничение формы");
+   button.click();
+   let ready=false;
+   for(let attempt=0;attempt<40;attempt++){
+     await new Promise(resolve=>setTimeout(resolve,25));
+     if((quoteFormLayout(form)?.prefixes.length||0)>before){ready=true;break;}
+   }
+   if(!ready)throw Error("Не удалось открыть вариант "+(n+1)+". Проверьте форму перед повторной загрузкой.");
+ }
+ const current=quoteFormLayout(form);
+ if(!current||current.prefixes.length!==variants.length)throw Error("Количество вариантов формы не совпало с файлом");
+ const byName=new Map(current.all.map(f=>[f.name,f])),changes=[];
+ for(const [name,value] of shared){
+   const field=byName.get(name);
+   if(!field)throw Error("Общее поле "+name+" отсутствует в форме");
+   changes.push({field,value});
+ }
+ for(let i=0;i<variants.length;i++){
+   const prefix=current.prefixes[i];
+   // Explicitly clear omitted cells within this variant: stale inputs from a
+   // previously edited rate must never leak into another imported quote.
+   for(const templateField of current.template){
+     if(current.shared.includes(templateField))continue;
+     const suffix=templateField.name.slice(current.first.length);
+     const field=byName.get(prefix+suffix);
+     if(!field)throw Error("Вариант "+(i+1)+": поле "+suffix+" отсутствует");
+     const value=variants[i].get(suffix)||"";
+     validateCsvCell(field,value,suffix);
+     changes.push({field,value});
+   }
+ }
+ for(const {field,value} of changes)setReactValue(field,value);
+ if(honeypot?.value)setReactValue(honeypot,"");
+ alert("Перенесено ставок: "+variants.length+" (новых: "+newCount+"). Каждая заполненная строка — отдельный вариант. Проверьте данные, обязательные поля и подтверждение. Ставки пока НЕ отправлены.");
+}
 async function importCSV(form,file){
  let rows;
  if(/\.xlsx$/i.test(file.name)){
@@ -299,6 +413,9 @@ async function importCSV(form,file){
  }else{
   rows=parseCSV(await file.text());
  }
+ const quote=quoteFormLayout(form);
+ if(quote)return importQuoteRows(form,rows,quote);
+ if(!quote&&rows.length>2)throw Error("Несколько строк поддерживаются только в форме ставок перевозчика");
  const [headers,data]=rows,fields=controls(form);
  // Earlier rate templates accidentally included the hidden anti-spam field «Сайт».
  // Never map it into the submission form; retain compatibility with those workbooks.
