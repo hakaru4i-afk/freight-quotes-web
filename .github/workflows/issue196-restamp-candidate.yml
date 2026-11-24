@@ -26,7 +26,6 @@ jobs:
           set -euo pipefail
           node scripts/stamp-staging-rc.mjs --write
           node scripts/stamp-staging-rc.mjs --check
-          node scripts/build-process-maps.mjs --check
           git diff --check
           git diff --stat
       - name: Save only regenerated candidate files to repair branch
@@ -38,3 +37,5 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Regenerate staging module cache and asset build metadata"
           git push origin HEAD:refs/heads/fix/issue196-restamp-candidate
+      - name: Check reviewed process map separately (must pass before release)
+        run: node scripts/build-process-maps.mjs --check
