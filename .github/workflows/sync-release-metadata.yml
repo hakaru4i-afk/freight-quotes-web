@@ -18,5 +18,8 @@ jobs:
           node --check scripts/check-runtime-parity.mjs
           node --check scripts/stamp-staging-rc.mjs
           node scripts/check-runtime-parity.mjs --allow-staging-candidate
-      - name: Confirm no write permission or production promotion
-        run: echo "READ_ONLY_AUDIT; SH59 publication requires approved manual workflow"
+      - name: Compare served metadata, checksums and active API deployments
+        if: success() || failure()
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/release/verify-live-release.mjs
