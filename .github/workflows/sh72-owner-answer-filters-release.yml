@@ -58,7 +58,7 @@ jobs:
           assert.equal(manifest.businessVersion,'SH-01.30.72 v');
           assert.equal(info.releaseVersion,manifest.businessVersion);
           assert.equal(manifest.ownerAnswerFilters.sourcePullRequest,188);
-          assert.match(html,/owner-answer-filters-20261124\\.js\\?v=[a-f0-9]{12}/);
+          assert.match(html,/owner-answer-filters-20261124\.js\?v=[a-f0-9]{12}/);
           for(const [p,sha] of Object.entries(manifest.assets))assert.equal(hash(read(p)),sha,p);
           console.log('SH72_ASSETS_VERIFIED',Object.keys(manifest.assets).length);
           NODE
