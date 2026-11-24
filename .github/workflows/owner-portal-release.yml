@@ -175,34 +175,10 @@ jobs:
   backup:
     needs: verify
     if: inputs.publish
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    # Keep the Mac runner free for the backend backup workflow's offline-safety job.
+    runs-on: ubuntu-latest
     timeout-minutes: 85
     steps:
-      - name: Check native Mac release toolchain
-        if: runner.os == 'macOS'
-        shell: bash
-        run: |
-          set -euo pipefail
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          missing=()
-          for tool in gh jq gtar; do
-            if ! command -v "$tool" >/dev/null; then
-              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
-              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
-            fi
-          done
-          if (( ${#missing[@]} )); then
-            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
-            if [[ ! -w "$(brew --prefix)" ]]; then
-              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
-              exit 1
-            fi
-            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
-          fi
-          for tool in gh jq gtar; do
-            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
-          done
-          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
