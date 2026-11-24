@@ -3,11 +3,11 @@
 (()=>{"use strict";
  const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const modes=[
-   {key:"auto",name:"Авто",caption:"Автоперевозки",icon:"🚚",color:"#21d7a1",test:/авто|truck|road|car\b|automobile|фура/i},
-   {key:"rail",name:"Ж/Д",caption:"Железнодорожные",icon:"🚆",color:"#40aeff",test:/ж.д|ж\/д|железнодор|rail|train|поезд/i},
-   {key:"sea",name:"Море",caption:"Морские",icon:"🚢",color:"#a779ff",test:/мор|sea|ocean|ship|vessel|судно/i},
-   {key:"air",name:"Авиа",caption:"Авиаперевозки",icon:"✈",color:"#ffb85c",test:/авиа|air|flight|самол[её]т/i},
-   {key:"multi",name:"Мультимодал",caption:"Смешанные",icon:"⇄",color:"#e9a2d3",test:/мульт|multi|смешан/i}
+   {key:"auto",name:"Авто",caption:"Автоперевозки",icon:"🚚",color:"#21d7a1",test:/авто|truck|road|car\b|automobile|фура|公路|汽车|汽車/i},
+   {key:"rail",name:"Ж/Д",caption:"Железнодорожные",icon:"🚆",color:"#40aeff",test:/ж\s*[\/\.\-–—]?\s*д|железнодор|rail|train|поезд|铁路|鐵路/i},
+   {key:"sea",name:"Море",caption:"Морские",icon:"🚢",color:"#a779ff",test:/мор|sea|ocean|ship|vessel|судно|海运|海運/i},
+   {key:"air",name:"Авиа",caption:"Авиаперевозки",icon:"✈",color:"#ffb85c",test:/авиа|air|flight|самол[её]т|航空|空运|空運/i},
+   {key:"multi",name:"Мультимодал",caption:"Смешанные",icon:"⇄",color:"#e9a2d3",test:/мульт|multi|смешан|多式联运|多式聯運/i}
  ];
  let loaded=false,stats=null,renderedKey="",waiting=false;
  let records=[];
@@ -33,8 +33,10 @@
    if(hashes[name])location.hash=hashes[name];
  }
  function classify(mode){
-   const val=String(mode||"");
-   return (modes.find(m=>m.test.test(val))||null)?.key||"unknown";
+   const val=String(mode||"").normalize("NFKC").trim();
+   const matches=modes.filter(m=>m.test.test(val));
+   if(matches.some(m=>m.key==="multi")||matches.length>1)return "multi";
+   return matches[0]?.key||"unknown";
  }
  function sourceCount(name){
    const metrics=[...document.querySelectorAll(".overview-metrics .overview-metric,.carrier-metrics .metric")];
