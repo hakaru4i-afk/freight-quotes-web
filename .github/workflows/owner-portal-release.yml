@@ -1,28 +1,183 @@
-name: Owner portal one-click production release
+name: Owner production release from lock
 run-name: Portal release ${{ inputs.task_id || 'owner-manual' }} / ${{ inputs.request_id || github.run_id }}
 on:
+  pull_request:
+    paths:
+      - .github/workflows/owner-portal-release.yml
+      - release-lock.json
+      - scripts/release/locked-release*.mjs
+      - tests/locked-release.test.mjs
   workflow_dispatch:
     inputs:
+      publish:
+        description: Apply the approved lock to production
+        type: boolean
+        default: false
+      approval:
+        description: Approval binding the exact frontend and backend SHAs in the lock
+        type: string
+      frontend_run_id:
+        description: Complete frontend regression run for the locked frontend SHA
+        type: string
+      backend_run_id:
+        description: Backend security and schema verification run for the locked backend SHA
+        type: string
+      e2e_run_id:
+        description: Authenticated 37-scenario verification run for the locked pair
+        type: string
       task_id:
-        description: 'Existing approved CRM task UUID'
-        required: false
+        description: Associated CRM task
         type: string
       request_id:
-        description: 'Owner release request UUID'
-        required: false
+        description: Associated CRM release request
         type: string
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
-  group: owner-portal-production-release
+  group: ${{ github.event_name == 'pull_request' && format('locked-release-pr-{0}', github.event.pull_request.number) || 'owner-portal-production-release' }}
   cancel-in-progress: false
 jobs:
+  release-tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/locked-release.test.mjs
+
+  mac-route-smoke:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk' && github.actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 10
+    steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          missing=()
+          for tool in gh jq gtar; do
+            if ! command -v "$tool" >/dev/null; then
+              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
+              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
+            if [[ ! -w "$(brew --prefix)" ]]; then
+              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
+              exit 1
+            fi
+            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          fi
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/locked-release.test.mjs
+
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 12
+    permissions:
+      actions: read
+      contents: read
+    outputs:
+      frontend: ${{ steps.lock.outputs.frontend }}
+      backend: ${{ steps.lock.outputs.backend }}
+      version: ${{ steps.lock.outputs.version }}
+    steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          missing=()
+          for tool in gh jq gtar; do
+            if ! command -v "$tool" >/dev/null; then
+              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
+              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
+            if [[ ! -w "$(brew --prefix)" ]]; then
+              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
+              exit 1
+            fi
+            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          fi
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Resolve exact source and next version from the served receipt
+        id: lock
+        env:
+          CRM_REQUEST: ${{ inputs.request_id }}
+          PUBLISH: ${{ inputs.publish }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "$CRM_REQUEST" ] && [ "$PUBLISH" != true ]; then
+            echo '::error::RELEASE_COMMAND_FOR_EXACT_LOCK_REQUIRED'
+            exit 1
+          fi
+          plan="$(node scripts/release/locked-release.mjs plan)"
+          frontend="$(jq -er '.frontendSha' <<< "$plan")"
+          git merge-base --is-ancestor "$frontend" "$GITHUB_SHA"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+          echo "backend=$(jq -er '.backendSha' <<< "$plan")" >> "$GITHUB_OUTPUT"
+          echo "version=$(jq -er '.releaseVersion' <<< "$plan")" >> "$GITHUB_OUTPUT"
+          echo "$plan" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.lock.outputs.frontend }}
+          path: candidate-web
+          persist-credentials: false
+      - name: Check that the immutable frontend includes the staging runtime
+        run: node scripts/release/locked-release-pages.mjs preflight candidate-web
+      - name: Require explicit approval and verified reports for the locked pair
+        if: inputs.publish
+        env:
+          RELEASE_APPROVAL: ${{ inputs.approval }}
+          FRONTEND_RUN_ID: ${{ inputs.frontend_run_id }}
+          BACKEND_RUN_ID: ${{ inputs.backend_run_id }}
+          E2E_RUN_ID: ${{ inputs.e2e_run_id }}
+          WEB_TOKEN: ${{ github.token }}
+          BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+        run: node scripts/release/locked-release.mjs evidence
+
+  backup:
+    needs: verify
+    if: inputs.publish
+    # Keep the Mac runner free for the backend backup workflow's offline-safety job.
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 85
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,71 +185,88 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Validate Owner action and approved UI candidate
-        shell: bash
+      - name: Capture, encrypt and verify recovery on the protected backup workflow
         env:
-          TASK_ID: ${{ inputs.task_id }}
-          REQUEST_ID: ${{ inputs.request_id }}
-        run: |
-          set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
-            if [ -n "$TASK_ID" ]; then
-              [[ "$TASK_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
-            fi
-            if [ -n "$REQUEST_ID" ]; then
-              [[ "$REQUEST_ID" =~ ^[a-f0-9]{8}-([a-f0-9]{4}-){3}[a-f0-9]{12}$ ]]
-            fi
-          fi
-          cmp test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
-          node --check test/portal-feedback-center-20261107.js
-          node --check scripts/release/owner-portal-pages.mjs
-          node --check scripts/release/owner-ui-live-bootstrap.mjs
-          node --test tests/owner-portal-one-click-release.test.mjs tests/owner-ci-release-control.test.mjs
-          echo CRM_RELEASE_QUICK_CHECKS_PASSED
+          BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+        run: node scripts/release/locked-release.mjs backup
+
   deploy-pages:
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    needs: [verify, backup]
+    if: inputs.publish && needs.verify.result == 'success' && needs.backup.result == 'success'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 32
     environment:
       name: github-pages
-      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          missing=()
+          for tool in gh jq gtar; do
+            if ! command -v "$tool" >/dev/null; then
+              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
+              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
+            if [[ ! -w "$(brew --prefix)" ]]; then
+              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
+              exit 1
+            fi
+            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          fi
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: candidate-web
+          ref: ${{ needs.verify.outputs.frontend }}
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          path: candidate-backend
+          ref: ${{ needs.verify.outputs.backend }}
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Prepare safe UI-only Pages package from actual production files
-        shell: bash
+      - name: Verify that the backend SHA is in the approved main history
         env:
-          PORTAL_RELEASE_VERSION: SH-01.30.61 v
-          PORTAL_BACKEND_SHA: 54ffad8ebf007f11a34b11fcf3d0c150caa00ab7
-        run: |
-          set -euo pipefail
-          node scripts/release/owner-portal-pages.mjs
-          node scripts/release/owner-ui-live-bootstrap.mjs
-          cmp .release-pages/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
-          cmp .release-pages/test/portal-feedback-center-20261107.js release/owner-portal-feedback-center-20261122.js
-          echo CRM_RELEASE_PAGES_PACKAGE_VERIFIED
+          BACKEND_SHA: ${{ needs.verify.outputs.backend }}
+        run: git -C candidate-backend merge-base --is-ancestor "$BACKEND_SHA" refs/remotes/origin/main
       - uses: actions/configure-pages@v5
+      - name: Publish and verify the immutable API before updating Pages
+        env:
+          RELEASE_VERSION: ${{ needs.verify.outputs.version }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          umask 077
+          node scripts/release/locked-release-api.mjs publish candidate-backend "$RUNNER_TEMP/api" "$RUNNER_TEMP/api-proof.json"
+      - name: Package the exact verified pair
+        run: node scripts/release/locked-release-pages.mjs package candidate-web .release-pages "$RUNNER_TEMP/api-proof.json"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
       - uses: actions/deploy-pages@v4
+        id: deployment
       - name: Confirm public site serves the release and Owner button
-        shell: bash
-        run: |
-          set -euo pipefail
-          for i in $(seq 1 30); do
-            if curl -fsSL --retry 2 --max-time 20 "https://hakaru4i-afk.github.io/freight-quotes-web/portal-feedback-center-20261107.js?release=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/owner.js" &&
-              cmp -s "$RUNNER_TEMP/owner.js" release/owner-portal-feedback-center-20261122.js &&
-              curl -fsSL --retry 2 --max-time 20 "https://hakaru4i-afk.github.io/freight-quotes-web/production-release-manifest.json?release=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/manifest.json" &&
-              node -e 'const m=require(process.argv[1]);process.exit(m.environment==="production"&&m.businessVersion==="SH-01.30.61 v"&&m.ownerUiHotfix?.sourceCommit===process.env.GITHUB_SHA&&m.ownerUiHotfix?.backendChanged===false?0:1)' "$RUNNER_TEMP/manifest.json"; then
-              echo OWNER_RELEASE_PRODUCTION_VERIFIED
-              exit 0
-            fi
-            sleep 6
-          done
-          echo "::error::OWNER_RELEASE_SITE_NOT_VERIFIED"
-          exit 1
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: node scripts/release/locked-release-pages.mjs verify . .release-pages

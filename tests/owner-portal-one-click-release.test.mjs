@@ -27,17 +27,18 @@ test('Owner can release after verified task progress reaches 100%',()=>{
  assert.ok(candidate.includes("!releaseReady||isRunning||isConfirmed||busy?'disabled':''"));
  assert.ok(candidate.includes("action:'release_update'"));
 });
-test('Owner-only UI release uses quick checks, Pages and no private repo token',()=>{
+test('Owner-only release requires the locked pair, backup and verified API before Pages',()=>{
  assert.match(workflow,/workflow_dispatch:/);
  // Every future production publication must originate from the Owner button.
  assert.doesNotMatch(workflow,/^  push:/m);
  assert.match(workflow,/github.actor == 'hakaru4i-afk'/);
  assert.match(workflow,/github.event_name == 'workflow_dispatch'/);
- assert.match(workflow,/runs-on: ubuntu-latest/);
- assert.match(workflow,/node --check test\/portal-feedback-center-20261107\.js/);
- assert.doesNotMatch(workflow,/BACKEND_RELEASE_READ_TOKEN/);
- assert.doesNotMatch(workflow,/supabase functions deploy freight-api/);
- assert.doesNotMatch(workflow,/node scripts\/release\/owner-portal-verify-evidence\.mjs/);
+ assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length,4);
+ assert.match(workflow,/release-tests:\n    if: github.event_name == 'pull_request'\n    runs-on: ubuntu-latest/);
+ assert.match(workflow,/locked-release\.mjs evidence/);
+ assert.match(workflow,/locked-release\.mjs backup/);
+ assert.match(workflow,/needs\.backup\.result == 'success'/);
+ assert.match(workflow,/locked-release-api\.mjs publish/);
  assert.match(workflow,/actions\/deploy-pages@v4/);
 });
 test('deep browser tests can be run manually but do not run for ordinary pushes',()=>{
