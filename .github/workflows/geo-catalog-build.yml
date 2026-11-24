@@ -1,0 +1,90 @@
+name: Offline geographic catalog (five countries)
+on:
+  push:
+    branches: [geo-catalog-build-20261124]
+    paths:
+      - .github/workflows/geo-catalog-build.yml
+      - scripts/build_geo_catalog.py
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-public-data:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/geo-catalog-build-20261124'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        source: [geonames, osm]
+    permissions:
+      contents: write
+    concurrency:
+      group: geo-catalog-build-${{ matrix.source }}
+      cancel-in-progress: false
+    env:
+      SOURCE: ${{ matrix.source }}
+      TARGET: geo-catalog-${{ matrix.source }}-20261124
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check builder
+        run: |
+          python3 -m py_compile scripts/build_geo_catalog.py
+          python3 - <<'PY'
+          import sys, tempfile, pathlib, gzip, json
+          sys.path.insert(0, "scripts")
+          from build_geo_catalog import Index, normalize, shard
+          with tempfile.TemporaryDirectory() as d:
+              p=pathlib.Path(d)
+              i=Index(p)
+              i.record({"id":"1","name":"Забайкальск","lat":49.65,"lon":117.33})
+              i.alias("1","ZBK","und","code")
+              i.alias("1","后贝加尔","zh")
+              i.alias("1","ZBK","und","code")
+              i.alias("missing","invalid")
+              r=i.emit(p/"out")
+              assert r["objects"]==1 and r["aliases"]==2
+              k=normalize(" ZBK ")
+              with gzip.open(p/"out"/(shard(k)+".jsonl.gz"),"rt") as f:
+                  assert any(json.loads(line)[0]==k for line in f)
+          PY
+      - name: Install offline OpenStreetMap extractor
+        if: matrix.source == 'osm'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends osmium-tool
+          osmium --version
+      - name: Build from original public datasets
+        run: python3 scripts/build_geo_catalog.py --source "$SOURCE" --out "$RUNNER_TEMP/geo-$SOURCE"
+      - name: Check output and publish isolated data branch
+        run: |
+          set -euo pipefail
+          [[ "$TARGET" == "geo-catalog-geonames-20261124" || "$TARGET" == "geo-catalog-osm-20261124" ]]
+          python3 - "$RUNNER_TEMP/geo-$SOURCE" <<'PY'
+          import sys,json,pathlib,hashlib
+          root=pathlib.Path(sys.argv[1])
+          m=json.loads((root/"manifest.json").read_text())
+          assert set(m["countries"])=={"BY","RU","KZ","MN","CN"}
+          for c,s in m["countries"].items():
+              assert s["objects"]>0 and s["aliases"]>0
+              for name,meta in s["shards"].items():
+                  f=root/c/name
+                  assert f.stat().st_size==meta["bytes"]
+                  assert hashlib.sha256(f.read_bytes()).hexdigest()==meta["sha256"]
+          print("PASS: all countries and shard integrity")
+          PY
+          if git ls-remote --heads origin "refs/heads/$TARGET" | grep -q .; then
+            echo "Snapshot already exists; refusing to overwrite."
+            exit 1
+          fi
+          publish="$RUNNER_TEMP/publish-$SOURCE"
+          git worktree add --detach "$publish" HEAD
+          git -C "$publish" switch --orphan "$TARGET"
+          cp -a "$RUNNER_TEMP/geo-$SOURCE" "$publish/catalog"
+          git -C "$publish" config user.name "github-actions[bot]"
+          git -C "$publish" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$publish" add -- catalog
+          git -C "$publish" commit -m "Publish public $SOURCE catalog snapshot 2026-11-24"
+          git -C "$publish" push origin "HEAD:refs/heads/$TARGET"
+          echo "Published data only: $TARGET" >> "$GITHUB_STEP_SUMMARY"
