@@ -66,6 +66,22 @@ jobs:
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
+      - name: Wait for GitHub Pages artifact registration
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          for n in $(seq 1 30); do
+            artifact_id="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts" --jq '.artifacts[] | select(.name=="github-pages" and .expired==false) | .id' | head -n1)" || true
+            if [ -n "$artifact_id" ]; then
+              echo "SH72_PAGES_ARTIFACT_REGISTERED:$artifact_id"
+              sleep 10
+              break
+            fi
+            if [ "$n" = 30 ]; then echo "::error::PAGES_ARTIFACT_NOT_REGISTERED"; exit 1; fi
+            sleep 5
+          done
       - uses: actions/deploy-pages@v4
       - name: Verify public SH72 and answer filter assets
         shell: bash
