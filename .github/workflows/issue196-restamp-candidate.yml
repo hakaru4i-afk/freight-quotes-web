@@ -1,4 +1,4 @@
-name: Repair staging cache metadata (isolated candidate)
+name: Repair and audit complete release candidate (no production access)
 on:
   push:
     branches: [fix/issue196-restamp-candidate]
@@ -9,33 +9,116 @@ concurrency:
   group: issue196-restamp-candidate
   cancel-in-progress: false
 jobs:
-  restamp:
+  candidate:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/issue196-restamp-candidate' && github.actor == 'hakaru4i-afk'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - name: Regenerate from checked-in sources and verify
-        shell: bash
+      - name: Regenerate and check asset metadata
         run: |
-          set -euo pipefail
           node scripts/stamp-staging-rc.mjs --write
           node scripts/stamp-staging-rc.mjs --check
-          git diff --check
-          git diff --stat
-      - name: Save only regenerated candidate files to repair branch
+      - name: Reconcile reviewed process descriptions with source changes
         shell: bash
         run: |
           set -euo pipefail
+          node --input-type=module <<'JS'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {sourceSignatures} from './scripts/build-process-maps.mjs';
+          const path='test/business-process-model.json';
+          const m=JSON.parse(readFileSync(path));
+          const actual=sourceSignatures();
+          const changed=Object.keys(actual).filter(k=>m.reviewedSourceSignatures?.[k]!==actual[k]);
+          console.log('PROCESS_SOURCE_DIFFS',JSON.stringify(changed));
+          const reviewed=new Set([
+            'test/portal-feedback-center-20261107.js',
+            'test/portal-feedback-center-20261107.css',
+            'test/current-workspace-help-20261108.js',
+            'test/global-view/route-model.mjs',
+            'test/global-view/globe.mjs',
+            'test/global-view/map.mjs',
+            'test/global-view/view.mjs',
+            'test/index.html',
+            'test/app.js'
+          ]);
+          if(changed.some(k=>!reviewed.has(k)))throw Error('UNREVIEWED_PROCESS_SOURCE_DIFF');
+          if(m.reviewedBackendSourceCommit!==JSON.parse(readFileSync('test/build-info.json')).stabilizationQa20261110.backendSourceCommit)throw Error('BACKEND_PROVENANCE_MISMATCH');
+          if(m.version!=='20261118-logic-12')throw Error('UNEXPECTED_MODEL_BASE');
+          m.previousVersion=m.version;
+          m.version='20261125-logic-13';
+          m.date='2026-11-25';
+          m.scope='Кандидат: актуализация интерфейса Owner и предварительной географии. Фактически обслуживаемая тестовая версия API сохраняет своё происхождение; приёмка новой пары и выпуск не подтверждены.';
+          m.decisions.push('25.11: UI Owner разделяет регистрацию задачи GitHub, разработку, отправку на приёмку, принятие, обязательную публикацию и архив. Возврат требует комментария от 10 символов. Дедлайн и историческая ошибка PR не являются доказательством публикации. Серверная авторизация и новая защищённая E2E-приёмка обязательны.');
+          m.decisions.push('25.11: ZBK / RU ZBK в предварительном просмотре карты обозначает центр Забайкальска, а не подтверждённый погранпереход, станцию или точное расстояние до ПТО. Кэш импортов 2D/3D привязан к фактическим модулям.');
+          m.feedbackRecovery.limits+=' Для разработки и выпуска UI использует отдельный цикл: зарегистрировано в GitHub → разработка → приёмка → принято → проверенный выпуск → архив; возврат с комментарием. Это описание клиентского поведения, не подтверждение серверной приёмки.';
+          const p=m.processes.find(x=>x.id==='P05');
+          p.actual+=' Предварительная карта распознаёт ZBK/RU ZBK как приблизительный центр Забайкальска; точка не подтверждена.';
+          p.verification+=' Новая защищённая проверка конкретной пары обязательна; прежние отчёты не заменяют её.';
+          writeFileSync(path,JSON.stringify(m,null,2)+'\n');
+          JS
+          node scripts/build-process-maps.mjs --record-reviewed-sources
+          node scripts/build-process-maps.mjs --check
+          node scripts/stamp-staging-rc.mjs --check
+      - name: Save only generated and reviewed candidate changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --check
           git diff --quiet -- . ':!test/'
           git add -- test/
           if git diff --cached --quiet; then exit 0; fi
-          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Regenerate staging module cache and asset build metadata"
+          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Review candidate process map and preserve source provenance"
           git push origin HEAD:refs/heads/fix/issue196-restamp-candidate
-      - name: Check reviewed process map separately (must pass before release)
-        run: node scripts/build-process-maps.mjs --check
+  audit:
+    if: always() && github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/issue196-restamp-candidate' && github.actor == 'hakaru4i-afk'
+    needs: candidate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/issue196-restamp-candidate
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check all independent gates and list every failure
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p reports/issue196-audit
+          fail=0
+          run_check() {
+            local name="$1"; shift
+            if "$@" >"reports/issue196-audit/$name.log" 2>&1; then
+              echo "$name PASS" | tee -a reports/issue196-audit/summary.txt
+            else
+              echo "$name FAIL" | tee -a reports/issue196-audit/summary.txt
+              fail=1
+            fi
+          }
+          run_check asset_metadata node scripts/stamp-staging-rc.mjs --check
+          run_check process_map node scripts/build-process-maps.mjs --check
+          run_check release_contract node --test tests/locked-release.test.mjs tests/owner-portal-one-click-release.test.mjs
+          run_check install_browser npm install --no-save playwright@1.56.1
+          run_check chromium npx playwright install chromium
+          run_check all_frontend node --test --test-concurrency=3 --test-reporter=spec tests/*.test.mjs
+          run_check robot_matrix node tests/task12-robot-runner.mjs
+          cat reports/issue196-audit/summary.txt
+          exit "$fail"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: issue196-combined-audit
+          path: reports/issue196-audit/summary.txt
+          if-no-files-found: error
+          retention-days: 2
