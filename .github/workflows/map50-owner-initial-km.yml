@@ -7,6 +7,12 @@ on:
       - 'test/global-view/**'
       - 'tests/map50-owner-km-before-bid.test.mjs'
       - '.github/workflows/map50-owner-initial-km.yml'
+  pull_request:
+    paths:
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/map50-owner-km-before-bid.test.mjs'
+      - '.github/workflows/map50-owner-initial-km.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,6 +21,8 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   node-regression:
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
