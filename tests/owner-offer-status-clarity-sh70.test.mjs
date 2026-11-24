@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {scoreOffers as candidate} from '../release/candidates/offer-scoring-clear-status-sh70.mjs';
 import {scoreOffers as current} from '../offer-scoring.mjs';
+import {readFileSync} from 'node:fs';
 
 const when='2026-11-24T08:00:00Z';
 const make=(id,extra={})=>({
@@ -94,6 +95,11 @@ test('Same amount, criteria, ranking, eligibility and owner-only winner selectio
    assert.ok(!('winner' in a[id]));
   }
  }
+});
+test('Owner comparison labels the status and shows its concrete explanation',()=>{
+ const source=readFileSync(new URL('../release/candidates/owner-offer-evaluation-clear-status-sh70.mjs',import.meta.url),'utf8');
+ assert.match(source,/Преимущества и условия/);
+ assert.match(source,/a\.statusExplanation/);
 });
 test('The source module and deployed candidate remain separate before protected release',()=>{
  assert.equal(typeof candidate,'function');
