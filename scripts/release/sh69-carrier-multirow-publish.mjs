@@ -75,7 +75,11 @@ if(read('task2-guidance-42dc6ccc8a20.js').equals(guidance)
 write('task2-guidance-42dc6ccc8a20.js',guidance);
 write('carrier-csv-wps-hotfix.js',codec);
 // Staging /test/ is independently signed. Never silently replace its runtime.
-for(const path of ['test/task2-guidance-42dc6ccc8a20.js','test/task2-guidance.js','test/carrier-csv-wps-hotfix.js']){
+// SH68 signs only three independent /test/ assets in its production
+// manifest. Do not assume all staging scripts are present in the Pages
+// package, and do not inject unreviewed staging code into production.
+for(const path of ['test/index.html','test/build-info.json','test/portal-feedback-center-20261107.js']){
+ if(!manifest.assets[path])throw Error('STAGING_MANIFEST_ENTRY_MISSING:'+path);
  const file=read(path);
  if(sha(file)!==manifest.assets[path])throw Error('STAGING_ASSET_CHANGED:'+path);
 }
