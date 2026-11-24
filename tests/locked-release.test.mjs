@@ -99,6 +99,8 @@ test('Pages bind the new route while retaining staging and the release history',
 test('the deployment graph puts confirmed backup and API health before publishing Pages', () => {
   const workflow = readFileSync('.github/workflows/owner-portal-release.yml', 'utf8');
   const legacy = readFileSync('.github/workflows/controlled-sh59-publish.yml', 'utf8');
+  assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length, 3);
+  assert.match(workflow, /release-tests:\n    if: github.event_name == 'pull_request'\n    runs-on: ubuntu-latest/);
   assert.match(workflow, /needs: \[verify, backup\]/);
   assert.match(workflow, /needs\.backup\.result == 'success'/);
   assert.doesNotMatch(workflow, /continue-on-error/);
