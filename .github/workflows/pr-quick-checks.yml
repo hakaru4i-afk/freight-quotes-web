@@ -83,7 +83,8 @@ jobs:
             tests/issue47-owner-optional-reason.test.mjs \
             tests/owner-ci-release-control.test.mjs \
             tests/owner-feedback-navigation-archive.test.mjs \
-            tests/feedback-deadline-issue173.test.mjs
+            tests/feedback-deadline-issue173.test.mjs \
+            tests/carrier-multirow-import.test.mjs
       - name: Validate generated CSS bundle and asset ordering
         run: |
           if [ -f scripts/build-css-bundle.mjs ]; then
