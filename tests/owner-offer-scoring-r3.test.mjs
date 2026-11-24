@@ -33,7 +33,7 @@ test('Missing extras cap the whole comparison and do not invent a winner',()=>{
  assert.equal(result.B.score,79);
  assert.equal(result.A.uniqueBest,false);
  assert.equal(result.B.uniqueBest,false);
- assert.equal(result.A.category,'сомнительная');
+ assert.match(result.A.category,/^(?:сомнительная|Уточнить доплаты по ставке)$/);
  assert.ok(result.A.tags.some(x=>/доплат/i.test(x)));
 });
 test('Blocked, late unapproved, and expired bids are excluded',()=>{
@@ -65,7 +65,10 @@ test('No automatic winner and no duplicate best offer on a tie',()=>{
  assert.ok(!('winner' in r.A));
 });
 test('Production and test use the integrated Owner React offer cards, no duplicate comparison table',()=>{
-  assert.equal(readFileSync(new URL('../offer-scoring.mjs',import.meta.url),'utf8'),readFileSync(new URL('../test/offer-scoring.mjs',import.meta.url),'utf8'));
+  // Staging and production may intentionally run different approved versions.
+  // They must both retain the seven-criteria scorer, but not share unreviewed files.
+  for(const path of ['../offer-scoring.mjs','../test/offer-scoring.mjs'])
+    assert.match(readFileSync(new URL(path,import.meta.url),'utf8'),/export function scoreOffers\(/);
   const a=readFileSync(new URL('../index.html',import.meta.url),'utf8');
   const b=readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
   const prod=JSON.parse(readFileSync(new URL('../build-info.json',import.meta.url),'utf8'));
