@@ -115,6 +115,10 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
     const bestRisk=ranking.length>1&&uniqueLeader(ranking,x=>out[x.b.id].notes.length);
     const worst=group.length>1?ranking.filter(x=>x.score===Math.min(...ranking.map(y=>y.score))):[];
     const worstUnique=worst.length===1?worst[0].b:null;
+    // A relative last place is not a bad offer: 97 next to 100 must never
+    // appear red. Only flag materially worse, fully comparable offers.
+    const worstScore=worst.length?worst[0].score:null;
+    const materiallyWorst=completeExtras&&worstUnique&&worstScore<=69&&maxScore-worstScore>=10?worstUnique:null;
     for(const b of group){
       const a=out[b.id],competing=group.length>1;
       if(competing&&cheapest?.id===b.id)a.tags.push(completeExtras?'Самая дешёвая с учётом доплат':'Самая низкая заявленная цена (доплаты уточнить)');
@@ -125,7 +129,7 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       if(competing&&bestBorder?.b.id===b.id&&a.breakdown.border===15)a.tags.push('Лучший подтверждённый погранпереход');
       if(competing&&bestRisk?.b.id===b.id&&a.notes.length<out[group.find(x=>x.id!==b.id)?.id]?.notes?.length)a.tags.push('Меньше неподтверждённых условий');
       if(competing&&top.length>1&&a.score===maxScore)a.tags.push(completeExtras?'Равная итоговая оценка — решение владельца / конкурс':'Предварительная оценка равна — доплаты требуют уточнения');
-      if(competing&&worstUnique?.id===b.id)a.tags.push('Худшая сводная оценка в группе');
+      if(competing&&materiallyWorst?.id===b.id)a.tags.push('Заметно ниже других сопоставимых ставок');
       // A provisional comparison is NOT evidence that any carrier is dubious.
       // One participant's missing surcharge must not stigmatize every other
       // participant in the same round.
@@ -135,11 +139,14 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
         detailedRisks?'Уточнить маршрут и условия':
         !completeExtras?'Условия указаны · сравнение предварительное':
         !competing?'Нет сопоставимых ставок':
+        a.score>=90?'Высокая оценка условий':
+        a.score>=80?'Хорошая оценка условий':
         balanced?.id===b.id?'Лучший баланс цены и срока':'Альтернативное предложение';
       a.statusExplanation=!ownExtrasKnown?'Не указана точная сумма возможных доплат по этой ставке.':
         detailedRisks?'Некоторые условия маршрута, погранпереходов или страхования требуют проверки.':
         !completeExtras?'По этой ставке доплаты понятны, но по другим предложениям остаются вопросы.':
         !competing?'Нет второй ставки с той же валютой, транспортом и весом для честного сравнения.':
+        a.score>=90?'Условия оценены высоко. Разница с лидером на несколько баллов не означает, что ставка плохая.':
         'Условия можно сопоставлять с другими предложениями этой группы.';
       if(!ownExtrasKnown)a.tags.unshift('Доплаты по этой ставке не подтверждены');
       else if(!completeExtras)a.tags.unshift('Условия этой ставки указаны; доплаты других уточнить');
@@ -150,12 +157,13 @@ export function scoreOffers(bids,policies={},asof=new Date().toISOString(),baseA
       a.classificationIsCarrierReliability=false;
       a.quality=a.notes.length>=3||!completeExtras?'review':balanced?.id===b.id?'good':'alternative';
       a.isBalancedLeader=balanced?.id===b.id;
-      a.isWorst=worstUnique?.id===b.id;
+      a.isWorst=materiallyWorst?.id===b.id;
       a.tieForBest=top.length>1&&a.score===maxScore;
       a.groupSize=group.length;
       a.uniqueBest=group.length>1&&top.length===1&&a.score===maxScore&&completeExtras;
       a.unconfirmedConditions=a.notes.length;
-      a.worstFlag=worstUnique?.id===b.id? 'Худшая оценка среди сравнимых' : null;
+      a.worstFlag=materiallyWorst?.id===b.id? 'Существенно слабее сопоставимых ставок' : null;
+      a.gapFromTop=competing?maxScore-a.score:null;
       a.methodology='OFFER-SCORE-20261117-R3 · Цена25 / Срок20 / Станция10 / Маршрут15 / Переходы15 / Доплаты10 / Страхование5';
       a.comparable=group.length>1;
       a.compareKey=[b.order_code,b.round_id||'',norm(b.currency),norm(b.mode),norm(b.weight)].join(' / ');
