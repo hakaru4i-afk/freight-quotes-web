@@ -132,9 +132,10 @@ function fetchEvidence(lock, env) {
 export function verifyBackup(run, jobs, proof, {id, parent}) {
   verifyRun(run, {repo: backend, path: backupWorkflow, id});
   requireCheck(run.actor?.login === 'hakaru4i-afk' && run.display_title === 'Production backup ' + parent, 'BACKUP_PARENT_RUN_MISMATCH');
-  requireCheck(jobs?.total_count === jobs?.jobs?.length && jobs.jobs.some(job =>
+  requireCheck(Array.isArray(jobs?.jobs) && jobs.total_count === jobs.jobs.length && jobs.jobs.some(job =>
     job.name === 'capture-and-readback' && job.status === 'completed' && job.conclusion === 'success' &&
-    job.labels?.some(label => label === 'ubuntu-latest' || label.startsWith('ubuntu-'))), 'PROTECTED_CAPTURE_NOT_COMPLETED');
+    job.labels?.some(label => label === 'freight-mac-backup-vm' || label === 'ubuntu-latest' || label.startsWith('ubuntu-'))),
+  'PROTECTED_CAPTURE_NOT_COMPLETED');
   const restore = proof?.proof;
   requireCheck(proof?.result === 'PASS_CAPTURE_PAYLOAD_RESTORE_AND_CIPHERTEXT_READBACK' && proof.encrypted === true &&
     proof.offsiteReadback === true && sha64.test(proof.ciphertextSha256) &&
@@ -142,6 +143,14 @@ export function verifyBackup(run, jobs, proof, {id, parent}) {
     restore.storageBytesRestored === true && restore.isolationVerified === true &&
     restore.sourceCredentialsForwarded === false && restore.ciphertextDecryptionVerified === true &&
     restore.verificationRecipientDestroyed === true, 'BACKUP_OR_RESTORE_PROOF_INVALID');
+}
+
+export function waitingForBackupGuest(result) {
+  const jobs = result?.jobs;
+  if (!Array.isArray(jobs) || result.total_count !== jobs.length) return false;
+  return jobs.some(job => ['protected-readiness', 'capture-and-readback'].includes(job.name) &&
+    job.status === 'queued' && !job.runner_name) &&
+    !jobs.some(job => job.name === 'capture-and-readback' && (job.runner_name || job.status === 'completed'));
 }
 
 async function dispatchBackup(env) {
@@ -153,24 +162,50 @@ async function dispatchBackup(env) {
   // Match the current main source, including the protected workflow with the automatic input.
   const trustedWorkflowSha = ghJson(repository + '/git/ref/heads/main', token).object?.sha;
   requireCheck(sha40.test(trustedWorkflowSha), 'BACKUP_WORKFLOW_SHA_UNAVAILABLE');
-  const request = {ref: 'main', return_run_details: true, inputs: {operation: 'capture', release_run: parent}};
-  const launch = ghJson(repository + '/actions/workflows/' + backupWorkflow + '/dispatches', token, {
-    args: ['--method', 'POST', '--input', '-'], input: JSON.stringify(request)
-  });
-  requireCheck(validId(launch.workflow_run_id), 'BACKUP_DISPATCH_RUN_ID_MISSING');
-  const id = launch.workflow_run_id;
-  console.log('Backup run ' + id + ' queued for release ' + parent);
-  const deadline = Date.now() + 75 * 60 * 1000;
-  let run;
-  do {
-    run = ghJson(runPath + id, token);
+  const pause = () => new Promise(done => setTimeout(done, 15000));
+  const deadline = Date.now() + 85 * 60 * 1000;
+  const launch = runner => {
+    const request = {ref: 'main', return_run_details: true, inputs: {operation: 'capture', release_run: parent, runner}};
+    const result = ghJson(repository + '/actions/workflows/' + backupWorkflow + '/dispatches', token, {
+      args: ['--method', 'POST', '--input', '-'], input: JSON.stringify(request)
+    });
+    requireCheck(validId(result.workflow_run_id), 'BACKUP_DISPATCH_RUN_ID_MISSING');
+    console.log('Backup run ' + result.workflow_run_id + ' queued for release ' + parent + ' using ' + runner);
+    return result.workflow_run_id;
+  };
+  const getRun = id => {
+    const run = ghJson(runPath + id, token);
     requireCheck(run.head_sha === trustedWorkflowSha && run.display_title === 'Production backup ' + parent,
       'BACKUP_DISPATCH_IDENTITY_CHANGED');
-    if (run.status === 'completed') break;
-    await new Promise(done => setTimeout(done, 20000));
-  } while (Date.now() < deadline);
+    return run;
+  };
+  const getJobs = id => ghJson(runPath + id + '/jobs?per_page=100', token);
+  let runner = 'mac';
+  let id = launch(runner);
+  let waitingSince = null;
+  let run = getRun(id);
+  while (run.status !== 'completed' && Date.now() < deadline) {
+    if (runner === 'mac') {
+      const unattended = waitingForBackupGuest(getJobs(id));
+      waitingSince = unattended ? waitingSince ?? Date.now() : null;
+      if (waitingSince !== null && Date.now() - waitingSince >= 120000 && waitingForBackupGuest(getJobs(id))) {
+        // No capture has started. Cancel only our own backup request before reusing the protected queue.
+        gh(['run', 'cancel', String(id), '--repo', backend], token);
+        const cancellationDeadline = Date.now() + 90000;
+        do {
+          await pause();
+          run = getRun(id);
+        } while (run.status !== 'completed' && Date.now() < cancellationDeadline);
+        requireCheck(run.status === 'completed' && run.conclusion === 'cancelled', 'MAC_BACKUP_CANCELLATION_UNCONFIRMED');
+        runner = 'github';
+        id = launch(runner);
+      }
+    }
+    await pause();
+    run = getRun(id);
+  }
   requireCheck(run.status === 'completed' && run.conclusion === 'success', 'FRESH_AUTOMATIC_BACKUP_FAILED_OR_TIMED_OUT');
-  const jobs = ghJson(runPath + id + '/jobs?per_page=100', token);
+  const jobs = getJobs(id);
   const job = jobs.jobs?.find(entry => entry.name === 'capture-and-readback');
   requireCheck(validId(job?.id), 'BACKUP_CAPTURE_JOB_MISSING');
   const log = gh(['api', repository + '/actions/jobs/' + job.id + '/logs'], token);

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {approval, backend, backupWorkflow, nextVersion, project, readLock, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupWorkflow, nextVersion, project, readLock, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, waitingForBackupGuest} from '../scripts/release/locked-release.mjs';
 import {verifyApiEvidence} from '../scripts/release/locked-release-api.mjs';
 import {assertPreservesEntrypoints, bindPages, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
 
@@ -37,6 +37,14 @@ test('only an exact successful protected backup with real restore allows deploym
   assert.throws(() => verifyBackup({...run, conclusion: 'failure'}, jobs, proof, target), /RELEASE_PROOF_RUN/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, offsiteReadback: false}, target), /BACKUP_OR_RESTORE_PROOF/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, proof: {...proof.proof, storageBytesRestored: false}}, target), /BACKUP_OR_RESTORE_PROOF/);
+});
+
+test('hosted fallback is allowed only while the dedicated guest is unassigned and no capture has started', () => {
+  const readiness = {name: 'protected-readiness', status: 'queued', runner_name: ''};
+  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [readiness]}), true);
+  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, runner_name: 'backup'}]}), false);
+  assert.equal(waitingForBackupGuest({total_count: 2, jobs: [readiness, {name: 'capture-and-readback', status: 'in_progress', runner_name: 'backup'}]}), false);
+  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, name: 'capture-and-readback'}]}), true);
 });
 
 test('validates 37 authenticated scenarios for the exact reviewed pair', () => {
