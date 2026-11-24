@@ -1,0 +1,3 @@
+CC BY 4.0; GeoNames
+https://www.geonames.org/
+Public source data only. Country is source extract. Not authoritative station-code confirmation; no exact cargo location inferred.
