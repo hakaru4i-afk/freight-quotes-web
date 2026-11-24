@@ -1,0 +1,136 @@
+name: Owner-approved SH69 carrier multirow Excel/CSV publication (one shot)
+run-name: SH69 · Carrier Excel / CSV · 1–20 rows
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh69-carrier-multirow-publish.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release(carrier): approved SH69 multirow Excel')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify exact approved code, bounded scope and fast tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD:release/candidates/carrier-multirow-guidance-20261124.js')" = 8953a2da24cffef9a4bca148dd9a5b95d211891d
+          test "$(git rev-parse 'HEAD:release/candidates/carrier-multirow-xlsx-20261124.js')" = f771866bdaf942c212821727c6461dfa4e44da6c
+          node --check release/candidates/carrier-multirow-guidance-20261124.js
+          node --check release/candidates/carrier-multirow-xlsx-20261124.js
+          node --check scripts/release/sh69-carrier-multirow-publish.mjs
+          node --test tests/carrier-multirow-import.test.mjs tests/issue47-legacy-csv-integrity.test.mjs tests/issue47-carrier-xlsx.test.mjs
+          echo SH69_OWNER_APPROVED_SOURCE_AND_FAST_TESTS_PASS
+      - name: Confirm current Pages baseline and backend access guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          api='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks'
+          status="$(curl -sSL --retry 2 --max-time 25 -o "$RUNNER_TEMP/sh69-api.json" -w '%{http_code}' "$api")"
+          test "$status" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/sh69-api.json"
+          echo SH69_OWNER_API_GUARD_PASS
+      - name: Build complete production bundle from exact SHA-verified live SH68 assets
+        shell: bash
+        run: node scripts/release/sh69-carrier-multirow-publish.mjs
+      - name: Verify complete new bundle and preserved staging assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/task2-guidance-42dc6ccc8a20.js release/candidates/carrier-multirow-guidance-20261124.js
+          cmp .release-pages/carrier-csv-wps-hotfix.js release/candidates/carrier-multirow-xlsx-20261124.js
+          cmp .release-pages/test/task2-guidance-42dc6ccc8a20.js test/task2-guidance-42dc6ccc8a20.js
+          cmp .release-pages/test/carrier-csv-wps-hotfix.js test/carrier-csv-wps-hotfix.js
+          node --check .release-pages/app.js
+          node --check .release-pages/task2-guidance-42dc6ccc8a20.js
+          node --check .release-pages/carrier-csv-wps-hotfix.js
+          test -s .release-pages/offer-scoring.mjs
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const m=assertProductionReleaseIntegrity('.release-pages');
+          const b=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
+          assert.equal(m.businessVersion,'SH-01.30.69 v');
+          assert.equal(b.releaseVersion,m.businessVersion);
+          assert.equal(m.carrierMultirowExcel?.maxVariantsPerFile,20);
+          assert.equal(m.carrierMultirowExcel?.automaticSubmission,false);
+          assert.equal(m.carrierMultirowExcel?.independentStagingPreserved,true);
+          const index=readFileSync('.release-pages/index.html','utf8');
+          assert.match(index,/task2-guidance-42dc6ccc8a20\.js\?v=[a-f0-9]{12}/);
+          assert.match(index,/carrier-csv-wps-hotfix\.js\?v=[a-f0-9]{12}/);
+          console.log('SH69_PACKAGE_SHA256_INTEGRITY_PASS',Object.keys(m.assets).length);
+          NODE
+      - name: Confirm exact source main HEAD before publication
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$GITHUB_SHA"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify live Pages SH69, two complete scripts and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for i in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$url/build-info.json?sh69=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-build.json" &&
+               curl -fsSL --max-time 20 "$url/production-release-manifest.json?sh69=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-manifest.json" &&
+               curl -fsSL --max-time 20 "$url/index.html?sh69=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-index.html" &&
+               curl -fsSL --max-time 20 "$url/task2-guidance-42dc6ccc8a20.js?sh69=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-guidance.js" &&
+               curl -fsSL --max-time 20 "$url/carrier-csv-wps-hotfix.js?sh69=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-xlsx.js" &&
+               cmp -s "$RUNNER_TEMP/live-guidance.js" release/candidates/carrier-multirow-guidance-20261124.js &&
+               cmp -s "$RUNNER_TEMP/live-xlsx.js" release/candidates/carrier-multirow-xlsx-20261124.js &&
+               cmp -s "$RUNNER_TEMP/live-index.html" .release-pages/index.html &&
+               cmp -s "$RUNNER_TEMP/live-manifest.json" .release-pages/production-release-manifest.json &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.69 v"&&m.businessVersion===b.releaseVersion&&m.carrierMultirowExcel?.maxVariantsPerFile===20?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+              echo SH69_PRODUCTION_LIVE_SHA256_AND_VERSION_VERIFIED
+              break
+            fi
+            if [ "$i" = 30 ]; then
+              echo "::error::SH69_LIVE_PAGES_NOT_VERIFIED"
+              exit 1
+            fi
+            sleep 5
+          done
+      - name: Mirror ONLY verified published SH69 files back to GitHub main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in task2-guidance-42dc6ccc8a20.js carrier-csv-wps-hotfix.js index.html app.js build-info.json release-status.json site-status.json production-release-manifest.json; do
+            cp ".release-pages/$f" "$f"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add task2-guidance-42dc6ccc8a20.js carrier-csv-wps-hotfix.js index.html app.js build-info.json release-status.json site-status.json production-release-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.69 v verified carrier multirow import'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH69_PRODUCTION_AND_GIT_MAIN_SYNC_PASS

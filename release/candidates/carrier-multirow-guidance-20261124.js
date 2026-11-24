@@ -414,7 +414,7 @@ async function importCSV(form,file){
   rows=parseCSV(await file.text());
  }
  const quote=quoteFormLayout(form);
- if(quote&&rows.length>2)return importQuoteRows(form,rows,quote);
+ if(quote)return importQuoteRows(form,rows,quote);
  if(!quote&&rows.length>2)throw Error("Несколько строк поддерживаются только в форме ставок перевозчика");
  const [headers,data]=rows,fields=controls(form);
  // Earlier rate templates accidentally included the hidden anti-spam field «Сайт».
