@@ -54,14 +54,15 @@ export async function verifyLiveRelease({fetcher = fetch, token, observations} =
     const info = buildFile?.info ?? {};
     const health = healthData ?? {};
 
-    check(manifest.environment === environment && info.environment === environment && info.projectRef === project,
+    check((manifestData == null || manifest.environment === environment) && info.environment === environment && info.projectRef === project,
       'PAGES_ENVIRONMENT_MISMATCH');
     check(health.ok === true && health.environment === environment && health.projectRef === project && !health.qaRun,
       'API_ENVIRONMENT_MISMATCH');
 
     const version = environment === 'production' ? manifest.businessVersion : manifest.primaryBusinessVersion ?? info.primaryBusinessVersion;
     const frontendSha = environment === 'production' ? manifest.frontendSourceCommit : manifest.frontendCommit;
-    const apiVersion = environment === 'production' ? manifest.backendApiVersion : manifest.apiVersion ?? info.lastObservedBackendVersion;
+    const stagingApiVersion = info.sharedStagingRuntime?.version ?? info.lastObservedBackendVersion;
+    const apiVersion = environment === 'production' ? manifest.backendApiVersion : manifest.apiVersion ?? stagingApiVersion;
     const declaredBundle = environment === 'production' ? manifest.backendApiBundleSha256 : manifest.apiBundleSha256;
     check(releaseId.test(version), 'INVALID_RELEASE_VERSION');
     check(sha40.test(frontendSha), 'INVALID_FRONTEND_SHA');
@@ -90,7 +91,7 @@ export async function verifyLiveRelease({fetcher = fetch, token, observations} =
       'PRODUCTION_METADATA_DRIFT');
       requiredAssets.push('release-status.json', 'site-status.json');
     } else {
-      check(info.primaryBusinessVersion === version && info.lastObservedBackendVersion === apiVersion,
+      check(info.primaryBusinessVersion === version && stagingApiVersion === apiVersion,
         'STAGING_METADATA_DRIFT');
       // A historical Git commit or successful health request cannot bind the provider bundle to source.
       check(manifest.runtimePairStatus === 'VERIFIED', 'STAGING_RUNTIME_SOURCE_UNVERIFIED');
@@ -105,8 +106,8 @@ export async function verifyLiveRelease({fetcher = fetch, token, observations} =
     }));
 
     return {
-      environment, version, frontendSha, backendSha: manifest.backendSourceCommit,
-      declaredApiVersion: apiVersion, observedApiVersion: providerValid ? observation.version : null,
+      environment, version: version ?? null, frontendSha: frontendSha ?? null, backendSha: manifest.backendSourceCommit ?? null,
+      declaredApiVersion: apiVersion ?? null, observedApiVersion: providerValid ? observation.version : null,
       observedBundleSha256: providerValid ? observation.ezbr_sha256 : null, verifiedAssets: verified.filter(Boolean).length,
       blockers: blockers.sort()
     };

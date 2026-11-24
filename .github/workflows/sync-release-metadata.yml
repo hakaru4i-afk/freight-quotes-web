@@ -1,11 +1,32 @@
 name: Release metadata audit (read-only; publication via gated workflow only)
 on:
+  pull_request:
+    paths:
+      - '.github/workflows/sync-release-metadata.yml'
+      - 'scripts/release/verify-live-release.mjs'
+      - 'tests/verify-live-release.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
-  audit:
+  verifier-tests:
+    if: >-
+      github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.user.login == 'hakaru4i-afk'
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/verify-live-release.test.mjs
+  audit:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
