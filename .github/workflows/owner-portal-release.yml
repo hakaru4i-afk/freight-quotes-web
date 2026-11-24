@@ -52,7 +52,7 @@ jobs:
 
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     permissions:
       actions: read
@@ -109,7 +109,7 @@ jobs:
   backup:
     needs: verify
     if: inputs.publish
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 85
     steps:
       - uses: actions/checkout@v4
@@ -126,7 +126,7 @@ jobs:
   deploy-pages:
     needs: [verify, backup]
     if: inputs.publish && needs.verify.result == 'success' && needs.backup.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 32
     environment:
       name: github-pages
