@@ -1,5 +1,5 @@
 name: Owner-approved SH72 answer filters publication
-run-name: SH72 · Owner answers date and status filters
+run-name: SH72 · Owner answers date and status filters · verified artifact
 on:
   push:
     branches: [main]
