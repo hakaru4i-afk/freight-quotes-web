@@ -21,7 +21,18 @@ function language(){
  const lang=String(document.documentElement.lang||"ru").toLowerCase();
  return lang.startsWith("zh")?"zh":lang.startsWith("en")?"en":"ru";
 }
-function word(key){return(labels[language()]||labels.ru)[key]||key;}
+function word(key){
+ const lang=language();
+ if(state.role==="carrier"){
+  const carrierLabels={
+   ru:{heading:"Задачи по выигранным перевозкам",empty:"Нет действий по выигранным перевозкам.",failed:"Не удалось проверить выигранные перевозки. Обновите список."},
+   en:{heading:"Tasks for awarded shipments",empty:"No pending work on awarded shipments.",failed:"Could not check awarded shipments. Refresh to try again."},
+   zh:{heading:"已中标运输的待办任务",empty:"目前没有已中标运输的待办事项。",failed:"无法检查中标运输，请刷新重试。"}
+  };
+  if(carrierLabels[lang]?.[key])return carrierLabels[lang][key];
+ }
+ return(labels[lang]||labels.ru)[key]||key;
+}
 function makeTask(id,label,detail,route,order,when){
  const target=availableRoutes.has(route)?route:"approved-shipments";
  return {id:String(id||""),label:short(label,110),detail:short(detail,180),route:target,order:short(order,120),when:when||""};
@@ -100,20 +111,18 @@ async function fetchTask2(role){
  return {tasks,total:tasks.length,errors,supported:true};
 }
 async function fetchCarrier(){
- const outcomes=await Promise.allSettled([fetchTask2("carrier"),get("/api/carrier")]);
- const tasks=[],errors=[];
- if(outcomes[0].status==="fulfilled"){tasks.push(...outcomes[0].value.tasks);errors.push(...outcomes[0].value.errors);}else errors.push("Исполнение перевозок");
- if(outcomes[1].status==="fulfilled"){
-  const d=outcomes[1].value;
-  const quotes=new Set((Array.isArray(d.bids)?d.bids:[]).filter(b=>!["withdrawn","cancelled"].includes(b.decision)).map(b=>String(b.round_id||"")+"::"+String(b.order_code||"")));
-  for(const n of Array.isArray(d.notifications)?d.notifications:[]){
-   if(n.is_current===0||n.is_current===false||n.decline_reason||["approved","rejected","annulled","deleted","completed"].includes(n.workflow_status))continue;
-   if(quotes.has(String(n.round_id||"")+"::"+String(n.order_code||"")))continue;
-   tasks.push(makeTask("invite:"+n.id,word("invitation"),(n.order_code||"")+" · "+short(n.summary,75),"carrier-orders",n.order_code,n.created));
-  }
- }else errors.push("Входящие заявки");
- if(outcomes.every(x=>x.status==="rejected"))return {tasks:[],total:0,errors,supported:true};
- return {tasks,total:tasks.length,errors,supported:true};
+ // This home panel is an execution inbox, NOT a quote-invitation list.
+ // /api/task2?pending=1 returns only the authenticated carrier's awarded
+ // shipments, guarded server-side by the winning offer selection.
+ // Other carriers' wins, open tenders and unawarded invitations belong in
+ // "Мои заявки" / "Мои предложения", never in executable tasks.
+ try{
+  const work=await fetchTask2("carrier");
+  return {tasks:work.tasks,total:work.tasks.length,errors:work.errors,supported:true};
+ }catch(_){
+  // Fail closed: never fall back to invitations or another carrier's tasks.
+  return {tasks:[],total:0,errors:["Исполнение выигранных перевозок"],supported:true};
+ }
 }
 async function fetchSupplier(role){
  const d=await get("/api/supplier-orders");
