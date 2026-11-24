@@ -16,15 +16,30 @@ test('Owner acceptance is the fourth engineering journal and cooperation stays s
   assert.match(owner,/const minskDay=/);
   assert.match(owner,/for\(const id of \['remarks','developments','updates'\]\)/);
 });
-test('Work is only done after Owner status completed, not GitHub merge or release flags',()=>{
+test('Acceptance and publication remain distinct; only the Center can decide',()=>{
   assert.match(owner,/const finished=\(s,job\)=>job\?\.status==='completed'/);
-  assert.match(owner,/const acceptedByOwner=\(row\)=>acceptanceTaskFor\(row\)\?\.status==='completed'/);
-  assert.match(owner,/job\?\.status==='release'/);
-  assert.match(owner,/expectedStatus:'release',status,note/);
-  assert.match(owner,/Подтвердить выполнение/);
-  assert.match(owner,/Вернуть в работу/);
-  assert.match(owner,/Лично проверил/);
-  assert.match(owner,/await feedbackRequest\(\{action:'set_status'/);
+  assert.match(owner,/\/api\/owner-register-execution\?register=/);
+  assert.doesNotMatch(owner,/action:'set_status'/);
+  assert.match(owner,/Приёмка и возврат на доработку доступны в Центре доработок/);
+  const start=owner.indexOf('const acceptanceExecutionFor=');
+  const end=owner.indexOf('async function refreshAcceptance',start);
+  assert.ok(start>=0&&end>start);
+  let job,execution;
+  const state=new Map();
+  const row={register:'developments',id:'test',status:'published'};
+  const probe=new Function('acceptanceExecutions','acceptanceTaskFor',owner.slice(start,end)+';return {acceptedByOwner,approvalState};')(state,()=>job);
+  for(const scenario of [
+    {job:{status:'in_progress'},execution:{decision:'in_progress'},accepted:false,label:'В работе'},
+    {job:{status:'release'},execution:{decision:'review_pending'},accepted:false,label:'На приёмке владельца'},
+    {job:{status:'in_progress'},execution:{decision:'accepted'},accepted:true,label:'Принято; ожидает публикации'},
+    {job:{status:'completed'},execution:{decision:'accepted'},accepted:true,label:'Опубликовано и в архиве'},
+    {job:{status:'release'},execution:undefined,accepted:false,label:'Устаревший статус: требуется сверка'}
+  ]){
+    job=scenario.job;state.clear();if(scenario.execution)state.set('developments:test',scenario.execution);
+    assert.equal(probe.acceptedByOwner(row),scenario.accepted);
+    assert.equal(probe.approvalState(row,job),scenario.label);
+  }
+  assert.match(owner,/acceptanceView==='pending'\)return !acceptedByOwner\(row\)/);
 });
 test('Private engineering archives stay Owner-authenticated and are not embedded as public records',()=>{
   assert.match(owner,/\/api\/engineering-registers\?name=/);

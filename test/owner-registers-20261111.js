@@ -373,7 +373,7 @@ function paintAcceptance(host){
   const job=acceptanceTaskFor(row);
   if(acceptanceView==='today')return String(row.detectedAt||'').slice(0,10)===day;
   if(acceptanceView==='accepted')return acceptedByOwner(row);
-  if(acceptanceView==='pending')return job?.status==='release'||(['fixed_review','checking','ready','published','production_verified'].includes(row.status)&&job?.status!=='completed');
+  if(acceptanceView==='pending')return !acceptedByOwner(row)&&job?.status!=='denied'&&(acceptanceExecutionFor(row)?.decision==='review_pending'||job?.status==='release'||['fixed_review','checking','ready','published','production_verified'].includes(row.status));
   return true;
  }).sort((a,b)=>String(b.detectedAt||'').localeCompare(String(a.detectedAt||''))||String(a.id).localeCompare(String(b.id)));
  const count=selectedRows.length,accepted=selectedRows.filter(acceptedByOwner).length;
