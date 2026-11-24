@@ -9,9 +9,10 @@ permissions:
   id-token: write
 jobs:
   real-qa:
-    if: github.ref == 'refs/heads/main'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
-    runs-on: [self-hosted, Linux, freight-mac-ci-vm]
+    # The isolated credentials broker requires a GitHub-hosted OIDC identity.
+    runs-on: ubuntu-latest
     timeout-minutes: 50
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
@@ -20,13 +21,54 @@ jobs:
       AXE_CORE_PATH: node_modules/axe-core/axe.min.js
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Resolve the immutable candidate from the trusted main lock
+        id: lock
+        run: |
+          node --input-type=module <<'JS' >> "$GITHUB_OUTPUT"
+          import {readLock} from './scripts/release/locked-release.mjs';
+          const lock = readLock();
+          console.log('frontend=' + lock.frontendSha);
+          console.log('backend=' + lock.backendSha);
+          JS
+          frontend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().frontendSha)')
+          git merge-base --is-ancestor "$frontend" "$GITHUB_SHA"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.lock.outputs.frontend }}
+          path: candidate-web
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          ref: ${{ steps.lock.outputs.backend }}
+          path: candidate-backend
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
       - name: Verify native environment main-only policy before using QA credentials
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tests/task12-ci-environment-policy.mjs
+      - name: Verify the live staging assets and deployed isolated API before opening sessions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+          output=$(mktemp -d)
+          node scripts/release/locked-qa-runtime.mjs build candidate-backend "$output/api"
+          node scripts/release/locked-qa-runtime.mjs attest candidate-web "$output/api" "$output/before.json"
+          rm -rf reports
+          {
+            echo "LOCKED_QA_DIR=$output"
+            echo "QA_LOCKED_FRONTEND_DIR=$GITHUB_WORKSPACE/candidate-web"
+            echo "QA_BROWSER_BACKEND_PROOF_FILE=$output/before.json"
+          } >> "$GITHUB_ENV"
       - name: Issue scoped synthetic QA credentials through GitHub OIDC
         run: node tests/task12-ci-oidc-bindings.mjs
       - name: Verify real QA sessions and role identities
@@ -158,7 +200,7 @@ jobs:
           QA_BROWSER_TENDER: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Require every independent acceptance result before declaring success
-        if: always()
+        if: always() && env.LOCKED_QA_DIR != ''
         env:
           QA_RESULT_SECURITY: ${{ steps.security.outcome }}
           QA_RESULT_OWNER_ALIGNMENT: ${{ steps.owner_alignment.outcome }}
@@ -176,6 +218,18 @@ jobs:
           if(failed.length){console.log('QA_ACCEPTANCE_BLOCKED',JSON.stringify(failed));process.exit(1);}
           console.log('QA_INDEPENDENT_ACCEPTANCE_ALL_PASS');
           JS
+      - name: Verify the same live runtime and compile 37 browser and API receipts
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          node scripts/release/locked-qa-runtime.mjs attest candidate-web "$LOCKED_QA_DIR/api" "$LOCKED_QA_DIR/after.json"
+          node scripts/release/locked-e2e-evidence.mjs "$LOCKED_QA_DIR/before.json" "$LOCKED_QA_DIR/after.json" reports "$LOCKED_QA_DIR/evidence"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: locked-release-evidence-attempt-${{ github.run_attempt }}
+          path: ${{ env.LOCKED_QA_DIR }}/evidence/*.json
+          if-no-files-found: error
+          retention-days: 2
       - uses: actions/upload-artifact@v4
         if: always()
         with:

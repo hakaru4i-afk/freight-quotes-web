@@ -7,11 +7,41 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  regression:
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
-    timeout-minutes: 15
+  lock:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.lock.outputs.frontend }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: lock
+        run: |
+          frontend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().frontendSha)')
+          git merge-base --is-ancestor "$frontend" "$GITHUB_SHA"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
+
+  regression:
+    needs: lock
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: candidate
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          path: candidate
+          ref: ${{ needs.lock.outputs.frontend }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -40,19 +70,39 @@ jobs:
       - name: Reject stale process diagrams
         run: node scripts/build-process-maps.mjs --check
       - name: Execute all 37 mapped robot groups
-        run: node tests/task12-robot-runner.mjs
+        env:
+          LOCKED_FRONTEND_SHA: ${{ needs.lock.outputs.frontend }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$LOCKED_FRONTEND_SHA"
+          rm -rf reports
+          GITHUB_SHA="$LOCKED_FRONTEND_SHA" node tests/task12-robot-runner.mjs
+      - name: Bind the fresh robot report to the candidate and dispatch attempt
+        working-directory: .
+        run: |
+          node scripts/release/locked-evidence-run.mjs frontend candidate \
+            candidate/reports/task12-robot-matrix.json candidate/reports/run-receipt.json
       - uses: actions/upload-artifact@v4
-        if: always()
         with:
-          name: release-stabilization-robot-evidence
-          path: reports/
-          retention-days: 14
+          name: locked-frontend-regression-attempt-${{ github.run_attempt }}
+          path: |
+            candidate/reports/task12-robot-matrix.json
+            candidate/reports/run-receipt.json
+          if-no-files-found: error
+          retention-days: 2
 
   complete-regression:
+    needs: lock
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: candidate
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: candidate
+          ref: ${{ needs.lock.outputs.frontend }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -68,13 +118,16 @@ jobs:
       - run: npx playwright install chromium
       - name: Run every frontend test file, including live browser and security regressions
         env:
-          QA_SERVED_EXPECTED_DIR: ${{ github.event_name == 'pull_request' && 'deployed-baseline' || '.' }}
+          LOCKED_FRONTEND_SHA: ${{ needs.lock.outputs.frontend }}
+          QA_SERVED_EXPECTED_DIR: .
         run: |
+          test "$(git rev-parse HEAD)" = "$LOCKED_FRONTEND_SHA"
+          rm -rf reports
           mkdir -p reports
           node --test --test-concurrency=3 --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/full-regression.xml tests/*.test.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: complete-frontend-regression
-          path: reports/
+          path: candidate/reports/full-regression.xml
           retention-days: 14

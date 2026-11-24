@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync, readdirSync} from 'node:fs';
+import {mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -8,6 +8,11 @@ export const web = 'hakaru4i-afk/freight-quotes-web';
 export const backend = 'hakaru4i-afk/freight-quotes';
 export const project = 'ooclsrndeygojtofuyte';
 export const site = 'https://hakaru4i-afk.github.io/freight-quotes-web/';
+export const stagingUrl = new URL('test/', site).href;
+export const qaProject = 'ibclzdkxiozbzmniiygv';
+export const qaRun = 'rc20261110';
+export const qaFunction = 'freight-api-qa-' + qaRun;
+const maxEvidenceAge = 24 * 60 * 60 * 1000;
 export const backupWorkflow = 'issue29-production-backup-gate.yml';
 export const digest = bytes => createHash('sha256').update(bytes).digest('hex');
 export const sha40 = /^[a-f0-9]{40}$/;
@@ -99,53 +104,108 @@ function verifyRun(run, {repo, path, id, sha}) {
     run.status === 'completed' && run.conclusion === 'success', 'RELEASE_PROOF_RUN_MISMATCH:' + path);
 }
 
+export function requireFreshTime(value, start, end) {
+  const time = Date.parse(value);
+  requireCheck(Number.isFinite(time) && time >= start && time <= end, 'RELEASE_EVIDENCE_TIME_MISMATCH');
+}
+
+export function verifyRunReceipt(lock, kind, receipt, run) {
+  requireCheck(receipt?.kind === kind && receipt.frontendSha === lock.frontendSha &&
+    receipt.backendSha === lock.backendSha && receipt.runId === String(run.id) &&
+    receipt.attempt === String(run.run_attempt) && receipt.workflowSha === run.head_sha,
+  'RELEASE_RUN_RECEIPT_MISMATCH:' + kind);
+  requireFreshTime(receipt.generatedAt, Date.parse(run.run_started_at), Date.parse(run.updated_at));
+}
+
+
+export const evidenceWorkflows = {
+  frontend: {path: 'release-stabilization.yml', jobs: ['lock', 'regression', 'complete-regression'], artifact: 'locked-frontend-regression'},
+  backend: {path: 'locked-backend-regression.yml', jobs: ['regression', 'backup-safety', 'schema-transition'], artifact: 'locked-backend-regression'},
+  e2e: {path: 'isolated-qa-oidc-browser.yml', jobs: ['real-qa'], artifact: 'locked-release-evidence'}
+};
+
+export function verifyEvidenceRun(kind, run, jobs, artifacts, id, now = Date.now()) {
+  const {path, jobs: required, artifact} = evidenceWorkflows[kind];
+  verifyRun(run, {repo: web, path, id});
+  requireCheck(run.head_repository?.full_name === web && sha40.test(run.head_sha) &&
+    run.actor?.login === 'hakaru4i-afk' && run.triggering_actor?.login === 'hakaru4i-afk' &&
+    validId(run.run_attempt), 'UNTRUSTED_RELEASE_PROOF_RUN:' + kind);
+  requireFreshTime(run.run_started_at, now - maxEvidenceAge, now);
+  requireFreshTime(run.updated_at, Date.parse(run.run_started_at), now);
+  requireCheck(Array.isArray(jobs?.jobs) && jobs.total_count === jobs.jobs.length && required.every(name => jobs.jobs.filter(job =>
+    job.name === name && job.run_attempt === run.run_attempt &&
+    job.status === 'completed' && job.conclusion === 'success').length === 1), 'REQUIRED_RELEASE_JOB_NOT_PASSED');
+  const label = artifact + '-attempt-' + run.run_attempt;
+  const matches = artifacts?.artifacts?.filter(item => item.name === label);
+  requireCheck(Array.isArray(artifacts?.artifacts) && artifacts.total_count === artifacts.artifacts.length && matches?.length === 1 &&
+    validId(matches[0].id) && matches[0].expired === false && Date.parse(matches[0].expires_at) > now,
+  'RELEASE_PROOF_ARTIFACT_MISSING_OR_EXPIRED:' + kind);
+  requireFreshTime(matches[0].created_at, Date.parse(run.run_started_at), Date.parse(run.updated_at));
+  return label;
+}
+
+export function verifyRegressionReceipt(lock, kind, receipt, run, bytes) {
+  verifyRunReceipt(lock, kind, receipt, run);
+  const expected = kind === 'frontend' ? lock.frontendSha : lock.backendSha;
+  requireCheck(receipt.sourceSha === expected && receipt.reportSha256 === digest(bytes), 'REGRESSION_SOURCE_OR_REPORT_MISMATCH:' + kind);
+}
+
+export function verifyE2eReceipt(lock, pair, e2eBytes, run, backendReceipt) {
+  verifyRunReceipt(lock, 'e2e', pair, run);
+  const e2e = JSON.parse(e2eBytes);
+  requireCheck(e2e.runId === pair.runId && e2e.attempt === pair.attempt && e2e.workflowSha === pair.workflowSha,
+    'E2E_REPORT_RUN_MISMATCH');
+  requireCheck(Array.isArray(e2e.scenarios) && e2e.scenarios.every(scenario => {
+    const evidence = scenario.evidence;
+    return Array.isArray(evidence?.sources) &&
+      evidence.sources.every(source => sha64.test(source.sha256)) &&
+      evidence.sources.some(source => /^.+\/browser-results-.+\.json$/.test(source.file)) &&
+      evidence.traceId === digest(JSON.stringify(evidence.sources));
+  }), 'E2E_SCENARIO_RECEIPT_MISMATCH');
+  requireCheck(pair.e2eReportSha256 === digest(e2eBytes) &&
+    pair.stagingUrl === stagingUrl && pair.qaProject === qaProject && pair.apiFunction === qaFunction && validId(pair.apiVersion) &&
+    pair.qaEntrySha256 === backendReceipt.qaEntrySha256 && sha64.test(pair.qaEntrySha256) &&
+    sha64.test(pair.servedIndexSha256) && sha64.test(pair.servedAppSha256), 'E2E_RUNTIME_RECEIPT_MISMATCH');
+}
+
 function fetchEvidence(lock, env) {
-  const webToken = env.WEB_TOKEN;
-  const backendToken = env.BACKEND_RELEASE_TOKEN;
-  const entries = [
-    [web, 'release-stabilization.yml', env.FRONTEND_RUN_ID, lock.frontendSha, webToken, 'release-stabilization-robot-evidence', 'frontend'],
-    [backend, 'release-stabilization.yml', env.BACKEND_RUN_ID, lock.backendSha, backendToken, 'release-migration-and-support-evidence', 'backend']
-  ];
-  const root = resolve(env.RUNNER_TEMP, 'locked-candidate-evidence');
-  for (const [repo, path, id, sha, token, artifact, folder] of entries) {
-    requireCheck(validId(id), 'RELEASE_PROOF_RUN_ID_REQUIRED:' + folder);
-    const base = 'repos/' + repo + '/actions/runs/' + id;
-    verifyRun(ghJson(base, token), {repo, path, id, sha});
-    const expected = folder === 'frontend' ? ['regression', 'complete-regression'] : ['regression', 'schema-transition'];
-    const result = ghJson(base + '/jobs?per_page=100', token);
-    requireCheck(result.total_count === result.jobs?.length && expected.every(name => result.jobs.some(job =>
-      job.name === name && job.status === 'completed' && job.conclusion === 'success')), 'REQUIRED_RELEASE_JOB_NOT_PASSED');
-    gh(['run', 'download', id, '--repo', repo, '--name', artifact, '--dir', resolve(root, folder)], token);
+  const token = env.WEB_TOKEN;
+  const root = mkdtempSync(resolve(env.RUNNER_TEMP, 'locked-candidate-evidence-'));
+  try {
+    const runs = {};
+    for (const kind of Object.keys(evidenceWorkflows)) {
+      const id = env[kind.toUpperCase() + '_RUN_ID'];
+      requireCheck(validId(id), 'RELEASE_PROOF_RUN_ID_REQUIRED:' + kind);
+      const base = 'repos/' + web + '/actions/runs/' + id;
+      const run = ghJson(base, token);
+      requireCheck(validId(run.run_attempt), 'INVALID_RELEASE_PROOF_ATTEMPT');
+      const jobs = ghJson(base + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
+      const artifacts = ghJson(base + '/artifacts?per_page=100', token);
+      const artifactName = verifyEvidenceRun(kind, run, jobs, artifacts, id);
+      gh(['run', 'download', id, '--repo', web, '--name', artifactName, '--dir', resolve(root, kind)], token);
+      const current = ghJson(base, token);
+      requireCheck(current.run_attempt === run.run_attempt && current.status === 'completed' &&
+        current.conclusion === 'success', 'RELEASE_PROOF_RUN_CHANGED:' + kind);
+      runs[kind] = run;
+    }
+    const bytes = (kind, name) => {
+      const files = readdirSync(resolve(root, kind), {withFileTypes: true});
+      requireCheck(files.some(file => file.isFile() && file.name === name), 'RELEASE_EVIDENCE_FILE_MISSING:' + name);
+      return readFileSync(resolve(root, kind, name));
+    };
+    const read = (kind, name) => JSON.parse(bytes(kind, name));
+    const regression = bytes('frontend', 'task12-robot-matrix.json');
+    const security = bytes('backend', 'schema-transition-rehearsal.json');
+    const backendReceipt = read('backend', 'run-receipt.json');
+    const pair = read('e2e', 'release-gate-pair.json');
+    const e2e = bytes('e2e', 'private-authenticated-e2e.json');
+    verifyRegressionReceipt(lock, 'frontend', read('frontend', 'run-receipt.json'), runs.frontend, regression);
+    verifyRegressionReceipt(lock, 'backend', backendReceipt, runs.backend, security);
+    verifyE2eReceipt(lock, pair, e2e, runs.e2e, backendReceipt);
+    verifyCandidateEvidence(lock, {pair, regression: JSON.parse(regression), security: JSON.parse(security), e2e: JSON.parse(e2e)});
+  } finally {
+    rmSync(root, {recursive: true, force: true});
   }
-  const e2eId = env.E2E_RUN_ID;
-  requireCheck(validId(e2eId), 'RELEASE_PROOF_RUN_ID_REQUIRED:e2e');
-  const audit = ghJson('repos/' + web + '/actions/runs/' + e2eId, webToken);
-  // This trusted historical workflow can attest an exact pair. Its name is a GitHub identity,
-  // and no old business version is used to authorize the next release.
-  const legacyAudit = audit.workflow_id === 425270795;
-  const path = legacyAudit ? 'sh59-protected-37-audit.yml' : 'isolated-qa-oidc-browser.yml';
-  const artifact = legacyAudit ? 'sh59-protected-37-audit-summary' : 'locked-release-evidence';
-  verifyRun(audit, {repo: web, path, id: e2eId});
-  gh(['run', 'download', e2eId, '--repo', web, '--name', artifact, '--dir', resolve(root, 'e2e')], webToken);
-  const read = (folder, name) => {
-    const directory = resolve(root, folder);
-    const matches = readdirSync(directory, {recursive: true, withFileTypes: true}).filter(file => file.isFile() && file.name === name);
-    requireCheck(matches.length === 1, 'RELEASE_EVIDENCE_FILE_NOT_UNIQUE:' + name.toUpperCase());
-    return JSON.parse(readFileSync(resolve(matches[0].parentPath, name), 'utf8'));
-  };
-  const e2e = read('e2e', 'private-authenticated-e2e.json');
-  const pair = legacyAudit ? {
-    frontendSha: e2e.frontendSha, servedFrontendSha: e2e.frontendSha, backendSha: e2e.backendSha,
-    apiBundleSha256: e2e.backendBundle, servedApiVerified:
-      e2e.publishedAcceptance?.site === new URL('test/', site).href &&
-      sha64.test(e2e.publishedAcceptance?.receiptSha256) && e2e.publishedAcceptance?.verifiedBrowserReceipts > 0
-  } : read('e2e', 'release-gate-pair.json');
-  verifyCandidateEvidence(lock, {
-    pair,
-    regression: read('frontend', 'task12-robot-matrix.json'),
-    security: read('backend', 'schema-transition-rehearsal.json'),
-    e2e
-  });
 }
 
 export function verifyBackup(run, jobs, proof, {id, parent}) {

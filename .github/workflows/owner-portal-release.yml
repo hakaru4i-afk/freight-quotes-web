@@ -5,7 +5,10 @@ on:
     paths:
       - .github/workflows/owner-portal-release.yml
       - release-lock.json
-      - scripts/release/locked-release*.mjs
+      - scripts/release/locked-*.mjs
+      - .github/workflows/release-stabilization.yml
+      - .github/workflows/locked-backend-regression.yml
+      - .github/workflows/isolated-qa-oidc-browser.yml
       - tests/locked-release.test.mjs
   workflow_dispatch:
     inputs:
@@ -89,7 +92,7 @@ jobs:
       - run: node --test tests/locked-release.test.mjs
 
   verify:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     permissions:
@@ -169,7 +172,6 @@ jobs:
           BACKEND_RUN_ID: ${{ inputs.backend_run_id }}
           E2E_RUN_ID: ${{ inputs.e2e_run_id }}
           WEB_TOKEN: ${{ github.token }}
-          BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
         run: node scripts/release/locked-release.mjs evidence
 
   backup:

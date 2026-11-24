@@ -1,0 +1,236 @@
+name: Locked API regression
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: locked-api-regression
+  cancel-in-progress: false
+jobs:
+  regression:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: candidate
+    steps:
+      - name: Verify isolated free macOS QA runner
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = macOS
+          test "$(uname -m)" = arm64
+          test "$(id -un)" = freight-qa
+          test "$HOME" = /Users/freight-qa
+          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: lock
+        working-directory: .
+        run: |
+          backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          path: candidate
+          ref: ${{ steps.lock.outputs.backend }}
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify complete source checkout on reused Mac runner
+        env:
+          LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$LOCKED_BACKEND_SHA"
+          git merge-base --is-ancestor "$LOCKED_BACKEND_SHA" refs/remotes/origin/main
+          git sparse-checkout disable
+          git restore --source=HEAD --worktree -- .
+          git ls-files -- tests/ | grep -q 'tests/task-release-readiness.test.mjs'
+          for required in tests/task-release-readiness.test.mjs tests/issue17-api.test.mjs tests/issue17-official-export.test.mjs tests/test_backup_capture_restore.py; do
+            test -s "$required" || { echo "::error::MISSING_CHECKOUT_FILE:$required"; exit 1; }
+          done
+          tracked=$(git ls-files -- 'tests/*.test.mjs' | wc -l | tr -d ' ')
+          actual=$(find tests -maxdepth 1 -type f -name '*.test.mjs' | wc -l | tr -d ' ')
+          echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
+          test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
+          echo MAC_SOURCE_TREE_COMPLETE
+      - run: node --test tests/*.test.mjs
+
+  backup-safety:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 5
+    defaults:
+      run:
+        working-directory: candidate
+    steps:
+      - name: Verify isolated free macOS QA runner
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = macOS
+          test "$(uname -m)" = arm64
+          test "$(id -un)" = freight-qa
+          test "$HOME" = /Users/freight-qa
+          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: lock
+        working-directory: .
+        run: |
+          backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          path: candidate
+          ref: ${{ steps.lock.outputs.backend }}
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify complete source checkout on reused Mac runner
+        env:
+          LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$LOCKED_BACKEND_SHA"
+          git merge-base --is-ancestor "$LOCKED_BACKEND_SHA" refs/remotes/origin/main
+          git sparse-checkout disable
+          git restore --source=HEAD --worktree -- .
+          git ls-files -- tests/ | grep -q 'tests/task-release-readiness.test.mjs'
+          for required in tests/task-release-readiness.test.mjs tests/issue17-api.test.mjs tests/issue17-official-export.test.mjs tests/test_backup_capture_restore.py; do
+            test -s "$required" || { echo "::error::MISSING_CHECKOUT_FILE:$required"; exit 1; }
+          done
+          tracked=$(git ls-files -- 'tests/*.test.mjs' | wc -l | tr -d ' ')
+          actual=$(find tests -maxdepth 1 -type f -name '*.test.mjs' | wc -l | tr -d ' ')
+          echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
+          test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
+          echo MAC_SOURCE_TREE_COMPLETE
+      - run: python3 -m unittest discover -s tests -p 'test_backup*.py'
+
+  schema-transition:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: candidate
+    steps:
+      - name: Verify isolated free macOS QA runner
+        working-directory: .
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$RUNNER_OS" = macOS
+          test "$(uname -m)" = arm64
+          test "$(id -un)" = freight-qa
+          test "$HOME" = /Users/freight-qa
+          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - id: lock
+        working-directory: .
+        run: |
+          backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          path: candidate
+          ref: ${{ steps.lock.outputs.backend }}
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify complete source checkout on reused Mac runner
+        env:
+          LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$LOCKED_BACKEND_SHA"
+          git merge-base --is-ancestor "$LOCKED_BACKEND_SHA" refs/remotes/origin/main
+          git sparse-checkout disable
+          git restore --source=HEAD --worktree -- .
+          git ls-files -- tests/ | grep -q 'tests/task-release-readiness.test.mjs'
+          for required in tests/task-release-readiness.test.mjs tests/issue17-api.test.mjs tests/issue17-official-export.test.mjs tests/test_backup_capture_restore.py; do
+            test -s "$required" || { echo "::error::MISSING_CHECKOUT_FILE:$required"; exit 1; }
+          done
+          tracked=$(git ls-files -- 'tests/*.test.mjs' | wc -l | tr -d ' ')
+          actual=$(find tests -maxdepth 1 -type f -name '*.test.mjs' | wc -l | tr -d ' ')
+          echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
+          test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
+          echo MAC_SOURCE_TREE_COMPLETE
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Start isolated Colima Docker engine for synthetic PostgreSQL only
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v colima >/dev/null || { echo '::error::COLIMA_BINARY_MISSING'; exit 1; }
+          if ! docker info >/dev/null 2>&1; then
+            colima start --cpu 2 --memory 4
+          fi
+          docker info >/dev/null
+          echo 'COLIMA_SYNTHETIC_POSTGRES_READY'
+      - name: Fetch pinned synthetic PostgreSQL runtime
+        run: docker pull postgres@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+      - name: Rebuild and verify reviewed migration
+        run: |
+          python3 scripts/release/build-schema-transition.py --migration supabase/migrations/20261115063446_portal_release_20261115.sql
+          git diff --exit-code -- supabase/migrations docs/releases/PROD-GO-LIVE-20261114/production-baseline-structure.sql docs/releases/PROD-GO-LIVE-20261114/release-transition-manifest.json
+      - name: Rehearse preserved rows, rollback and shipment constraints
+        run: |
+          rm -f docs/releases/PROD-GO-LIVE-20261114/evidence/schema-transition-rehearsal.json
+          python3 tests/schema-transition-rehearsal.py
+      - name: Install pinned PostgreSQL test client
+        run: npm install --prefix "$RUNNER_TEMP/freight-tools" --no-audit --no-fund postgres@3.4.7
+      - name: Verify independent support inbox against PostgreSQL
+        env:
+          QA_POSTGRES_MODULE: ${{ runner.temp }}/freight-tools/node_modules/postgres/src/index.js
+        run: node tests/support-requests-integration.mjs
+      - name: Verify final settlement, concurrency and claim closure guards
+        env:
+          QA_POSTGRES_MODULE: ${{ runner.temp }}/freight-tools/node_modules/postgres/src/index.js
+        run: node tests/final-settlement-integration.mjs
+      - name: Verify shipment and chat list performance without changing access
+        env:
+          QA_POSTGRES_MODULE: ${{ runner.temp }}/freight-tools/node_modules/postgres/src/index.js
+          PERFORMANCE_REPORT: docs/releases/PROD-GO-LIVE-20261114/evidence/issue99-postgres-performance.json
+        run: node tests/shipment-list-read-integration.mjs
+      - name: Bind the fresh schema report and reproducible QA package to the lock
+        working-directory: .
+        run: |
+          output=$(mktemp -d)
+          node scripts/release/locked-qa-runtime.mjs build candidate "$output/api"
+          mkdir -p "$output/evidence"
+          report=docs/releases/PROD-GO-LIVE-20261114/evidence/schema-transition-rehearsal.json
+          cp "candidate/$report" "$output/evidence/"
+          node scripts/release/locked-evidence-run.mjs backend candidate "$output/evidence/schema-transition-rehearsal.json" \
+            "$output/evidence/run-receipt.json" "$output/api/package-proof.json"
+          echo "LOCKED_EVIDENCE_DIR=$output/evidence" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: locked-backend-regression-attempt-${{ github.run_attempt }}
+          path: ${{ env.LOCKED_EVIDENCE_DIR }}/*.json
+          if-no-files-found: error
+          retention-days: 2
