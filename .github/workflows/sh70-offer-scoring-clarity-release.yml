@@ -1,0 +1,126 @@
+name: Owner-approved SH70 clear offer scoring publication (one shot)
+run-name: SH70 · Offer score 97 is high, not worst
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh70-offer-scoring-clarity-release.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release(scoring): approved SH70 high-quality offers')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify approved SHA of scoring candidate and regression tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD:release/candidates/offer-scoring-clear-status-sh70.mjs')" = cb906da865809115335f02acdb63c65f75f63ecb
+          node --check release/candidates/offer-scoring-clear-status-sh70.mjs
+          node --check scripts/release/sh70-offer-scoring-clarity-publish.mjs
+          node --test tests/owner-offer-status-clarity-sh70.test.mjs tests/owner-offer-scoring-r3.test.mjs
+          echo SH70_HIGH_SCORE_REGRESSION_PASS
+      - name: Check Owner-only backend API access remains enforced
+        shell: bash
+        run: |
+          set -euo pipefail
+          api='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks'
+          status="$(curl -sSL --retry 2 --max-time 25 -o "$RUNNER_TEMP/owner-api.json" -w '%{http_code}' "$api")"
+          test "$status" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/owner-api.json"
+      - name: Assemble complete SH70 Pages from exact published SH69 hashes
+        run: node scripts/release/sh70-offer-scoring-clarity-publish.mjs
+      - name: Check packed code, signed assets and card explanation
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/offer-scoring.mjs release/candidates/offer-scoring-clear-status-sh70.mjs
+          node --check .release-pages/offer-scoring.mjs
+          node --check .release-pages/app.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const m=assertProductionReleaseIntegrity('.release-pages');
+          const b=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
+          const app=readFileSync('.release-pages/app.js','utf8');
+          assert.equal(m.businessVersion,'SH-01.30.70 v');
+          assert.equal(b.releaseVersion,m.businessVersion);
+          assert.equal(m.offerScoreClarity.materiallyWorseCeiling,69);
+          assert.equal(m.offerScoreClarity.materialGapMin,10);
+          assert.equal(m.offerScoreClarity.scoreMathUnchanged,true);
+          assert.match(app,/Условия ставки: /);
+          assert.match(app,/c\.statusExplanation/);
+          assert.match(app,/offer-scoring\.mjs\?v=[a-f0-9]{12}/);
+          assert.doesNotMatch(app,/Категория: "\+c\.category/);
+          console.log('SH70_SHA256_PACKAGE_AND_CARD_UI_PASS',Object.keys(m.assets).length);
+          NODE
+      - name: Reject changed main source after packaging
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$GITHUB_SHA"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify public SH70 version and exact published scorer, app and manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          url='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for i in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$url/build-info.json?sh70=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-build.json" &&
+               curl -fsSL --max-time 20 "$url/production-release-manifest.json?sh70=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-manifest.json" &&
+               curl -fsSL --max-time 20 "$url/index.html?sh70=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-index.html" &&
+               curl -fsSL --max-time 20 "$url/offer-scoring.mjs?sh70=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-scoring.mjs" &&
+               curl -fsSL --max-time 20 "$url/app.js?sh70=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-app.js" &&
+               cmp -s "$RUNNER_TEMP/live-scoring.mjs" release/candidates/offer-scoring-clear-status-sh70.mjs &&
+               cmp -s "$RUNNER_TEMP/live-app.js" .release-pages/app.js &&
+               cmp -s "$RUNNER_TEMP/live-index.html" .release-pages/index.html &&
+               cmp -s "$RUNNER_TEMP/live-manifest.json" .release-pages/production-release-manifest.json &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.70 v"&&m.businessVersion===b.releaseVersion&&m.offerScoreClarity?.materiallyWorseCeiling===69?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+              echo SH70_PRODUCTION_LIVE_SHA256_AND_UI_VERIFIED
+              break
+            fi
+            if [ "$i" = 30 ]; then echo "::error::SH70_LIVE_PAGES_NOT_VERIFIED"; exit 1; fi
+            sleep 5
+          done
+      - name: Mirror ONLY verified SH70 public assets to main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in offer-scoring.mjs app.js index.html build-info.json release-status.json site-status.json production-release-manifest.json; do
+            cp ".release-pages/$f" "$f"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add offer-scoring.mjs app.js index.html build-info.json release-status.json site-status.json production-release-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.70 v verified offer scoring clarity'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH70_LIVE_AND_MAIN_SOURCE_SYNC_COMPLETE
