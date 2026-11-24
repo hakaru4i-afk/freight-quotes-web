@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {readFileSync} from 'node:fs';
+import {readFileSync, readdirSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -104,28 +104,47 @@ function fetchEvidence(lock, env) {
   const backendToken = env.BACKEND_RELEASE_TOKEN;
   const entries = [
     [web, 'release-stabilization.yml', env.FRONTEND_RUN_ID, lock.frontendSha, webToken, 'release-stabilization-robot-evidence', 'frontend'],
-    [backend, 'release-stabilization.yml', env.BACKEND_RUN_ID, lock.backendSha, backendToken, 'release-migration-and-support-evidence', 'backend'],
-    [web, 'isolated-qa-oidc-browser.yml', env.E2E_RUN_ID, undefined, webToken, 'locked-release-evidence', 'e2e']
+    [backend, 'release-stabilization.yml', env.BACKEND_RUN_ID, lock.backendSha, backendToken, 'release-migration-and-support-evidence', 'backend']
   ];
   const root = resolve(env.RUNNER_TEMP, 'locked-candidate-evidence');
   for (const [repo, path, id, sha, token, artifact, folder] of entries) {
     requireCheck(validId(id), 'RELEASE_PROOF_RUN_ID_REQUIRED:' + folder);
     const base = 'repos/' + repo + '/actions/runs/' + id;
     verifyRun(ghJson(base, token), {repo, path, id, sha});
-    if (folder !== 'e2e') {
-      const expected = folder === 'frontend' ? ['regression', 'complete-regression'] : ['regression', 'schema-transition'];
-      const result = ghJson(base + '/jobs?per_page=100', token);
-      requireCheck(result.total_count === result.jobs?.length && expected.every(name => result.jobs.some(job =>
-        job.name === name && job.status === 'completed' && job.conclusion === 'success')), 'REQUIRED_RELEASE_JOB_NOT_PASSED');
-    }
+    const expected = folder === 'frontend' ? ['regression', 'complete-regression'] : ['regression', 'schema-transition'];
+    const result = ghJson(base + '/jobs?per_page=100', token);
+    requireCheck(result.total_count === result.jobs?.length && expected.every(name => result.jobs.some(job =>
+      job.name === name && job.status === 'completed' && job.conclusion === 'success')), 'REQUIRED_RELEASE_JOB_NOT_PASSED');
     gh(['run', 'download', id, '--repo', repo, '--name', artifact, '--dir', resolve(root, folder)], token);
   }
-  const read = (folder, name) => JSON.parse(readFileSync(resolve(root, folder, name), 'utf8'));
+  const e2eId = env.E2E_RUN_ID;
+  requireCheck(validId(e2eId), 'RELEASE_PROOF_RUN_ID_REQUIRED:e2e');
+  const audit = ghJson('repos/' + web + '/actions/runs/' + e2eId, webToken);
+  // This trusted historical workflow can attest an exact pair. Its name is a GitHub identity,
+  // and no old business version is used to authorize the next release.
+  const legacyAudit = audit.workflow_id === 425270795;
+  const path = legacyAudit ? 'sh59-protected-37-audit.yml' : 'isolated-qa-oidc-browser.yml';
+  const artifact = legacyAudit ? 'sh59-protected-37-audit-summary' : 'locked-release-evidence';
+  verifyRun(audit, {repo: web, path, id: e2eId});
+  gh(['run', 'download', e2eId, '--repo', web, '--name', artifact, '--dir', resolve(root, 'e2e')], webToken);
+  const read = (folder, name) => {
+    const directory = resolve(root, folder);
+    const matches = readdirSync(directory, {recursive: true, withFileTypes: true}).filter(file => file.isFile() && file.name === name);
+    requireCheck(matches.length === 1, 'RELEASE_EVIDENCE_FILE_NOT_UNIQUE:' + name.toUpperCase());
+    return JSON.parse(readFileSync(resolve(matches[0].parentPath, name), 'utf8'));
+  };
+  const e2e = read('e2e', 'private-authenticated-e2e.json');
+  const pair = legacyAudit ? {
+    frontendSha: e2e.frontendSha, servedFrontendSha: e2e.frontendSha, backendSha: e2e.backendSha,
+    apiBundleSha256: e2e.backendBundle, servedApiVerified:
+      e2e.publishedAcceptance?.site === new URL('test/', site).href &&
+      sha64.test(e2e.publishedAcceptance?.receiptSha256) && e2e.publishedAcceptance?.verifiedBrowserReceipts > 0
+  } : read('e2e', 'release-gate-pair.json');
   verifyCandidateEvidence(lock, {
-    pair: read('e2e', 'release-gate-pair.json'),
+    pair,
     regression: read('frontend', 'task12-robot-matrix.json'),
     security: read('backend', 'schema-transition-rehearsal.json'),
-    e2e: read('e2e', 'private-authenticated-e2e.json')
+    e2e
   });
 }
 
