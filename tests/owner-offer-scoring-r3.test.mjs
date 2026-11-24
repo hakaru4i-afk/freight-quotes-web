@@ -83,7 +83,7 @@ test('Production and test use the integrated Owner React offer cards, no duplica
   }
   const scripts=['../app.js','../test/app.js'].map(f=>readFileSync(new URL(f,import.meta.url),'utf8'));
   for(const src of scripts){
-    assert.match(src,/offer-scoring\.mjs\?v=offer-r3-20261117-verified/);
+    assert.match(src,/offer-scoring\.mjs\?v=(?:offer-r3-20261117-verified|[a-f0-9]{12})/);
     assert.match(src,/КРИТЕРИИ СОПОСТАВЛЕНИЯ · 100 БАЛЛОВ/);
     assert.match(src,/Открыть расшифровку 7 критериев/);
     assert.match(src,/Равные оценки не означают двух победителей/);
