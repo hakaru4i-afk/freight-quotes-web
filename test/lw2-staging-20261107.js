@@ -5,8 +5,8 @@
  const modes=[
    {key:"auto",name:"Авто",caption:"Автоперевозки",icon:"🚚",color:"#21d7a1",test:/авто|truck|road|car\b|automobile|фура|公路|汽车|汽車/i},
    {key:"rail",name:"Ж/Д",caption:"Железнодорожные",icon:"🚆",color:"#40aeff",test:/ж\s*[\/\.\-–—]?\s*д|железнодор|rail|train|поезд|铁路|鐵路/i},
-   {key:"sea",name:"Море",caption:"Морские",icon:"🚢",color:"#a779ff",test:/мор|sea|ocean|ship|vessel|судно|海运|海運/i},
-   {key:"air",name:"Авиа",caption:"Авиаперевозки",icon:"✈",color:"#ffb85c",test:/авиа|air|flight|самол[её]т|航空|空运|空運/i},
+   {key:"sea",name:"Море",caption:"Морские",icon:"🚢",color:"#a779ff",test:/мор|\bsea\b|\bocean\b|\bship\b|\bvessel\b|судно|海运|海運/i},
+   {key:"air",name:"Авиа",caption:"Авиаперевозки",icon:"✈",color:"#ffb85c",test:/авиа|\bair\b|\bflight\b|самол[её]т|航空|空运|空運/i},
    {key:"multi",name:"Мультимодал",caption:"Смешанные",icon:"⇄",color:"#e9a2d3",test:/мульт|multi|смешан|多式联运|多式聯運/i}
  ];
  let loaded=false,stats=null,renderedKey="",waiting=false;
