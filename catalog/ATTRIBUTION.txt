@@ -1,0 +1,3 @@
+ODbL 1.0; OpenStreetMap contributors; extracts by Geofabrik
+https://www.openstreetmap.org/copyright
+Public source data only. Country is source extract. Not authoritative station-code confirmation; no exact cargo location inferred.
