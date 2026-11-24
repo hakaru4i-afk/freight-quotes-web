@@ -6,6 +6,7 @@ concurrency:
   cancel-in-progress: false
 permissions:
   contents: read
+  actions: read
 jobs:
   real-qa:
     if: github.ref == 'refs/heads/main'

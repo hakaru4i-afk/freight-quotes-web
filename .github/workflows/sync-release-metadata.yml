@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/sync-release-metadata.yml'
+      - '.github/workflows/isolated-qa-oidc-browser.yml'
+      - '.github/workflows/isolated-qa-published-browser.yml'
       - 'scripts/release/verify-live-release.mjs'
       - 'tests/verify-live-release.test.mjs'
   workflow_dispatch:
@@ -15,6 +17,9 @@ jobs:
       github.event.pull_request.user.login == 'hakaru4i-afk'
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 8
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +27,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/verify-live-release.test.mjs
+      - run: node --test tests/verify-live-release.test.mjs tests/task12-ci-environment-policy.test.mjs
+      - name: Verify GitHub Actions can read the native main-only QA policy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module - <<'JS'
+          import {execFileSync} from 'node:child_process';
+          import {validateEnvironmentPolicy} from './tests/task12-ci-environment-policy.mjs';
+          const base = 'repos/' + process.env.GITHUB_REPOSITORY + '/environments/isolated-qa';
+          const get = path => JSON.parse(execFileSync('gh', ['api', path], {encoding: 'utf8'}));
+          validateEnvironmentPolicy(get(base), get(base + '/deployment-branch-policies'));
+          console.log('QA environment policy verified using the workflow read token');
+          JS
   audit:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk'
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
