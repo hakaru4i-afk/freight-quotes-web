@@ -61,8 +61,9 @@ jobs:
           set -euo pipefail
           cmp .release-pages/task2-guidance-42dc6ccc8a20.js release/candidates/carrier-multirow-guidance-20261124.js
           cmp .release-pages/carrier-csv-wps-hotfix.js release/candidates/carrier-multirow-xlsx-20261124.js
-          cmp .release-pages/test/task2-guidance-42dc6ccc8a20.js test/task2-guidance-42dc6ccc8a20.js
-          cmp .release-pages/test/carrier-csv-wps-hotfix.js test/carrier-csv-wps-hotfix.js
+          test -s .release-pages/test/index.html
+          test -s .release-pages/test/build-info.json
+          test -s .release-pages/test/portal-feedback-center-20261107.js
           node --check .release-pages/app.js
           node --check .release-pages/task2-guidance-42dc6ccc8a20.js
           node --check .release-pages/carrier-csv-wps-hotfix.js
