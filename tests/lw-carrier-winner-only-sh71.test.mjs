@@ -85,10 +85,10 @@ test("Carrier-only heading says awarded work; other role titles remain unchanged
  assert.equal(api.word("heading"),"Задачи, ожидающие выполнения");
 });
 
-test("Published SH70 home and signed staging remain untouched before protected SH71",()=>{
+test("Published SH71 carrier winner-only home stays aligned; signed staging remains untouched",()=>{
  const p=readFileSync("lw-pending-tasks-all-roles-20261109.js","utf8");
  const staging=readFileSync("test/lw-pending-tasks-all-roles-20261109.js","utf8");
- assert.notEqual(p,source);
+ assert.equal(p,source);
  assert.notEqual(staging,source);
  assert.match(source,/async function fetchCarrier\(\)/);
  assert.doesNotMatch(source,/tasks.push\(makeTask\("invite:"/);
