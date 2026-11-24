@@ -80,7 +80,9 @@
     reset.addEventListener("click",()=>{Object.assign(state,{from:"",to:"",query:"",carrier:"",status:"all"});box.querySelectorAll("input").forEach(el=>el.value="");select.value="all";apply();});
     count=document.createElement("span");count.setAttribute("aria-live","polite");count.style.fontSize="12px";
     actions.append(reset,count);box.append(actions);
-    table.parentElement?.insertBefore(box,table.parentElement===table.closest(".tablewrap")?table.parentElement:table);
+    const wrapper=table.closest(".tablewrap");
+    if(wrapper?.parentNode)wrapper.parentNode.insertBefore(box,wrapper);
+    else table.parentNode?.insertBefore(box,table);
     controls=box;apply();
   };
   let scheduled=false;
