@@ -30,6 +30,11 @@ on:
       task_description:
         required: true
         type: string
+      continue_after_merged:
+        description: 'Continue an unfinished task after a previously merged partial PR'
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: write
   issues: write
@@ -51,6 +56,7 @@ jobs:
       TASK_BASE_SHA: ${{ inputs.base_sha }}
       TASK_TITLE: ${{ inputs.task_title }}
       TASK_DESCRIPTION: ${{ inputs.task_description }}
+      CONTINUE_AFTER_MERGED: ${{ inputs.continue_after_merged }}
     steps:
       - name: Set up per-attempt diagnostics
         shell: bash
@@ -109,15 +115,41 @@ jobs:
           echo "TASK_HEAD=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
 
           echo CODEX_PR_LOOKUP_FAILED > "$OWNER_CODEX_TEMP/failure"
-          existing_pr="$(gh pr list --state all --base main --head "$branch" --json state,url,isCrossRepository \
-            --jq 'map(select(.isCrossRepository == false and (.state == "OPEN" or .state == "MERGED"))) | first | .url // empty')"
+          existing_pr="$(gh pr list --state open --base main --head "$branch" --json url,isCrossRepository \
+            --jq 'map(select(.isCrossRepository == false)) | first | .url // empty')"
           if [ -n "$existing_pr" ]; then
-            echo "Existing task PR: $existing_pr" >> "$GITHUB_STEP_SUMMARY"
+            echo "Existing open task PR (no new generation): $existing_pr" >> "$GITHUB_STEP_SUMMARY"
             echo 'mode=done' >> "$GITHUB_OUTPUT"
-          elif [ "$(git log -1 --format='%(trailers:key=Owner-Codex-Dispatch,valueonly)')" = "$TASK_UUID" ]; then
-            echo 'mode=publish' >> "$GITHUB_OUTPUT"
           else
-            echo 'mode=generate' >> "$GITHUB_OUTPUT"
+            merged_pr="$(gh pr list --state merged --base main --head "$branch" --json url,isCrossRepository \
+              --jq 'map(select(.isCrossRepository == false)) | first | .url // empty')"
+            if [ -n "$merged_pr" ]; then
+              echo "Previous merged block: $merged_pr (not proof of overall completion)." >> "$GITHUB_STEP_SUMMARY"
+              if [ "$CONTINUE_AFTER_MERGED" != true ]; then
+                echo CODEX_CONTINUATION_REQUIRED > "$OWNER_CODEX_TEMP/failure"
+                echo "::error::An earlier block was merged. For unfinished tasks explicitly enable continue_after_merged."
+                exit 1
+              fi
+              echo CODEX_CONTINUATION_STALE_BASE > "$OWNER_CODEX_TEMP/failure"
+              git fetch --no-tags origin refs/heads/main
+              main_sha="$(git rev-parse FETCH_HEAD)"
+              test "$TASK_BASE_SHA" = "$main_sha"
+              git merge-base --is-ancestor "$main_sha" HEAD
+              if [ "$(git rev-parse HEAD)" != "$main_sha" ]; then
+                if [ "$(git log -1 --format='%(trailers:key=Owner-Codex-Dispatch,valueonly)')" = "$TASK_UUID" ]; then
+                  echo 'mode=publish' >> "$GITHUB_OUTPUT"
+                else
+                  echo CODEX_CONTINUATION_UNREVIEWED_BRANCH > "$OWNER_CODEX_TEMP/failure"
+                  exit 1
+                fi
+              else
+                echo 'mode=generate' >> "$GITHUB_OUTPUT"
+              fi
+            elif [ "$(git log -1 --format='%(trailers:key=Owner-Codex-Dispatch,valueonly)')" = "$TASK_UUID" ]; then
+              echo 'mode=publish' >> "$GITHUB_OUTPUT"
+            else
+              echo 'mode=generate' >> "$GITHUB_OUTPUT"
+            fi
           fi
           rm -f "$OWNER_CODEX_TEMP/failure"
       - name: Verify Codex login
