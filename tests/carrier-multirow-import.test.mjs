@@ -59,7 +59,7 @@ function harness(){
  vm.runInNewContext(guidance.replace(marker,'globalThis.csvQA={parseCSV,importCSV,quoteFormLayout,exportXlsx};'),context,{timeout:1500});
  const lookup=(prefix,key)=>fields.find(x=>x.name===prefix+"."+key);
  return {
-  api:context.csvQA,fields,form,prefixes,lookup,
+  api:context.csvQA,fields,form,prefixes,lookup,window:context.window,
   clicks:()=>clicks,confirmation:()=>confirmation,notification:()=>notification
  };
 }
@@ -67,7 +67,7 @@ const file=text=>({name:"quotes.csv",text:async()=>text});
 
 test("CSV: 3 filled data rows => 3 distinct quote variants; empty rows skipped",async()=>{
  const h=harness();
- const content='Перевозчик;Контактное лицо;Сумма ставки;Маршрут;Комментарий;Поле: validUntil\n'+
+ const content='Перевозчик;Контактное лицо;Сумма ставки;Маршрут;initial.note;initial.validUntil\n'+
   '"Дженти-Спедишн";"Отдел логистики";9550;"Ningbo - Minsk";"Первый";"2026-12-15"\n'+
   '\n'+
   '"";"";9650;"Ningbo - Jinhua - Minsk";"Два\\nраздела";"2026-12-16"\n'+
@@ -103,7 +103,7 @@ test("CSV: only one filled rate uses existing single-row import and creates no d
 test("CSV: invalid last row rejects entire file before changing any field",async()=>{
  const h=harness();
  await assert.rejects(h.api.importCSV(h.form,file(
-  "Сумма ставки;Маршрут;Поле: validUntil\n"+
+  "Сумма ставки;Маршрут;initial.validUntil\n"+
   "9550;Route A;2026-12-15\n"+
   "9650;Route B;2026-13-44\n"
   )),/Строка 3.*дата/);
@@ -168,9 +168,10 @@ test("XLSX: all filled worksheet rows reach the importer, not only the first",as
  const csv=api.xlsxToCsv(await api.unzip(bytes.buffer));
  assert.equal(h.api.parseCSV(csv).length,4);
  assert.deepEqual(Array.from(h.api.parseCSV(csv)[3]),["2665","Ningbo - Changsha - Minsk"]);
+ h.window.freightXlsxInterop=api;
  await h.api.importCSV(h.form,{name:"rates.xlsx",arrayBuffer:async()=>bytes.buffer});
- // This candidate's Excel import delegates to the shared codec, as production does.
- // For the test run we expose it on the harness window in a separate invocation below.
+ assert.equal(h.prefixes.length,3);
+ assert.equal(h.lookup('variant-3','amount').value,'2665');
 });
 
 test("XLSX: more than 20 populated rates rejected without silently ignoring rows",async()=>{
