@@ -50,6 +50,29 @@ jobs:
           node-version: '24'
       - run: node --test tests/locked-release.test.mjs
 
+  mac-route-smoke:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk' && github.actor == 'hakaru4i-afk'
+    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    timeout-minutes: 10
+    steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/locked-release.test.mjs
+
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
@@ -62,10 +85,23 @@ jobs:
       backend: ${{ steps.lock.outputs.backend }}
       version: ${{ steps.lock.outputs.version }}
     steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -112,6 +148,16 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 85
     steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -136,6 +182,16 @@ jobs:
       pages: write
       id-token: write
     steps:
+      - name: Check native Mac release toolchain
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          for tool in gh jq gtar; do
+            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
+          done
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
