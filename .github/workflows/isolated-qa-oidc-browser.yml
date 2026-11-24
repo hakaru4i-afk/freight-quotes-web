@@ -43,18 +43,23 @@ jobs:
           ref: ${{ steps.lock.outputs.frontend }}
           path: candidate-web
           persist-credentials: false
+      - name: Verify main-only QA environment before private checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tests/task12-ci-environment-policy.mjs
+      - name: Verify read-only backend credential for exact source
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
+        run: node scripts/release/check-qa-credentials.mjs e2e
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ steps.lock.outputs.backend }}
           path: candidate-backend
-          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify native environment main-only policy before using QA credentials
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: node tests/task12-ci-environment-policy.mjs
       - name: Verify the live staging assets and deployed isolated API before opening sessions
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

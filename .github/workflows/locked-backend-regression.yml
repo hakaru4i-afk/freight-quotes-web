@@ -9,6 +9,7 @@ concurrency:
 jobs:
   regression:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    environment: isolated-qa
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     defaults:
@@ -36,12 +37,22 @@ jobs:
         run: |
           backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
           echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - name: Verify main-only QA environment before private checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: .
+        run: node tests/task12-ci-environment-policy.mjs
+      - name: Verify read-only backend credential for exact source
+        env:
+          BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
+        working-directory: .
+        run: node scripts/release/check-qa-credentials.mjs backend
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
           ref: ${{ steps.lock.outputs.backend }}
-          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
       - name: Verify complete source checkout on reused Mac runner
@@ -67,6 +78,7 @@ jobs:
 
   backup-safety:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    environment: isolated-qa
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     defaults:
@@ -94,12 +106,22 @@ jobs:
         run: |
           backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
           echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - name: Verify main-only QA environment before private checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: .
+        run: node tests/task12-ci-environment-policy.mjs
+      - name: Verify read-only backend credential for exact source
+        env:
+          BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
+        working-directory: .
+        run: node scripts/release/check-qa-credentials.mjs backend
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
           ref: ${{ steps.lock.outputs.backend }}
-          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
       - name: Verify complete source checkout on reused Mac runner
@@ -125,6 +147,7 @@ jobs:
 
   schema-transition:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    environment: isolated-qa
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     defaults:
@@ -152,12 +175,22 @@ jobs:
         run: |
           backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
           echo "backend=$backend" >> "$GITHUB_OUTPUT"
+      - name: Verify main-only QA environment before private checkout
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: .
+        run: node tests/task12-ci-environment-policy.mjs
+      - name: Verify read-only backend credential for exact source
+        env:
+          BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
+        working-directory: .
+        run: node scripts/release/check-qa-credentials.mjs backend
       - uses: actions/checkout@v4
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
           ref: ${{ steps.lock.outputs.backend }}
-          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
       - name: Verify complete source checkout on reused Mac runner
