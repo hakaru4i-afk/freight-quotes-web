@@ -1,0 +1,123 @@
+name: Owner-approved SH71 winner-only carrier home publication
+run-name: SH71 · All carriers · Won shipments only
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/sh71-carrier-winner-only-release.yml'
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'release(carrier): approved SH71 winner-only home')
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment:
+      name: github-pages
+      url: https://hakaru4i-afk.github.io/freight-quotes-web/
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Confirm exact approved winner-only code and pass fast tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse 'HEAD:release/candidates/lw-carrier-winner-only-home-sh71.js')" = 255f5868e2caef7424e08a7118c53f82797cc413
+          node --check release/candidates/lw-carrier-winner-only-home-sh71.js
+          node --check scripts/release/sh71-carrier-winner-only-publish.mjs
+          node --test tests/lw-carrier-winner-only-sh71.test.mjs tests/lw-pending-tasks-all-roles.test.mjs
+          echo SH71_CARRIER_WINNER_ONLY_TESTS_PASS
+      - name: Check Owner API still refuses unauthorized requests
+        shell: bash
+        run: |
+          set -euo pipefail
+          api='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/owner-register-execution?register=remarks'
+          code="$(curl -sSL --retry 2 --max-time 25 -o "$RUNNER_TEMP/owner-api.json" -w '%{http_code}' "$api")"
+          test "$code" = 403
+          grep -Fq 'OWNER_ONLY' "$RUNNER_TEMP/owner-api.json"
+      - name: Build signed SH71 from full SHA-verified published SH70 Pages
+        run: node scripts/release/sh71-carrier-winner-only-publish.mjs
+      - name: Verify bundle, all SHA256 assets and shared carrier role behavior
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmp .release-pages/lw-pending-tasks-all-roles-20261109.js release/candidates/lw-carrier-winner-only-home-sh71.js
+          node --check .release-pages/app.js
+          node --check .release-pages/lw-pending-tasks-all-roles-20261109.js
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {assertProductionReleaseIntegrity} from './tests/helpers/production-release-boundary.mjs';
+          const manifest=assertProductionReleaseIntegrity('.release-pages');
+          const info=JSON.parse(readFileSync('.release-pages/build-info.json','utf8'));
+          const inbox=readFileSync('.release-pages/lw-pending-tasks-all-roles-20261109.js','utf8');
+          const html=readFileSync('.release-pages/index.html','utf8');
+          assert.equal(manifest.businessVersion,'SH-01.30.71 v');
+          assert.equal(info.releaseVersion,manifest.businessVersion);
+          assert.equal(manifest.carrierWinnerOnlyHome.allCarrierAccounts,true);
+          assert.equal(manifest.carrierWinnerOnlyHome.invitationTasksRemoved,true);
+          assert.ok(inbox.includes('const work=await fetchTask2("carrier")'));
+          assert.doesNotMatch(inbox,/tasks\.push\(makeTask\("invite:"/);
+          assert.match(html,/lw-pending-tasks-all-roles-20261109\.js\?v=[a-f0-9]{12}/);
+          console.log('SH71_PACKAGE_SHA256_AND_ALL_CARRIERS_PASS',Object.keys(manifest.assets).length);
+          NODE
+      - name: Confirm main still at authorized source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/main | awk '{print $1}')" = "$GITHUB_SHA"
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .release-pages
+      - uses: actions/deploy-pages@v4
+      - name: Verify live SH71, inbox script, html and manifest byte-for-byte
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://hakaru4i-afk.github.io/freight-quotes-web'
+          for i in $(seq 1 30); do
+            if curl -fsSL --max-time 20 "$base/build-info.json?sh71=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-build.json" &&
+               curl -fsSL --max-time 20 "$base/production-release-manifest.json?sh71=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-manifest.json" &&
+               curl -fsSL --max-time 20 "$base/index.html?sh71=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-index.html" &&
+               curl -fsSL --max-time 20 "$base/lw-pending-tasks-all-roles-20261109.js?sh71=$GITHUB_RUN_ID-$i" -o "$RUNNER_TEMP/live-winners.js" &&
+               cmp -s "$RUNNER_TEMP/live-winners.js" release/candidates/lw-carrier-winner-only-home-sh71.js &&
+               cmp -s "$RUNNER_TEMP/live-index.html" .release-pages/index.html &&
+               cmp -s "$RUNNER_TEMP/live-manifest.json" .release-pages/production-release-manifest.json &&
+               node -e 'const b=require(process.argv[1]),m=require(process.argv[2]);process.exit(b.releaseVersion==="SH-01.30.71 v"&&m.businessVersion===b.releaseVersion&&m.carrierWinnerOnlyHome?.allCarrierAccounts===true?0:1)' "$RUNNER_TEMP/live-build.json" "$RUNNER_TEMP/live-manifest.json"; then
+              echo SH71_PUBLIC_PAGES_WINNER_ONLY_VERIFIED
+              break
+            fi
+            if [ "$i" = 30 ]; then echo "::error::SH71_LIVE_NOT_VERIFIED"; exit 1; fi
+            sleep 5
+          done
+      - name: Mirror only published and verified SH71 assets to GitHub main
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in lw-pending-tasks-all-roles-20261109.js app.js index.html build-info.json release-status.json site-status.json production-release-manifest.json; do
+            cp ".release-pages/$f" "$f"
+          done
+          git config user.name 'freight-release[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add lw-pending-tasks-all-roles-20261109.js app.js index.html build-info.json release-status.json site-status.json production-release-manifest.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'release(production): SH-01.30.71 v all carriers winner-only home'
+            git pull --rebase origin main
+            git push origin HEAD:refs/heads/main
+          fi
+          echo SH71_LIVE_AND_GITHUB_MAIN_SYNC_PASS
