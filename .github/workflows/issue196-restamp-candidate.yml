@@ -1,0 +1,40 @@
+name: Repair staging cache metadata (isolated candidate)
+on:
+  push:
+    branches: [fix/issue196-restamp-candidate]
+    paths: ['.github/workflows/issue196-restamp-candidate.yml']
+permissions:
+  contents: write
+concurrency:
+  group: issue196-restamp-candidate
+  cancel-in-progress: false
+jobs:
+  restamp:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/fix/issue196-restamp-candidate' && github.actor == 'hakaru4i-afk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Regenerate from checked-in sources and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/build-process-maps.mjs --check
+          git diff --check
+          git diff --stat
+      - name: Save only regenerated candidate files to repair branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --quiet -- . ':!test/'
+          git add -- test/
+          if git diff --cached --quiet; then exit 0; fi
+          git -c user.name=github-actions -c user.email=41898282+github-actions[bot]@users.noreply.github.com commit -m "Regenerate staging module cache and asset build metadata"
+          git push origin HEAD:refs/heads/fix/issue196-restamp-candidate
