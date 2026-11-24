@@ -6,6 +6,7 @@ on:
       - '.github/workflows/isolated-qa-oidc-browser.yml'
       - '.github/workflows/isolated-qa-published-browser.yml'
       - 'scripts/release/verify-live-release.mjs'
+      - 'tests/task12-ci-environment-policy*.mjs'
       - 'tests/verify-live-release.test.mjs'
   workflow_dispatch:
 permissions:
@@ -33,11 +34,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           node --input-type=module - <<'JS'
-          import {execFileSync} from 'node:child_process';
-          import {validateEnvironmentPolicy} from './tests/task12-ci-environment-policy.mjs';
-          const base = 'repos/' + process.env.GITHUB_REPOSITORY + '/environments/isolated-qa';
-          const get = path => JSON.parse(execFileSync('gh', ['api', path], {encoding: 'utf8'}));
-          validateEnvironmentPolicy(get(base), get(base + '/deployment-branch-policies'));
+          import {readAndValidateEnvironmentPolicy} from './tests/task12-ci-environment-policy.mjs';
+          await readAndValidateEnvironmentPolicy(process.env.GH_TOKEN);
           console.log('QA environment policy verified using the workflow read token');
           JS
   audit:
