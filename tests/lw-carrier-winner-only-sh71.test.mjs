@@ -4,7 +4,7 @@ import vm from "node:vm";
 import {readFileSync} from "node:fs";
 
 const source=readFileSync("release/candidates/lw-carrier-winner-only-home-sh71.js","utf8");
-const marker="refresh(true);\nqueue();\n})();";
+const marker="refresh(true);\nqueue();\n})();\n";
 assert.ok(source.endsWith(marker),"Cannot locate safe test bootstrap");
 const withExports=source.replace(marker,"globalThis.__QA={fetchCarrier,fetchTask2,loadRole,word,state};\n})();");
 
