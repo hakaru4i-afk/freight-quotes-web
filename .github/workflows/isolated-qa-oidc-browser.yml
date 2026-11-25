@@ -12,7 +12,7 @@ jobs:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
     # The isolated credentials broker requires a GitHub-hosted OIDC identity.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04 # Playwright 1.56.1 supports Ubuntu 24.04; avoid rolling image incompatibility
     timeout-minutes: 50
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
