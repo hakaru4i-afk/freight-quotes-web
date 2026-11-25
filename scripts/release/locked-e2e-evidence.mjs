@@ -24,6 +24,7 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
   assert.equal(runtime.stagingUrl, stagingUrl);
   assert.match(runtime.bundle, sha64);
   assert.match(runtime.qaEntrySha256, sha64);
+  if (Object.hasOwn(runtime, 'qaInputSha256')) assert.match(runtime.qaInputSha256, sha64);
   assert.ok(Number.isSafeInteger(runtime.version) && runtime.version > 0);
   assert.deepEqual(Object.keys(runtime.servedHashes).sort(), ['app.js', 'index.html', 'style.css']);
   for (const hash of Object.values(runtime.servedHashes)) assert.match(hash, sha64);
@@ -601,6 +602,7 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
       apiVersion: runtime.version,
       apiBundleSha256: runtime.bundle,
       qaEntrySha256: runtime.qaEntrySha256,
+      ...(runtime.qaInputSha256 === undefined ? {} : {qaInputSha256: runtime.qaInputSha256}),
       servedIndexSha256: runtime.servedHashes['index.html'],
       servedAppSha256: runtime.servedHashes['app.js'],
       e2eReportSha256: digest(report),
@@ -613,6 +615,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   const lock = readLock();
   const run = runReceipt(lock, 'e2e');
   const runtime = readJson(before);
+  assert.match(runtime.qaInputSha256, sha64, 'QA_INPUT_ATTESTATION_REQUIRED');
   const {report, pair} = compileE2e(
     lock,
     runtime,

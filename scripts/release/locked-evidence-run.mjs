@@ -25,7 +25,7 @@ export function runReceipt(lock, kind, env = process.env) {
 
 
 if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
-  const [kind, candidate, reportPath, outputPath, packagePath] = process.argv.slice(2);
+  const [kind, candidate, reportPath, outputPath] = process.argv.slice(2);
   const lock = readLock();
   const field = {frontend: 'frontendSha', backend: 'backendSha'}[kind];
   requireCheck(field, 'UNKNOWN_REGRESSION_KIND');
@@ -33,10 +33,8 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   const report = readFileSync(reportPath);
   const receipt = {...runReceipt(lock, kind), sourceSha, generatedAt: new Date().toISOString(), reportSha256: digest(report)};
   if (kind === 'backend') {
-    const packageProof = readJson(packagePath);
-    requireCheck(packageProof.sourceCommit === sourceSha &&
-      packageProof.entrySha256 === digest(readFileSync(resolve(packagePath, '../index.ts'))), 'LOCKED_QA_PACKAGE_MISMATCH');
-    receipt.qaEntrySha256 = packageProof.entrySha256;
+    const {qaInputSha256} = await import('./locked-qa-package.mjs');
+    receipt.qaInputSha256 = qaInputSha256(candidate, lock);
   }
   writeFileSync(outputPath, JSON.stringify(receipt) + '\n', {flag: 'wx'});
 }

@@ -1,10 +1,12 @@
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {join,dirname,resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
-import {digest,qaProject,qaFunction,qaRun,site,readLock,requireCheck,sha64} from './locked-release.mjs';
+import {digest,qaProject,qaFunction,site,readLock,requireCheck,sha64} from './locked-release.mjs';
 import {checkoutSha,runReceipt,readJson} from './locked-evidence-run.mjs';
 import {readFiles} from './locked-release-pages.mjs';
-import {verifyDownloadedPackage} from './locked-qa-runtime.mjs';
+import {attestQaApi,attestRuntime,verifyDownloadedPackage} from './locked-qa-runtime.mjs';
+import {buildQaApi,qaInputSha256,verifyQaPackageProof} from './locked-qa-package.mjs';
+import {findStagingProof} from './locked-qa-provenance.mjs';
 
 const manifestName='production-release-manifest.json';
 const required=['index.html','app.js','style.css','build-info.json','site-status.json'];
@@ -76,10 +78,16 @@ async function provider(url,token,options={}){
  requireCheck(response.ok,'QA_PROVIDER_HTTP_'+response.status);
  return response;
 }
-export async function deployQa(api,lock,token){
+async function verifyAnonymousDenial() {
+ const url='https://'+qaProject+'.supabase.co/functions/v1/'+qaFunction;
+ const denial=await fetch(url+'/api/owner-register-execution?register=remarks',{redirect:'error',signal:AbortSignal.timeout(20000)});
+ requireCheck(denial.status===401||denial.status===403,'QA_PRIVATE_REGISTER_ACCESS_NOT_DENIED');
+}
+
+export async function deployQa(api,lock,proof,token){
  requireCheck(token,'QA_PROVIDER_CREDENTIAL_REQUIRED');
- const proof=readJson(join(api,'package-proof.json'));
- requireCheck(proof.sourceCommit===lock.backendSha&&digest(readFileSync(join(api,'index.ts')))===proof.entrySha256,'QA_PACKAGE_LOCK_MISMATCH');
+ requireCheck(proof.sourceCommit===lock.backendSha&&digest(readFileSync(join(api,'index.ts')))===proof.entrySha256&&
+  digest(readFileSync(join(api,'deno.json')))===proof.configSha256,'QA_PACKAGE_LOCK_MISMATCH');
  const base='https://api.supabase.com/v1/projects/'+qaProject+'/functions/';
  const previous=await (await provider(base+qaFunction,token)).json();
  requireCheck(previous.slug===qaFunction&&previous.status==='ACTIVE'&&previous.verify_jwt===false,'EXISTING_ISOLATED_QA_REQUIRED');
@@ -97,23 +105,50 @@ export async function deployQa(api,lock,token){
  }
  for(let i=0;i<18;i++){
   try{
-   const m=await (await provider(base+qaFunction,token)).json();
-   requireCheck(m.slug===qaFunction&&m.status==='ACTIVE'&&m.verify_jwt===false&&Number.isSafeInteger(m.version)&&sha64.test(m.ezbr_sha256),'QA_DEPLOYMENT_IDENTITY_INVALID');
-   await matches(m);
-   const url='https://'+qaProject+'.supabase.co/functions/v1/'+qaFunction;
-   const h=await fetch(url+'/health',{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
-   requireCheck(h.ok,'QA_HEALTH_FAILED');const health=await h.json();
-   requireCheck(health.ok===true&&health.projectRef===qaProject&&health.environment==='staging'&&health.qaRun===qaRun&&health.backendSha===lock.backendSha&&health.deploymentId===[qaProject,m.id,m.version].join('_'),'QA_HEALTH_LOCK_MISMATCH');
-   const denial=await fetch(url+'/api/owner-register-execution?register=remarks',{redirect:'error',signal:AbortSignal.timeout(20000)});
-   requireCheck(denial.status===401||denial.status===403,'QA_PRIVATE_REGISTER_ACCESS_NOT_DENIED');
-   console.log('ISOLATED_QA_DEPLOYED_AND_READ_BACK',m.version,m.ezbr_sha256);return;
+   const deployment=await attestQaApi(lock,proof,token);
+   await verifyAnonymousDenial();
+   console.log('ISOLATED_QA_DEPLOYED_AND_READ_BACK',deployment.version,deployment.bundle);
+   return deployment;
   }catch(e){if(i===17)throw e;await new Promise(done=>setTimeout(done,6000));}
  }
 }
+
+async function prepareStagingApi(source,api,receipt,lock,env) {
+ const input=qaInputSha256(source,lock);
+ const prior=findStagingProof(lock,input,env.GH_TOKEN,{requireFrontend:false});
+ let proof, deployment;
+ if(prior) {
+  try {
+   deployment=await attestQaApi(lock,prior.package,env.SUPABASE_ACCESS_TOKEN,prior.deployment);
+   await verifyAnonymousDenial();
+   proof=prior.package;
+   console.log('ISOLATED_QA_ARTIFACT_REUSED',deployment.version,deployment.bundle);
+  } catch(error) {
+   if(error.message!=='SERVED_QA_API_DEPLOYMENT_DRIFT') throw error;
+   console.log('ISOLATED_QA_PREVIOUS_DEPLOYMENT_CHANGED');
+  }
+ }
+ if(!proof) {
+  proof=buildQaApi(source,api,lock);
+  deployment=await deployQa(api,lock,proof,env.SUPABASE_ACCESS_TOKEN);
+ }
+ writeFileSync(receipt,JSON.stringify({...runReceipt(lock,'qa-staging'),package:proof,deployment})+'\n',{flag:'wx',mode:0o600});
+}
+
+async function verifyStagingApi(frontend,source,receipt,output,lock,env) {
+ const build=readJson(receipt);
+ const run=runReceipt(lock,'qa-staging');
+ requireCheck(Object.entries(run).every(([key,value])=>build[key]===value),'QA_STAGING_BUILD_ATTEMPT_MISMATCH');
+ const proof=verifyQaPackageProof(build.package,lock,qaInputSha256(source,lock));
+ const runtime=await attestRuntime(lock,frontend,proof,env.SUPABASE_ACCESS_TOKEN,build.deployment);
+ writeFileSync(output,JSON.stringify({...runtime,...run,package:proof,generatedAt:runtime.observedAt})+'\n',{flag:'wx',mode:0o600});
+}
+
 if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.url){
- const [mode,a,b,c]=process.argv.slice(2),lock=readLock();runReceipt(lock,'e2e');
+ const [mode,a,b,c,d]=process.argv.slice(2),lock=readLock();runReceipt(lock,'qa-staging');
  if(mode==='package')await packageStage(a,b,c,lock);
  else if(mode==='verify-root')console.log('PRODUCTION_ROOT_UNCHANGED',await assertRootUnchanged(readJson(a),lock));
- else if(mode==='deploy-api')await deployQa(a,lock,process.env.SUPABASE_ACCESS_TOKEN);
+ else if(mode==='prepare-api')await prepareStagingApi(a,b,c,lock,process.env);
+ else if(mode==='verify-api')await verifyStagingApi(a,b,c,d,lock,process.env);
  else throw Error('UNKNOWN_LOCKED_STAGING_COMMAND');
 }
