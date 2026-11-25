@@ -2121,6 +2121,7 @@ body.lw-cc-owner-view .test-cabinets a{
 #ow-workspace .ow-source{font-size:11px;color:#b1c6d8;overflow-wrap:anywhere}
 #ow-archive-records > .ow-record{display:none}
 #ow-workspace .ow-board-link{margin-top:8px}
+#ow-workspace .ow-work-card a.ow-board-link{color:#20548c;-webkit-text-fill-color:currentColor;text-decoration:underline}
 @media(max-width:750px){
  #ow-workspace .ow-live-board{padding:12px}
  #ow-workspace .ow-work-card{padding:12px}
