@@ -124,9 +124,9 @@ export const evidenceWorkflows = {
   e2e: {path: 'isolated-qa-oidc-browser.yml', jobs: ['real-qa'], artifact: 'locked-release-evidence'}
 };
 
-export function verifyEvidenceRun(kind, run, jobs, artifacts, id, now = Date.now()) {
+export function verifyEvidenceRun(kind, run, jobs, artifacts, id, now = Date.now(), trustedMainSha) {
   const {path, jobs: required, artifact} = evidenceWorkflows[kind];
-  verifyRun(run, {repo: web, path, id});
+  verifyRun(run, {repo: web, path, id, sha: trustedMainSha});
   requireCheck(run.head_repository?.full_name === web && sha40.test(run.head_sha) &&
     run.actor?.login === 'hakaru4i-afk' && run.triggering_actor?.login === 'hakaru4i-afk' &&
     validId(run.run_attempt), 'UNTRUSTED_RELEASE_PROOF_RUN:' + kind);
@@ -170,6 +170,7 @@ export function verifyE2eReceipt(lock, pair, e2eBytes, run, backendReceipt) {
 
 function fetchEvidence(lock, env) {
   const token = env.WEB_TOKEN;
+  requireCheck(sha40.test(env.GITHUB_SHA || ''), 'CURRENT_MAIN_SHA_UNAVAILABLE');
   const root = mkdtempSync(resolve(env.RUNNER_TEMP, 'locked-candidate-evidence-'));
   try {
     const runs = {};
@@ -181,7 +182,7 @@ function fetchEvidence(lock, env) {
       requireCheck(validId(run.run_attempt), 'INVALID_RELEASE_PROOF_ATTEMPT');
       const jobs = ghJson(base + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
       const artifacts = ghJson(base + '/artifacts?per_page=100', token);
-      const artifactName = verifyEvidenceRun(kind, run, jobs, artifacts, id);
+      const artifactName = verifyEvidenceRun(kind, run, jobs, artifacts, id, Date.now(), env.GITHUB_SHA);
       gh(['run', 'download', id, '--repo', web, '--name', artifactName, '--dir', resolve(root, kind)], token);
       const current = ghJson(base, token);
       requireCheck(current.run_attempt === run.run_attempt && current.status === 'completed' &&
@@ -208,13 +209,15 @@ function fetchEvidence(lock, env) {
   }
 }
 
-export function verifyBackup(run, jobs, proof, {id, parent}) {
-  verifyRun(run, {repo: backend, path: backupWorkflow, id});
+export function verifyBackup(run, jobs, proof, {id, parent, workflowSha}) {
+  verifyRun(run, {repo: backend, path: backupWorkflow, id, sha: workflowSha});
   requireCheck(run.actor?.login === 'hakaru4i-afk' && run.display_title === 'Production backup ' + parent, 'BACKUP_PARENT_RUN_MISMATCH');
-  requireCheck(Array.isArray(jobs?.jobs) && jobs.total_count === jobs.jobs.length && jobs.jobs.some(job =>
-    job.name === 'capture-and-readback' && job.status === 'completed' && job.conclusion === 'success' &&
-    job.labels?.some(label => label === 'freight-mac-backup-vm' || label === 'ubuntu-latest' || label.startsWith('ubuntu-'))),
-  'PROTECTED_CAPTURE_NOT_COMPLETED');
+  const capture = jobs?.jobs?.find(job => job.name === 'capture-and-readback');
+  requireCheck(Array.isArray(jobs?.jobs) && jobs.total_count === jobs.jobs.length &&
+    capture?.status === 'completed' && capture.conclusion === 'success' &&
+    capture.runner_name === 'freight-mac-backup-vm' && capture.labels?.includes('freight-mac-backup-vm') &&
+    !capture.labels.some(label => label === 'ubuntu-latest' || label.startsWith('ubuntu-')),
+  'PROTECTED_CAPTURE_NOT_COMPLETED_ON_DEDICATED_BACKUP_VM');
   const restore = proof?.proof;
   requireCheck(proof?.result === 'PASS_CAPTURE_PAYLOAD_RESTORE_AND_CIPHERTEXT_READBACK' && proof.encrypted === true &&
     proof.offsiteReadback === true && sha64.test(proof.ciphertextSha256) &&
@@ -224,12 +227,14 @@ export function verifyBackup(run, jobs, proof, {id, parent}) {
     restore.verificationRecipientDestroyed === true, 'BACKUP_OR_RESTORE_PROOF_INVALID');
 }
 
-export function waitingForBackupGuest(result) {
+export function backupGuestUnassigned(result) {
   const jobs = result?.jobs;
   if (!Array.isArray(jobs) || result.total_count !== jobs.length) return false;
-  return jobs.some(job => ['protected-readiness', 'capture-and-readback'].includes(job.name) &&
-    job.status === 'queued' && !job.runner_name) &&
-    !jobs.some(job => job.name === 'capture-and-readback' && (job.runner_name || job.status === 'completed'));
+  const synthetic = jobs.find(job => job.name === 'synthetic-restore-arm64');
+  const readiness = jobs.find(job => job.name === 'protected-readiness');
+  const capture = jobs.find(job => job.name === 'capture-and-readback');
+  return (synthetic?.status === 'completed' && synthetic.conclusion === 'success' && readiness?.status === 'queued' && !readiness.runner_name) ||
+    (readiness?.status === 'completed' && readiness.conclusion === 'success' && capture?.status === 'queued' && !capture.runner_name);
 }
 
 async function dispatchBackup(env) {
@@ -243,13 +248,13 @@ async function dispatchBackup(env) {
   requireCheck(sha40.test(trustedWorkflowSha), 'BACKUP_WORKFLOW_SHA_UNAVAILABLE');
   const pause = () => new Promise(done => setTimeout(done, 15000));
   const deadline = Date.now() + 85 * 60 * 1000;
-  const launch = runner => {
-    const request = {ref: 'main', return_run_details: true, inputs: {operation: 'capture', release_run: parent, runner}};
+  const launch = () => {
+    const request = {ref: 'main', return_run_details: true, inputs: {operation: 'capture', release_run: parent}};
     const result = ghJson(repository + '/actions/workflows/' + backupWorkflow + '/dispatches', token, {
       args: ['--method', 'POST', '--input', '-'], input: JSON.stringify(request)
     });
     requireCheck(validId(result.workflow_run_id), 'BACKUP_DISPATCH_RUN_ID_MISSING');
-    console.log('Backup run ' + result.workflow_run_id + ' queued for release ' + parent + ' using ' + runner);
+    console.log('Backup run ' + result.workflow_run_id + ' queued for release ' + parent + ' on the existing dedicated backup VM');
     return result.workflow_run_id;
   };
   const getRun = id => {
@@ -259,27 +264,14 @@ async function dispatchBackup(env) {
     return run;
   };
   const getJobs = id => ghJson(runPath + id + '/jobs?per_page=100', token);
-  let runner = 'mac';
-  let id = launch(runner);
-  let waitingSince = null;
+  const id = launch();
+  let unassignedSince = null;
   let run = getRun(id);
   while (run.status !== 'completed' && Date.now() < deadline) {
-    if (runner === 'mac') {
-      const unattended = waitingForBackupGuest(getJobs(id));
-      waitingSince = unattended ? waitingSince ?? Date.now() : null;
-      if (waitingSince !== null && Date.now() - waitingSince >= 120000 && waitingForBackupGuest(getJobs(id))) {
-        // No capture has started. Cancel only our own backup request before reusing the protected queue.
-        gh(['run', 'cancel', String(id), '--repo', backend], token);
-        const cancellationDeadline = Date.now() + 90000;
-        do {
-          await pause();
-          run = getRun(id);
-        } while (run.status !== 'completed' && Date.now() < cancellationDeadline);
-        requireCheck(run.status === 'completed' && run.conclusion === 'cancelled', 'MAC_BACKUP_CANCELLATION_UNCONFIRMED');
-        runner = 'github';
-        id = launch(runner);
-      }
-    }
+    const jobs = getJobs(id);
+    unassignedSince = backupGuestUnassigned(jobs) ? unassignedSince ?? Date.now() : null;
+    requireCheck(unassignedSince === null || Date.now() - unassignedSince < 10 * 60 * 1000,
+      'BACKUP_VM_UNAVAILABLE_NO_HOSTED_FALLBACK');
     await pause();
     run = getRun(id);
   }
@@ -291,7 +283,7 @@ async function dispatchBackup(env) {
   const markers = log.split('\n').filter(line => / CAPTURE_RESTORE_PROOF \{/.test(line));
   requireCheck(markers.length === 1, 'BACKUP_RESTORE_PROOF_MISSING');
   const proof = JSON.parse(markers[0].slice(markers[0].indexOf(' CAPTURE_RESTORE_PROOF ') + ' CAPTURE_RESTORE_PROOF '.length));
-  verifyBackup(run, jobs, proof, {id, parent});
+  verifyBackup(run, jobs, proof, {id, parent, workflowSha: trustedWorkflowSha});
   console.log('Fresh backup, ciphertext readback and isolated restore verified.');
 }
 
