@@ -35,3 +35,9 @@ In the existing main-only `isolated-qa` environment of `freight-quotes-web`, con
 - Candidate frontend `df89a9ad2e487caba839d6cd939d639bb292e42a`; backend `376637f806c889aab4526a4252da1c85a5c428f4`.
 - Existing isolated QA function `freight-api-qa-rc20261110`, version 45, provider bundle `ed47af75738c8c2825b9063b299fec59199e7ef06cf3a62ece56e874ef21e8a2`.
 - 196 live production root files preserved; staging pair independently attested. PRs #201, #202 and #203 merged. This is staging proof only, not full 37/37 or production approval. Use live identities and current lock on subsequent runs.
+
+### QA transport and accessible names (2026-11-25)
+
+- Browser run 45624787616: unpinned direct quote replay returned gateway 503 after 160017 ms with no deployment/execution ID. The same isolated region eu-central-1 returned 200; PR #210 aligns direct replay/readback with the already pinned browser transport, bounded timeout and no mutation retries. Run 45641781259 passed the full NOV14 chain after that fix.
+- Run 45641781259 recorded nine of ten independent acceptance groups SUCCESS, including cabinet contrast matrix, previous Production UI compatibility, security and business API. MAP50 reached Chinese locale after coordinate and RU/EN checks, but expected accessible name '2D地图' while global-view/view.mjs explicitly defines '2D 地图'. Correct the exact assertion to the actual localized accessibility contract; do not skip MAP50, loosen matching to any button, suppress errors or claim 37/37 before the current run proves it. No runtime asset or locked source pair change is needed for this test-only correction.
+- When a scenario has a SUCCESS workflow step with continue-on-error, read actual QA_RESULT values before declaring acceptance. Keep exact positive and negative checks; distinguish harness defect from functional defect with source and runtime evidence.
