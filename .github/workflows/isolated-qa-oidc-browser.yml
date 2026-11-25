@@ -53,7 +53,6 @@ jobs:
           persist-credentials: false
       - name: Install exact browser, accessibility and API build dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npx playwright install chromium
       - name: Verify native environment main-only policy before using QA credentials
         env:
           GH_TOKEN: ${{ github.token }}
@@ -76,7 +75,6 @@ jobs:
         run: node tests/task12-ci-oidc-bindings.mjs
       - name: Verify real QA sessions and role identities
         run: node tests/task12-ci-auth.mjs
-      - run: npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
       - run: npx playwright install --with-deps chromium
       - name: Install final protocol PDF text verifier
         run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends poppler-utils
