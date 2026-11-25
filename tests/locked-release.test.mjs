@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {approval, backend, backupWorkflow, digest, evidenceWorkflows, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
-import {verifyDownloadedPackage,qaPackageFilename} from '../scripts/release/locked-qa-runtime.mjs';
+import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {verifyApiEvidence} from '../scripts/release/locked-release-api.mjs';
 import {assertPreservesEntrypoints, bindPages, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
 
@@ -242,4 +242,25 @@ test('Provider-qualified package verifies every byte and rejects duplicate alias
  const form=new FormData();for(const [name,bytes] of Object.entries({'index.ts':'source bytes','deno.json':'{}'})){writeFileSync(join(directory,name),bytes);form.append('file',new Blob([bytes]),prefix+name)}
  await verifyDownloadedPackage(form,directory,metadata);
  form.append('file',new Blob(['source bytes']),'index.ts');await assert.rejects(verifyDownloadedPackage(form,directory,metadata),/UNEXPECTED_QA_API_DOWNLOAD_PART/);
+});
+
+test('independent served asset reads start together and preserve exact hashes', async t => {
+  const root = mkdtempSync(join(tmpdir(), 'locked-parallel-assets-'));
+  t.after(() => rmSync(root, {recursive: true, force: true}));
+  mkdirSync(join(root, 'test'));
+  const names = ['index.html', 'app.js', 'style.css'];
+  for (const name of names) writeFileSync(join(root, 'test', name), name);
+  const started = [], finish = [];
+  const result = verifyServedAssets(root, url => new Promise(resolve => {
+    const name = new URL(url).pathname.split('/').pop();
+    started.push(name);
+    finish.push(() => resolve(new Response(name)));
+  }));
+  assert.deepEqual(started, names);
+  finish.forEach(done => done());
+  assert.deepEqual(await result, Object.fromEntries(names.map(name => [name, digest(name)])));
+  await assert.rejects(verifyServedAssets(root, async url => {
+    const name = new URL(url).pathname.split('/').pop();
+    return new Response(name === 'app.js' ? 'wrong bytes' : name);
+  }), /SERVED_STAGING_ASSET_MISMATCH:app.js/);
 });

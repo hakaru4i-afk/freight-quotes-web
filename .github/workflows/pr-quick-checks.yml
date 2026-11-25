@@ -70,6 +70,9 @@ jobs:
           case "$scope" in lightweight|full) ;; *) exit 1 ;; esac
           echo "scope=$scope" >> "$GITHUB_OUTPUT"
           echo "CRM_QA_SCOPE=$scope"
+      - name: Validate release and evidence contracts before acceptance
+        if: steps.scope.outputs.scope == 'full'
+        run: node --test --test-concurrency=2 tests/locked-release.test.mjs tests/locked-staging.test.mjs
       - name: Fast deterministic regressions (no network, browser or deployment)
         if: steps.scope.outputs.scope == 'full'
         run: |
