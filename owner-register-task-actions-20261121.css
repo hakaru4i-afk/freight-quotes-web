@@ -17,7 +17,7 @@
 #ow-workspace .ow-task-reason-buttons button{font:700 13px system-ui,sans-serif;min-height:42px}
 #ow-workspace .ow-task-inline-info{margin:0;padding:9px 11px;border-radius:8px;background:#e9f4fa;color:#23516c;font:600 12px/1.5 system-ui,sans-serif}
 #ow-workspace .ow-task-inline-info.ow-task-info-error{background:#fff0ec;color:#922d29}
-#ow-workspace .ow-task-preview-notice{margin:0;color:#627d91;font:12px/1.4 system-ui,sans-serif}
+#ow-workspace .ow-task-preview-notice{margin:0;color:#405f73;font:12px/1.4 system-ui,sans-serif}
 #ow-workspace .ow-task-universal-progress{display:grid;gap:6px;margin-top:1px}
 #ow-workspace .ow-task-universal-progress-head{display:flex;justify-content:space-between;gap:8px;color:#294e65;font-size:13px;font-weight:650}
 #ow-workspace .ow-task-progress-value{font-weight:800;font-size:16px;color:#21485f;font-variant-numeric:tabular-nums}
