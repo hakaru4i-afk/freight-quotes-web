@@ -33,7 +33,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Check the frozen SH59 v20 candidate and OIDC regressions without credentials
         run: |
           test "$(git rev-parse HEAD)" = "$FREIGHT_PROTECTED_CANDIDATE"
@@ -80,7 +80,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Enforce main-only, GitHub OIDC and source integrity
         shell: bash
         run: |
