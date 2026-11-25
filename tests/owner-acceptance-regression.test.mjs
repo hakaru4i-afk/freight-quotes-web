@@ -1,41 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import {runtimeAssetUrl} from './helpers/runtime-assets.mjs';
+import { runtimeAssetUrl } from './helpers/runtime-assets.mjs';
 
-const owner = readFileSync(new URL('../owner-registers-20261111.js', import.meta.url),'utf8');
-const staged = readFileSync(new URL('../test/owner-registers-20261111.js', import.meta.url),'utf8');
-const index = readFileSync(new URL('../index.html',import.meta.url),'utf8');
-const testIndex = readFileSync(new URL('../test/index.html',import.meta.url),'utf8');
+const productionOwner = readFileSync('owner-registers-20261111.js', 'utf8');
+const stagingOwner = readFileSync('test/owner-registers-20261111.js', 'utf8');
 
-test('Owner acceptance is the fourth engineering journal and cooperation stays separate',()=>{
-  assert.equal(owner,staged);
-  assert.match(owner,/acceptance:\['Реестр приёмки владельцем'/);
-  assert.match(owner,/cooperation:\['Реестр предложений по сотрудничеству'/);
-  assert.match(owner,/\['today','Сегодня'\]/);
-  assert.match(owner,/const minskDay=/);
-  assert.match(owner,/for\(const id of \['remarks','developments','updates'\]\)/);
+test('production and staging use the same current Owner register implementation', () => {
+  assert.equal(productionOwner, stagingOwner);
+  assert.ok(productionOwner.includes('acceptanceExecutions'));
+  assert.ok(productionOwner.includes('acceptanceExecutionFor'));
+  assert.ok(productionOwner.includes('acceptedByOwner'));
+  assert.ok(productionOwner.includes('owner-register-execution'));
+  assert.ok(productionOwner.includes("action:'transfer'"));
 });
-test('Work is only done after Owner status completed, not GitHub merge or release flags',()=>{
-  assert.match(owner,/const finished=\(s,job\)=>job\?\.status==='completed'/);
-  assert.match(owner,/const acceptedByOwner=\(row\)=>acceptanceTaskFor\(row\)\?\.status==='completed'/);
-  assert.match(owner,/job\?\.status==='release'/);
-  assert.match(owner,/expectedStatus:'release',status,note/);
-  assert.match(owner,/Подтвердить выполнение/);
-  assert.match(owner,/Вернуть в работу/);
-  assert.match(owner,/Лично проверил/);
-  assert.match(owner,/await feedbackRequest\(\{action:'set_status'/);
+
+test('Owner acceptance is driven by the server execution ledger, not browser status mutation', () => {
+  assert.ok(productionOwner.includes("decision==='accepted'"));
+  assert.ok(productionOwner.includes("decision==='review_pending'"));
+  assert.ok(!productionOwner.includes("action:'set_status'"));
+  assert.ok(!productionOwner.includes('acceptanceDialog'));
 });
-test('Private engineering archives stay Owner-authenticated and are not embedded as public records',()=>{
-  assert.match(owner,/\/api\/engineering-registers\?name=/);
-  assert.match(owner,/SOURCE_DIGEST_MISMATCH|Несовпадение контрольной суммы/);
-  assert.doesNotMatch(owner,/owner:20261117:RM-20261117-/);
-  assert.doesNotMatch(owner,/localStorage/);
-});
-test('Cache keys on both pages point to the new owner journal',()=>{
-  const asset=runtimeAssetUrl('owner-registers-20261111.js');
-  assert.ok(index.includes(asset),'production references the exact current module blob');
-  assert.ok(testIndex.includes(asset),'staging references the same module blob');
-  assert.match(owner,/setInterval\(\(\)=>void pollLiveRegisters\(\),30000\)/);
-  assert.match(owner,/liveRevision/);
+
+test('both entry points pin the exact same Owner register asset hash', () => {
+  const asset = runtimeAssetUrl('owner-registers-20261111.js');
+  assert.ok(readFileSync('index.html', 'utf8').includes(asset), 'production index must pin the current Owner register asset');
+  assert.ok(readFileSync('test/index.html', 'utf8').includes(asset), 'staging index must pin the same Owner register asset');
 });

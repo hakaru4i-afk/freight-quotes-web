@@ -243,7 +243,7 @@ function paintArchive(host,id){
   count.textContent='Незавершённых записей: '+unfinished;
   const visible=rows.filter(row=>{
    const job=taskFor(id,row.id),status=currentState(row,job),date=/^\d{4}-\d{2}-\d{2}/.test(row.detectedAt||'')?String(row.detectedAt).slice(0,10):'';
-   return (!transferred(row)||view==='archive')&&(row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
+   return (row.title+' '+row.description).toLocaleLowerCase().includes(term)&&(!filters.status||status===filters.status)&&(!filters.priority||row.priority===filters.priority)&&(!filters.role||row.roles.includes(filters.role))&&(!filters.area||row.area===filters.area)&&(!filters.version||row.version===filters.version)&&(!filters.from||date>=filters.from)&&(!filters.to||date<=filters.to)&&
     (view==='all'||view==='today'&&date===minskDay()||view==='archive'&&(row.archived||job?.status==='denied'||finished(status,job))||view==='new'&&!row.archived&&['new','awaiting_decision'].includes(status)||view==='working'&&status==='in_progress'||view==='done'&&finished(status,job)||view==='selected'&&!!job);
   }).sort((a,b)=>String(/^\d{4}-/.test(a.detectedAt)?a.detectedAt:'').localeCompare(String(/^\d{4}-/.test(b.detectedAt)?b.detectedAt:''))*(sort==='old'?1:-1));
   if(view==='done'&&!visible.length)target.append(el('p','Пока нет работ, лично подтверждённых владельцем. Технические исправления находятся в «Реестре приёмки владельцем».',{class:'ow-board-help'}));
@@ -292,7 +292,7 @@ async function load(id,host,expected){
  finally{if(n===request){loading=false;if(!failed){await refreshWork(true);await refreshExecution(id);paintArchive(host,id);}}}
 }
 
-let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={};
+let acceptanceRows=[],acceptanceReady=false,acceptanceBusy=false,acceptanceError='',acceptanceView='today',acceptanceNote='',acceptanceRevisions={},acceptanceExecutions=new Map();
 const minskDay=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const acceptanceTaskFor=row=>{
  const marker=row.sourceTaskKey?'[WORK:'+row.sourceTaskKey+']':'';
@@ -300,11 +300,15 @@ const acceptanceTaskFor=row=>{
    (String(x.description||'').includes(archiveMarker(row.register,row.id))||
     (marker&&String(x.description||'').includes(marker))));
 };
-const acceptedByOwner=(row)=>acceptanceTaskFor(row)?.status==='completed';
+const acceptanceExecutionFor=row=>acceptanceExecutions.get(row.register+':'+row.id);
+const acceptedByOwner=row=>acceptanceTaskFor(row)?.status==='completed'||acceptanceExecutionFor(row)?.decision==='accepted';
 function approvalState(row,job){
- if(job?.status==='completed')return 'Принято владельцем';
+ if(job?.status==='completed')return 'Опубликовано и в архиве';
  if(job?.status==='denied')return 'Отклонено';
- if(job?.status==='release')return 'Ожидает подтверждения владельца';
+ const exec=acceptanceExecutionFor(row);
+ if(exec?.decision==='accepted')return 'Принято; ожидает публикации';
+ if(exec?.decision==='review_pending')return 'На приёмке владельца';
+ if(job?.status==='release')return 'Устаревший статус: требуется сверка';
  if(job?.status==='in_progress')return 'В работе';
  if(['fixed_review','checking','ready','published','production_verified'].includes(row.status))
    return 'Техническое исправление · приёмка не подтверждена';
@@ -314,7 +318,7 @@ async function refreshAcceptance(){
  if(acceptanceBusy)return;acceptanceBusy=true;acceptanceError='';
  const host=document.getElementById('ow-workspace');
  try{
-  const records=[],nextRevisions={};
+  const records=[],nextRevisions={},nextExecutions=new Map();
   for(const id of ['remarks','developments','updates']){
    const response=await fetch('/api/engineering-registers?name='+id,{cache:'no-store'});
    const data=await response.json();
@@ -323,40 +327,18 @@ async function refreshAcceptance(){
    if(sha!==data.sha256)throw Error('Несовпадение контрольной суммы: '+id);
    records.push(...(data.records||[]));
    nextRevisions[id]=data.liveRevision||'';
+   const er=await fetch('/api/owner-register-execution?register='+id,{cache:'no-store'});
+   const ex=await er.json();
+   if(!er.ok||!ex.ok)throw Error('Не удалось подтвердить статусы приёмки: '+id);
+   for(const entry of ex.items||[])if(entry.recordId)nextExecutions.set(id+':'+entry.recordId,entry);
   }
   await refreshWork();
   acceptanceRevisions=nextRevisions;
+  acceptanceExecutions=nextExecutions;
   acceptanceRows=records;
   acceptanceReady=true;acceptanceNote='';
  }catch(e){acceptanceError=String(e.message||e);acceptanceReady=true;}
  finally{acceptanceBusy=false;if(host&&selected()==='acceptance')paintAcceptance(host);}
-}
-function acceptanceDialog(row,action){
- return new Promise(resolve=>{
-  const d=el('dialog',null,{class:'ow-work-confirm','aria-label':'Решение владельца по приёмке'});
-  const title=action==='completed'?'Подтвердить выполнение':'Вернуть исправление в работу';
-  d.append(el('h2',title),el('p',row.title),el('p','Решение сохранится в истории задачи. Код и публикация сами по себе не подтверждают исправление.'));
-  const label=el('label','Комментарий владельца');const note=el('textarea',null,{rows:'3',maxlength:'1500',placeholder:'Что именно проверено или что требуется исправить'});
-  label.append(note);d.append(label);
-  let checkbox=null;
-  if(action==='completed'){const wrap=el('label');checkbox=el('input',null,{type:'checkbox'});wrap.append(checkbox,document.createTextNode(' Лично проверил(а) исправление и подтверждаю завершение'));d.append(wrap);}
-  const actions=el('div',null,{class:'ow-human-actions'}),yes=el('button','Сохранить решение',{type:'button'}),no=el('button','Отмена',{type:'button'});
-  const finish=value=>{d.close();d.remove();resolve(value);};
-  yes.onclick=()=>{if(!note.value.trim()||(checkbox&&!checkbox.checked)){note.focus();return;}finish(note.value.trim());};
-  no.onclick=()=>finish(null);d.oncancel=e=>{e.preventDefault();finish(null);};
-  actions.append(yes,no);d.append(actions);document.body.append(d);d.showModal();note.focus();
- });
-}
-async function acceptanceDecision(row,job,status){
- if(acceptanceBusy||job?.status!=='release')return;
- const note=await acceptanceDialog(row,status);if(!note)return;
- acceptanceBusy=true;acceptanceError='';
- try{
-  await feedbackRequest({action:'set_status',id:job.id,expectedStatus:'release',status,note});
-  await refreshWork();
-  acceptanceNote=status==='completed'?'Владелец подтвердил выполнение. Решение записано на сервере.':'Исправление возвращено в работу с замечанием.';
- }catch(e){acceptanceError=String(e.message||e);}
- finally{acceptanceBusy=false;const host=document.getElementById('ow-workspace');if(host&&selected()==='acceptance')paintAcceptance(host);}
 }
 async function createAcceptanceJob(row){
  if(acceptanceBusy)return;
@@ -364,9 +346,11 @@ async function createAcceptanceJob(row){
  if(!accepted)return;
  acceptanceBusy=true;acceptanceError='';
  try{
-  await feedbackRequest({action:'start_register',register:row.register,recordId:row.id});
-  await refreshWork();
-  acceptanceNote='Задача связана с инженерным реестром и поставлена в работу. После проверки выпуск отмечается в Центре доработок.';
+  const response=await fetch('/api/owner-register-execution',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'transfer',register:row.register,recordId:row.id})});
+  const result=await response.json();
+  if(!response.ok||!result.ok)throw Error(result.error||'TRANSFER_FAILED');
+  await refreshWork(true);
+  acceptanceNote='Задача связана с реестром. Приёмка, обязательный комментарий и архивирование выполняются в Центре доработок.';
  }catch(e){acceptanceError=String(e.message||e);}
  finally{acceptanceBusy=false;const host=document.getElementById('ow-workspace');if(host&&selected()==='acceptance')paintAcceptance(host);}
 }
@@ -388,7 +372,7 @@ function paintAcceptance(host){
  const selectedRows=acceptanceRows.filter(row=>{
   const job=acceptanceTaskFor(row);
   if(acceptanceView==='today')return String(row.detectedAt||'').slice(0,10)===day;
-  if(acceptanceView==='accepted')return job?.status==='completed';
+  if(acceptanceView==='accepted')return acceptedByOwner(row);
   if(acceptanceView==='pending')return job?.status==='release'||(['fixed_review','checking','ready','published','production_verified'].includes(row.status)&&job?.status!=='completed');
   return true;
  }).sort((a,b)=>String(b.detectedAt||'').localeCompare(String(a.detectedAt||''))||String(a.id).localeCompare(String(b.id)));
@@ -406,12 +390,8 @@ function paintAcceptance(host){
   card.append(more);
   const controls=el('div',null,{class:'ow-human-actions'});
   if(job?.status==='release'){
-   const yes=el('button','Подтвердить выполнение',{type:'button'}),no=el('button','Вернуть в работу',{type:'button'});
-   yes.disabled=no.disabled=acceptanceBusy;
-   yes.onclick=()=>void acceptanceDecision(row,job,'completed');
-   no.onclick=()=>void acceptanceDecision(row,job,'in_progress');
-   controls.append(yes,no);
-  }else if(!job&&!row.historyOnly){
+   controls.append(el('p','Приёмка и возврат на доработку доступны в Центре доработок. Комментарий обязателен; статус выпуска подтверждается GitHub.',{class:'ow-board-help'}));
+  }else if(!job&&!row.historyOnly&&!['published','production_verified','accepted'].includes(row.status)){
    const start=el('button','Связать с задачей',{type:'button'});start.disabled=acceptanceBusy;
    start.onclick=()=>void createAcceptanceJob(row);controls.append(start);
   }
