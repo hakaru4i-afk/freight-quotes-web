@@ -34,7 +34,7 @@ jobs:
           ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       # PRs review the validation logic without pretending that an unverified
       # Supabase deployment has a Git-source attestation. This job cannot deploy.
       - name: PR-only static tests and explicit unreleased runtime marker
