@@ -1,6 +1,6 @@
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
-import {mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
+import {appendFileSync, mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 
@@ -150,6 +150,20 @@ export function verifyRegressionReceipt(lock, kind, receipt, run, bytes) {
   requireCheck(receipt.sourceSha === expected && receipt.reportSha256 === digest(bytes), 'REGRESSION_SOURCE_OR_REPORT_MISMATCH:' + kind);
 }
 
+// A dispatch can run a newer workflow than the immutable candidate it tests.
+export function findEvidenceRun(lock, runs, readRunLock, now = Date.now()) {
+  const recent = runs.filter(run => run.head_branch === 'main' && run.event === 'workflow_dispatch' &&
+    run.actor?.login === 'hakaru4i-afk' && sha40.test(run.head_sha) && validId(run.id) &&
+    Date.parse(run.run_started_at) >= now - maxEvidenceAge && Date.parse(run.run_started_at) <= now);
+  const runLocks = new Map();
+  for (const run of recent.sort((a, b) => Date.parse(b.run_started_at) - Date.parse(a.run_started_at) || b.id - a.id)) {
+    if (!runLocks.has(run.head_sha)) runLocks.set(run.head_sha, readRunLock(run.head_sha));
+    const candidate = runLocks.get(run.head_sha);
+    if (candidate?.frontendSha === lock.frontendSha && candidate?.backendSha === lock.backendSha) return run.id;
+  }
+  return null;
+}
+
 export function verifyE2eReceipt(lock, pair, e2eBytes, run, backendReceipt) {
   verifyRunReceipt(lock, 'e2e', pair, run);
   const e2e = JSON.parse(e2eBytes);
@@ -162,9 +176,13 @@ export function verifyE2eReceipt(lock, pair, e2eBytes, run, backendReceipt) {
       evidence.sources.some(source => /^.+\/browser-results-.+\.json$/.test(source.file)) &&
       evidence.traceId === digest(JSON.stringify(evidence.sources));
   }), 'E2E_SCENARIO_RECEIPT_MISMATCH');
+  const usesInputReceipt = pair.qaInputSha256 !== undefined || backendReceipt.qaInputSha256 !== undefined;
+  const packageMatches = usesInputReceipt
+    ? sha64.test(pair.qaInputSha256) && pair.qaInputSha256 === backendReceipt.qaInputSha256
+    : pair.qaEntrySha256 === backendReceipt.qaEntrySha256;
   requireCheck(pair.e2eReportSha256 === digest(e2eBytes) &&
     pair.stagingUrl === stagingUrl && pair.qaProject === qaProject && pair.apiFunction === qaFunction && validId(pair.apiVersion) &&
-    pair.qaEntrySha256 === backendReceipt.qaEntrySha256 && sha64.test(pair.qaEntrySha256) &&
+    packageMatches && sha64.test(pair.qaEntrySha256) &&
     sha64.test(pair.servedIndexSha256) && sha64.test(pair.servedAppSha256), 'E2E_RUNTIME_RECEIPT_MISMATCH');
 }
 
@@ -173,9 +191,15 @@ function fetchEvidence(lock, env) {
   const root = mkdtempSync(resolve(env.RUNNER_TEMP, 'locked-candidate-evidence-'));
   try {
     const runs = {};
-    for (const kind of Object.keys(evidenceWorkflows)) {
-      const id = env[kind.toUpperCase() + '_RUN_ID'];
-      requireCheck(validId(id), 'RELEASE_PROOF_RUN_ID_REQUIRED:' + kind);
+    for (const [kind, workflow] of Object.entries(evidenceWorkflows)) {
+      const given = env[kind.toUpperCase() + '_RUN_ID'];
+      const id = given || findEvidenceRun(lock, ghJson('repos/' + web + '/actions/workflows/' + workflow.path +
+        '/runs?branch=main&event=workflow_dispatch&per_page=30', token).workflow_runs, sha => {
+        const file = ghJson('repos/' + web + '/contents/release-lock.json?ref=' + sha, token);
+        requireCheck(file.encoding === 'base64' && typeof file.content === 'string', 'EVIDENCE_SOURCE_LOCK_UNAVAILABLE');
+        return JSON.parse(Buffer.from(file.content, 'base64').toString('utf8'));
+      });
+      requireCheck(validId(id), 'FRESH_EXACT_PAIR_RUN_NOT_FOUND:' + kind);
       const base = 'repos/' + web + '/actions/runs/' + id;
       const run = ghJson(base, token);
       requireCheck(validId(run.run_attempt), 'INVALID_RELEASE_PROOF_ATTEMPT');
@@ -203,6 +227,9 @@ function fetchEvidence(lock, env) {
     verifyRegressionReceipt(lock, 'backend', backendReceipt, runs.backend, security);
     verifyE2eReceipt(lock, pair, e2e, runs.e2e, backendReceipt);
     verifyCandidateEvidence(lock, {pair, regression: JSON.parse(regression), security: JSON.parse(security), e2e: JSON.parse(e2e)});
+    return Object.fromEntries(Object.entries(runs).map(([kind, run]) => [kind, {
+      runId: String(run.id), attempt: String(run.run_attempt), workflowSha: run.head_sha
+    }]));
   } finally {
     rmSync(root, {recursive: true, force: true});
   }
@@ -210,9 +237,10 @@ function fetchEvidence(lock, env) {
 
 export function verifyBackup(run, jobs, proof, {id, parent}) {
   verifyRun(run, {repo: backend, path: backupWorkflow, id});
-  requireCheck(run.actor?.login === 'hakaru4i-afk' && run.display_title === 'Production backup ' + parent, 'BACKUP_PARENT_RUN_MISMATCH');
+  requireCheck(run.actor?.login === 'hakaru4i-afk' && run.triggering_actor?.login === 'hakaru4i-afk' && validId(run.run_attempt) &&
+    run.display_title === 'Production backup ' + parent, 'BACKUP_PARENT_RUN_MISMATCH');
   requireCheck(Array.isArray(jobs?.jobs) && jobs.total_count === jobs.jobs.length && jobs.jobs.some(job =>
-    job.name === 'capture-and-readback' && job.status === 'completed' && job.conclusion === 'success' &&
+    job.name === 'capture-and-readback' && job.run_attempt === run.run_attempt && job.status === 'completed' && job.conclusion === 'success' &&
     job.labels?.some(label => label === 'freight-mac-backup-vm' || label === 'ubuntu-latest' || label.startsWith('ubuntu-'))),
   'PROTECTED_CAPTURE_NOT_COMPLETED');
   const restore = proof?.proof;
@@ -222,6 +250,17 @@ export function verifyBackup(run, jobs, proof, {id, parent}) {
     restore.storageBytesRestored === true && restore.isolationVerified === true &&
     restore.sourceCredentialsForwarded === false && restore.ciphertextDecryptionVerified === true &&
     restore.verificationRecipientDestroyed === true, 'BACKUP_OR_RESTORE_PROOF_INVALID');
+}
+
+export function currentBackupRun(runs, parent, workflowSha) {
+  requireCheck(Array.isArray(runs), 'BACKUP_RUN_INVENTORY_MISSING');
+  const matching = runs.filter(run => run.display_title === 'Production backup ' + parent && run.conclusion !== 'cancelled');
+  requireCheck(matching.length <= 1, 'DUPLICATE_RELEASE_BOUND_BACKUP_RUNS');
+  if (!matching.length) return null;
+  const [run] = matching;
+  requireCheck(run.head_sha === workflowSha && validId(run.id) && run.event === 'workflow_dispatch' && run.head_branch === 'main' &&
+    run.actor?.login === 'hakaru4i-afk', 'UNTRUSTED_EXISTING_RELEASE_BACKUP');
+  return run;
 }
 
 export function waitingForBackupGuest(result) {
@@ -258,16 +297,18 @@ async function dispatchBackup(env) {
       'BACKUP_DISPATCH_IDENTITY_CHANGED');
     return run;
   };
-  const getJobs = id => ghJson(runPath + id + '/jobs?per_page=100', token);
-  let runner = 'mac';
-  let id = launch(runner);
+  const getJobs = run => ghJson(runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
+  const previous = currentBackupRun(ghJson(repository + '/actions/workflows/' + backupWorkflow +
+    '/runs?event=workflow_dispatch&branch=main&per_page=100', token).workflow_runs, parent, trustedWorkflowSha);
+  let runner = previous ? null : 'mac';
+  let id = previous?.id ?? launch(runner);
   let waitingSince = null;
   let run = getRun(id);
   while (run.status !== 'completed' && Date.now() < deadline) {
     if (runner === 'mac') {
-      const unattended = waitingForBackupGuest(getJobs(id));
+      const unattended = waitingForBackupGuest(getJobs(run));
       waitingSince = unattended ? waitingSince ?? Date.now() : null;
-      if (waitingSince !== null && Date.now() - waitingSince >= 120000 && waitingForBackupGuest(getJobs(id))) {
+      if (waitingSince !== null && Date.now() - waitingSince >= 120000 && waitingForBackupGuest(getJobs(run))) {
         // No capture has started. Cancel only our own backup request before reusing the protected queue.
         gh(['run', 'cancel', String(id), '--repo', backend], token);
         const cancellationDeadline = Date.now() + 90000;
@@ -284,7 +325,10 @@ async function dispatchBackup(env) {
     run = getRun(id);
   }
   requireCheck(run.status === 'completed' && run.conclusion === 'success', 'FRESH_AUTOMATIC_BACKUP_FAILED_OR_TIMED_OUT');
-  const jobs = getJobs(id);
+  const today = new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Minsk'});
+  requireFreshTime(run.run_started_at, Date.now() - maxEvidenceAge, Date.now());
+  requireCheck(today.format(new Date(run.run_started_at)) === today.format(new Date()), 'PRODUCTION_BACKUP_NOT_FROM_RELEASE_DAY');
+  const jobs = getJobs(run);
   const job = jobs.jobs?.find(entry => entry.name === 'capture-and-readback');
   requireCheck(validId(job?.id), 'BACKUP_CAPTURE_JOB_MISSING');
   const log = gh(['api', repository + '/actions/jobs/' + job.id + '/logs'], token);
@@ -292,7 +336,7 @@ async function dispatchBackup(env) {
   requireCheck(markers.length === 1, 'BACKUP_RESTORE_PROOF_MISSING');
   const proof = JSON.parse(markers[0].slice(markers[0].indexOf(' CAPTURE_RESTORE_PROOF ') + ' CAPTURE_RESTORE_PROOF '.length));
   verifyBackup(run, jobs, proof, {id, parent});
-  console.log('Fresh backup, ciphertext readback and isolated restore verified.');
+  return {runId: String(id), attempt: String(run.run_attempt), ciphertextSha256: proof.ciphertextSha256};
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
@@ -300,16 +344,23 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const env = process.env;
     const lock = readLock();
     switch (process.argv[2]) {
-      case 'plan':
-        console.log(JSON.stringify({...lock, function: targetFunction(lock), releaseVersion: nextVersion((await readCurrentSite()).businessVersion)}));
+      case 'plan': {
+        const current = await readCurrentSite();
+        requireCheck(current.frontendSourceCommit !== lock.frontendSha || current.backendSourceCommit !== lock.backendSha,
+          'EXACT_PAIR_ALREADY_SERVED_VERIFY_PRODUCTION');
+        console.log(JSON.stringify({...lock, function: targetFunction(lock), releaseVersion: nextVersion(current.businessVersion)}));
         break;
+      }
       case 'evidence':
         requireCheck(env.RELEASE_APPROVAL === approval(lock), 'OWNER_APPROVAL_FOR_EXACT_LOCK_REQUIRED');
-        fetchEvidence(lock, env);
+        console.log(JSON.stringify(fetchEvidence(lock, env)));
         break;
-      case 'backup':
-        await dispatchBackup(env);
+      case 'backup': {
+        const receipt = JSON.stringify(await dispatchBackup(env));
+        if (env.GITHUB_OUTPUT) appendFileSync(env.GITHUB_OUTPUT, 'receipt=' + receipt + '\n');
+        console.log(receipt);
         break;
+      }
       default:
         throw Error('INVALID_RELEASE_COMMAND');
     }

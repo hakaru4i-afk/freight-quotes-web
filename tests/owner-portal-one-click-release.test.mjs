@@ -7,16 +7,20 @@ const live=readFileSync('portal-feedback-center-20261107.js','utf8');
 const stage=readFileSync('test/portal-feedback-center-20261107.js','utf8');
 const candidate=readFileSync('release/owner-portal-feedback-center-20261122.js','utf8');
 const workflow=readFileSync('.github/workflows/owner-portal-release.yml','utf8');
-test('published UI matches its receipt and the proposed Pages UI matches staging',()=>{
+test('published UI matches its production receipt and the historical Pages candidate',()=>{
  const manifest=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
  assert.match(manifest.assets['portal-feedback-center-20261107.js'],/^[a-f0-9]{64}$/);
  assert.equal(live,candidate,'main must contain exactly the approved P0 UI');
  const releaseMatch=/^SH-01\.30\.(\d+) v$/.exec(manifest.businessVersion);
  assert.ok(releaseMatch&&Number(releaseMatch[1])>=64,'Issue #173 requires the approved SH64 (or later) production receipt');
  assert.equal(createHash('sha256').update(live).digest('hex'),manifest.assets['portal-feedback-center-20261107.js'],'published Owner UI must match the verified production asset digest');
- assert.equal(stage,candidate);
  assert.ok(candidate.includes('data-pf="release-update"'));
  assert.ok(!candidate.includes('data-pf="prepare-release"'));
+});
+test('staging entrypoint uses the current owner UI content hash',()=>{
+ const index=readFileSync('test/index.html','utf8');
+ const cacheKey=createHash('sha1').update('blob '+Buffer.byteLength(stage)+'\0').update(stage).digest('hex').slice(0,12);
+ assert.ok(index.includes('portal-feedback-center-20261107.js?v='+cacheKey));
 });
 test('Owner can release after verified task progress reaches 100%',()=>{
  const gate=candidate.split('\n').find(s=>s.startsWith('const isReleaseReady='));
@@ -46,9 +50,12 @@ test('deep browser tests can be run manually but do not run for ordinary pushes'
  assert.doesNotMatch(deep,/^  push:/m);
  assert.match(deep,/workflow_dispatch:/);
 });
-test('cabinet help is available in RU EN ZH, and builder packages the checked candidate',()=>{
- for(const locale of ["ru:{","en:{","zh:{"])assert.ok(candidate.includes(locale));
- assert.match(candidate,/Бэкапы и E2E отдельно/);
+test('cabinet help explains verified recovery and owner approval in all locales',()=>{
+ for(const locale of ["ru:{","en:{","zh:{"])assert.ok(stage.includes(locale));
+ assert.match(stage,/полной приёмки, проверенного восстановления и подтверждения владельца/);
+ assert.match(stage,/complete acceptance, verified recovery, and Owner approval/);
+ assert.match(stage,/完成验收、恢复验证和所有者批准/);
+ assert.doesNotMatch(stage,/Бэкапы и E2E отдельно|do not block release|不阻止发布/);
  assert.match(readFileSync('scripts/release/owner-portal-pages.mjs','utf8'),/release\/owner-portal-feedback-center-20261122\.js/);
 });
 

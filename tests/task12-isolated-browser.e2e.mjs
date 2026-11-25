@@ -2,6 +2,7 @@ import{map50Scenario}from'./map50-real-scenario.mjs';
 import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
+import {fixtureOrder,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -34,8 +35,10 @@ const metadata=qaRun==='carrier124nov18'
  ? {isolatedQaFunction:qaFunction,isolatedQaVersion:9,isolatedQaBundleSha256:'b938d85da685f5ab931877647483a5e209cdc021aef2550e7265fd4ce83e91db',isolatedQaSourceCommit:'09d20b01feca07bfc6c9d82e2068cb3ffac9ed0c'}
  : JSON.parse(await readFile(resolve(frozenSource,'test/build-info.json'),'utf8')).stabilizationQa20261110;
 // An isolated backend candidate can be verified before changing published metadata.
-if(process.env.QA_BROWSER_BACKEND_PROOF_FILE){
- const proof=JSON.parse(await readFile(process.env.QA_BROWSER_BACKEND_PROOF_FILE,'utf8'));
+const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
+const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
+if(runtime){
+ const proof=runtime;
  if(lockedCandidate)assert.equal(proof.frontendSha,gitSha);
  assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
  Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
@@ -45,6 +48,10 @@ assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersi
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
 const phase=process.env.QA_BROWSER_MODE_MATRIX==='true'?'mode-matrix':process.env.QA_NOV14_PHASE?'nov14-'+process.env.QA_NOV14_PHASE:process.env.QA_MAP_GEOCODES==='true'?'map50':process.env.QA_BROWSER_LOGISTIC_SECURITY==='true'?'logistic-security':process.env.QA_BROWSER_ALIGNMENT==='true'?'alignment':process.env.QA_BROWSER_CREATE==='true'?'create':process.env.QA_BROWSER_SELECT==='true'?'select':process.env.QA_BROWSER_ACCEPT==='true'?'accept':process.env.QA_BROWSER_TRACK==='true'?'tracking':process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'?'logistic-document':process.env.QA_BROWSER_VED_VERIFY==='true'?'ved-verify':process.env.QA_BROWSER_VED_WORK==='true'?'ved-work':process.env.QA_BROWSER_EXECUTION==='true'?'execution':process.env.QA_BROWSER_BID==='true'?'bid-'+(['csv','xlsx'].includes(process.env.QA_BROWSER_IMPORT)?process.env.QA_BROWSER_IMPORT:'manual'):'cabinet-read';
 const root=frozenSource,base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/'+qaFunction;
+// Direct readback/replay must use the same isolated region as the published browser transport.
+// Do not retry mutations or accept non-200 responses: replay idempotency is an actual assertion.
+const directQaUrl=path=>{assert.ok(path.startsWith('/api/'));const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');return url.href;};
+const directQaFetch=(path,options={})=>fetch(directQaUrl(path),{...options,redirect:'error',signal:AbortSignal.timeout(60000)});
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||'/tmp/freight-rc20261110-private/sessions.json','utf8'));
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg'};
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
@@ -184,8 +191,8 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await form.locator('input[type="checkbox"][required]').check();
    const sent=page.waitForResponse(r=>r.url().includes('/api/quote')&&r.request().method()==='POST',{timeout:60000});await form.getByRole('button',{name:/Отправить все варианты/}).click();
    const r=await sent;assert.equal(r.status(),200);rec.quote={http:200};
-   const check=await fetch(base+'/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});const saved=await check.json();assert.ok(saved.bids.some(b=>b.order_code===order&&Number(b.amount)===1550));rec.quote.readbackVerified=true;
-   if(map50){const replay=await fetch(base+'/api/quote',{method:'POST',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',Authorization:'Bearer '+sessions[actor]},body:JSON.stringify(r.request().postDataJSON())});assert.equal(replay.status,200,'Unchanged bid replay must be accepted');const again=await(await fetch(base+'/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}})).json();assert.deepEqual(again.bids.filter(b=>b.order_code===order).map(b=>b.id),saved.bids.filter(b=>b.order_code===order).map(b=>b.id));rec.quote.replayPreservedIds=true;}
+   const check=await directQaFetch('/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});assert.equal(check.status,200,'Quote readback must succeed');const saved=await check.json();assert.ok(saved.bids.some(b=>b.order_code===order&&Number(b.amount)===1550));rec.quote.readbackVerified=true;
+   if(map50){const replay=await directQaFetch('/api/quote',{method:'POST',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',Authorization:'Bearer '+sessions[actor]},body:JSON.stringify(r.request().postDataJSON())});assert.equal(replay.status,200,'Unchanged bid replay must be accepted');const repeatRead=await directQaFetch('/api/carrier',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor]}});assert.equal(repeatRead.status,200,'Replay readback must succeed');const again=await repeatRead.json();assert.deepEqual(again.bids.filter(b=>b.order_code===order).map(b=>b.id),saved.bids.filter(b=>b.order_code===order).map(b=>b.id));rec.quote.replayPreservedIds=true;}
 
   }
   if((process.env.QA_BROWSER_LOGISTIC_DOCUMENT==='true'||process.env.QA_BROWSER_LOGISTIC_COMPLETE_ONLY==='true')&&actor==='logistic'){
@@ -299,17 +306,33 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    rec.manualReview={status:'PASS',order,taskId:result.taskId,realBrowserSubmission:true};
   }
   if(process.env.QA_BROWSER_TENDER==='true'&&actor==='owner'){
+   const business=JSON.parse(await readFile(evidenceDir+'/business-api-real.json','utf8'));
+   const fixture=requireBusinessFixture(business,tenderCheck,{runId:report.runId,runAttempt:report.runAttempt,runtime});
+   fixtureOrder(fixture.order,report.runId,'TENDER');
+   assert.match(fixture.id,/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/);
+   assert.equal(fixture.winningAmount,1480);
    await page.locator('.cabinet-sidebar nav a[href="#tender-hub"]').first().evaluate(el=>el.click());
    const tender=page.locator('.cabinet-panel[data-section="tender-hub"]');await tender.waitFor({state:'visible'});
-   const button=tender.getByRole('button',{name:/Скачать итоговый протокол PDF/}).first();await button.waitFor({timeout:60000});
+   const card=tender.locator('#tender-'+fixture.id);
+   await card.getByText(fixture.order,{exact:true}).waitFor({timeout:60000});
+   const button=card.getByRole('button',{name:/Скачать итоговый протокол PDF/});await button.waitFor({timeout:60000});
    const downloaded=page.waitForEvent('download',{timeout:60000});
-   const protocolResponse=page.waitForResponse(r=>r.url().includes('/api/tenders?protocol='),{timeout:60000});
+   const protocolResponse=page.waitForResponse(r=>{
+    const url=new URL(r.url());
+    return url.pathname.endsWith('/api/tenders')&&url.searchParams.get('protocol')===fixture.id;
+   },{timeout:60000});
    await button.click();const download=await downloaded;const response=await protocolResponse;
    assert.equal(response.status(),200);const protocol=await response.json();assert.equal(protocol.final,true);
+   const {tender:finalTender,offers,events}=protocol.protocol;
+   assert.deepEqual([finalTender.id,finalTender.order_code,finalTender.protocol,finalTender.title,finalTender.winner,finalTender.currency],
+    [fixture.id,fixture.order,fixture.protocol,fixture.title,fixture.winner,fixture.currency]);
+   const offer=offers.find(offer=>offer.id===fixture.winningOffer);
+   assert.deepEqual([Number(offer?.amount),offer?.participant_id,offer?.decision],[fixture.winningAmount,fixture.winner,'accepted']);
+   assert.equal(events.filter(event=>event.type==='finalized').at(-1)?.detail.offer_id,fixture.winningOffer);
    const path=await download.path();const bytes=await readFile(path);assert.equal(bytes.subarray(0,5).toString(),'%PDF-');
-   const text=execFileSync('pdftotext',['-layout',path,'-'],{encoding:'utf8'});
-   for(const value of [protocol.protocol.tender.protocol,protocol.protocol.tender.order_code,'1480','Synthetic QA price tender'])assert.ok(text.includes(value),'PDF missing '+value);
-   rec.tenderPdf={status:'PASS',http:200,final:true,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),protocolNumber:protocol.protocol.tender.protocol,order:protocol.protocol.tender.order_code,serverValuesVerifiedInPdf:true};
+   const text=execFileSync('pdftotext',['-layout',path,'-'],{encoding:'utf8'}).replace(/\s+/g,' ');
+   for(const value of [fixture.protocol,fixture.order,fixture.title,`Итоговое предложение победителя: ${fixture.winningAmount} ${fixture.currency}`])assert.ok(text.includes(value),'PDF missing '+value);
+   rec.tenderPdf={status:'PASS',http:200,final:true,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex'),protocolNumber:fixture.protocol,order:fixture.order,tenderId:fixture.id,winningAmount:fixture.winningAmount,serverValuesVerifiedInPdf:true};
   }
   if(process.env.QA_BROWSER_EXPAND_TASKS==='true'&&actor==='content'){
    const inbox=page.locator('#lw-pending-tasks-all-roles');await inbox.getByText('Business QA assignment 6',{exact:true}).waitFor({timeout:60000});
@@ -328,7 +351,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    }
   }
   if(process.env.QA_BROWSER_ALIGNMENT==='true')await alignmentScenarios({page,actor,base,sessions,rec,report,createPublicPage});
-  if(process.env.QA_BROWSER_MODE_MATRIX==='true')await(await import('./transport-mode-real-scenarios.mjs')).transportModeScenarios({page,actor,base,sessions,rec,report});
+  if(process.env.QA_BROWSER_MODE_MATRIX==='true')await(await import('./transport-mode-real-scenarios.mjs')).transportModeScenarios({page,actor,base,sessions,rec,report,runtime,evidenceDir});
   if(process.env.QA_BROWSER_MATRIX==='true')await cabinetMatrix({page,actor,rec});
   for(const viewport of [{width:1440,height:900},{width:390,height:844}]){
    await page.setViewportSize(viewport);await page.waitForTimeout(1200);

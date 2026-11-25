@@ -17,11 +17,41 @@ let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,dr
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 const releaseWords={
- ru:{prepare:'Запустить проверки',preflightQueued:'Проверяются базовые тесты, E2E на main и свежая резервная копия',prepareHelp:'Подготовка запускает только тесты; итоги появятся в X/4.',testsSummary:'Ожидаются тесты',readySummary:'Проверки пройдены, можно выпускать',blocked:'Ожидается завершение разработки (100%).',candidateMissing:'Кандидат выпуска не привязан к этой заявке: 4 проверки ещё не подготовлены.',candidateInvalid:'Для выпуска не указаны корректные SHA и четыре группы проверок.',checksPending:'Не все проверки frontend, backend, E2E и восстановления завершились успешно.',checksUnavailable:'Подтверждение проверок из GitHub сейчас недоступно.',devComplete:'Выпуск доступен после завершения разработки (100%).',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска',help:'После 100% разработки нажмите «Выпустить обновление»: быстрые проверки опубликуют интерфейс на сайте. Публикация API проводится отдельно. Бэкапы и E2E отдельно, не блокируют выпуск.'},
- en:{prepare:'Run release checks',preflightQueued:'Checking source tests, main E2E and a recent backup',prepareHelp:'Preflight runs checks only; results appear in X/4.',testsSummary:'Waiting for tests',readySummary:'Checks passed, ready to release',blocked:'Waiting for completed development (100%).',candidateMissing:'No release candidate is linked to this task; the four release checks are not configured yet.',candidateInvalid:'Valid source SHAs and all four check groups are missing.',checksPending:'Not all frontend, backend, E2E and recovery checks have passed.',checksUnavailable:'GitHub check evidence is currently unavailable.',devComplete:'Release is available once development reaches 100%.',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log',help:'At 100% completion, select Start release. Quick checks publish the website interface. API deployment is handled separately. Backup and E2E checks are separate and do not block release.'},
- zh:{prepare:'运行发布检查',preflightQueued:'正在检查基础测试、main 分支端到端测试和最新备份',prepareHelp:'预检只运行检查，不发布；结果更新 X/4。',testsSummary:'等待测试',readySummary:'检查已通过，可以发布',blocked:'等待开发进度达到 100%。',candidateMissing:'此任务尚未关联发布候选版本，四项发布检查尚未配置。',candidateInvalid:'缺少有效源码 SHA 或四组必需检查。',checksPending:'前端、后端、端到端测试和恢复验证尚未全部通过。',checksUnavailable:'暂时无法从 GitHub 确认检查结果。',devComplete:'研发进度达到 100% 后可以发布。',title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志',help:'任务完成度达到 100% 即可发布。快速检测将发布网站界面。API 发布单独执行。备份与 E2E 测试独立运行，不阻止发布。'}
+ ru:{prepare:'Запустить проверки',preflightQueued:'Проверяются базовые тесты, E2E на main и свежая резервная копия',prepareHelp:'Подготовка запускает только тесты; итоги появятся в X/4.',testsSummary:'Ожидаются тесты',readySummary:'Проверки пройдены, можно выпускать',blocked:'Ожидается завершение разработки (100%).',candidateMissing:'Кандидат выпуска не привязан к этой заявке: 4 проверки ещё не подготовлены.',candidateInvalid:'Для выпуска не указаны корректные SHA и четыре группы проверок.',checksPending:'Не все проверки frontend, backend, E2E и восстановления завершились успешно.',checksUnavailable:'Подтверждение проверок из GitHub сейчас недоступно.',devComplete:'Выпуск доступен после завершения разработки (100%).',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска'},
+ en:{prepare:'Run release checks',preflightQueued:'Checking source tests, main E2E and a recent backup',prepareHelp:'Preflight runs checks only; results appear in X/4.',testsSummary:'Waiting for tests',readySummary:'Checks passed, ready to release',blocked:'Waiting for completed development (100%).',candidateMissing:'No release candidate is linked to this task; the four release checks are not configured yet.',candidateInvalid:'Valid source SHAs and all four check groups are missing.',checksPending:'Not all frontend, backend, E2E and recovery checks have passed.',checksUnavailable:'GitHub check evidence is currently unavailable.',devComplete:'Release is available once development reaches 100%.',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log'},
+ zh:{prepare:'运行发布检查',preflightQueued:'正在检查基础测试、main 分支端到端测试和最新备份',prepareHelp:'预检只运行检查，不发布；结果更新 X/4。',testsSummary:'等待测试',readySummary:'检查已通过，可以发布',blocked:'等待开发进度达到 100%。',candidateMissing:'此任务尚未关联发布候选版本，四项发布检查尚未配置。',candidateInvalid:'缺少有效源码 SHA 或四组必需检查。',checksPending:'前端、后端、端到端测试和恢复验证尚未全部通过。',checksUnavailable:'暂时无法从 GitHub 确认检查结果。',devComplete:'研发进度达到 100% 后可以发布。',title:'发布更新',launch:'启动发布',running:'正在发布',unstarted:'点击启动测试和发布',queued:'GitHub 已接收请求，等待启动',in_progress:'正在验证并发布',failed:'发布已停止，请查看 GitHub Actions 日志',published:'GitHub Actions 已确认发布',unknown:'GitHub 状态暂不可用',journal:'发布日志'}
 };
 const releaseT=()=>releaseWords[byLang]||releaseWords.ru;
+const releaseStageWords={
+ ru:{queued:'GitHub принял запрос, запуск в очереди.',verifying:'Проверяются подтверждение владельца и результаты приёмки.',backup:'Создаётся резервная копия и проверяется восстановление.',publishing:'Публикуются API и сайт.',readback:'Проверяются фактически опубликованные API и файлы.',published:'Выпущено. Production проверен.',verificationFailed:'Не подтверждены разрешение владельца или обязательные проверки.',backupFailed:'Не подтверждены резервная копия или восстановление.',releaseFailed:'Публикация остановлена. Подробности в журнале выпуска.',readbackFailed:'Фактическая публикация не подтверждена.',unknown:'Не удалось получить результаты запуска GitHub.',help:'Системный выпуск требует согласованного кандидата, полной приёмки, проверенного восстановления и подтверждения владельца.'},
+ en:{queued:'GitHub accepted the request. Waiting for the workflow.',verifying:'Verifying Owner approval and acceptance evidence.',backup:'Creating the backup and testing recovery.',publishing:'Publishing the API and website.',readback:'Verifying the deployed API and files.',published:'Released. Production has been verified.',verificationFailed:'Owner approval or required evidence is missing.',backupFailed:'Backup or recovery is unverified.',releaseFailed:'Publication stopped. Open the release log for details.',readbackFailed:'The deployed release is unverified.',unknown:'GitHub run results are unavailable.',help:'A full release requires a compatible candidate, complete acceptance, verified recovery, and Owner approval.'},
+ zh:{queued:'GitHub 已接受请求，工作流正在排队。',verifying:'正在验证所有者批准和验收证据。',backup:'正在创建备份并验证恢复。',publishing:'正在发布 API 和网站。',readback:'正在验证已部署的 API 和文件。',published:'已发布，生产环境已验证。',verificationFailed:'缺少所有者批准或必要的验证结果。',backupFailed:'尚未验证备份或恢复。',releaseFailed:'发布已停止，请查看发布日志。',readbackFailed:'尚未验证实际发布结果。',unknown:'暂时无法取得 GitHub 运行结果。',help:'完整发布必须使用兼容的候选版本，并完成验收、恢复验证和所有者批准。'}
+};
+const releaseStageKeys={queued:'queued',verifying:'verifying',backup:'backup','publishing-pages':'publishing','verifying-production':'readback'};
+const releaseFailureKeys={RELEASE_VERIFICATION_UNPROVEN:'verificationFailed',BACKUP_ERROR:'backupFailed',RELEASE_ERROR:'releaseFailed',PRODUCTION_READBACK_UNPROVEN:'readbackFailed',GITHUB_RELEASE_JOBS_UNAVAILABLE:'unknown'};
+const releaseWorkflow='https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/owner-portal-release.yml';
+const releaseIntentWords={
+ ru:{prepare:'Подготовить выпуск',awaiting:'Ожидается подтверждение владельца в GitHub.',open:'Открыть защищённый выпуск',fields:'Укажите эти идентификаторы при запуске, чтобы связать выпуск с заявкой.'},
+ en:{prepare:'Prepare release',awaiting:'Waiting for Owner approval in GitHub.',open:'Open protected release',fields:'Enter these identifiers in the workflow to link the release to this task.'},
+ zh:{prepare:'准备发布',awaiting:'正在等待所有者在 GitHub 中批准。',open:'打开受保护的发布工作流',fields:'在工作流中填写这两个标识，以关联此任务的发布。'}
+};
+const releaseRequestId=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function hasReleaseIntent(run){
+ return ['awaiting_owner','failed'].includes(run?.status)&&releaseRequestId.test(run.taskId||'')&&releaseRequestId.test(run.requestId||'');
+}
+function isPublicationConfirmed(run){
+ return run?.status==='published'&&run.stage==='verified-production'&&run.progress===100&&
+  Number.isSafeInteger(run.runId)&&run.runId>0&&Number.isSafeInteger(run.runAttempt)&&run.runAttempt>0;
+}
+function releaseProgressText(run){
+ const words=releaseStageWords[byLang];
+ if(isPublicationConfirmed(run))return words.published;
+ if(run.status==='published')return words.readbackFailed;
+ if(run.status==='awaiting_owner')return releaseIntentWords[byLang].awaiting;
+ if(run.status==='unknown')return words.unknown;
+ if(run.status==='failed')return words[releaseFailureKeys[run.reason]]||words.releaseFailed;
+ return words[releaseStageKeys[run.stage]]||releaseT()[run.status]||releaseT().unstarted;
+}
 const codexErrorLabels={
  ru:{CODEX_NETWORK_BLOCKED_403:'Запуск Codex с Mac отклонён (HTTP 403); повторные нажатия не помогут.',CODEX_RATE_LIMITED:'Лимит запросов Codex.',CODEX_AUTH_EXPIRED:'Авторизация Codex истекла.',CODEX_SANDBOX_DENIED:'Codex не может изменять файлы.',CODEX_NO_CODE_CHANGES:'Codex не внёс изменений.',CODEX_WORKFLOW_FAILED:'Ошибка Codex. Откройте GitHub Actions.'},
  en:{CODEX_NETWORK_BLOCKED_403:'Codex launch from Mac was rejected (HTTP 403); retrying will not help.',CODEX_RATE_LIMITED:'Codex rate limit.',CODEX_AUTH_EXPIRED:'Codex login expired.',CODEX_SANDBOX_DENIED:'Codex cannot edit files.',CODEX_NO_CODE_CHANGES:'Codex made no changes.',CODEX_WORKFLOW_FAILED:'Codex failed. Open GitHub Actions.'},
@@ -140,25 +170,28 @@ function detail(){
  const releaseReady=isReleaseReady(item,data.owner,releaseReadiness,execution);
  const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
  const isRunning=['queued','in_progress'].includes(runState.status);
- const isConfirmed=runState.status==='published';
+ const isConfirmed=isPublicationConfirmed(runState);
+ const intent=hasReleaseIntent(runState);
+ const isUnverified=runState.status==='unknown'||runState.status==='published'&&!isConfirmed;
  const lines=releaseT();
- const notice=runState.status==='not_started'&&!releaseReady?progressText:(lines[runState.status]||lines.unstarted);
- const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\//.test(runState.url)?runState.url:'';
+ const intentLines=releaseIntentWords[byLang];
+ const notice=runState.status==='not_started'&&!releaseReady?progressText:releaseProgressText(runState);
+ const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/(?:runs\/[1-9][0-9]*|workflows\/owner-portal-release\.yml)$/.test(runState.url)?runState.url:'';
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
   '<h4>'+esc(lines.title)+'</h4>'+
   (runState.status!=='not_started'||!execution?'<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>':'')+
-  (Number.isInteger(runState.progress)&&runState.progress>=0&&runState.progress<=100?'<progress value="'+runState.progress+'" max="100" aria-label="'+esc(lines.running)+'"></progress><small>'+runState.progress+'% · '+esc(runState.stage||'')+'</small>':'')+
-  '<small>'+esc(lines.help)+'</small>'+
-  (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
-  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+  '<small>'+esc(releaseStageWords[byLang].help)+'</small>'+
+  (actionUrl&&actionUrl!==releaseWorkflow?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
+  (intent?'<p><a href="'+releaseWorkflow+'" target="_blank" rel="noopener noreferrer">'+esc(intentLines.open)+'</a></p>'+
+    '<small>'+esc(intentLines.fields)+'</small><dl><dt>task_id</dt><dd><code>'+esc(runState.taskId)+'</code></dd><dt>request_id</dt><dd><code>'+esc(runState.requestId)+'</code></dd></dl>':
+   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||isUnverified||busy?'disabled':'')+'>'+esc(isRunning?lines.running:intentLines.prepare)+'</button>')+'</section>':'';
  const l=byLang==='en'?{send:'Submit for review',accept:'Accept implementation',return:'Return for rework',reason:'What is wrong and how to fix it? Required comment (at least 10 characters)',archive:'Confirm publication and archive',accepted:'Implementation accepted. Publish before archiving.',waiting:'Development must pass GitHub tests before review.',archiveReady:'Publication has been verified. Confirm archive.'}:
  byLang==='zh'?{send:'提交验收',accept:'接受开发结果',return:'退回修改',reason:'请说明错误和必要的修改（必填至少10字）',archive:'确认发布并归档',accepted:'已接受开发结果，须发布后归档。',waiting:'需通过 GitHub 检查才能提交验收。',archiveReady:'发布已验证，请确认归档。'}:
  {send:'Отправить на приёмку',accept:'Принять разработку',return:'Вернуть на доработку',reason:'Что не так и что нужно исправить? Обязательный комментарий (не менее 10 символов)',archive:'Подтвердить выпуск и в архив',accepted:'Разработка принята. После публикации можно закрыть задачу.',waiting:'Сначала нужны успешные проверки GitHub; статус «Выпуск» вручную не выбирается.',archiveReady:'Публикация подтверждена. Можно закрыть задачу и перенести в архив.'};
  const reviewPhase=execution?.decision==='review_pending'&&item.status==='release';
  const acceptedPhase=execution?.decision==='accepted'&&item.status==='release';
  const canSubmit=execution?.decision==='in_progress'&&item.status==='in_progress'&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
- const canArchive=data.owner&&!['completed','denied'].includes(item.status)&&(alreadyPublished||(acceptedPhase&&runState.status==='published'));
+ const canArchive=data.owner&&!['completed','denied'].includes(item.status)&&(alreadyPublished||(acceptedPhase&&isConfirmed));
  const workflowPanel=!data.owner?'':canArchive?
   '<section class="pf-workflow-actions"><p>'+esc(l.archiveReady)+'</p><button class="pf-primary" data-pf="archive-published" type="button" '+(busy?'disabled':'')+'>'+esc(l.archive)+'</button></section>':
   reviewPhase||acceptedPhase?
@@ -294,7 +327,7 @@ async function ownerReviewAction(item,action,reason=''){
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
- try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;if(payload.action==='archive_published')statusFilter='archive';await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
+ try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;if(payload.action==='archive_published')statusFilter='archive';await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseProgressText(releaseRun);void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
  catch(e){busy=false;error=t().error+": "+e.message;render();}
 }
 document.addEventListener("click",ev=>{

@@ -2,13 +2,15 @@ import {execFileSync} from 'node:child_process';
 import {lstatSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {digest, nextVersion, project, readCurrentSite, readLock, requireCheck, sha64, site, targetFunction} from './locked-release.mjs';
+import {digest, nextVersion, project, readCurrentSite, readLock, requireCheck, sha40, sha64, site, targetFunction, validId} from './locked-release.mjs';
+import {readSchemaVersion} from './locked-release-api.mjs';
 
 const staticFile = /\.(?:js|mjs|css|html|json|svg|webp|png|jpe?g|gif|ico|wasm|gz|woff2?|ttf|otf|txt)$/i;
 const publicDirs = new Set(['test', 'global-view', 'processes', 'process-history']);
 const exclude = /(?:^|\/)(?:node_modules|reports|scripts|tests|docs|config|release|verified)(?:\/|$)|(?:^|[-_.])(?:secret|private-key|credential|session-token|password|database-url)(?:[-_.]|$)/i;
 const legacyApi = 'https://' + project + '.supabase.co/functions/v1/freight-api';
 const manifestName = 'production-release-manifest.json';
+const feedbackScript = 'portal-feedback-center-20261107.js';
 const htmlAssets = html => [...html.matchAll(/(?:src|href)="\.\/([^"?]+\.(?:js|mjs|css))(?:\?[^"]*)?"/g)].map(match => match[1]);
 
 export function validateApiProof(lock, proof, releaseVersion) {
@@ -34,7 +36,17 @@ export function readFiles(source) {
   return files;
 }
 
-export function bindPages(files, lock, proof, baseline, currentStatus, now = new Date()) {
+export function publicationRecord(proof, actions, evidence, backup) {
+  requireCheck(new RegExp('^' + project + '_[a-f0-9-]{36}_' + proof.apiVersion + '$').test(proof.apiDeploymentId) &&
+    /^\d{14}$/.test(proof.schemaVersion), 'PRODUCTION_API_OR_SCHEMA_RECEIPT_MISSING');
+  const validRun = run => validId(run?.runId) && validId(run.attempt);
+  requireCheck(validRun(actions) && sha40.test(actions.workflowSha) && validRun(backup) && sha64.test(backup.ciphertextSha256) &&
+    ['frontend', 'backend', 'e2e'].every(kind => validRun(evidence?.[kind]) && sha40.test(evidence[kind].workflowSha)),
+  'PRODUCTION_ACTION_RECEIPTS_MISSING');
+  return {actions, evidence, backup: {runId: backup.runId, attempt: backup.attempt}};
+}
+
+export function bindPages(files, lock, proof, baseline, currentStatus, publication, now = new Date()) {
   const releaseVersion = nextVersion(baseline.businessVersion);
   validateApiProof(lock, proof, releaseVersion);
   requireCheck(currentStatus?.release?.version === baseline.businessVersion && Array.isArray(currentStatus.releases),
@@ -53,6 +65,12 @@ export function bindPages(files, lock, proof, baseline, currentStatus, now = new
   requireCheck([...html.matchAll(/app\.js\?v=[a-f0-9]{12,40}/g)].length === 1, 'FRONTEND_CACHE_KEY_AMBIGUOUS');
   html = html.replace(/app\.js\?v=[a-f0-9]{12,40}/g, 'app.js?v=' + build)
     .replace(/(portal-release-status-[^"?'\s]+\.js\?v=)[^"'&\s]+/g, '$1' + encodeURIComponent(releaseVersion));
+  const feedback = files.get('test/' + feedbackScript);
+  requireCheck(feedback && files.has(feedbackScript), 'REVIEWED_OWNER_FEEDBACK_SCRIPT_MISSING');
+  const feedbackCache = /(portal-feedback-center-20261107\.js\?v=)[a-f0-9]{12,40}/g;
+  requireCheck([...html.matchAll(feedbackCache)].length === 1, 'OWNER_FEEDBACK_CACHE_KEY_AMBIGUOUS');
+  files.set(feedbackScript, feedback);
+  html = html.replace(feedbackCache, (_, path) => path + digest(feedback).slice(0, 12));
   set('index.html', html);
   for (const [path, prefix] of [['index.html', ''], ['test/index.html', 'test/']]) {
     for (const name of htmlAssets(read(path))) {
@@ -69,10 +87,14 @@ export function bindPages(files, lock, proof, baseline, currentStatus, now = new
   set('release-status.json', {...readJson('release-status.json'), version: releaseVersion, date, status: 'released', changes: []});
   set('site-status.json', {...currentStatus, environment: 'production', version: build, release: record,
     releases: [record, ...currentStatus.releases]});
-  const manifest = {schemaVersion: 2, environment: 'production', publicationState: 'PUBLISHED',
+  const manifest = {schemaVersion: 3, environment: 'production', publicationState: 'PUBLISHED',
     businessVersion: releaseVersion, frontendBuild: build, frontendSourceCommit: lock.frontendSha,
     backendSourceCommit: lock.backendSha, backendApiVersion: proof.apiVersion, apiFunction: proof.apiFunction,
-    backendApiBundleSha256: proof.apiBundleSha256,
+    backendApiBundleSha256: proof.apiBundleSha256, apiDeploymentId: proof.apiDeploymentId,
+    databaseSchemaVersion: proof.schemaVersion, publishedAt: now.toISOString(), ...publication,
+    previous: {businessVersion: baseline.businessVersion, frontendBuild: baseline.frontendBuild,
+      frontendSourceCommit: baseline.frontendSourceCommit, backendSourceCommit: baseline.backendSourceCommit,
+      apiFunction: baseline.apiFunction},
     assets: Object.fromEntries([...files].filter(([path]) => path !== '.nojekyll').map(([path, data]) => [path, digest(data)]))};
   set(manifestName, manifest);
   return manifest;
@@ -101,29 +123,66 @@ async function verifyServed(expected) {
   for (let i = 0; i < 20; i++) {
     try {
       const current = await readCurrentSite();
-      requireCheck(current.frontendBuild === expected.frontendBuild && current.businessVersion === expected.businessVersion &&
-        current.frontendSourceCommit === expected.frontendSourceCommit && current.backendSourceCommit === expected.backendSourceCommit &&
-        current.apiFunction === expected.apiFunction && current.backendApiVersion === expected.backendApiVersion &&
-        current.backendApiBundleSha256 === expected.backendApiBundleSha256, 'PUBLISHED_PAIR_MISMATCH');
-      const api = await fetch('https://api.supabase.com/v1/projects/' + project + '/functions/' + expected.apiFunction, {
-        headers: {Authorization: 'Bearer ' + token}, redirect: 'error', signal: AbortSignal.timeout(12000)
-      });
-      requireCheck(api.ok, 'SERVED_API_METADATA_UNAVAILABLE');
+      requireCheck(JSON.stringify(current) === JSON.stringify(expected), 'PUBLISHED_PAIR_MISMATCH');
+      const apiUrl = legacyApi.replace(/freight-api$/, () => expected.apiFunction);
+      const [api, health, schemaVersion] = await Promise.all([
+        fetch('https://api.supabase.com/v1/projects/' + project + '/functions/' + expected.apiFunction, {
+          headers: {Authorization: 'Bearer ' + token}, redirect: 'error', signal: AbortSignal.timeout(12000)
+        }),
+        fetch(apiUrl + '/health', {cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(12000)}),
+        readSchemaVersion(token)
+      ]);
+      requireCheck(api.ok && health.ok, 'SERVED_API_METADATA_OR_HEALTH_UNAVAILABLE');
       const provider = await api.json();
       requireCheck(provider.slug === expected.apiFunction && provider.status === 'ACTIVE' &&
-        provider.version === expected.backendApiVersion && provider.ezbr_sha256 === expected.backendApiBundleSha256,
+        provider.version === expected.backendApiVersion && provider.ezbr_sha256 === expected.backendApiBundleSha256 &&
+        [project, provider.id, provider.version].join('_') === expected.apiDeploymentId,
       'SERVED_API_PROVIDER_DRIFT');
-      for (const file of ['index.html', 'app.js', 'test/index.html', 'test/app.js', 'test/staging-manifest.json']) {
+      const runtime = await health.json();
+      requireCheck(runtime.ok === true && runtime.environment === 'production' && runtime.projectRef === project &&
+        runtime.deploymentId === expected.apiDeploymentId && runtime.backendSha === expected.backendSourceCommit &&
+        runtime.frontendSha === expected.frontendSourceCommit && schemaVersion === expected.databaseSchemaVersion,
+        'SERVED_RUNTIME_OR_SCHEMA_DRIFT');
+      await Promise.all(['index.html', 'app.js', 'style.css', feedbackScript, 'test/index.html', 'test/app.js', 'test/staging-manifest.json'].map(async file => {
         const response = await fetch(new URL(file + '?readback=' + Date.now(), site), {redirect: 'error', signal: AbortSignal.timeout(20000)});
         requireCheck(response.ok && digest(Buffer.from(await response.arrayBuffer())) === expected.assets[file],
-          'PUBLISHED_ASSET_HASH_MISMATCH');
-      }
-      return;
-    } catch {
-      if (i === 19) throw Error('PUBLISHED_PAGES_READBACK_FAILED');
+          'PUBLISHED_ASSET_HASH_MISMATCH:' + file);
+      }));
+      break;
+    } catch (error) {
+      if (i === 19) throw error;
       await new Promise(done => setTimeout(done, 6000));
     }
   }
+  const {captureRoot} = await import('./locked-staging.mjs');
+  const root = await captureRoot();
+  requireCheck(JSON.stringify(JSON.parse(root.get(manifestName))) === JSON.stringify(expected), 'PUBLISHED_PAIR_CHANGED_DURING_READBACK');
+}
+
+function writePages(out, files) {
+  mkdirSync(out);
+  for (const [name, data] of files) {
+    const target = join(out, name);
+    mkdirSync(dirname(target), {recursive: true});
+    writeFileSync(target, data);
+  }
+}
+
+async function verifyRollback(out) {
+  const {captureRoot} = await import('./locked-staging.mjs');
+  const root = await captureRoot();
+  const expected = readFileSync(join(out, manifestName));
+  requireCheck(root.get(manifestName).equals(expected), 'ROLLBACK_ROOT_NOT_RESTORED');
+  const previous = JSON.parse(expected);
+  const apiFunction = previous.apiFunction ?? 'freight-api';
+  requireCheck(/^freight-api(?:-release-[a-f0-9]{32})?$/.test(apiFunction), 'ROLLBACK_API_FUNCTION_INVALID');
+  const health = await fetch(legacyApi.replace(/freight-api$/, () => apiFunction) + '/health', {
+    cache: 'no-store', redirect: 'error', signal: AbortSignal.timeout(20000)
+  });
+  requireCheck(health.ok, 'ROLLBACK_API_HEALTH_FAILED');
+  const runtime = await health.json();
+  requireCheck(runtime.ok === true && runtime.projectRef === project && runtime.environment === 'production' &&
+    (!previous.apiDeploymentId || runtime.deploymentId === previous.apiDeploymentId), 'ROLLBACK_API_HEALTH_FAILED');
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
@@ -131,6 +190,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const [mode, source, out, proofPath] = process.argv.slice(2);
     if (mode === 'verify') {
       await verifyServed(JSON.parse(readFileSync(join(out, manifestName), 'utf8')));
+    } else if (mode === 'verify-rollback') {
+      await verifyRollback(out);
     } else {
       const lock = readLock();
       const checkedOut = execFileSync('git', ['-C', source, 'rev-parse', 'HEAD'], {encoding: 'utf8'}).trim();
@@ -141,13 +202,17 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       if (mode === 'package') {
         const proof = JSON.parse(readFileSync(proofPath, 'utf8'));
         const [baseline, status] = await Promise.all([readCurrentSite(), currentHistory()]);
-        bindPages(files, lock, proof, baseline, status);
-        mkdirSync(out);
-        for (const [name, data] of files) {
-          const target = join(out, name);
-          mkdirSync(dirname(target), {recursive: true});
-          writeFileSync(target, data);
-        }
+        const snapshot = JSON.parse(readFileSync(join(process.env.RELEASE_ROLLBACK_PATH, manifestName), 'utf8'));
+        requireCheck(JSON.stringify(snapshot) === JSON.stringify(baseline), 'PRODUCTION_CHANGED_AFTER_ROLLBACK_SNAPSHOT');
+        const actions = {runId: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, workflowSha: process.env.GITHUB_SHA};
+        const publication = publicationRecord(proof, actions, JSON.parse(process.env.RELEASE_EVIDENCE), JSON.parse(process.env.RELEASE_BACKUP));
+        const manifest = bindPages(files, lock, proof, baseline, status, publication);
+        const {rootInventory} = await import('./locked-staging.mjs');
+        rootInventory(manifest);
+        writePages(out, files);
+      } else if (mode === 'snapshot') {
+        const {captureRoot, stagingFiles} = await import('./locked-staging.mjs');
+        writePages(out, [...await captureRoot(), ...stagingFiles(source), ['.nojekyll', Buffer.alloc(0)]]);
       } else {
         requireCheck(mode === 'preflight' || mode === 'offline', 'INVALID_PAGES_RELEASE_COMMAND');
         console.log(files.size + ' frontend files from the locked commit are available.');
