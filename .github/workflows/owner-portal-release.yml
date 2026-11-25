@@ -10,6 +10,16 @@ on:
       - .github/workflows/locked-backend-regression.yml
       - .github/workflows/isolated-qa-oidc-browser.yml
       - tests/locked-release.test.mjs
+      - package.json
+      - package-lock.json
+      - index.html
+      - test/index.html
+      - owner-registers-20261111.js
+      - test/owner-registers-20261111.js
+      - global-view/**
+      - test/global-view/**
+      - tests/owner-register-three-card-stage1.test.mjs
+      - tests/map-autogeocode-regression.test.mjs
   workflow_dispatch:
     inputs:
       publish:
@@ -50,7 +60,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - run: node --test tests/locked-release.test.mjs
 
   mac-route-smoke:
@@ -88,7 +98,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - run: node --test tests/locked-release.test.mjs
 
   verify:
@@ -134,10 +144,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
+          node-version: '26'
       - name: Resolve exact source and next version from the served receipt
         id: lock
         env:
@@ -186,7 +193,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Capture, encrypt and verify recovery on the protected backup workflow
         env:
           BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
@@ -248,7 +255,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Verify that the backend SHA is in the approved main history
         env:
           BACKEND_SHA: ${{ needs.verify.outputs.backend }}
