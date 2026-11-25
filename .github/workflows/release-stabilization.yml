@@ -1,5 +1,20 @@
 name: Release stabilization candidate
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/release-stabilization.yml'
+      - 'release-lock.json'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'index.html'
+      - 'test/index.html'
+      - 'owner-registers-20261111.js'
+      - 'test/owner-registers-20261111.js'
+      - 'global-view/**'
+      - 'test/global-view/**'
+      - 'tests/**'
+      - 'scripts/release/**'
   workflow_dispatch:
 permissions:
   contents: read
@@ -8,7 +23,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   lock:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
     runs-on: ubuntu-latest
     outputs:
       frontend: ${{ steps.lock.outputs.frontend }}
@@ -19,7 +34,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - id: lock
         run: |
           frontend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().frontendSha)')
@@ -52,8 +67,18 @@ jobs:
           path: |
             ~/.npm
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
-      - run: npm install --no-save playwright@1.56.1
+          key: ${{ runner.os }}-${{ runner.arch }}-node26-playwright-1.65.1-axe4.14.1-v1
+      - name: Resolve exact frontend QA dependency lock and clean install
+        run: |
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: Preserve generated frontend lockfile for source commit
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-package-lock
+          path: package-lock.json
+          if-no-files-found: error
+          retention-days: 7
       - run: npx playwright install chromium
       - name: Verify metadata, independent forms, tracking and fail-closed release decision
         run: >-
@@ -75,7 +100,7 @@ jobs:
         run: |
           test "$(git rev-parse HEAD)" = "$LOCKED_FRONTEND_SHA"
           rm -rf reports
-          GITHUB_SHA="$LOCKED_FRONTEND_SHA" node tests/task12-robot-runner.mjs
+          node tests/task12-robot-runner.mjs
       - name: Bind the fresh robot report to the candidate and dispatch attempt
         working-directory: .
         run: |
@@ -114,7 +139,8 @@ jobs:
             ~/.npm
             ~/.cache/ms-playwright
           key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
-      - run: npm install --no-save playwright@1.56.1
+      - name: Install locked browser and accessibility test dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npx playwright install chromium
       - name: Run every frontend test file, including live browser and security regressions
         env:
