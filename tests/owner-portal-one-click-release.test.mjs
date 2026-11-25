@@ -19,7 +19,8 @@ test('published UI matches its production receipt and the historical Pages candi
 });
 test('staging entrypoint uses the current owner UI content hash',()=>{
  const index=readFileSync('test/index.html','utf8');
- assert.ok(index.includes('portal-feedback-center-20261107.js?v='+createHash('sha256').update(stage).digest('hex').slice(0,12)));
+ const cacheKey=createHash('sha1').update('blob '+Buffer.byteLength(stage)+'\0').update(stage).digest('hex').slice(0,12);
+ assert.ok(index.includes('portal-feedback-center-20261107.js?v='+cacheKey));
 });
 test('Owner can release after verified task progress reaches 100%',()=>{
  const gate=candidate.split('\n').find(s=>s.startsWith('const isReleaseReady='));

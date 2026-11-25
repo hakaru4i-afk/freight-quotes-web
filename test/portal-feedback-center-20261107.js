@@ -29,6 +29,16 @@ const releaseStageWords={
 };
 const releaseStageKeys={queued:'queued',verifying:'verifying',backup:'backup','publishing-pages':'publishing','verifying-production':'readback'};
 const releaseFailureKeys={RELEASE_VERIFICATION_UNPROVEN:'verificationFailed',BACKUP_ERROR:'backupFailed',RELEASE_ERROR:'releaseFailed',PRODUCTION_READBACK_UNPROVEN:'readbackFailed',GITHUB_RELEASE_JOBS_UNAVAILABLE:'unknown'};
+const releaseWorkflow='https://github.com/hakaru4i-afk/freight-quotes-web/actions/workflows/owner-portal-release.yml';
+const releaseIntentWords={
+ ru:{prepare:'Подготовить выпуск',awaiting:'Ожидается подтверждение владельца в GitHub.',open:'Открыть защищённый выпуск',fields:'Укажите эти идентификаторы при запуске, чтобы связать выпуск с заявкой.'},
+ en:{prepare:'Prepare release',awaiting:'Waiting for Owner approval in GitHub.',open:'Open protected release',fields:'Enter these identifiers in the workflow to link the release to this task.'},
+ zh:{prepare:'准备发布',awaiting:'正在等待所有者在 GitHub 中批准。',open:'打开受保护的发布工作流',fields:'在工作流中填写这两个标识，以关联此任务的发布。'}
+};
+const releaseRequestId=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function hasReleaseIntent(run){
+ return ['awaiting_owner','failed'].includes(run?.status)&&releaseRequestId.test(run.taskId||'')&&releaseRequestId.test(run.requestId||'');
+}
 function isPublicationConfirmed(run){
  return run?.status==='published'&&run.stage==='verified-production'&&run.progress===100&&
   Number.isSafeInteger(run.runId)&&run.runId>0&&Number.isSafeInteger(run.runAttempt)&&run.runAttempt>0;
@@ -37,6 +47,7 @@ function releaseProgressText(run){
  const words=releaseStageWords[byLang];
  if(isPublicationConfirmed(run))return words.published;
  if(run.status==='published')return words.readbackFailed;
+ if(run.status==='awaiting_owner')return releaseIntentWords[byLang].awaiting;
  if(run.status==='unknown')return words.unknown;
  if(run.status==='failed')return words[releaseFailureKeys[run.reason]]||words.releaseFailed;
  return words[releaseStageKeys[run.stage]]||releaseT()[run.status]||releaseT().unstarted;
@@ -160,17 +171,20 @@ function detail(){
  const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
  const isRunning=['queued','in_progress'].includes(runState.status);
  const isConfirmed=isPublicationConfirmed(runState);
+ const intent=hasReleaseIntent(runState);
  const isUnverified=runState.status==='unknown'||runState.status==='published'&&!isConfirmed;
  const lines=releaseT();
+ const intentLines=releaseIntentWords[byLang];
  const notice=runState.status==='not_started'&&!releaseReady?progressText:releaseProgressText(runState);
  const actionUrl=typeof runState.url==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/(?:runs\/[1-9][0-9]*|workflows\/owner-portal-release\.yml)$/.test(runState.url)?runState.url:'';
  const releaseControls=releaseEligible?'<section class="pf-release-guard" aria-label="'+esc(lines.title)+'">'+
   '<h4>'+esc(lines.title)+'</h4>'+
   (runState.status!=='not_started'||!execution?'<p class="'+(isConfirmed?'pf-ci-success':'pf-ci-wait')+'" role="status">'+esc(notice)+'</p>':'')+
   '<small>'+esc(releaseStageWords[byLang].help)+'</small>'+
-  (actionUrl?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
-  '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||isUnverified||busy?'disabled':'')+'>'+
-    esc(isRunning?lines.running:lines.launch)+'</button></section>':'';
+  (actionUrl&&actionUrl!==releaseWorkflow?'<p><a href="'+esc(actionUrl)+'" target="_blank" rel="noopener noreferrer">'+esc(lines.journal)+'</a></p>':'')+
+  (intent?'<p><a href="'+releaseWorkflow+'" target="_blank" rel="noopener noreferrer">'+esc(intentLines.open)+'</a></p>'+
+    '<small>'+esc(intentLines.fields)+'</small><dl><dt>task_id</dt><dd><code>'+esc(runState.taskId)+'</code></dd><dt>request_id</dt><dd><code>'+esc(runState.requestId)+'</code></dd></dl>':
+   '<button class="pf-primary" type="button" data-pf="release-update" '+(!releaseReady||isRunning||isConfirmed||isUnverified||busy?'disabled':'')+'>'+esc(isRunning?lines.running:intentLines.prepare)+'</button>')+'</section>':'';
  const l=byLang==='en'?{send:'Submit for review',accept:'Accept implementation',return:'Return for rework',reason:'What is wrong and how to fix it? Required comment (at least 10 characters)',archive:'Confirm publication and archive',accepted:'Implementation accepted. Publish before archiving.',waiting:'Development must pass GitHub tests before review.',archiveReady:'Publication has been verified. Confirm archive.'}:
  byLang==='zh'?{send:'提交验收',accept:'接受开发结果',return:'退回修改',reason:'请说明错误和必要的修改（必填至少10字）',archive:'确认发布并归档',accepted:'已接受开发结果，须发布后归档。',waiting:'需通过 GitHub 检查才能提交验收。',archiveReady:'发布已验证，请确认归档。'}:
  {send:'Отправить на приёмку',accept:'Принять разработку',return:'Вернуть на доработку',reason:'Что не так и что нужно исправить? Обязательный комментарий (не менее 10 символов)',archive:'Подтвердить выпуск и в архив',accepted:'Разработка принята. После публикации можно закрыть задачу.',waiting:'Сначала нужны успешные проверки GitHub; статус «Выпуск» вручную не выбирается.',archiveReady:'Публикация подтверждена. Можно закрыть задачу и перенести в архив.'};
@@ -313,7 +327,7 @@ async function ownerReviewAction(item,action,reason=''){
 async function runAction(payload){
  if(busy)return;
  busy=true;error="";message="";render();
- try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;if(payload.action==='archive_published')statusFilter='archive';await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseT().queued;void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
+ try{const out=await apiCall("post",payload);busy=false;const preferred=out.item?.id||selected;if(payload.action==='release_update'&&out.release)releaseRun=out.release;if(payload.action==='archive_published')statusFilter='archive';await load();selected=preferred;if(payload.action==="create"){showForm=false;draftText="";draftCategory="";message=t().success;}else if(payload.action==='release_update'){message=releaseProgressText(releaseRun);void refreshReleaseProgress();}else if(payload.action==='prepare_release'){message=releaseT().preflightQueued;void refreshReleaseReadiness();}else message=statusLabels[out.item?.status]||"";render();}
  catch(e){busy=false;error=t().error+": "+e.message;render();}
 }
 document.addEventListener("click",ev=>{
