@@ -59,7 +59,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Cache npm and Playwright Chromium
         id: browser-cache
         uses: actions/cache@v4
@@ -130,7 +130,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Cache npm and Playwright Chromium
         id: browser-cache
         uses: actions/cache@v4
@@ -138,7 +138,7 @@ jobs:
           path: |
             ~/.npm
             ~/.cache/ms-playwright
-          key: ${{ runner.os }}-${{ runner.arch }}-node24-playwright-1.56.1-v2
+          key: ${{ runner.os }}-${{ runner.arch }}-node26-playwright-1.65.1-axe4.14.1-v1
       - name: Resolve and install locked browser and accessibility dependencies
         run: |
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
