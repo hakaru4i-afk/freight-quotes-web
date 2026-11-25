@@ -43,6 +43,14 @@ jobs:
           ref: ${{ steps.lock.outputs.frontend }}
           path: candidate-web
           persist-credentials: false
+      - name: Fail early on malformed browser scenarios before API compilation or QA sessions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in tests/*.e2e.mjs tests/task12-ci-*.mjs scripts/release/locked-*.mjs; do
+            test -f "$file"
+            node --check "$file"
+          done
       - name: Verify main-only QA environment before private checkout
         env:
           GH_TOKEN: ${{ github.token }}
