@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
-import {captureRoot,assertRootUnchanged,rootInventory} from '../scripts/release/locked-staging.mjs';
+import {captureRoot,assertRootUnchanged,rootInventory,live} from '../scripts/release/locked-staging.mjs';
 import {digest} from '../scripts/release/locked-release.mjs';
 
 test('capture and preserve only exact published production root, never candidate root',async()=>{
@@ -32,4 +32,15 @@ test('staging transport routes same-origin API and shared API into only the lock
  await assert.rejects(window.fetch(host+'/functions/v1/freight-api-qa-other/api/session'),/SHARED_STAGING_DATA_BLOCKED/);
  await assert.rejects(window.fetch('https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/api/session'),/PRODUCTION_API_BLOCKED/);
  assert.equal(calls.length,2);
+});
+
+test('transient CDN failures retry and retain status diagnostics; persistent 404 never passes',async()=>{
+ const calls=[];const bytes='expected';const result=await live('app.js',{fetcher:async url=>{calls.push(String(url));return new Response(calls.length<3?'unavailable':bytes,{status:calls.length<3?503:200})},delay:async()=>{},key:'123'});
+ assert.equal(result.toString(),bytes);assert.equal(new Set(calls).size,1);assert.equal(calls.length,3);
+ let count=0;await assert.rejects(live('process-history/old/P08.svg',{fetcher:async()=>{count++;return new Response('',{status:404})},delay:async()=>{}}),/P08.svg:HTTP_404/);assert.equal(count,3);
+});
+test('all missing and changed root files are diagnosed, never substituted',async()=>{
+ const names=['index.html','app.js','style.css','build-info.json','site-status.json'],files=new Map(names.map(n=>[n,Buffer.from(n)]));
+ const raw=Buffer.from(JSON.stringify({environment:'production',publicationState:'PUBLISHED',assets:Object.fromEntries([...files].map(([n,b])=>[n,digest(b)]))}));
+ await assert.rejects(captureRoot(async n=>{if(n==='production-release-manifest.json')return raw;if(n==='app.js')throw Error('HTTP_404:app.js');if(n==='style.css')return Buffer.from('different');return files.get(n)}),e=>e.message.includes('HTTP_404:app.js')&&e.message.includes('LIVE_ROOT_DIGEST_MISMATCH:style.css'));
 });

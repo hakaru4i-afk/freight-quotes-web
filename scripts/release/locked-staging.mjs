@@ -22,22 +22,32 @@ export function rootInventory(manifest) {
  requireCheck(required.every(name=>rows.some(([p])=>p===name)),'INCOMPLETE_PRODUCTION_INVENTORY');
  return rows.sort(([a],[b])=>a.localeCompare(b));
 }
-async function live(path){
- const url=new URL(path,site);url.searchParams.set('locked-stage',String(Date.now()));
- const r=await fetch(url,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(30000)});
- requireCheck(r.ok,'LIVE_PRODUCTION_READ_FAILED:'+path);
- return Buffer.from(await r.arrayBuffer());
+// Stable cache key within one capture, bounded retries for transient network/CDN errors.
+export async function live(path,{fetcher=fetch,delay=ms=>new Promise(done=>setTimeout(done,ms)),key=process.env.GITHUB_RUN_ID||'local'}={}){
+ const url=new URL(path,site);url.searchParams.set('locked-stage',key);
+ let failure;
+ for(let attempt=1;attempt<=3;attempt++){
+  try {
+   const r=await fetcher(url,{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(30000)});
+   if(!r.ok)throw Error('HTTP_'+r.status);
+   return Buffer.from(await r.arrayBuffer());
+  } catch(e){failure=e; if(attempt<3)await delay(attempt*1000);}
+ }
+ throw Error('LIVE_PRODUCTION_READ_FAILED:'+path+':'+(failure?.message||'NETWORK_ERROR'));
 }
 export async function captureRoot(read=live){
  const raw=await read(manifestName),manifest=JSON.parse(raw),entries=rootInventory(manifest);
  const files=new Map([[manifestName,raw]]);
- let index=0;
+ const failures=[];let index=0;
  await Promise.all(Array.from({length:6},async()=>{while(index<entries.length){
-  const [name,expected]=entries[index++],bytes=await read(name);
-  requireCheck(digest(bytes)===expected,'LIVE_ROOT_DIGEST_MISMATCH:'+name);
-  files.set(name,bytes);
+  const [name,expected]=entries[index++];
+  try{const bytes=await read(name);
+   requireCheck(digest(bytes)===expected,'LIVE_ROOT_DIGEST_MISMATCH:'+name);
+   files.set(name,bytes);
+  }catch(e){failures.push(String(e.message));}
  }}));
  requireCheck((await read(manifestName)).equals(raw),'LIVE_ROOT_CHANGED_DURING_CAPTURE');
+ requireCheck(!failures.length,'LIVE_ROOT_CAPTURE_FAILED:'+failures.sort().join(';'));
  return files;
 }
 export function stagingFiles(candidate){
