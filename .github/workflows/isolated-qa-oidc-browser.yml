@@ -26,7 +26,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Resolve the immutable candidate from the trusted main lock
         id: lock
         run: |
@@ -51,6 +51,9 @@ jobs:
           token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
+      - name: Install exact browser, accessibility and API build dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install chromium
       - name: Verify native environment main-only policy before using QA credentials
         env:
           GH_TOKEN: ${{ github.token }}
