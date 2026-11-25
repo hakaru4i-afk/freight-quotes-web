@@ -16,7 +16,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: owner-portal-production-release
+  group: ${{ github.event_name == 'pull_request' && format('locked-staging-pr-{0}', github.event.pull_request.number) || 'owner-portal-production-release' }}
   cancel-in-progress: false
 jobs:
   source-tests:
@@ -35,6 +35,8 @@ jobs:
           git sparse-checkout disable
           git restore --source=HEAD --worktree -- .
           node --test tests/locked-staging.test.mjs
+      - name: Read-only complete live production inventory preflight (no credentials or deployment)
+        run: node --input-type=module -e 'import {captureRoot} from "./scripts/release/locked-staging.mjs"; console.log("LIVE_ROOT_INVENTORY_PASS",(await captureRoot()).size)'
   prepare:
     if: github.event_name == 'workflow_dispatch' && github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && inputs.confirmation == 'STAGING ONLY'
     environment: isolated-qa
