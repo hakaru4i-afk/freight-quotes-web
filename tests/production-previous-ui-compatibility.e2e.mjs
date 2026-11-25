@@ -1,13 +1,13 @@
 // Read-only real QA sessions in the currently published production frontend.
 // Every API request goes to the isolated QA function; production gets asset GETs only.
-import{chromium}from'playwright';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash}from'node:crypto';import assert from'node:assert/strict';
+import {launchQaBrowser} from './helpers/qa-browser.mjs';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash}from'node:crypto';import assert from'node:assert/strict';
 const origin='https://hakaru4i-afk.github.io',prefix='/freight-quotes-web/',qa='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE,'utf8'));
 const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
 const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
 const report={startedAt:new Date().toISOString(),runtime,runAttempt:process.env.GITHUB_RUN_ATTEMPT,mode:'PUBLISHED_PREVIOUS_PRODUCTION_UI_WITH_REAL_ISOLATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:runtime?.frontendSha||process.env.GITHUB_SHA,productionApiAccessed:false,productionWrites:false,assets:{},roles:[],calls:[]};
 await mkdir('reports/isolated-rc',{recursive:true});
-const browser=await chromium.launch({headless:true});
+const browser=await launchQaBrowser({headless:true});
 try{for(const actor of['owner','carrierA']){
  const context=await browser.newContext({viewport:{width:1440,height:900}}),errors=[],transport={closing:false,controllers:new Set()};
  await context.addInitScript(token=>{if(/^https?:$/.test(location.protocol))localStorage.setItem('freight-session-persistent-v1',token);},sessions[actor]);

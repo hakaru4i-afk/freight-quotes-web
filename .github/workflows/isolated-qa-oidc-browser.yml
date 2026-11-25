@@ -12,7 +12,7 @@ jobs:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
     # The isolated credentials broker requires a GitHub-hosted OIDC identity.
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 50
     env:
       QA_SESSIONS_FILE: /tmp/freight-ci-qa/sessions.json
@@ -27,6 +27,33 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify the runner browser and PDF tools
+        run: |
+          set -euo pipefail
+          npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
+          QA_CHROMIUM_EXECUTABLE="$(command -v google-chrome)"
+          export QA_CHROMIUM_EXECUTABLE
+          "$QA_CHROMIUM_EXECUTABLE" --version
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {launchQaBrowser} from './tests/helpers/qa-browser.mjs';
+
+          const browser = await launchQaBrowser({headless: true});
+          try {
+            const page = await browser.newPage();
+            await page.setContent('<title>QA browser ready</title>');
+            assert.equal(await page.title(), 'QA browser ready');
+            console.log('QA_BROWSER_READY', browser.version());
+          } finally {
+            await browser.close();
+          }
+          JS
+          if ! command -v pdftotext >/dev/null; then
+            sudo apt-get -o Acquire::Retries=3 update -qq
+            sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends poppler-utils
+          fi
+          pdftotext -v
+          printf 'QA_CHROMIUM_EXECUTABLE=%s\n' "$QA_CHROMIUM_EXECUTABLE" >> "$GITHUB_ENV"
       - name: Resolve the immutable candidate from the trusted main lock
         id: lock
         run: |
@@ -78,10 +105,6 @@ jobs:
         run: node tests/task12-ci-oidc-bindings.mjs
       - name: Verify real QA sessions and role identities
         run: node tests/task12-ci-auth.mjs
-      - run: npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
-      - run: npx playwright install --with-deps chromium
-      - name: Install final protocol PDF text verifier
-        run: sudo apt-get update -qq && sudo apt-get install -y --no-install-recommends poppler-utils
       - name: Read all role cabinets from actual published assets
         run: node tests/task12-isolated-browser.e2e.mjs
       - name: Full published railway and VED review lifecycle for 14 November

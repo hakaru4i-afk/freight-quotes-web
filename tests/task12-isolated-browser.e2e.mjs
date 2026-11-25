@@ -6,7 +6,7 @@ import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
  */
-import {chromium} from 'playwright';
+import {launchQaBrowser} from './helpers/qa-browser.mjs';
 import {createServer} from 'node:http';
 import {readFile,mkdir,writeFile,cp,mkdtemp,rm} from 'node:fs/promises';
 import {resolve,extname} from 'node:path';
@@ -50,7 +50,7 @@ const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript'
 const server=createServer(async(req,res)=>{const path=new URL(req.url,'http://localhost').pathname;const file=resolve(root,'.'+(path==='/test/'?'/test/index.html':path));if(!file.startsWith(root+'/test/')){res.writeHead(403).end();return;}try{res.writeHead(200,{'Content-Type':mime[extname(file)]||'application/octet-stream'});res.end(await readFile(file));}catch{res.writeHead(404).end();}});
 await new Promise(done=>server.listen(0,'127.0.0.1',done));const published=process.env.QA_BROWSER_PUBLISHED==='true';
 const origin=published?'https://hakaru4i-afk.github.io':'http://127.0.0.1:'+server.address().port;
-const browser=await chromium.launch({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:gitSha,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,backendFunction:qaFunction,backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-'+qaRun,transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
+const browser=await launchQaBrowser({headless:true,args:map50?['--use-angle=swiftshader','--enable-unsafe-swiftshader']:[]});const report={frontendSha:gitSha,runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,backendFunction:qaFunction,backendVersion:metadata.isolatedQaVersion,backendBundle:metadata.isolatedQaBundleSha256,backendSourceCommit:metadata.isolatedQaSourceCommit||metadata.backendSourceCommit,startedAt:new Date().toISOString(),sourceSite:published?'https://hakaru4i-afk.github.io/freight-quotes-web/test/':origin,servedAssetHashes:{},sourceAssets:{},environment:'isolated-qa-'+qaRun,transport:'TLS_VERIFIED_REAL_HTTP',sourceTreeDirty,immutableSource:true,mocks:false,roles:[],calls:[]};
 await mkdir(evidenceDir,{recursive:true});
 const html=await readFile(resolve(root,'test/index.html'),'utf8');
 for(const name of new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"]*)?"/g)].map(m=>m[1]))){report.sourceAssets[name]=createHash('sha256').update(await readFile(resolve(root,'test',name))).digest('hex');}
