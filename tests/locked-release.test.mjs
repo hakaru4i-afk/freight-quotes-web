@@ -3,18 +3,20 @@ import test from 'node:test';
 import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {approval, backend, backupWorkflow, digest, evidenceWorkflows, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupWorkflow, currentBackupRun, digest, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
-import {verifyApiEvidence} from '../scripts/release/locked-release-api.mjs';
-import {assertPreservesEntrypoints, bindPages, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
+import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage} from '../scripts/release/locked-release-api.mjs';
+import {assertPreservesEntrypoints, bindPages, publicationRecord, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
 
 const lock = {frontendSha: 'a'.repeat(40), backendSha: 'b'.repeat(40)};
 const bundle = 'c'.repeat(64);
 const current = 'SH-01.30.99 v';
 const version = 'SH-01.31.00 v';
 const apiFunction = targetFunction(lock);
-const api = {...lock, apiFunction, releaseVersion: version, apiVersion: 3, apiBundleSha256: bundle};
+const apiId = '0d4cedaf-3bcd-487b-b820-7b6a0b8d5a82';
+const apiDeploymentId = [project, apiId, 3].join('_');
+const api = {...lock, apiFunction, releaseVersion: version, apiVersion: 3, apiBundleSha256: bundle, apiDeploymentId};
 
 test('release lock contains exactly two immutable commit SHAs', () => {
   assert.match(readLock().frontendSha, /^[a-f0-9]{40}$/);
@@ -28,8 +30,8 @@ test('release lock contains exactly two immutable commit SHAs', () => {
 test('only an exact successful protected backup with real restore allows deployment', () => {
   const run = {id: 51, repository: {full_name: backend}, path: '.github/workflows/' + backupWorkflow,
     head_branch: 'main', event: 'workflow_dispatch', status: 'completed', conclusion: 'success',
-    actor: {login: 'hakaru4i-afk'}, display_title: 'Production backup 100'};
-  const jobs = {total_count: 1, jobs: [{name: 'capture-and-readback', status: 'completed', conclusion: 'success', labels: ['ubuntu-latest']}]};
+    actor: {login: 'hakaru4i-afk'}, triggering_actor: {login: 'hakaru4i-afk'}, run_attempt: 2, display_title: 'Production backup 100'};
+  const jobs = {total_count: 1, jobs: [{name: 'capture-and-readback', run_attempt: 2, status: 'completed', conclusion: 'success', labels: ['ubuntu-latest']}]};
   const proof = {result: 'PASS_CAPTURE_PAYLOAD_RESTORE_AND_CIPHERTEXT_READBACK', encrypted: true,
     offsiteReadback: true, ciphertextSha256: bundle, proof: {
       ciphertextSha256: bundle, databaseRestored: true, storageBytesRestored: true, isolationVerified: true,
@@ -39,8 +41,18 @@ test('only an exact successful protected backup with real restore allows deploym
   assert.doesNotThrow(() => verifyBackup(run, jobs, proof, target));
   assert.throws(() => verifyBackup(run, jobs, proof, {...target, parent: '99'}), /BACKUP_PARENT/);
   assert.throws(() => verifyBackup({...run, conclusion: 'failure'}, jobs, proof, target), /RELEASE_PROOF_RUN/);
+  assert.throws(() => verifyBackup({...run, run_attempt: 3}, jobs, proof, target), /CAPTURE_NOT_COMPLETED/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, offsiteReadback: false}, target), /BACKUP_OR_RESTORE_PROOF/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, proof: {...proof.proof, storageBytesRestored: false}}, target), /BACKUP_OR_RESTORE_PROOF/);
+});
+
+test('retry selects its original release-bound backup without starting another capture', () => {
+  const run = {id: 51, display_title: 'Production backup 100', event: 'workflow_dispatch', head_branch: 'main',
+    head_sha: lock.backendSha, actor: {login: 'hakaru4i-afk'}, conclusion: 'success'};
+  assert.deepEqual(currentBackupRun([run, {...run, id: 52, conclusion: 'cancelled'}], '100', lock.backendSha), run);
+  assert.equal(currentBackupRun([run], '101', lock.backendSha), null);
+  assert.throws(() => currentBackupRun([run, {...run, id: 52}], '100', lock.backendSha), /DUPLICATE_RELEASE_BOUND_BACKUP/);
+  assert.throws(() => currentBackupRun([run], '100', lock.frontendSha), /UNTRUSTED_EXISTING_RELEASE_BACKUP/);
 });
 
 test('hosted fallback is allowed only while the dedicated guest is unassigned and no capture has started', () => {
@@ -111,6 +123,21 @@ test('dispatch SHA and exact candidate SHA have separate verified identities', (
   assert.throws(() => verifyRegressionReceipt(lock, 'frontend', proof, run, 'old report'), /REGRESSION_SOURCE_OR_REPORT_MISMATCH/);
 });
 
+test('discovery selects the latest exact Owner dispatch and leaves the proof gate in force', () => {
+  const {run} = actionsFixture('frontend');
+  const different = 'e'.repeat(40);
+  const candidates = [run,
+    {...run, id: 197, run_started_at: secondsAgo(30), head_sha: different},
+    {...run, id: 198, run_started_at: secondsAgo(20), status: 'completed', conclusion: 'failure'},
+    {...run, id: 199, run_started_at: secondsAgo(5), event: 'pull_request'},
+    {...run, id: 200, run_started_at: secondsAgo(5), actor: {login: 'other'}},
+    {...run, id: 201, run_started_at: secondsAgo(86401)}];
+  const lookup = sha => sha === different ? {...lock, backendSha: sha} : lock;
+  assert.equal(findEvidenceRun(lock, candidates, lookup, now), 198);
+  assert.equal(findEvidenceRun(lock, candidates, () => ({frontendSha: different}), now), null);
+  assert.throws(() => verifyEvidenceRun('frontend', candidates[2], {}, {}, 198, now), /RELEASE_PROOF_RUN_MISMATCH/);
+});
+
 test('E2E report and runtime must match the attested run and API regression package', () => {
   const {run, receipt} = actionsFixture('e2e');
   const sources = [{file: 'isolated-rc/browser-results-owner-create.json', sha256: bundle}];
@@ -122,6 +149,9 @@ test('E2E report and runtime must match the attested run and API regression pack
   assert.throws(() => verifyE2eReceipt(lock, {...pair, stagingUrl: 'https://other.test/'}, e2e, run, backendReceipt),
     /E2E_RUNTIME_RECEIPT_MISMATCH/);
   assert.throws(() => verifyE2eReceipt(lock, pair, e2e, run, {qaEntrySha256: 'f'.repeat(64)}), /E2E_RUNTIME_RECEIPT_MISMATCH/);
+  const inputSha = 'e'.repeat(64);
+  assert.doesNotThrow(() => verifyE2eReceipt(lock, {...pair, qaInputSha256: inputSha}, e2e, run, {qaInputSha256: inputSha}));
+  assert.throws(() => verifyE2eReceipt(lock, {...pair, qaInputSha256: inputSha}, e2e, run, backendReceipt), /E2E_RUNTIME_RECEIPT_MISMATCH/);
   const stale = JSON.stringify({...receipt, runId: '100'});
   assert.throws(() => verifyE2eReceipt(lock, {...pair, e2eReportSha256: digest(stale)}, stale, run, backendReceipt),
     /E2E_REPORT_RUN_MISMATCH/);
@@ -132,6 +162,7 @@ test('E2E compiler refuses runtime drift, stale receipts and incomplete evidence
   t.after(() => rmSync(reports, {recursive: true, force: true}));
   const {receipt} = actionsFixture('e2e');
   const runtime = {...lock, function: qaFunction, stagingUrl, version: 1, bundle, qaEntrySha256: bundle,
+    qaInputSha256: bundle,
     sourceCommit: lock.backendSha, servedHashes: {'index.html': bundle, 'app.js': bundle, 'style.css': bundle},
     observedAt: secondsAgo(100)};
   const after = {...runtime, observedAt: secondsAgo(5)};
@@ -160,18 +191,50 @@ test('provider download must reproduce the exact built bytes with no unexpected 
 });
 
 test('API health, access control and provider identity must prove the same locked pair', () => {
-  const metadata = {slug: apiFunction, status: 'ACTIVE', verify_jwt: false, version: 3, ezbr_sha256: bundle};
-  const health = {...lock, apiFunction, environment: 'production', projectRef: project, ok: true, release: version, contract: 'carrier-remedy-v1'};
+  const metadata = {id: apiId, slug: apiFunction, status: 'ACTIVE', verify_jwt: false, version: 3, ezbr_sha256: bundle};
+  const health = {...lock, apiFunction, environment: 'production', projectRef: project, ok: true, release: version,
+    contract: 'carrier-remedy-v1', deploymentId: apiDeploymentId};
   assert.deepEqual(verifyApiEvidence(lock, version, metadata, health, 403), api);
   assert.throws(() => verifyApiEvidence(lock, version, metadata, health, 200), /LOCKED_API_HEALTH_OR_ACCESS/);
   assert.throws(() => verifyApiEvidence(lock, version, metadata, {...health, frontendSha: 'f'.repeat(40)}, 403), /LOCKED_API_HEALTH_OR_ACCESS/);
+  assert.throws(() => verifyApiEvidence(lock, version, metadata, {...health, deploymentId: 'old'}, 403), /LOCKED_API_HEALTH_OR_ACCESS/);
   assert.throws(() => validateApiProof(lock, {...api, apiFunction: 'freight-api'}, version), /PAGES_REQUIRES/);
+});
+
+test('production API readback rejects old bytes, incomplete packages and a different provider deployment', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'production-api-test-'));
+  t.after(() => rmSync(directory, {recursive: true, force: true}));
+  const form = new FormData();
+  for (const [name, bytes] of [['index.ts', 'source'], ['deno.json', '{}'], ['task.ts', 'module']]) {
+    writeFileSync(join(directory, name), bytes);
+    form.set(name, new Blob([bytes]), '/tmp/user_fn_' + apiDeploymentId + '/source/' + name);
+  }
+  await verifyProductionPackage(form, directory, apiDeploymentId);
+  await assert.rejects(verifyProductionPackage(form, directory, apiDeploymentId.replace(/3$/, '2')), /DOWNLOAD_PART/);
+  form.delete('task.ts');
+  await assert.rejects(verifyProductionPackage(form, directory, apiDeploymentId), /SOURCE_MISSING/);
+  form.set('task.ts', new Blob(['old']), 'task.ts');
+  await assert.rejects(verifyProductionPackage(form, directory, apiDeploymentId), /SOURCE_MISMATCH/);
+});
+
+test('schema is observed from production migration history', async () => {
+  const migration = version => ({version});
+  const read = data => async url => {
+    assert.match(url, new RegExp(project + '/database/migrations$'));
+    return Response.json(data);
+  };
+  assert.equal(await readSchemaVersion('fixture', read([migration('20261124111013'), migration('20261125081126')])), '20261125081126');
+  await assert.rejects(readSchemaVersion('fixture', read([migration('stale')])), /MIGRATION_HISTORY_INVALID/);
+  await assert.rejects(readSchemaVersion('fixture', async () => new Response(null, {status: 403})), /MIGRATION_HISTORY_HTTP_403/);
 });
 
 test('Pages bind the new route while retaining staging and the release history', () => {
   const files = new Map(Object.entries({
     'app.js': 'const x="https://'+project+'.supabase.co/functions/v1/freight-api"; const info={currentVersion:"'+'0'.repeat(20)+'"};',
-    'index.html': '<script src="./app.js?v='+'0'.repeat(20)+'"></script>',
+    'index.html': '<script src="./app.js?v='+'0'.repeat(20)+'"></script>' +
+      '<script src="./portal-feedback-center-20261107.js?v='+'0'.repeat(12)+'"></script>',
+    'portal-feedback-center-20261107.js': 'previous Owner center',
+    'test/portal-feedback-center-20261107.js': 'attested Owner center',
     'build-info.json': '{}',
     'site-status.json': '{}',
     'release-status.json': '{}',
@@ -180,9 +243,23 @@ test('Pages bind the new route while retaining staging and the release history',
     'test/staging-manifest.json': '{}'
   }).map(([name, bytes]) => [name, Buffer.from(bytes)]));
   const history = {release: {version: current}, releases: [{version: current, title: 'Previous'}]};
-  const manifest = bindPages(files, lock, api, {businessVersion: current}, history);
+  const proof = {...api, schemaVersion: '20261124111013'};
+  const actions = {runId: '200', attempt: '2', workflowSha: lock.frontendSha};
+  const evidence = Object.fromEntries(['frontend', 'backend', 'e2e'].map((kind, index) => [kind, {...actions, runId: String(196 + index)}]));
+  const backup = {runId: '199', attempt: '1', ciphertextSha256: bundle};
+  const publication = publicationRecord(proof, actions, evidence, backup);
+  assert.throws(() => publicationRecord(proof, actions, {...evidence, e2e: null}, backup), /PRODUCTION_ACTION_RECEIPTS_MISSING/);
+  assert.throws(() => publicationRecord({...proof, apiDeploymentId: 'old'}, actions, evidence, backup), /PRODUCTION_API_OR_SCHEMA_RECEIPT_MISSING/);
+  const manifest = bindPages(files, lock, proof, {businessVersion: current}, history, publication);
   assert.equal(manifest.businessVersion, version);
   assert.equal(manifest.apiFunction, apiFunction);
+  assert.equal(manifest.databaseSchemaVersion, proof.schemaVersion);
+  assert.deepEqual(manifest.actions, actions);
+  assert.deepEqual(manifest.evidence, evidence);
+  assert.deepEqual(manifest.backup, {runId: '199', attempt: '1'});
+  assert.equal(manifest.previous.businessVersion, current);
+  assert.equal(files.get('portal-feedback-center-20261107.js').toString(), 'attested Owner center');
+  assert.ok(files.get('index.html').includes(digest(files.get('portal-feedback-center-20261107.js')).slice(0, 12)));
   assert.ok(files.get('app.js').includes(apiFunction));
   assert.equal(files.get('test/app.js').toString(), 'staging script');
   assert.deepEqual(JSON.parse(files.get('site-status.json')).releases[1], history.releases[0]);
@@ -201,10 +278,13 @@ test('the deployment graph puts confirmed backup and API health before publishin
   assert.match(workflow, /release-tests:\n    if: github.event_name == 'pull_request'\n    runs-on: ubuntu-latest/);
   assert.match(workflow, /needs: \[verify, backup\]/);
   assert.match(workflow, /verify:\n    if: .*github.actor == 'hakaru4i-afk'.*github.ref == 'refs\/heads\/main'.*workflow_dispatch/);
-  assert.match(workflow, /if: inputs.publish\n[\s\S]*?run: node scripts\/release\/locked-release.mjs evidence/);
+  assert.match(workflow, /if: inputs.publish\n[\s\S]*?node scripts\/release\/locked-release.mjs evidence/);
   assert.match(workflow, /needs\.backup\.result == 'success'/);
   assert.doesNotMatch(workflow, /continue-on-error/);
   assert.ok(workflow.indexOf('locked-release-api.mjs publish') < workflow.indexOf('actions/deploy-pages@v4'));
+  assert.ok(workflow.indexOf('snapshot candidate-web') < workflow.indexOf('locked-release-api.mjs publish'));
+  assert.match(workflow, /failure\(\) && steps.deployment.outcome == 'success' && steps.readback.outcome == 'failure'/);
+  assert.match(workflow, /artifact_name: rollback-pages/);
   assert.doesNotMatch(legacy, /actions\/deploy-pages@|^  workflow_dispatch:/m);
 });
 
