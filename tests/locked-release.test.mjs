@@ -3,7 +3,7 @@ import test from 'node:test';
 import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
-import {approval, backend, backupWorkflow, digest, evidenceWorkflows, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupWorkflow, digest, evidenceWorkflows, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, backupGuestUnassigned, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage} from '../scripts/release/locked-qa-runtime.mjs';
 import {verifyApiEvidence} from '../scripts/release/locked-release-api.mjs';
@@ -27,28 +27,35 @@ test('release lock contains exactly two immutable commit SHAs', () => {
 
 test('only an exact successful protected backup with real restore allows deployment', () => {
   const run = {id: 51, repository: {full_name: backend}, path: '.github/workflows/' + backupWorkflow,
-    head_branch: 'main', event: 'workflow_dispatch', status: 'completed', conclusion: 'success',
+    head_branch: 'main', head_sha: 'd'.repeat(40), event: 'workflow_dispatch', status: 'completed', conclusion: 'success',
     actor: {login: 'hakaru4i-afk'}, display_title: 'Production backup 100'};
-  const jobs = {total_count: 1, jobs: [{name: 'capture-and-readback', status: 'completed', conclusion: 'success', labels: ['ubuntu-latest']}]};
+  const jobs = {total_count: 1, jobs: [{name: 'capture-and-readback', status: 'completed', conclusion: 'success', runner_name: 'freight-mac-backup-vm', labels: ['self-hosted','Linux','ARM64','freight-mac-backup-vm']}]};
   const proof = {result: 'PASS_CAPTURE_PAYLOAD_RESTORE_AND_CIPHERTEXT_READBACK', encrypted: true,
     offsiteReadback: true, ciphertextSha256: bundle, proof: {
       ciphertextSha256: bundle, databaseRestored: true, storageBytesRestored: true, isolationVerified: true,
       sourceCredentialsForwarded: false, ciphertextDecryptionVerified: true, verificationRecipientDestroyed: true
     }};
-  const target = {id: 51, parent: '100'};
+  const target = {id: 51, parent: '100', workflowSha: run.head_sha};
   assert.doesNotThrow(() => verifyBackup(run, jobs, proof, target));
   assert.throws(() => verifyBackup(run, jobs, proof, {...target, parent: '99'}), /BACKUP_PARENT/);
   assert.throws(() => verifyBackup({...run, conclusion: 'failure'}, jobs, proof, target), /RELEASE_PROOF_RUN/);
+  assert.throws(() => verifyBackup(run, {total_count:1,jobs:[{name:'capture-and-readback',status:'completed',conclusion:'success',runner_name:'GitHub Actions',labels:['ubuntu-latest']}]}, proof, target), /PROTECTED_CAPTURE_NOT_COMPLETED_ON_DEDICATED_BACKUP_VM/);
+  assert.throws(() => verifyBackup(run, jobs, proof, {...target,workflowSha:'e'.repeat(40)}), /RELEASE_PROOF_RUN_MISMATCH/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, offsiteReadback: false}, target), /BACKUP_OR_RESTORE_PROOF/);
   assert.throws(() => verifyBackup(run, jobs, {...proof, proof: {...proof.proof, storageBytesRestored: false}}, target), /BACKUP_OR_RESTORE_PROOF/);
 });
 
-test('hosted fallback is allowed only while the dedicated guest is unassigned and no capture has started', () => {
-  const readiness = {name: 'protected-readiness', status: 'queued', runner_name: ''};
-  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [readiness]}), true);
-  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, runner_name: 'backup'}]}), false);
-  assert.equal(waitingForBackupGuest({total_count: 2, jobs: [readiness, {name: 'capture-and-readback', status: 'in_progress', runner_name: 'backup'}]}), false);
-  assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, name: 'capture-and-readback'}]}), true);
+test('backup queue detection fails closed and never falls back to hosted capture', () => {
+  const synthetic = {name:'synthetic-restore-arm64',status:'completed',conclusion:'success'};
+  const readiness = {name:'protected-readiness',status:'queued',runner_name:''};
+  const capture = {name:'capture-and-readback',status:'queued',runner_name:''};
+  assert.equal(backupGuestUnassigned({total_count:2,jobs:[synthetic,readiness]}),true);
+  assert.equal(backupGuestUnassigned({total_count:3,jobs:[synthetic,{...readiness,status:'completed',conclusion:'success',runner_name:'freight-mac-backup-vm'},capture]}),true);
+  assert.equal(backupGuestUnassigned({total_count:3,jobs:[synthetic,{...readiness,status:'completed',conclusion:'success',runner_name:'freight-mac-backup-vm'},{...capture,status:'in_progress',runner_name:'freight-mac-backup-vm'}]}),false);
+  const source=readFileSync('scripts/release/locked-release.mjs','utf8');
+  assert.match(source,/BACKUP_VM_UNAVAILABLE_NO_HOSTED_FALLBACK/);
+  assert.match(source,/freight-mac-backup-vm/);
+  assert.doesNotMatch(source,/runner\\s*=\\s*['\"]github['\"]/);
 });
 
 test('validates 37 authenticated scenarios for the exact reviewed pair', () => {
@@ -94,6 +101,7 @@ test('dispatch SHA and exact candidate SHA have separate verified identities', (
     verifyEvidenceRun('frontend', runData, jobData, artifactData, run.id, now);
   assert.notEqual(run.head_sha, lock.frontendSha);
   assert.equal(checkRun(), 'locked-frontend-regression-attempt-2');
+  assert.throws(() => verifyEvidenceRun('frontend',run,jobs,artifacts,run.id,now,'f'.repeat(40)),/RELEASE_PROOF_RUN_MISMATCH/);
   assert.throws(() => checkRun({...run, path: '.github/workflows/sh59-protected-37-audit.yml'}), /RELEASE_PROOF_RUN_MISMATCH/);
   assert.throws(() => checkRun({...run, event: 'pull_request'}), /RELEASE_PROOF_RUN_MISMATCH/);
   assert.throws(() => checkRun({...run, triggering_actor: {login: 'other'}}), /UNTRUSTED_RELEASE_PROOF_RUN/);
