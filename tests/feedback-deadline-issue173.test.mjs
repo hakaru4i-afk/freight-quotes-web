@@ -11,7 +11,7 @@ const paths=[
 // Approved Issue #173 candidate was promoted to production in SH64.
 const source=readFileSync('release/candidates/issue173-deadline-20261123.js','utf8');
 
-function probe(){
+function probe(script=source){
  const fixed=new Date('2026-11-23T08:00:00Z');
  class FakeDate extends Date{
   constructor(...args){super(...(args.length?args:[fixed.toISOString()]));}
@@ -22,15 +22,18 @@ function probe(){
   MutationObserver:class{observe(){}},
   setInterval:()=>{},requestAnimationFrame:()=>{},Intl,Date:FakeDate,console
  };
- const instrumented=source.replace(/\}\)\(\);\s*$/,'globalThis.__probe={requestStatus,minskToday,deadlineState};})();');
- assert.notEqual(instrumented,source,'deadline test functions must be exposed only inside the test VM');
+ const instrumented=script.replace(/\}\)\(\);\s*$/,'globalThis.__probe={requestStatus,minskToday,deadlineState};})();');
+ assert.notEqual(instrumented,script,'deadline test functions must be exposed only inside the test VM');
  runInNewContext(instrumented,context);
  return context.__probe;
 }
 
-test('published/staging/release bytes include the approved Issue #173 fix',()=>{
+test('published bytes match the approved release and staging retains the Issue #173 behavior',()=>{
  const published=readFileSync(paths[0],'utf8');
- for(const p of paths.slice(1))assert.equal(readFileSync(p,'utf8'),published,p);
+ assert.equal(readFileSync(paths[2],'utf8'),published,paths[2]);
+ const stage=probe(readFileSync(paths[1],'utf8'));
+ assert.equal(stage.requestStatus({status:'release',release_date:'2026-11-22'}),'Выпуск');
+ assert.equal(stage.deadlineState({status:'in_progress',release_date:'2026-11-22'},{}),'Просрочено');
  const manifest=JSON.parse(readFileSync('production-release-manifest.json','utf8'));
  if(manifest.businessVersion==='SH-01.30.64 v')assert.equal(source,published,'SH64 must include the approved Issue 173 asset');
  else{

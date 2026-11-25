@@ -34,7 +34,7 @@ export function prepareApi(source, workspace, lock, releaseVersion) {
   replace(/if \(!\/\^freight-api\(\?:-qa-\[a-z0-9\]\{8,24\}\)\?\$\/\.test\(functionName\)\)/g,
     'if (!/^freight-api(?:-qa-[a-z0-9]{8,24}|-release-[a-f0-9]{32})?$/.test(functionName))');
   replace(/release: SOURCE_BUILD, legacyContractRelease:/g,
-    'release: SOURCE_BUILD, frontendSha: ' + JSON.stringify(lock.frontendSha) +
+    'release: SOURCE_BUILD, deploymentId: Deno.env.get("DENO_DEPLOYMENT_ID"), frontendSha: ' + JSON.stringify(lock.frontendSha) +
     ', backendSha: ' + JSON.stringify(lock.backendSha) + ', apiFunction: API_FUNCTION, legacyContractRelease:');
   writeFileSync(entry, code);
   return slug;
@@ -43,12 +43,41 @@ export function prepareApi(source, workspace, lock, releaseVersion) {
 export function verifyApiEvidence(lock, releaseVersion, metadata, health, deniedStatus) {
   const slug = targetFunction(lock);
   requireCheck(metadata?.slug === slug && metadata.status === 'ACTIVE' && metadata.verify_jwt === false &&
-    Number.isSafeInteger(metadata.version) && metadata.version > 0 && sha64.test(metadata.ezbr_sha256), 'PROVIDER_API_IDENTITY_MISSING');
+    Number.isSafeInteger(metadata.version) && metadata.version > 0 && sha64.test(metadata.ezbr_sha256) &&
+    /^[a-f0-9-]{36}$/.test(metadata.id), 'PROVIDER_API_IDENTITY_MISSING');
+  const apiDeploymentId = [project, metadata.id, metadata.version].join('_');
   requireCheck(health?.ok === true && health.environment === 'production' && health.projectRef === project &&
     health.apiFunction === slug && health.release === releaseVersion && health.contract === 'carrier-remedy-v1' &&
-    health.frontendSha === lock.frontendSha && health.backendSha === lock.backendSha && deniedStatus === 403,
+    health.frontendSha === lock.frontendSha && health.backendSha === lock.backendSha &&
+    health.deploymentId === apiDeploymentId && deniedStatus === 403,
   'LOCKED_API_HEALTH_OR_ACCESS_FAILED');
-  return {...lock, apiFunction: slug, apiVersion: metadata.version, apiBundleSha256: metadata.ezbr_sha256, releaseVersion};
+  return {...lock, apiFunction: slug, apiVersion: metadata.version, apiBundleSha256: metadata.ezbr_sha256, apiDeploymentId, releaseVersion};
+}
+
+export async function verifyProductionPackage(form, directory, deploymentId) {
+  const expected = new Set(readdirSync(directory));
+  const prefix = '/tmp/user_fn_' + deploymentId + '/';
+  for (const [key, value] of form) {
+    if (key === 'metadata' && typeof value === 'string') continue;
+    requireCheck(value instanceof File, 'UNEXPECTED_PRODUCTION_API_DOWNLOAD_PART');
+    let name = value.name.startsWith(prefix) ? value.name.slice(prefix.length) : value.name;
+    if (name.startsWith('source/')) name = name.slice(7);
+    requireCheck(expected.delete(name), 'UNEXPECTED_PRODUCTION_API_DOWNLOAD_PART');
+    requireCheck(readFileSync(join(directory, name)).equals(Buffer.from(await value.arrayBuffer())),
+      'PRODUCTION_API_SOURCE_MISMATCH');
+  }
+  requireCheck(expected.size === 0, 'PRODUCTION_API_SOURCE_MISSING');
+}
+
+export async function readSchemaVersion(token, fetcher = fetch) {
+  const response = await fetcher('https://api.supabase.com/v1/projects/' + project + '/database/migrations', {
+    headers: {Authorization: 'Bearer ' + token}, redirect: 'error', signal: AbortSignal.timeout(15000)
+  });
+  requireCheck(response.ok, 'PRODUCTION_MIGRATION_HISTORY_HTTP_' + response.status);
+  const migrations = await response.json();
+  requireCheck(Array.isArray(migrations) && migrations.length > 0 && migrations.every(row => /^\d{14}$/.test(row.version)),
+    'PRODUCTION_MIGRATION_HISTORY_INVALID');
+  return migrations.map(row => row.version).sort().at(-1);
 }
 
 export function deployBody(work, slug) {
@@ -63,6 +92,7 @@ export function deployBody(work, slug) {
 
 async function publishApi(source, work, resultPath, lock, releaseVersion, token) {
   requireCheck(token, 'SUPABASE_RELEASE_CREDENTIAL_UNAVAILABLE');
+  const schemaVersion = await readSchemaVersion(token);
   const slug = prepareApi(source, work, lock, releaseVersion);
   const management = 'https://api.supabase.com/v1/projects/' + project + '/functions/';
   const headers = {Authorization: 'Bearer ' + token};
@@ -90,6 +120,16 @@ async function publishApi(source, work, resultPath, lock, releaseVersion, token)
       ]);
       requireCheck(healthResponse.ok, 'API_HEALTH_HTTP_' + healthResponse.status);
       const proof = verifyApiEvidence(lock, releaseVersion, data, await healthResponse.json(), access.status);
+      const body = await fetch(management + slug + '/body', {
+        headers: {...headers, Accept: 'multipart/form-data'}, redirect: 'error', signal: AbortSignal.timeout(30000)
+      });
+      requireCheck(body.ok && body.headers.get('content-type')?.startsWith('multipart/form-data;'), 'PRODUCTION_API_DOWNLOAD_INVALID');
+      await verifyProductionPackage(await body.formData(), join(work, 'supabase', 'functions', slug), proof.apiDeploymentId);
+      const confirmed = await metadata();
+      requireCheck(confirmed?.id === data.id && confirmed.version === data.version && confirmed.ezbr_sha256 === data.ezbr_sha256,
+        'PRODUCTION_API_CHANGED_DURING_READBACK');
+      requireCheck(await readSchemaVersion(token) === schemaVersion, 'PRODUCTION_SCHEMA_CHANGED_DURING_DEPLOY');
+      proof.schemaVersion = schemaVersion;
       writeFileSync(resultPath, JSON.stringify(proof) + '\n', {mode: 0o600});
       console.log('Verified the published API identity and private-route access control.');
       return;
