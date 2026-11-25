@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Syntax check
         run: |
           set -euo pipefail
@@ -71,7 +71,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Cache Playwright Browsers
         uses: actions/cache@v4
         id: playwright-cache
