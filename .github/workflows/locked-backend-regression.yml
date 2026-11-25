@@ -1,5 +1,14 @@
 name: Locked API regression
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/locked-backend-regression.yml'
+      - 'release-lock.json'
+      - 'scripts/release/locked-*.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tests/locked-release.test.mjs'
   workflow_dispatch:
 permissions:
   contents: read
@@ -8,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   regression:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     defaults:
@@ -30,7 +39,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - id: lock
         working-directory: .
         run: |
@@ -63,10 +72,12 @@ jobs:
           echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
           test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
           echo MAC_SOURCE_TREE_COMPLETE
+      - name: Install exact backend dependencies from the committed lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - run: node --test tests/*.test.mjs
 
   backup-safety:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     defaults:
@@ -88,7 +99,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - id: lock
         working-directory: .
         run: |
@@ -121,10 +132,12 @@ jobs:
           echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
           test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
           echo MAC_SOURCE_TREE_COMPLETE
+      - name: Install exact backend dependencies from the committed lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - run: python3 -m unittest discover -s tests -p 'test_backup*.py'
 
   schema-transition:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && ((github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'))
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     defaults:
@@ -146,7 +159,7 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - id: lock
         working-directory: .
         run: |
@@ -179,9 +192,11 @@ jobs:
           echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
           test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
           echo MAC_SOURCE_TREE_COMPLETE
+      - name: Install exact backend dependencies from the committed lockfile
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '26'
       - name: Start isolated Colima Docker engine for synthetic PostgreSQL only
         shell: bash
         run: |
@@ -192,6 +207,9 @@ jobs:
           fi
           docker info >/dev/null
           echo 'COLIMA_SYNTHETIC_POSTGRES_READY'
+      - name: Install pinned frontend API bundler
+        working-directory: .
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Fetch pinned synthetic PostgreSQL runtime
         run: docker pull postgres@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
       - name: Rebuild and verify reviewed migration
@@ -202,11 +220,9 @@ jobs:
         run: |
           rm -f docs/releases/PROD-GO-LIVE-20261114/evidence/schema-transition-rehearsal.json
           python3 tests/schema-transition-rehearsal.py
-      - name: Install pinned PostgreSQL test client
-        run: npm install --prefix "$RUNNER_TEMP/freight-tools" --no-audit --no-fund postgres@3.4.7
       - name: Verify independent support inbox against PostgreSQL
         env:
-          QA_POSTGRES_MODULE: ${{ runner.temp }}/freight-tools/node_modules/postgres/src/index.js
+          QA_POSTGRES_MODULE: ${{ github.workspace }}/candidate/node_modules/postgres/src/index.js
         run: node tests/support-requests-integration.mjs
       - name: Verify final settlement, concurrency and claim closure guards
         env:
