@@ -162,6 +162,7 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
     );
     assert.ok(evidence.roles.every((role) => role.status === 'PASS' && role.readOnly === true));
     assert.deepEqual(evidence.transportErrors ?? [], []);
+    assert.ok(evidence.calls.every(call => ['GET', 'HEAD'].includes(call.method) && !call.blockedMutation));
   }
 
   const rules = [
@@ -349,6 +350,7 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
         late().lateVariants === 2 &&
         late().lateBidDoesNotRestoreScore === true &&
         late().onePenaltyEvent === true &&
+        late().qaPenaltyNeutralized === true &&
         selection().selection.uniqueWinnerReadback === true,
     ],
     [
@@ -383,8 +385,13 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
           a.acceptedImprovement === 20 &&
           a.duplicateOfferProtected === true &&
           a.final === true &&
+          a.winningAmount === 1480 &&
           p.status === 'PASS' &&
           p.serverValuesVerifiedInPdf === true &&
+          p.tenderId === a.id &&
+          p.order === a.order &&
+          p.protocolNumber === a.protocol &&
+          p.winningAmount === a.winningAmount &&
           p.final === true
         );
       },
@@ -431,8 +438,10 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
           modes.length === 3 &&
           modes.every(
             (m) =>
-              m.noGuessedCoordinates === true && m.reloadPreserved === true && m.screenshots.length === 4,
+              m.noGuessedCoordinates === true && m.reloadPreserved === true && m.screenshots.length === 4 &&
+              a.shipments.some(shipment => shipment.order === m.order && shipment.mode === m.mode),
           ) &&
+          new Set(modes.map(mode => mode.order)).size === 3 &&
           a.unchangedReplay === true &&
           a.roleDenials === true &&
           rail(winner('nov14-published'), 'carrier').routeStops === 4

@@ -86,6 +86,8 @@ jobs:
         run: node tests/task12-ci-oidc-bindings.mjs
       - name: Verify real QA sessions and role identities
         run: node tests/task12-ci-auth.mjs
+      - name: Verify carrier eligibility before launching the real browser suite
+        run: node tests/task12-business-api.e2e.mjs --preflight
       - run: npm install --no-save --ignore-scripts playwright@1.56.1 axe-core@4.10.2
       - run: npx playwright install --with-deps chromium
       - name: Install final protocol PDF text verifier
@@ -195,6 +197,7 @@ jobs:
         run: node tests/task12-business-api.e2e.mjs
       - name: Verify sea air and multimodal tracking through published Carrier UI
         id: mode_matrix
+        if: steps.business_api.outputs.mode_ready == 'true'
         continue-on-error: true
         env:
           QA_BROWSER_ACTORS: carrierA
@@ -207,6 +210,7 @@ jobs:
         run: node tests/production-previous-ui-compatibility.e2e.mjs
       - name: Verify final tender protocol PDF through published Owner UI
         id: tender_pdf
+        if: steps.business_api.outputs.tender_ready == 'true'
         continue-on-error: true
         env:
           QA_BROWSER_ACTORS: owner
@@ -250,6 +254,7 @@ jobs:
           path: |
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
+            reports/isolated-rc/business-fixture-preflight.json
             reports/isolated-rc/previous-production-ui-compatibility.json
             reports/isolated-rc/issue99-real-performance.json
             reports/isolated-rc/*-previous-production-compatibility.png

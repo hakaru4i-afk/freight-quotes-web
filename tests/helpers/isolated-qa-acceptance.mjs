@@ -1,0 +1,63 @@
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+
+const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+export const tenderCheck = 'competitive_tender_step_final_protocol_and_role_guard';
+export const modeCheck = 'sea_air_multimodal_shipments_retain_actual_tracking_without_guessed_coordinates';
+export const fixtureSummary = 'Synthetic API business acceptance';
+
+export function fixtureOrder(order, runId, kind) {
+  assert.match(runId ?? '', /^\d{1,18}$/, 'CURRENT_QA_RUN_ID_REQUIRED');
+  assert.ok(order?.startsWith(`QA-CI-${runId}-${kind}-`), 'CURRENT_QA_FIXTURE_REQUIRED');
+  assert.match(order.slice(order.lastIndexOf('-') + 1), /^[A-F0-9]{8}$/, 'INVALID_QA_FIXTURE_SUFFIX');
+  assert.equal(order.split('-').length, 5, 'INVALID_QA_FIXTURE_ORDER');
+  return order;
+}
+
+export function requireBusinessFixture(report, checkId, {runId, runAttempt, runtime}) {
+  assert.deepEqual([report.runId, report.runAttempt, report.runtime], [runId, runAttempt, runtime], 'VERSION_MISMATCH:BUSINESS_FIXTURE_RUN');
+  assert.equal(report.environment, 'isolated-qa');
+  assert.equal(report.productionDataUsed, false);
+  const check = report.checks.find(check => check.id === checkId);
+  assert.equal(check?.status, 'PASS', `DATA_FIXTURE_ERROR:BUSINESS_CHECK_${checkId}`);
+  return check.evidence;
+}
+
+export function previousUiSuppression(method, path) {
+  if (method !== 'POST') return null;
+  if (path === '/api/site-events') return 'telemetry';
+  // The previous Carrier UI calculates route previews on load. The API can
+  // write its route cache, so a read-only compatibility run blocks it locally.
+  if (path === '/api/route-distance') return 'routeCalculation';
+  return null;
+}
+
+export function latePenaltyCorrection({request, notification, ledger, login, order, round, runId}) {
+  fixtureOrder(order, runId, 'LATE');
+  assert.match(login, /^rc20261110-carrier[ab]$/, 'UNAPPROVED_QA_CARRIER');
+  assert.match(round, uuid, 'INVALID_QA_FIXTURE_ROUND');
+  assert.deepEqual([request.order_code, request.round_id, request.summary], [order, round, fixtureSummary], 'QA_REQUEST_PROVENANCE_MISMATCH');
+  assert.deepEqual([notification.order_code, notification.round_id, notification.summary, notification.recipient],
+    [order, round, fixtureSummary, login], 'QA_NOTIFICATION_PROVENANCE_MISMATCH');
+  assert.match(notification.id, uuid, 'INVALID_QA_NOTIFICATION_ID');
+  assert.equal(ledger.policy.login, login, 'QA_LEDGER_ACCOUNT_MISMATCH');
+  const penalties = ledger.events.filter(event => event.order_code === order && event.kind === 'no_response');
+  assert.ok(penalties.length <= 1, 'QA_MULTIPLE_FIXTURE_PENALTIES');
+  const [event] = penalties;
+  if (!event) return null;
+  assert.match(event.id, uuid, 'INVALID_QA_PENALTY_ID');
+  assert.deepEqual([event.login, event.actor, event.source_kind, event.source_id, event.event_key, Number(event.requested_delta)],
+    [login, 'system', 'request', round, 'response-missing:' + notification.id, -3], 'QA_PENALTY_PROVENANCE_MISMATCH');
+  if (event.corrected) {
+    assert.equal(Number(event.delta), 0, 'QA_PENALTY_NOT_NEUTRALIZED');
+    return null;
+  }
+  assert.ok(Number.isSafeInteger(ledger.revision) && ledger.revision >= 0, 'INVALID_QA_LEDGER_REVISION');
+  const key = createHash('sha256').update(`isolated-qa/late-fixture/${login}/${event.id}`).digest('hex').slice(0, 32);
+  return {
+    login, action: 'void_event', eventId: event.id,
+    expectedRevision: ledger.revision,
+    requestId: key.replace(/^(........)(....)(....)(....)(............)$/, '$1-$2-$3-$4-$5'),
+    reason: `Neutralize test-only forced deadline for ${order} after acceptance assertions`,
+  };
+}
