@@ -41,7 +41,7 @@ export function buildQaApi(source, out, lock) {
   const input = out + '-source';
   prepareQaApi(source, input, lock);
   mkdirSync(out);
-  execFileSync('npm', ['exec', '--yes', '--package=esbuild@0.25.12', '--', 'esbuild', join(input, 'index.ts'),
+  execFileSync('npx', ['--no-install', 'esbuild', join(input, 'index.ts'),
     '--bundle', '--minify', '--charset=utf8', '--format=esm', '--target=es2022',
     '--external:npm:*', '--external:https:*', '--external:jsr:*', '--external:node:*',
     '--outfile=' + join(out, 'index.ts')], {stdio: 'inherit'});
