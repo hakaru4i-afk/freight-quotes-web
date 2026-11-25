@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {approval, backend, backupWorkflow, digest, evidenceWorkflows, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
-import {verifyDownloadedPackage} from '../scripts/release/locked-qa-runtime.mjs';
+import {verifyDownloadedPackage,qaPackageFilename} from '../scripts/release/locked-qa-runtime.mjs';
 import {verifyApiEvidence} from '../scripts/release/locked-release-api.mjs';
 import {assertPreservesEntrypoints, bindPages, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
 
@@ -223,4 +223,23 @@ test('QA reads the private backend with separate environment credential and fail
     assert.doesNotMatch(workflow,/secrets\.BACKEND_RELEASE_TOKEN/);
     assert.match(workflow,/check-qa-credentials\.mjs/);
   }
+});
+
+
+test('Provider qualified source paths normalize only for the exact deployment', () => {
+ const metadata={id:'0d4cedaf-3bcd-487b-b820-7b6a0b8d5a82',version:45};
+ const prefix='/tmp/user_fn_'+[qaProject,metadata.id,metadata.version].join('_')+'/';
+ assert.equal(qaPackageFilename(prefix+'source/index.ts',metadata),'index.ts');
+ assert.equal(qaPackageFilename('source/deno.json',metadata),'deno.json');
+ assert.equal(qaPackageFilename('index.ts',metadata),'index.ts');
+ for(const path of [prefix+'source/../index.ts',prefix+'source/extra.ts','wrong/index.ts','/tmp/other/source/index.ts'])assert.throws(()=>qaPackageFilename(path,metadata),/UNEXPECTED_QA_API_DOWNLOAD_PART/);
+ assert.throws(()=>qaPackageFilename(prefix+'source/index.ts',{...metadata,version:46}),/UNEXPECTED_QA_API_DOWNLOAD_PART/);
+});
+test('Provider-qualified package verifies every byte and rejects duplicate aliases',async t=>{
+ const directory=mkdtempSync(join(tmpdir(),'qa-paths-'));t.after(()=>rmSync(directory,{recursive:true,force:true}));
+ const metadata={id:'0d4cedaf-3bcd-487b-b820-7b6a0b8d5a82',version:45};
+ const prefix='/tmp/user_fn_'+[qaProject,metadata.id,metadata.version].join('_')+'/source/';
+ const form=new FormData();for(const [name,bytes] of Object.entries({'index.ts':'source bytes','deno.json':'{}'})){writeFileSync(join(directory,name),bytes);form.append('file',new Blob([bytes]),prefix+name)}
+ await verifyDownloadedPackage(form,directory,metadata);
+ form.append('file',new Blob(['source bytes']),'index.ts');await assert.rejects(verifyDownloadedPackage(form,directory,metadata),/UNEXPECTED_QA_API_DOWNLOAD_PART/);
 });

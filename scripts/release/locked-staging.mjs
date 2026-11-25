@@ -83,12 +83,12 @@ export async function deployQa(api,lock,token){
  const base='https://api.supabase.com/v1/projects/'+qaProject+'/functions/';
  const previous=await (await provider(base+qaFunction,token)).json();
  requireCheck(previous.slug===qaFunction&&previous.status==='ACTIVE'&&previous.verify_jwt===false,'EXISTING_ISOLATED_QA_REQUIRED');
- const matches=async()=>{
+ const matches=async metadata=>{
   const body=await provider(base+qaFunction+'/body',token,{headers:{Accept:'multipart/form-data'}});
   requireCheck(body.headers.get('content-type')?.startsWith('multipart/form-data;'),'QA_PACKAGE_READBACK_INVALID');
-  await verifyDownloadedPackage(await body.formData(),api);
+  await verifyDownloadedPackage(await body.formData(),api,metadata);
  };
- let same=false;try{await matches();same=true;}catch(e){if(e.message!=='SERVED_QA_API_SOURCE_MISMATCH'&&e.message!=='UNEXPECTED_QA_API_DOWNLOAD_PART')throw e;}
+ let same=false;try{await matches(previous);same=true;}catch(e){if(e.message!=='SERVED_QA_API_SOURCE_MISMATCH'&&e.message!=='UNEXPECTED_QA_API_DOWNLOAD_PART')throw e;}
  if(!same){
   const form=new FormData();
   form.set('metadata',JSON.stringify({name:qaFunction,entrypoint_path:'index.ts',import_map_path:'deno.json',verify_jwt:false}));
@@ -99,7 +99,7 @@ export async function deployQa(api,lock,token){
   try{
    const m=await (await provider(base+qaFunction,token)).json();
    requireCheck(m.slug===qaFunction&&m.status==='ACTIVE'&&m.verify_jwt===false&&Number.isSafeInteger(m.version)&&sha64.test(m.ezbr_sha256),'QA_DEPLOYMENT_IDENTITY_INVALID');
-   await matches();
+   await matches(m);
    const url='https://'+qaProject+'.supabase.co/functions/v1/'+qaFunction;
    const h=await fetch(url+'/health',{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
    requireCheck(h.ok,'QA_HEALTH_FAILED');const health=await h.json();

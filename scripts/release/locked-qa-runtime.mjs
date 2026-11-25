@@ -56,13 +56,25 @@ async function request(url, headers) {
   return response;
 }
 
-export async function verifyDownloadedPackage(form, apiPackage) {
+// Management API returns either relative source paths or deployment-qualified paths.
+export function qaPackageFilename(filename, metadata) {
+  const prefix = metadata && /^[a-f0-9-]{36}$/.test(metadata.id) &&
+    Number.isSafeInteger(metadata.version) && metadata.version > 0
+    ? '/tmp/user_fn_' + [qaProject, metadata.id, metadata.version].join('_') + '/' : '';
+  let name = filename;
+  if (prefix && name.startsWith(prefix)) name = name.slice(prefix.length);
+  if (name.startsWith('source/')) name = name.slice(7);
+  requireCheck(['index.ts', 'deno.json'].includes(name), 'UNEXPECTED_QA_API_DOWNLOAD_PART');
+  return name;
+}
+export async function verifyDownloadedPackage(form, apiPackage, metadata) {
   const files = new Map();
   for (const [key, value] of form) {
     if (key === 'metadata' && typeof value === 'string') continue;
-    requireCheck(value instanceof File && ['index.ts', 'deno.json'].includes(value.name) &&
-      !files.has(value.name), 'UNEXPECTED_QA_API_DOWNLOAD_PART');
-    files.set(value.name, Buffer.from(await value.arrayBuffer()));
+    requireCheck(value instanceof File, 'UNEXPECTED_QA_API_DOWNLOAD_PART');
+    const name = qaPackageFilename(value.name, metadata);
+    requireCheck(!files.has(name), 'UNEXPECTED_QA_API_DOWNLOAD_PART');
+    files.set(name, Buffer.from(await value.arrayBuffer()));
   }
   for (const name of ['index.ts', 'deno.json']) {
     requireCheck(files.get(name)?.equals(readFileSync(join(apiPackage, name))), 'SERVED_QA_API_SOURCE_MISMATCH');
@@ -84,7 +96,7 @@ export async function attestRuntime(lock, frontend, apiPackage, token) {
     typeof metadata.id === 'string' && /^[a-f0-9-]{36}$/.test(metadata.id), 'SERVED_QA_API_PROVIDER_PROOF_MISSING');
   const deployed = await request(management + '/body', {...headers, Accept: 'multipart/form-data'});
   requireCheck(deployed.headers.get('content-type')?.startsWith('multipart/form-data;'), 'SERVED_QA_API_DOWNLOAD_INVALID');
-  await verifyDownloadedPackage(await deployed.formData(), apiPackage);
+  await verifyDownloadedPackage(await deployed.formData(), apiPackage, metadata);
   const confirm = await (await request(management, headers)).json();
   requireCheck(confirm.id === metadata.id && confirm.version === metadata.version &&
     confirm.ezbr_sha256 === metadata.ezbr_sha256, 'SERVED_QA_API_CHANGED_DURING_READBACK');
