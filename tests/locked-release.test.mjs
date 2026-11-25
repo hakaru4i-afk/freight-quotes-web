@@ -55,7 +55,7 @@ test('backup queue detection fails closed and never falls back to hosted capture
   const source=readFileSync('scripts/release/locked-release.mjs','utf8');
   assert.match(source,/BACKUP_VM_UNAVAILABLE_NO_HOSTED_FALLBACK/);
   assert.match(source,/freight-mac-backup-vm/);
-  assert.doesNotMatch(source,/runner\\s*=\\s*['\"]github['\"]/);
+  assert.doesNotMatch(source,/runner\s*=\s*['\"]github['\"]/);
 });
 
 test('validates 37 authenticated scenarios for the exact reviewed pair', () => {
