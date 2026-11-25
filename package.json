@@ -1,0 +1,13 @@
+{
+  "name": "freight-quotes-web-qa",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=26 <27"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.1",
+    "esbuild": "0.28.2",
+    "playwright": "1.65.1"
+  }
+}
