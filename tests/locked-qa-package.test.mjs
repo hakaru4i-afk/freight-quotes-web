@@ -121,3 +121,32 @@ test('browser and backend evidence reuse staged package bytes without compiling 
   assert.match(e2e, /name: isolated-qa-redacted-evidence-attempt-\$\{\{ github\.run_attempt \}\}/);
   assert.doesNotMatch(staging, /path:.*\/api/);
 });
+
+// Import-only tests cannot reproduce Node's unsettled top-level await in the real CLI.
+test('backend receipt CLI terminates successfully and binds a fresh report without rebuilding', t => {
+  const work = mkdtempSync(join(tmpdir(), 'qa-receipt-cli-'));
+  t.after(() => rmSync(work, {recursive: true, force: true}));
+  const candidate = join(work, 'candidate');
+  mkdirSync(join(candidate, 'src', 'transport-application'), {recursive: true});
+  const git = (...args) => execFileSync('git', ['-C', candidate, ...args], {encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe']}).trim();
+  git('init', '-q');
+  writeFileSync(join(candidate, 'src', 'transport-application', 'index.ts'), entry);
+  writeFileSync(join(candidate, 'src', 'transport-application', 'deno.json'), config);
+  git('add', '.');
+  git('-c', 'user.name=QA', '-c', 'user.email=qa@example.test', 'commit', '-qm', 'Fixture');
+  const backendSha = git('rev-parse', 'HEAD');
+  git('update-ref', 'refs/remotes/origin/main', backendSha);
+  const pair = {...lock, backendSha};
+  writeFileSync(join(work, 'release-lock.json'), JSON.stringify(pair));
+  const report = join(work, 'report.json'), output = join(work, 'receipt.json');
+  writeFileSync(report, '{"status":"PASS"}');
+  const env = {...process.env, GITHUB_ACTIONS:'true', GITHUB_REPOSITORY:web, GITHUB_REF:'refs/heads/main', GITHUB_EVENT_NAME:'workflow_dispatch', GITHUB_ACTOR:'hakaru4i-afk', GITHUB_TRIGGERING_ACTOR:'hakaru4i-afk', GITHUB_RUN_ID:'123', GITHUB_RUN_ATTEMPT:'1', GITHUB_SHA:'e'.repeat(40)};
+  execFileSync(process.execPath, [new URL('../scripts/release/locked-evidence-run.mjs', import.meta.url).pathname, 'backend', candidate, report, output], {cwd:work, env, timeout:15000, stdio:'pipe'});
+  const receipt = JSON.parse(readFileSync(output,'utf8'));
+  assert.equal(receipt.qaInputSha256, qaInputSha256(candidate,pair));
+  assert.equal(receipt.reportSha256, digest(readFileSync(report)));
+  assert.equal(receipt.sourceSha, backendSha);
+  assert.equal(receipt.runId,'123');
+  assert.equal(receipt.attempt,'1');
+  assert.throws(() => execFileSync(process.execPath, [new URL('../scripts/release/locked-evidence-run.mjs', import.meta.url).pathname, 'backend', candidate, report, output], {cwd:work, env:{...env,GITHUB_ACTOR:'not-owner'}, timeout:15000, stdio:'pipe'}), /PROTECTED_MAIN_EVIDENCE_REQUIRED/);
+});
