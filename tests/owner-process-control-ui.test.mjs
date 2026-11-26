@@ -99,3 +99,18 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
   assert.match(src,/const body=\{action,id:task.orderId,expectedRevision:revision,reason,confirmed:true,ownerProcess:true\}/);
  });
 }
+
+for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
+ test('In-cabinet FAQ covers all eight roles and three languages without inventing actions: '+path,()=>{
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const processFaq='),end=src.indexOf('function paint()',start);assert.ok(start>=0&&end>start);
+  const {processFaqHtml,processFaq}=runInNewContext(src.slice(start,end)+';({processFaqHtml,processFaq})',{esc:v=>String(v??'')});
+  for(const lang of ['ru','en','zh']){
+   for(const role of ['owner','carrier','logistic','supplier','designer','content','purchasing','certification']){
+    const html=processFaqHtml(role,lang);assert.match(html,/lw-process-faq/);assert.doesNotMatch(html,/<form|<button/);
+    if(['content','purchasing','certification'].includes(role))assert.ok(html.includes(processFaq[lang].assigned));
+   }
+   assert.equal(processFaqHtml('unknown',lang),'');
+  }
+  assert.match(src,/processFaqHtml\(state.role,language\(\)\)/);
+ });
+}
