@@ -59,11 +59,11 @@ try{
  const observed=new Set();let legacy=false,mutation=false,loginAttempts=0;
  const wait=mode==='candidate'?480000:55000;
  const exact=(r,name)=>new URL(r.url()).origin===new URL(endpoint).origin&&new URL(r.url()).pathname===new URL(endpoint+'/api/'+name).pathname;
- const authenticated=r=>validToken((r.request().headers().authorization||'').replace(/^Bearer /i,''));
+ const authenticated=async r=>validToken(((await r.request().allHeaders()).authorization||'').replace(/^Bearer /i,''));
  const loginProof=mode==='candidate'?page.waitForResponse(r=>exact(r,'auth')&&r.status()===200&&r.request().method()==='POST',{timeout:wait}):null;
  loginProof?.catch(()=>{});
- const sessionResponse=page.waitForResponse(r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'session')&&authenticated(r),{timeout:wait});
- const dataResponse=page.waitForResponse(r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'data')&&authenticated(r),{timeout:wait});
+ const sessionResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'session')&&await authenticated(r),{timeout:wait});
+ const dataResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'data')&&await authenticated(r),{timeout:wait});
  const responseProof=Promise.all([sessionResponse,dataResponse]);responseProof.catch(()=>{});
  await context.route('**/*',async route=>{
   const req=route.request(),u=new URL(req.url());
