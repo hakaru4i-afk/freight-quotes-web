@@ -53,7 +53,12 @@ jobs:
           git diff --cached --check
           git commit -m 'build(staging): regenerate reviewed chat candidate assets and diagrams'
           test -z "$(git status --porcelain --untracked-files=no)"
-          node scripts/release/refresh-pr157-staging-manifest.mjs --stdout > /tmp/pr220-manifest.json
+          # npm/browser artifacts must never enter the source attestation.
+          clean=$(mktemp -d)
+          git worktree add --detach "$clean" HEAD
+          trap 'git worktree remove --force "$clean"' EXIT
+          test -z "$(git -C "$clean" status --porcelain)"
+          (cd "$clean" && node scripts/release/refresh-pr157-staging-manifest.mjs --stdout) > /tmp/pr220-manifest.json
           cp /tmp/pr220-manifest.json test/staging-manifest.json
           node --input-type=module -e 'import {readFileSync} from "node:fs";const m=JSON.parse(readFileSync("test/staging-manifest.json"));if(m.releaseStatus!=="RELEASE_BLOCKED"||m.runtimePairStatus!=="UNVERIFIED"||m.apiSourceCommit!==null||m.apiBundleSha256!==null)throw Error("UNSAFE_CANDIDATE_PROVENANCE");'
           git add -- test/staging-manifest.json
