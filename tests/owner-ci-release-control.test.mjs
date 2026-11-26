@@ -62,3 +62,14 @@ test('pending Owner intent never appears as queued or published',()=>{
  assert.equal(context.isIntent({...intent,requestId:'invalid id'}),false);
  assert.equal(context.isIntent({...intent,status:'queued'}),false);
 });
+
+test('passing a partial block is shown as incomplete in all languages and cannot be submitted',()=>{
+ const start=stage.indexOf('const taskStatusLabels='),end=stage.indexOf('const readinessReasonKeys=',start);
+ for(const [byLang,label] of [['ru','Проверки блока пройдены; задача ещё не завершена'],['en','Block checks passed; task scope incomplete'],['zh','阶段检查已通过，任务尚未完成']]){
+  const ctx={byLang};runInNewContext(stage.slice(start,end)+'globalThis.status=taskStatusText;',ctx);
+  assert.equal(ctx.status({step:'scope_incomplete',checksPassed:false}),label);
+ }
+ const gate=stage.split('\n').find(line=>line.includes('const canSubmit='));
+ assert.ok(gate);const ctx={item:{status:'in_progress'},execution:{decision:'in_progress',step:'scope_incomplete',checksPassed:false}};
+ runInNewContext(gate+'globalThis.submit=canSubmit;',ctx);assert.equal(ctx.submit,false);
+});
