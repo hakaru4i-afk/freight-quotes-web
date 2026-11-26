@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import vm from "node:vm";
 import {readFileSync} from "node:fs";
 
-const source=readFileSync("release/candidates/lw-carrier-winner-only-home-sh71.js","utf8");
+const published=readFileSync("release/candidates/lw-carrier-winner-only-home-sh71.js","utf8");
+const source=readFileSync("lw-pending-tasks-all-roles-20261109.js","utf8");
 const marker="refresh(true);\nqueue();\n})();\n";
 assert.ok(source.endsWith(marker),"Cannot locate safe test bootstrap");
 const withExports=source.replace(marker,"globalThis.__QA={fetchCarrier,fetchTask2,loadRole,word,state};\n})();");
@@ -85,11 +86,20 @@ test("Carrier-only heading says awarded work; other role titles remain unchanged
  assert.equal(api.word("heading"),"Задачи, ожидающие выполнения");
 });
 
-test("Published SH71 carrier winner-only home stays aligned; signed staging remains untouched",()=>{
+test("Owner process-control addition preserves every line of published SH71 carrier logic",()=>{
  const p=readFileSync("lw-pending-tasks-all-roles-20261109.js","utf8");
  const staging=readFileSync("test/lw-pending-tasks-all-roles-20261109.js","utf8");
- assert.equal(p,source);
- assert.notEqual(staging,source);
+ const start=p.indexOf('\nconst CONTROL_ID="lw-owner-process-control";');
+ const end=p.indexOf('function mount(){',start);
+ assert.ok(start>=0&&end>start,"Expected isolated Owner-only block");
+ const before=p.slice(0,start)+p.slice(end);
+ const original=before
+  .replace('function mount(){\n mountControl();','function mount(){')
+  .replace('if(!roles.has(role)){clearControl();state.role="";','if(!roles.has(role)){state.role="";')
+  .replace('if(role!==state.role){clearControl();state.visible=5;','if(role!==state.role){state.visible=5;')
+  .replace(' }catch(_){\n  clearControl();\n  state.items=[];state.total=0;state.errors=["network"];',' }catch(_){\n  state.items=[];state.total=0;state.errors=["network"];');
+ assert.equal(original,published);
+ assert.notEqual(staging,published);
  assert.match(source,/async function fetchCarrier\(\)/);
  assert.doesNotMatch(source,/tasks.push\(makeTask\("invite:"/);
 });
