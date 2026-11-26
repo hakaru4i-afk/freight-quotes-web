@@ -178,16 +178,6 @@ function homeTarget(){
  if(role==="carrier")return document.querySelector(".carrier-portal .workspace-hero")?.parentElement||document.querySelector(".carrier-portal");
  return null;
 }
-const processFaq={
- ru:{title:"FAQ · Работа с назначениями",owner:"В разделе «Управление процессами» выберите перевозки, поставщиков и дизайнеров или блокировки ставок. Доступны только действия, разрешённые сервером. Укажите причину и подтвердите изменение. При конфликте обновите данные. Решение о риске не заменяет проверки и не снимает обязательные блокировки.",carrier:"Выполняйте собственные задания в карточке выигранной перевозки. Если владелец возвращает запрос документов, проверьте его текущий статус и предоставьте необходимые документы. Снятие зависшей подготовки ставки владельцем не назначает победителя.",logistic:"Выполняйте адресные задания в карточке перевозки. При переназначении доступ к заданию переходит новому исполнителю. Если запрос открыт повторно, проверьте документы и актуальное назначение.",supplier:"Выполняйте свои заказы в разделе поставщика. Возврат на исправление означает повторную подачу обязательного комплекта. При аннулировании или переназначении обновите список и обратитесь к владельцу.",designer:"Работайте с назначенным заданием. При возврате комплекта поставщику дождитесь повторной подачи. Отменённое задание не открывается автоматически: его восстановление выполняет владелец.",assigned:"Этот список показывает существующие назначения для вашей роли и логина. Он не создаёт и не завершает задания. Для изменения полномочий или решения по зависшему назначению обратитесь к владельцу."},
- en:{title:"FAQ · Assigned work",owner:"In Process control, select Shipments, Suppliers and designers, or Quote preparation locks. Only server-authorized actions are available. Provide a reason and confirm. Refresh on conflict. Recording risk does not replace checks or remove mandatory blockers.",carrier:"Complete your own assignments in the awarded shipment. If the owner reopens a document request, check its current status and provide the required documents. Resolving a stuck quote preparation does not select a winner.",logistic:"Complete addressed assignments in the shipment. Reassignment transfers task access to the new assignee. If a request is reopened, check its documents and current assignment.",supplier:"Complete your own orders in the supplier section. Return for correction requires resubmission of the mandatory package. Refresh after cancellation or reassignment and contact the owner.",designer:"Work on your assigned task. When a package is returned to the supplier, wait for resubmission. Cancelled tasks are not automatically reopened; the owner restores them.",assigned:"This list shows existing assignments for your role and login. It does not create or complete tasks. Contact the owner for a decision on stalled assignments or changes to permissions."},
- zh:{title:"常见问题 · 已分配任务",owner:"在流程管理中选择运输、供应商与设计师或报价准备锁定。仅可执行服务端授权的操作。填写原因并确认；发生冲突时刷新。风险记录不替代检查，也不解除强制限制。",carrier:"在中标运输中完成自己的任务。所有者重新打开文件请求后，请检查当前状态并提交所需文件。解除报价准备锁定不代表选定中标人。",logistic:"在运输中完成指定任务。重新分配后，新负责人获得任务访问权限。请求重新打开时，请检查文件及当前分配情况。",supplier:"在供应商区域完成自己的订单。退回修改后需重新提交必需文件。取消或重新分配后请刷新列表并联系所有者。",designer:"处理已分配给您的任务。文件退回供应商后，请等待重新提交。已取消的任务不会自动重新打开，由所有者恢复。",assigned:"此列表显示您所属角色和账户的现有任务，不创建或完成任务。任务停滞或权限需要更改时，请联系所有者。"}
-};
-function processFaqHtml(role,lang){
- const t=processFaq[lang]||processFaq.ru;
- const key=["content","purchasing","certification"].includes(role)?"assigned":role;
- return Object.hasOwn(t,key)&&key!=="title"&&key!=="assigned"||["content","purchasing","certification"].includes(role)?'<details class="lw-process-faq"><summary>'+esc(t.title)+'</summary><p>'+esc(t[key])+'</p></details>':"";
-}
 function paint(){
  const target=homeTarget();if(!target)return;
  let root=document.getElementById(ROOT_ID);
@@ -206,7 +196,7 @@ function paint(){
  const rows=displayed.map(task=>task.inline?'<li><details><summary><strong>'+esc(task.label)+'</strong></summary><p>'+esc(task.detail)+'</p></details></li>':'<li><a href="#'+esc(task.route)+'" data-lw-task-open="'+esc(task.route)+'" data-lw-order="'+esc(task.order)+'"><span><strong>'+esc(task.label)+'</strong><small>'+esc(task.detail)+'</small></span><span class="lw-pending-arrow" aria-hidden="true">›</span></a></li>').join("");
  const more=count>displayed.length?'<div class="lw-pending-more">'+esc(word("more"))+" "+displayed.length+" "+esc(word("of"))+" "+count+(items.length>displayed.length?' <button type="button" data-lw-tasks-more>'+esc(word("showMore"))+'</button>':"")+'</div>':"";
  root.innerHTML='<div class="lw-pending-head"><div><h3>'+esc(word("heading"))+'</h3><span class="lw-pending-count" aria-label="'+esc(word("heading"))+'">'+(state.loading?"…":state.supported?count:"—")+'</span></div><button type="button" data-lw-tasks-refresh>'+esc(word("refresh"))+'</button></div>'+
-  (rows?'<ul>'+rows+'</ul>':"")+status+more+processFaqHtml(state.role,language());
+  (rows?'<ul>'+rows+'</ul>':"")+status+more;
  root.dataset.taskRole=state.role;
 }
 async function refresh(force=false){
@@ -317,9 +307,31 @@ function paintControl(){
 function clearControl(){
  control.seq++;control.page=null;control.busy=false;control.notice="";control.scope="shipments";
  document.getElementById(CONTROL_ID)?.remove();
+ document.getElementById("lw-role-process-faq")?.remove();
+}
+const processFaq={
+ ru:{title:"FAQ · Работа с назначениями",owner:"В разделе «Управление процессами» выберите перевозки, поставщиков и дизайнеров или блокировки ставок. Доступны только действия, разрешённые сервером. Укажите причину и подтвердите изменение. При конфликте обновите данные. Решение о риске не заменяет проверки и не снимает обязательные блокировки.",carrier:"Выполняйте собственные задания в карточке выигранной перевозки. Если владелец возвращает запрос документов, проверьте его текущий статус и предоставьте необходимые документы. Снятие зависшей подготовки ставки владельцем не назначает победителя.",logistic:"Выполняйте адресные задания в карточке перевозки. При переназначении доступ к заданию переходит новому исполнителю. Если запрос открыт повторно, проверьте документы и актуальное назначение.",supplier:"Выполняйте свои заказы в разделе поставщика. Возврат на исправление означает повторную подачу обязательного комплекта. При аннулировании или переназначении обновите список и обратитесь к владельцу.",designer:"Работайте с назначенным заданием. При возврате комплекта поставщику дождитесь повторной подачи. Отменённое задание не открывается автоматически: его восстановление выполняет владелец.",assigned:"Этот список показывает существующие назначения для вашей роли и логина. Он не создаёт и не завершает задания. Для изменения полномочий или решения по зависшему назначению обратитесь к владельцу."},
+ en:{title:"FAQ · Assigned work",owner:"In Process control, select Shipments, Suppliers and designers, or Quote preparation locks. Only server-authorized actions are available. Provide a reason and confirm. Refresh on conflict. Recording risk does not replace checks or remove mandatory blockers.",carrier:"Complete your own assignments in the awarded shipment. If the owner reopens a document request, check its current status and provide the required documents. Resolving a stuck quote preparation does not select a winner.",logistic:"Complete addressed assignments in the shipment. Reassignment transfers task access to the new assignee. If a request is reopened, check its documents and current assignment.",supplier:"Complete your own orders in the supplier section. Return for correction requires resubmission of the mandatory package. Refresh after cancellation or reassignment and contact the owner.",designer:"Work on your assigned task. When a package is returned to the supplier, wait for resubmission. Cancelled tasks are not automatically reopened; the owner restores them.",assigned:"This list shows existing assignments for your role and login. It does not create or complete tasks. Contact the owner for a decision on stalled assignments or changes to permissions."},
+ zh:{title:"常见问题 · 已分配任务",owner:"在流程管理中选择运输、供应商与设计师或报价准备锁定。仅可执行服务端授权的操作。填写原因并确认；发生冲突时刷新。风险记录不替代检查，也不解除强制限制。",carrier:"在中标运输中完成自己的任务。所有者重新打开文件请求后，请检查当前状态并提交所需文件。解除报价准备锁定不代表选定中标人。",logistic:"在运输中完成指定任务。重新分配后，新负责人获得任务访问权限。请求重新打开时，请检查文件及当前分配情况。",supplier:"在供应商区域完成自己的订单。退回修改后需重新提交必需文件。取消或重新分配后请刷新列表并联系所有者。",designer:"处理已分配给您的任务。文件退回供应商后，请等待重新提交。已取消的任务不会自动重新打开，由所有者恢复。",assigned:"此列表显示您所属角色和账户的现有任务，不创建或完成任务。任务停滞或权限需要更改时，请联系所有者。"}
+};
+function processFaqHtml(role,lang){
+ const t=processFaq[lang]||processFaq.ru;
+ const key=["content","purchasing","certification"].includes(role)?"assigned":role;
+ return Object.hasOwn(t,key)&&key!=="title"&&key!=="assigned"||["content","purchasing","certification"].includes(role)?'<details class="lw-process-faq"><summary>'+esc(t.title)+'</summary><p>'+esc(t[key])+'</p></details>':"";
+}
+function mountProcessFaq(){
+ const id="lw-role-process-faq",home=homeTarget(),key=state.role+":"+language();
+ let host=document.getElementById(id);
+ if(!home||!roles.has(state.role)){host?.remove();return;}
+ if(host&&home.contains(host)&&host.dataset.faqKey===key)return;
+ if(host)host.remove();
+ host=document.createElement("section");host.id=id;host.className="lw-pending-task-box";host.dataset.faqKey=key;
+ host.innerHTML=processFaqHtml(state.role,language());
+ home.append(host);
 }
 function mountControl(){
- if(state.role!=="owner"){if(document.getElementById(CONTROL_ID))clearControl();return;}
+ if(state.role!=="owner"){if(document.getElementById(CONTROL_ID))clearControl();mountProcessFaq();return;}
+ mountProcessFaq();
  const home=homeTarget();if(!home)return;
  let host=document.getElementById(CONTROL_ID);
  if(host&&home.contains(host))return;
