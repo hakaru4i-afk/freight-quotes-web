@@ -37,13 +37,23 @@ test('imported module fails closed for wrong project, credentials and malformed 
  for(const url of ['https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/api/session',host+'freight-api-release-bad/api/session','https://example.com/functions/v1/'+slug+'/api/session','https://user@ooclsrndeygojtofuyte.supabase.co/functions/v1/'+slug+'/api/session',host+slug+'/health'])assert.throws(()=>stagingRegionalUrl(url),/PRODUCTION_API_SCOPE_REQUIRED/);
 });
 
-test('release smoke uses interactive login without a persistent CI secret and cleans up on every outcome',()=>{
+test('release smoke uses normal API credentials in the protected deployment step, headless browser, and cleanup on every outcome',()=>{
  const wf=readFileSync(new URL('../.github/workflows/owner-portal-release.yml',import.meta.url),'utf8');
  const browser=readFileSync(new URL('../scripts/release/production-authenticated-browser.mjs',import.meta.url),'utf8');
- assert.doesNotMatch(wf,/secrets\.PRODUCTION_SMOKE_SESSION/);
- assert.match(wf,/OWNER_MAC_CONSOLE_MUST_BE_ACTIVE/);
- assert.match(browser,/headless:mode!=='candidate'/);
- assert.match(browser,/action==='login'/);
+ const login=readFileSync(new URL('../scripts/release/production-owner-login.mjs',import.meta.url),'utf8');
+ assert.doesNotMatch(wf,/secrets\.PRODUCTION_SMOKE_SESSION|OWNER_MAC_CONSOLE_MUST_BE_ACTIVE/);
+ assert.match(wf,/name: github-pages/);
+ assert.ok(wf.indexOf('validateSmokeCredentials(process.env')<wf.indexOf('locked-release-api.mjs publish'));
+ assert.match(wf,/playwright install --with-deps chromium/);
+ assert.match(wf,/playwright install chromium/);
+ assert.match(wf,/SMOKE_OWNER_LOGIN: \$\{\{ secrets\.SMOKE_OWNER_LOGIN \|\| secrets\.SMOKE_OWNER_EMAIL \}\}/);
+ assert.match(wf,/SMOKE_OWNER_PASSWORD: \$\{\{ secrets\.SMOKE_OWNER_PASSWORD \}\}/);
+ assert.match(browser,/headless:true/);
+ assert.match(browser,/loginProductionOwner\(\{endpoint,login,password\}\)/);
+ assert.match(login,/action:'login'/);
+ assert.match(login,/redirect:'error'/);
+ assert.doesNotMatch(login,/service_role|Authorization:/i);
+ assert.match(browser,/profile\.role,'owner'/);
  assert.match(browser,/mode:0o600,flag:'wx'/);
  assert.match(browser,/authenticated===false/);
  assert.match(browser,/action:'logout'/);

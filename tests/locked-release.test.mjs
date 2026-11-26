@@ -5,7 +5,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {delimiter, join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupRunnerPolicy, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage, verifyAuthContinuity} from '../scripts/release/locked-release-api.mjs';
@@ -63,6 +63,15 @@ test('hosted fallback is allowed only while the dedicated guest is unassigned an
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 2, jobs: [readiness, {name: 'capture-and-readback', status: 'in_progress', runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, name: 'capture-and-readback'}]}), true);
+  for(const name of ['offline-safety','synthetic-restore-arm64']) {
+    assert.equal(waitingForBackupGuest({total_count:1,jobs:[{...readiness,name}]}),true);
+    assert.equal(waitingForBackupGuest({total_count:1,jobs:[{...readiness,name,status:'in_progress',runner_name:'local'}]}),false);
+  }
+  assert.equal(waitingForBackupGuest({total_count:2,jobs:[readiness,{...readiness,name:'offline-safety',status:'in_progress'}]}),false);
+  assert.deepEqual(backupRunnerPolicy(),{initial:'mac',fallback:true});
+  assert.deepEqual(backupRunnerPolicy('github'),{initial:'github',fallback:false});
+  assert.deepEqual(backupRunnerPolicy('mac'),{initial:'mac',fallback:false});
+  assert.throws(()=>backupRunnerPolicy('unknown'),/INVALID_BACKUP_RUNNER_POLICY/);
 });
 
 test('backup preflight reports only a fixed phase and safe GitHub status', t => {
@@ -320,7 +329,23 @@ test('Pages bind the new route while retaining staging and the release history',
 test('the deployment graph puts confirmed backup and API health before publishing Pages', () => {
   const workflow = readFileSync('.github/workflows/owner-portal-release.yml', 'utf8');
   const legacy = readFileSync('.github/workflows/controlled-sh59-publish.yml', 'utf8');
-  assert.equal((workflow.match(/runs-on: \[self-hosted, macOS, ARM64, freight-mac-qa\]/g)||[]).length, 3);
+  assert.match(workflow, /release_runner:\n[\s\S]*?default: github/);
+  assert.match(workflow, /backup_runner:\n[\s\S]*?default: auto/);
+  assert.equal((workflow.match(/inputs\.release_runner == 'mac'/g)||[]).length,2);
+  assert.match(workflow, /fromJSON\('\["self-hosted","macOS","ARM64","freight-mac-qa"\]'\)/);
+  assert.match(workflow, /RELEASE_BACKUP_RUNNER: /);
+  assert.match(workflow,/cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \}\}/);
+  const production=workflow.split('\n  deploy-pages:')[1];
+  assert.match(production,/fromJSON\('\["ubuntu-24\.04"\]'\)/);
+  assert.match(legacy,/cancel-in-progress: true/);
+  assert.match(legacy,/runs-on: ubuntu-latest/);
+  assert.doesNotMatch(legacy,/runs-on: \[self-hosted/);
+  const privacy=readFileSync('.github/workflows/qa-publication-security.yml','utf8');
+  assert.match(privacy,/runs-on: ubuntu-latest/);
+  assert.doesNotMatch(privacy,/runs-on: \[self-hosted/);
+  assert.match(workflow, /mac-route-smoke:[\s\S]*?runs-on: ubuntu-24\.04-arm/);
+  assert.match(workflow, /verify:\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
+  assert.match(workflow, /deploy-pages:\n    needs: \[verify, backup\]\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
   // The coordinator must not occupy the only Mac runner while awaiting backend offline-safety.
   const backupJob = workflow.split('\n  backup:\n')[1].split('\n  deploy-pages:')[0];
   assert.match(backupJob, /runs-on: ubuntu-latest/);
@@ -501,12 +526,37 @@ test('release rejects any unreviewed live login, password hash, session or datab
  for(const [from,to] of [['loginHandler','changedLogin'],['hash(password,salt)','newHash(password,salt)'],['session(userId)','newSession(userId)'],['sessionHandler','changedSession'],['"freight"','"other"'],['"production"','"staging"']])
   assert.throws(()=>verifyAuthContinuity(live,live.replace(from,to)),/AUTH_CONTINUITY_/);
 });
-test('login smoke reports the first actual rejection without retrying passwords',()=>{
+test('direct Owner API smoke performs one real login, fails closed, and never forwards credentials to browser',async()=>{
+ const {loginProductionOwner}=await import('../scripts/release/production-owner-login.mjs');
+ const endpoint='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api-release-'+'a'.repeat(32);
+ const credentials={endpoint,login:'synthetic-owner',password:' synthetic-test-password '};
+ const session='a'.repeat(64);
+ let calls=0;
+ const fetchImpl=async(url,options)=>{
+  calls++;
+  assert.equal(url,endpoint+'/api/auth?forceFunctionRegion=eu-central-1');
+  assert.equal(options.method,'POST');
+  assert.equal(options.redirect,'error');
+  assert.equal(options.headers.Authorization,undefined);
+  assert.deepEqual(JSON.parse(options.body),{action:'login',login:credentials.login,password:credentials.password});
+  return new Response(JSON.stringify({ok:true,sessionToken:session}),{status:200});
+ };
+ assert.equal(await loginProductionOwner({...credentials,fetchImpl}),session);
+ assert.equal(calls,1);
+ for(const [status,code] of [[401,'PRODUCTION_LOGIN_REJECTED_401'],[429,'PRODUCTION_LOGIN_RATE_LIMIT_429'],[500,'PRODUCTION_LOGIN_HTTP_500']]){
+  let count=0;
+  await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>{count++;return new Response(null,{status});}}),new RegExp(code));
+  assert.equal(count,1);
+ }
+ await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>{throw Error('synthetic network error');}}),/PRODUCTION_LOGIN_NETWORK_FAILURE/);
+ await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>new Response('{"ok":true}',{status:200})}),/NORMAL_LOGIN_DID_NOT_ISSUE_SESSION/);
+ await assert.rejects(loginProductionOwner({...credentials,password:'',fetchImpl:async()=>{assert.fail('missing credentials must not issue a request');}}),/PRODUCTION_SMOKE_OWNER_CREDENTIALS_REQUIRED/);
+ await assert.rejects(loginProductionOwner({...credentials,endpoint:'https://example.com',fetchImpl:async()=>{assert.fail('credentials must not leave the exact API');}}),/PRODUCTION_SMOKE_ENDPOINT_INVALID/);
  const source=readFileSync('scripts/release/production-authenticated-browser.mjs','utf8');
- assert.match(source,/loginAttempts<1/);
- assert.match(source,/PRODUCTION_LOGIN_REJECTED_401/);
- assert.match(source,/PRODUCTION_LOGIN_RATE_LIMIT_429/);
- assert.match(source,/PRODUCTION_LOGIN_NETWORK_FAILURE/);
- assert.match(source,/PRODUCTION_LOGIN_NOT_COMPLETED/);
+ assert.match(source,/chromium\.launch\(\{headless:true\}\)/);
+ assert.match(source,/delete process\.env\.SMOKE_OWNER_PASSWORD/);
+ assert.match(source,/profile\.role,'owner'/);
+ assert.match(source,/PRODUCTION_SMOKE_SESSION_REVOKED/);
+ assert.doesNotMatch(source,/PRODUCTION_SMOKE_OWNER_LOGIN_REQUIRED_ON_MAC|bringToFront\(/);
  assert.doesNotMatch(source,/console\.(?:log|error)\([^\n]*(?:postDataJSON|sessionToken|password)\b/);
 });

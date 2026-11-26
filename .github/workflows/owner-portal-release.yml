@@ -10,6 +10,7 @@ on:
       - .github/workflows/locked-backend-regression.yml
       - .github/workflows/isolated-qa-oidc-browser.yml
       - tests/locked-release.test.mjs
+      - tests/owner-portal-one-click-release.test.mjs
       - tests/production-versioned-api-routing.test.mjs
       - scripts/release/production-*.mjs
       - staging-api-region.mjs
@@ -32,6 +33,21 @@ on:
       e2e_run_id:
         description: Optional exact authenticated 37-scenario run override; otherwise resolve automatically
         type: string
+      release_runner:
+        description: "Release verification and headless publication runner"
+        type: choice
+        options:
+          - github
+          - mac
+        default: github
+      backup_runner:
+        description: "Protected backup execution: auto prefers Mac, github selects hosted explicitly"
+        type: choice
+        options:
+          - auto
+          - mac
+          - github
+        default: auto
       task_id:
         description: Associated CRM task
         type: string
@@ -42,7 +58,8 @@ permissions:
   contents: read
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('locked-release-pr-{0}', github.event.pull_request.number) || 'owner-portal-production-release' }}
-  cancel-in-progress: false
+  # A newer PR commit supersedes only that PR's tests; never cancel a production release.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   release-tests:
     if: github.event_name == 'pull_request'
@@ -59,34 +76,19 @@ jobs:
 
   mac-route-smoke:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk' && github.actor == 'hakaru4i-afk'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    # Preserve the historical required-check ID while testing native ARM in GitHub's cloud.
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
-      - name: Check native Mac release toolchain
-        if: runner.os == 'macOS'
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          missing=()
-          for tool in gh jq gtar; do
-            if ! command -v "$tool" >/dev/null; then
-              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
-              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
-            fi
-          done
-          if (( ${#missing[@]} )); then
-            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
-            if [[ ! -w "$(brew --prefix)" ]]; then
-              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
-              exit 1
-            fi
-            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
-          for tool in gh jq gtar; do
-            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
-          done
-          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -97,7 +99,7 @@ jobs:
 
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-latest"]') }}
     timeout-minutes: 12
     permissions:
       actions: read
@@ -108,31 +110,15 @@ jobs:
       version: ${{ steps.lock.outputs.version }}
       evidence: ${{ steps.evidence.outputs.receipt }}
     steps:
-      - name: Check native Mac release toolchain
-        if: runner.os == 'macOS'
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          missing=()
-          for tool in gh jq gtar; do
-            if ! command -v "$tool" >/dev/null; then
-              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
-              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
-            fi
-          done
-          if (( ${#missing[@]} )); then
-            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
-            if [[ ! -w "$(brew --prefix)" ]]; then
-              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
-              exit 1
-            fi
-            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
-          for tool in gh jq gtar; do
-            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
-          done
-          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -168,14 +154,6 @@ jobs:
         run: node scripts/release/locked-release-pages.mjs preflight candidate-web
       - name: Reject incompatible production API path before backup
         run: node scripts/release/production-route-contract.mjs candidate-web source
-      - name: Check local interactive Owner browser availability before backup
-        if: inputs.publish
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(uname -s)" = Darwin
-          test "$(stat -f %Su /dev/console)" = "$(id -un)" || { echo '::error::OWNER_MAC_CONSOLE_MUST_BE_ACTIVE'; exit 1; }
-          launchctl print "gui/$(id -u)" >/dev/null 2>&1 || { echo '::error::OWNER_MAC_GUI_UNAVAILABLE'; exit 1; }
       - name: Require explicit approval and verified reports for the locked pair
         id: evidence
         if: inputs.publish
@@ -192,7 +170,7 @@ jobs:
   backup:
     needs: verify
     if: inputs.publish
-    # Keep the Mac runner free for the backend backup workflow's offline-safety job.
+    # The protected backend workflow remains responsible for verified recovery.
     runs-on: ubuntu-latest
     timeout-minutes: 85
     outputs:
@@ -208,12 +186,13 @@ jobs:
         id: backup
         env:
           BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          RELEASE_BACKUP_RUNNER: ${{ inputs.backup_runner || 'auto' }}
         run: node scripts/release/locked-release.mjs backup
 
   deploy-pages:
     needs: [verify, backup]
     if: inputs.publish && needs.verify.result == 'success' && needs.backup.result == 'success'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-24.04"]') }}
     timeout-minutes: 32
     environment:
       name: github-pages
@@ -223,31 +202,15 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - name: Check native Mac release toolchain
-        if: runner.os == 'macOS'
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          missing=()
-          for tool in gh jq gtar; do
-            if ! command -v "$tool" >/dev/null; then
-              echo "::warning::MAC_RELEASE_TOOL_MISSING: $tool"
-              case "$tool" in gtar) missing+=(gnu-tar);; *) missing+=("$tool");; esac
-            fi
-          done
-          if (( ${#missing[@]} )); then
-            command -v brew >/dev/null || { echo "::error::MAC_HOMEBREW_UNAVAILABLE"; exit 1; }
-            if [[ ! -w "$(brew --prefix)" ]]; then
-              echo "::error::MAC_HOMEBREW_NOT_WRITABLE_BY_RUNNER"
-              exit 1
-            fi
-            HOMEBREW_NO_AUTO_UPDATE=1 HOMEBREW_NO_INSTALL_CLEANUP=1 brew install "${missing[@]}"
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
-          for tool in gh jq gtar; do
-            command -v "$tool" >/dev/null || { echo "::error::MAC_RELEASE_TOOL_MISSING: $tool"; exit 1; }
-          done
-          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -267,6 +230,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Check protected smoke credentials before publishing any API
+        env:
+          SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}
+          SMOKE_OWNER_PASSWORD: ${{ secrets.SMOKE_OWNER_PASSWORD }}
+        run: node --input-type=module -e "import {validateSmokeCredentials} from './scripts/release/production-owner-login.mjs'; validateSmokeCredentials(process.env.SMOKE_OWNER_LOGIN,process.env.SMOKE_OWNER_PASSWORD)"
       - name: Verify that the backend SHA is in the approved main history
         env:
           BACKEND_SHA: ${{ needs.verify.outputs.backend }}
@@ -297,11 +265,16 @@ jobs:
       - name: Install pinned browser for production smoke
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
-          npx playwright install chromium
-      - name: Open authenticated candidate cabinet before switching live Pages
-        run: |
-          echo "::notice::Sign in once to the candidate browser opened on the Mac; no credentials are entered into GitHub."
-          node scripts/release/production-authenticated-browser.mjs candidate .release-pages
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright install chromium
+          fi
+      - name: Verify direct Owner API login and headless candidate cabinet before switching live Pages
+        env:
+          SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}
+          SMOKE_OWNER_PASSWORD: ${{ secrets.SMOKE_OWNER_PASSWORD }}
+        run: node scripts/release/production-authenticated-browser.mjs candidate .release-pages
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
