@@ -43,6 +43,8 @@ test('release smoke uses normal API credentials in the protected deployment step
  const login=readFileSync(new URL('../scripts/release/production-owner-login.mjs',import.meta.url),'utf8');
  assert.doesNotMatch(wf,/secrets\.PRODUCTION_SMOKE_SESSION|OWNER_MAC_CONSOLE_MUST_BE_ACTIVE/);
  assert.match(wf,/name: github-pages/);
+ assert.ok(wf.indexOf('validateSmokeCredentials(process.env')<wf.indexOf('locked-release-api.mjs publish'));
+ assert.match(wf,/playwright install --with-deps chromium/);
  assert.match(wf,/SMOKE_OWNER_LOGIN: \$\{\{ secrets\.SMOKE_OWNER_LOGIN \|\| secrets\.SMOKE_OWNER_EMAIL \}\}/);
  assert.match(wf,/SMOKE_OWNER_PASSWORD: \$\{\{ secrets\.SMOKE_OWNER_PASSWORD \}\}/);
  assert.match(browser,/headless:true/);
