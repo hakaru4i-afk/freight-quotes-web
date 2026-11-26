@@ -1,6 +1,6 @@
 {
   "version": "20261125-logic-13",
-  "modelSha256": "340df991b271066462fc166716dc80badf509950c32f5bde68764fce8b570992",
+  "modelSha256": "5a274207b1acf445e572a764be1ceaa69e5f459c564759153ca741cac12e3118",
   "modelSnapshot": {
     "version": "20261125-logic-13",
     "date": "2026-11-25",
@@ -36,7 +36,7 @@
         "Сервер проверяет действующий сеанс Владельца, текущую редакцию обращения и причину длиной 10–2000 символов.",
         "Сервер сохраняет состояние и событие с исполнителем, временем, прежней и новой стадией и причиной в одной транзакции. Автор видит переход в истории своего обращения в «Предложениях»."
       ],
-      "limits": "Обращения Владельца, завершённые обращения и выпуск находятся вне этого процесса. Проверки GitHub и подтверждение выпуска выполняются по обычной процедуре. Для разработки и выпуска UI использует отдельный цикл: зарегистрировано в GitHub → разработка → приёмка → принято → проверенный выпуск → архив; возврат с комментарием. Это описание клиентского поведения, не подтверждение серверной приёмки."
+      "limits": "Обращения Владельца, завершённые обращения и выпуск находятся вне этого процесса. Проверки GitHub и подтверждение выпуска выполняются по обычной процедуре. Для разработки и выпуска UI использует отдельный цикл: зарегистрировано в GitHub → разработка → приёмка → принято → проверенный выпуск → архив; возврат с комментарием. Это описание клиентского поведения, не подтверждение серверной приёмки. Реестры читают серверные записи исполнения; принятие и возврат с комментарием осуществляются в Центре доработок. Принято не означает опубликовано. Архивирование по выпуску требует подтверждённого GitHub run/attempt и проверенного Production; отображение статуса не подменяет серверную проверку. В изолированном QA транспорт обращается только к выделенной функции, блокирует Production и общие staging-данные, не повторяет изменения. Контрастность ссылок реестра исправлена без изменения прав."
     },
     "processes": [
       {
@@ -150,7 +150,7 @@
         "logicStatus": "LOGIC_OK",
         "technicalStatus": "PARTIAL",
         "agreed": "Только владелец выбирает одного победителя; активная поздняя подготовка блокирует выбор; штраф не отменяется подачей. Данные конкурента в активном тендере строго обезличены и минимальны; после торгов доступ к ним прекращается. Свои предложения и результат участия сохраняются.",
-        "actual": "Владелец рассматривает варианты, при необходимости проводит тендер; сервер фиксирует одну победу и архивирует остальных. Выиграны определяются каноническим выбором Owner, а не допуском ставки. Отказ и проигрыш разделены. Семь критериев и единственный лидер остаются рекомендацией, не автоматическим назначением.",
+        "actual": "Владелец рассматривает варианты, при необходимости проводит тендер; сервер фиксирует одну победу и архивирует остальных. Выиграны определяются каноническим выбором Owner, а не допуском ставки. Отказ и проигрыш разделены. Семь критериев и единственный лидер остаются рекомендацией, не автоматическим назначением. В кандидатной оценке ставок отсутствие доплат ограничивает предварительный рейтинг до 79; низкая относительная позиция не означает ненадёжность перевозчика. Красный признак применяется только к единственной худшей сопоставимой ставке с оценкой не выше 69 и отставанием не менее 10 баллов при известных доплатах.",
         "optimal": "Для зависшей поздней подготовки сохранить ручное снятие с причиной. Автоматическое истечение — только отдельное согласованное изменение.",
         "exceptions": "Поздняя ставка pending; тендер не равен исходному допуску. Автоматического тайм-аута черновика сейчас нет.",
         "risks": "Предлагаемый тайм-аут затрагивает права участия и выбор победителя, поэтому в схему исполнения не включён.",
@@ -623,7 +623,7 @@
       "test/current-workspace-help-20261108.css": "bccbd77613aa1483e549fccdf16d5437c6eae5581a3a46f1b892ec322ad12285",
       "test/owner-workspace-compact-20261108.css": "804250b3863fc7354605d3afef07b3760e91a28ee8edae8300e8b0ca60f4651c",
       "test/owner-command-center-20261108.css": "b0c2a7b468be7d6b967698115d2e5c91e5166a8c42232f386b332837c1355cd3",
-      "test/owner-registers-20261111.css": "3e001f6a07af5e79ad665d070f56afb2927a93659f5e377d8063f5733e92c5d9",
+      "test/owner-registers-20261111.css": "36003be4c0853fb1decf7c1dbeca0ae12e446880d6d2d3f5bba58c4faaea6dd1",
       "test/role-help-20261111.css": "cd0da8bad35221bb4c1193fb94628e73ad09fb606dafae0ed8de0ce34b086af9",
       "test/portal-contrast-accessibility-20261108.css": "de07f084b1964d8394af75b570ff447d0d36446c252c305b2b029423e866a63e",
       "test/offer-edit-modal-readability-20261108.css": "ac402655682dfe32bca0b35b39a55a5dc3b391b16b44b9a226644c0c7369fd65",
@@ -635,14 +635,14 @@
       "test/lw-contrast-canonical-20261111.css": "103ba53da07390fea89b365e33d3ec1eddf370d4c31c767cc2fedd2f23246ef0",
       "test/task2-execution-layout-20261114.css": "99eb0217cf1b2c2f2afc155fe10d90c2d7ab157cd5f3518e3ffdb84703e348c3",
       "test/public-support-20261115.css": "bab5b910f267c74dd0516b5bf9e4d1addddfb228433b2b6a85a2047b24c92bfc",
-      "test/staging-transport-20261111.js": "bfc23ee5c6edf5441e837c3a9a89e3b85baca527bb6903c4c6fb862752ed4b00",
+      "test/staging-transport-20261111.js": "6538f303259d71d66847afbf24e37c55e1ff7e3ba4b8b7ae5d0db0486ce89a24",
       "test/owner-ui-unification-20261117.css": "a681eeb095b75e7cedae8a9dbde4d995adddaacdff372ec52c8c5047210e2205",
       "test/owner-team-users-20261117.css": "2b0146ed84d868d1a0b0f1bf55892b79a4d311b61db0991729720553a85c6a4c",
       "test/portal-release-status-20261117.css": "935bd66cf987466b04e6ef07a9f3089be393fb5b4d8c13529ef9a9e5f2c1bdfb",
       "test/owner-audit-explanations-20261117.css": "e708b7dcc33f1bd01f36f5ed521c3baf21b150ac7fdf34f7d6ce46e84418ce3c",
       "test/offer-score-methodology-20261117.css": "1259329b2bf82d72279ef2df24bcdd8b6013fd2b9bac2348fa001c48a887d25e",
+      "test/owner-register-task-actions-20261121.css": "f8300e1eb786dd9592629508df7703621a87aff066ba78231637307726e26984",
       "test/lw-hover-safe-20261108.css": "da00cd35149a1346fdd5c20e573224ee6258c0bbbded287bf609431b8575ef46",
-      "test/owner-register-task-actions-20261121.css": "8524771e2a88cc2f0f52f593ec712d8577a155940849389ca60c99a86076e7e9",
       "test/app.js": "da479a1f3e898ebadd8c9321adcbf8280658e289ae3585ec86738094e67db986",
       "test/late-bid-staging-3ff2c9ab03f5.js": "a40954e7d5cd36ce7d9fd055529e6a37bdf343e81c428e431c61890fe81268d2",
       "test/task2-panel-sidebar-only-20261107.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
@@ -652,7 +652,7 @@
       "test/carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",
       "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
       "test/carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
-      "test/portal-feedback-center-20261107.js": "a8da1939dae23c8a7a81705c624e3cd3a2088836facec1fa0b05470a71760ce4",
+      "test/portal-feedback-center-20261107.js": "0b93e2d27abb7b3cf2730d999ef401515f8e9503336a8796454a3f34fa8bf8af",
       "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
       "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
       "test/carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
@@ -665,7 +665,7 @@
       "test/owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
       "test/owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
       "test/owner-register-task-actions-20261121.js": "fd2f350bf60cf96cb0089a5baea258ca135f457e155524d27fdf92ea2142b5ae",
-      "test/owner-registers-20261111.js": "0f5ac5c1e9c4ab190553a14029cf40469fdcc7cb2b71917ff218486ff7f557c2",
+      "test/owner-registers-20261111.js": "a283a150311f4a91d69d73b48b4425fb1c0307eb78bce3b419f838727c6264f0",
       "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
       "test/global-view/view.mjs": "b0490ef5a0cc20f7b85b89725b499d52cd69ae63006f36aa88d522bff2c08d48",
       "test/ved-single-workspace-20261108.js": "09bbd40d9b5c65701e9b90f828859813a8e39a34c5673e2c5738f10d88929a26",
@@ -679,6 +679,8 @@
       "test/portal-release-status-20261117.js": "119b5335622e6a19ebc37b16db3f9cf2c0344aca14edb6c335e994a6f5cedf94",
       "test/owner-audit-explanations-20261117.mjs": "95dc1bcbeda3fade5ed918228f93ab9bd3765b89db1ea8111ab4bb579880bb6d",
       "test/offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
+      "test/index.html": "79349bd65b7f02bbd18b96d9b36b89996b4be8deaab378ed60c5c949daf77d7b",
+      "test/offer-scoring.mjs": "6e4955df1bc4463a3049bf691bf09469a248f39424408581a417d6fed8f07654",
       "test/process-model-graph.mjs": "744db6c0544bd203c9d0a5edac9829ffd980f2b4eceeb2bd70432161fb9e325c",
       "test/process-model-diff.mjs": "83554551f59d958cbe9241c9343894197e10b35b0443557681ce4dfc0aeb3c0e",
       "test/task2-panel.js": "25e82d4fab49724799383f0f57fd17144be988b397044a554b9131b6e7837c61",
