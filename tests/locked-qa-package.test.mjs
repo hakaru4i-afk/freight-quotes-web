@@ -115,6 +115,7 @@ test('browser and backend evidence reuse staged package bytes without compiling 
   assert.doesNotMatch(e2e, /esbuild|locked-qa-runtime\.mjs build|prepare-api/);
   assert.doesNotMatch(read('locked-backend-regression.yml'), /locked-qa-runtime\.mjs build|prepare-api/);
   const staging = read('locked-qa-staging.yml');
+  assert.match(staging, /MAC_QA_GH_UNAVAILABLE/);
   assert.match(staging, /locked-staging-attestation-attempt-/);
   assert.match(staging, /path: locked-staging-attestation\.json/);
   assert.match(e2e, /name: isolated-qa-redacted-evidence-attempt-\$\{\{ github\.run_attempt \}\}/);

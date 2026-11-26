@@ -56,6 +56,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Locate the existing GitHub CLI for protected staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          command -v gh >/dev/null || { echo '::error::MAC_QA_GH_UNAVAILABLE'; exit 1; }
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - id: lock
         name: Verify immutable candidate ancestry and resolve exact pair
         shell: bash
