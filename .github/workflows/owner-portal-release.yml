@@ -58,7 +58,8 @@ permissions:
   contents: read
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('locked-release-pr-{0}', github.event.pull_request.number) || 'owner-portal-production-release' }}
-  cancel-in-progress: false
+  # A newer PR commit supersedes only that PR's tests; never cancel a production release.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   release-tests:
     if: github.event_name == 'pull_request'
@@ -191,7 +192,7 @@ jobs:
   deploy-pages:
     needs: [verify, backup]
     if: inputs.publish && needs.verify.result == 'success' && needs.backup.result == 'success'
-    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-latest"]') }}
+    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-24.04"]') }}
     timeout-minutes: 32
     environment:
       name: github-pages

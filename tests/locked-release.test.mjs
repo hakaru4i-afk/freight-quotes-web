@@ -334,6 +334,15 @@ test('the deployment graph puts confirmed backup and API health before publishin
   assert.equal((workflow.match(/inputs\.release_runner == 'mac'/g)||[]).length,2);
   assert.match(workflow, /fromJSON\('\["self-hosted","macOS","ARM64","freight-mac-qa"\]'\)/);
   assert.match(workflow, /RELEASE_BACKUP_RUNNER: /);
+  assert.match(workflow,/cancel-in-progress: \$\{\{ github.event_name == 'pull_request' \}\}/);
+  const production=workflow.split('\n  deploy-pages:')[1];
+  assert.match(production,/fromJSON\('\["ubuntu-24\.04"\]'\)/);
+  assert.match(legacy,/cancel-in-progress: true/);
+  assert.match(legacy,/runs-on: ubuntu-latest/);
+  assert.doesNotMatch(legacy,/runs-on: \[self-hosted/);
+  const privacy=readFileSync('.github/workflows/qa-publication-security.yml','utf8');
+  assert.match(privacy,/runs-on: ubuntu-latest/);
+  assert.doesNotMatch(privacy,/runs-on: \[self-hosted/);
   assert.match(workflow, /mac-route-smoke:[\s\S]*?runs-on: ubuntu-24\.04-arm/);
   assert.match(workflow, /verify:\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
   assert.match(workflow, /deploy-pages:\n    needs: \[verify, backup\]\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
