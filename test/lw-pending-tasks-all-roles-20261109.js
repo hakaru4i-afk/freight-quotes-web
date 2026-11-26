@@ -225,11 +225,11 @@ async function refresh(force=false){
 }
 
 const CONTROL_ID="lw-owner-process-control";
-const control={seq:0,page:null,busy:false,notice:""};
+const control={seq:0,page:null,busy:false,notice:"",scope:"shipments"};
 const controlWords={
- ru:{title:"Управление процессами · Владелец",help:"Открытые назначения по перевозкам всех ролей. Доступные действия определяет сервер. Открытые и доступные для повторного открытия запросы документов можно перевести только в разрешённую стадию. Финансы и фактические этапы перевозки подтверждаются в исходных карточках.",load:"Проверить назначения",loading:"Читаем назначения…",empty:"Открытых назначений нет.",failed:"Не удалось подтвердить назначения. Обновите список.",next:"Следующая страница",back:"Первая страница",recipient:"Новый логист",reason:"Причина переназначения (10–1000 символов)",confirm:"Подтверждаю перенос адресного задания",reassign:"Переназначить",saved:"Исполнитель изменён. Событие записано в аудит.",stale:"Данные изменились. Обновите назначения.",native:"Действие через исходный процесс",inactive:"Заявка неактивна или изменена",award:"Победитель изменён или не подтверждён",shipment:"Перевозка не в активном исполнении",closed:"Задача закрыта",role:"Роль",assignee:"Исполнитель",status:"Статус",select:"Выбрать",showing:"Показано",open:"Открыть перевозку",ready:"Доступны подтверждённые сервером действия",document_start:"Начать работу",document_return:"Вернуть в открытые",document_complete:"Закрыть запрос документов",document_reopen:"Повторно открыть запрос",documentAction:"Действие с заданием",documentReason:"Причина изменения (10–1000 символов)",documentConfirm:"Подтверждаю изменение стадии задания",documentApply:"Выполнить",documentSaved:"Стадия задания изменена. Событие записано в аудит.",riskTitle:"Решение по риску",riskAccept:"Принять риск",riskWithdraw:"Отозвать решение",riskReason:"Обоснование риска (10–1000 символов)",riskConfirm:"Подтверждаю решение. Оно не снимает блокировки и не заменяет проверки.",riskSaved:"Решение по риску сохранено в журнале.",riskHistory:"История решений (до 5 последних)",riskStale:"По прежней редакции задания",riskNoHistory:"Решений пока нет."},
- en:{title:"Process control · Owner",help:"Open shipment assignments across roles. The server determines available actions. Open and eligible completed document requests can use approved task transitions. Finance and physical shipment milestones remain in native workflows.",load:"Check assignments",loading:"Reading assignments…",empty:"No open assignments.",failed:"Assignments could not be verified. Refresh the list.",next:"Next page",back:"First page",recipient:"New logistics employee",reason:"Reason (10–1000 characters)",confirm:"Confirm transfer of this assigned task",reassign:"Reassign",saved:"Assignment changed and audited.",stale:"Data changed. Refresh assignments.",native:"Use native workflow",inactive:"Request inactive or changed",award:"Award changed or unverified",shipment:"Shipment not active",closed:"Task closed",role:"Role",assignee:"Assignee",status:"Status",select:"Select",showing:"Showing",open:"Open shipment",ready:"Server-authorized actions available",document_start:"Start work",document_return:"Return to open",document_complete:"Close document request",document_reopen:"Reopen document request",documentAction:"Task action",documentReason:"Reason for change (10–1000 characters)",documentConfirm:"Confirm task transition",documentApply:"Apply",documentSaved:"Task transition recorded in audit.",riskTitle:"Risk decision",riskAccept:"Accept risk",riskWithdraw:"Withdraw decision",riskReason:"Risk rationale (10–1000 characters)",riskConfirm:"Confirm decision. It does not remove blockers or replace checks.",riskSaved:"Risk decision recorded.",riskHistory:"Decision history (latest five)",riskStale:"Previous task revision",riskNoHistory:"No decisions yet."},
- zh:{title:"流程管理 · 所有者",help:"查看各角色未完成运输任务。服务端决定可执行操作。待办及允许重新打开的文件请求仅可执行授权的任务转换。财务及实际运输阶段仍由原流程确认。",load:"检查任务",loading:"正在读取任务…",empty:"暂无未完成任务。",failed:"无法核实任务，请刷新。",next:"下一页",back:"第一页",recipient:"新物流人员",reason:"重新分配原因（10–1000 字符）",confirm:"确认转移此指定任务",reassign:"重新分配",saved:"任务已重新分配并记录审计。",stale:"数据已更改，请刷新任务。",native:"使用原流程",inactive:"申请无效或已更改",award:"中标人已更改或未确认",shipment:"运输未处于执行状态",closed:"任务已关闭",role:"角色",assignee:"负责人",status:"状态",select:"选择",showing:"显示",open:"打开运输",ready:"可执行服务端授权的操作",document_start:"开始工作",document_return:"退回待办",document_complete:"关闭文件请求",document_reopen:"重新打开文件请求",documentAction:"任务操作",documentReason:"修改原因（10–1000 字符）",documentConfirm:"确认修改任务阶段",documentApply:"执行",documentSaved:"任务阶段已修改并记录审计。",riskTitle:"风险决定",riskAccept:"接受风险",riskWithdraw:"撤回决定",riskReason:"风险说明（10–1000 字符）",riskConfirm:"确认决定。不解除限制或替代检查。",riskSaved:"风险决定已记录。",riskHistory:"决定记录（最近五条）",riskStale:"旧任务版本",riskNoHistory:"暂无决定。"}
+ ru:{title:"Управление процессами · Владелец",help:"Открытые назначения по перевозкам всех ролей. Доступные действия определяет сервер. Открытые и доступные для повторного открытия запросы документов можно перевести только в разрешённую стадию. Финансы и фактические этапы перевозки подтверждаются в исходных карточках.",load:"Проверить назначения",loading:"Читаем назначения…",empty:"Открытых назначений нет.",failed:"Не удалось подтвердить назначения. Обновите список.",next:"Следующая страница",back:"Первая страница",recipient:"Новый логист",reason:"Причина переназначения (10–1000 символов)",confirm:"Подтверждаю перенос адресного задания",reassign:"Переназначить",saved:"Исполнитель изменён. Событие записано в аудит.",stale:"Данные изменились. Обновите назначения.",native:"Действие через исходный процесс",inactive:"Заявка неактивна или изменена",award:"Победитель изменён или не подтверждён",shipment:"Перевозка не в активном исполнении",closed:"Задача закрыта",role:"Роль",assignee:"Исполнитель",status:"Статус",select:"Выбрать",showing:"Показано",open:"Открыть перевозку",ready:"Доступны подтверждённые сервером действия",document_start:"Начать работу",document_return:"Вернуть в открытые",document_complete:"Закрыть запрос документов",document_reopen:"Повторно открыть запрос",documentAction:"Действие с заданием",documentReason:"Причина изменения (10–1000 символов)",documentConfirm:"Подтверждаю изменение стадии задания",documentApply:"Выполнить",documentSaved:"Стадия задания изменена. Событие записано в аудит.",riskTitle:"Решение по риску",riskAccept:"Принять риск",riskWithdraw:"Отозвать решение",riskReason:"Обоснование риска (10–1000 символов)",riskConfirm:"Подтверждаю решение. Оно не снимает блокировки и не заменяет проверки.",riskSaved:"Решение по риску сохранено в журнале.",riskHistory:"История решений (до 5 последних)",riskStale:"По прежней редакции задания",riskNoHistory:"Решений пока нет.",partners:"Поставщики и дизайнеры",shipments:"Перевозки",partnerSupplier:"Поставщик",partnerDesigner:"Дизайнер",partnerOrders:"Заказов в источнике",partnerOpen:"Открыть штатный раздел",partnerWaiting:"Ожидает повторной подачи поставщиком",partnerReopen:"Возврат поставщику доступен в штатном процессе",partnerRevision:"Редакция",partnerEmpty:"Записей поставок нет."},
+ en:{title:"Process control · Owner",help:"Open shipment assignments across roles. The server determines available actions. Open and eligible completed document requests can use approved task transitions. Finance and physical shipment milestones remain in native workflows.",load:"Check assignments",loading:"Reading assignments…",empty:"No open assignments.",failed:"Assignments could not be verified. Refresh the list.",next:"Next page",back:"First page",recipient:"New logistics employee",reason:"Reason (10–1000 characters)",confirm:"Confirm transfer of this assigned task",reassign:"Reassign",saved:"Assignment changed and audited.",stale:"Data changed. Refresh assignments.",native:"Use native workflow",inactive:"Request inactive or changed",award:"Award changed or unverified",shipment:"Shipment not active",closed:"Task closed",role:"Role",assignee:"Assignee",status:"Status",select:"Select",showing:"Showing",open:"Open shipment",ready:"Server-authorized actions available",document_start:"Start work",document_return:"Return to open",document_complete:"Close document request",document_reopen:"Reopen document request",documentAction:"Task action",documentReason:"Reason for change (10–1000 characters)",documentConfirm:"Confirm task transition",documentApply:"Apply",documentSaved:"Task transition recorded in audit.",riskTitle:"Risk decision",riskAccept:"Accept risk",riskWithdraw:"Withdraw decision",riskReason:"Risk rationale (10–1000 characters)",riskConfirm:"Confirm decision. It does not remove blockers or replace checks.",riskSaved:"Risk decision recorded.",riskHistory:"Decision history (latest five)",riskStale:"Previous task revision",riskNoHistory:"No decisions yet.",partners:"Suppliers and designers",shipments:"Shipments",partnerSupplier:"Supplier",partnerDesigner:"Designer",partnerOrders:"Orders in source",partnerOpen:"Open native section",partnerWaiting:"Waiting for supplier resubmission",partnerReopen:"Return to supplier in native workflow",partnerRevision:"Revision",partnerEmpty:"No supplier orders."},
+ zh:{title:"流程管理 · 所有者",help:"查看各角色未完成运输任务。服务端决定可执行操作。待办及允许重新打开的文件请求仅可执行授权的任务转换。财务及实际运输阶段仍由原流程确认。",load:"检查任务",loading:"正在读取任务…",empty:"暂无未完成任务。",failed:"无法核实任务，请刷新。",next:"下一页",back:"第一页",recipient:"新物流人员",reason:"重新分配原因（10–1000 字符）",confirm:"确认转移此指定任务",reassign:"重新分配",saved:"任务已重新分配并记录审计。",stale:"数据已更改，请刷新任务。",native:"使用原流程",inactive:"申请无效或已更改",award:"中标人已更改或未确认",shipment:"运输未处于执行状态",closed:"任务已关闭",role:"角色",assignee:"负责人",status:"状态",select:"选择",showing:"显示",open:"打开运输",ready:"可执行服务端授权的操作",document_start:"开始工作",document_return:"退回待办",document_complete:"关闭文件请求",document_reopen:"重新打开文件请求",documentAction:"任务操作",documentReason:"修改原因（10–1000 字符）",documentConfirm:"确认修改任务阶段",documentApply:"执行",documentSaved:"任务阶段已修改并记录审计。",riskTitle:"风险决定",riskAccept:"接受风险",riskWithdraw:"撤回决定",riskReason:"风险说明（10–1000 字符）",riskConfirm:"确认决定。不解除限制或替代检查。",riskSaved:"风险决定已记录。",riskHistory:"决定记录（最近五条）",riskStale:"旧任务版本",riskNoHistory:"暂无决定。",partners:"供应商与设计师",shipments:"运输",partnerSupplier:"供应商",partnerDesigner:"设计师",partnerOrders:"来源订单数",partnerOpen:"打开原流程",partnerWaiting:"等待供应商重新提交",partnerReopen:"在原流程中退回供应商",partnerRevision:"版本",partnerEmpty:"暂无供应商订单。"}
 };
 function controlText(){return controlWords[language()]||controlWords.ru;}
 function controlReason(code,t){return ({INACTIVE_REQUEST:t.inactive,AWARD_CHANGED_OR_MISSING:t.award,SHIPMENT_NOT_ACTIVE:t.shipment,USE_NATIVE_WORKFLOW:t.native,TASK_NOT_OPEN:t.closed})[code]||t.native;}
@@ -254,23 +254,37 @@ function riskControlForm(task,t){
  const withdrawal=history[0]?.decision==="accept"?'<option value="withdraw">'+esc(t.riskWithdraw)+'</option>':"";
  return log+'<form data-lw-control-risk="'+esc(task.id)+'"><label>'+esc(t.riskTitle)+'<select name="decision" required><option value="">'+esc(t.select)+'</option><option value="accept">'+esc(t.riskAccept)+'</option>'+withdrawal+'</select></label><label>'+esc(t.riskReason)+'<textarea name="reason" minlength="10" maxlength="1000" required rows="3"></textarea></label><label><input name="confirmed" type="checkbox" required> '+esc(t.riskConfirm)+'</label><button type="submit">'+esc(t.documentApply)+'</button></form>';
 }
+function partnerControlRow(task,t){
+ if(task?.source!=="partners"||!["supplier","designer"].includes(task.role))return "";
+ const route=task.role==="supplier"?"supplier-orders":"content-tasks";
+ if(task.route!==route)return "";
+ const label=task.role==="supplier"?t.partnerSupplier:t.partnerDesigner;
+ const detail=task.blocker==="WAITING_SUPPLIER"?t.partnerWaiting:task.role==="supplier"&&task.nativeActions?.includes("reopen")?t.partnerReopen:t.native;
+ return '<li><details><summary><strong>'+esc(task.order_code)+' · '+esc(label)+'</strong><small> · '+esc(task.status)+'</small></summary><p>'+esc(task.description)+'</p><p>'+esc(t.assignee)+': '+esc(task.assignee||"—")+' · '+esc(t.partnerRevision)+': '+esc(task.revision??"—")+'</p><p>'+esc(detail)+'</p><p><a href="#'+route+'">'+esc(t.partnerOpen)+'</a></p></details></li>';
+}
 function paintControl(){
  const host=document.getElementById(CONTROL_ID);if(!host||state.role!=="owner")return;
  const t=controlText(),p=control.page;
  let body=control.busy?'<p role="status">'+esc(t.loading)+'</p>':"";
  if(control.notice)body+='<p role="status">'+esc(control.notice)+'</p>';
  if(p){
+  if(p.scope==="partners"){
+   body+='<p>'+esc(t.partnerOrders)+': '+esc(p.totalOrders)+'</p>';
+   if(!p.items.length)body+='<p>'+esc(t.partnerEmpty)+'</p>';
+   body+='<ul>'+p.items.map(task=>partnerControlRow(task,t)).join("")+'</ul>';
+  }else{
   const items=p.items,people=p.recipients;
   body+='<p>'+esc(t.showing)+' '+items.length+' / '+esc(p.total)+'</p>';
   if(!items.length)body+='<p>'+esc(t.empty)+'</p>';
   body+='<ul>'+items.map(task=>'<li><details><summary><strong>'+esc(task.order_code)+' · '+esc(task.task_type)+'</strong><small> · '+esc(task.assigned_role)+' · '+esc(task.status)+'</small></summary><p>'+esc(task.description)+'</p><p>'+esc(t.role)+': '+esc(task.assigned_role)+' · '+esc(t.assignee)+': '+esc(task.assigned_login||"—")+'</p><p>'+esc(task.blocker?controlReason(task.blocker,t):t.ready)+'</p>'+(task.blocker==='INACTIVE_REQUEST'||task.blocker==='AWARD_CHANGED_OR_MISSING'?'':'<p><a href="#approved-shipments" data-lw-control-open="'+esc(task.order_code)+'">'+esc(t.open)+'</a></p>')+controlForm(task,people,t)+documentControlForm(task,t)+riskControlForm(task,t)+'</details></li>').join("")+'</ul>';
+  }
   if(p.offset>0)body+='<button type="button" data-lw-control-load="0">'+esc(t.back)+'</button>';
   if(Number.isInteger(p.nextOffset))body+='<button type="button" data-lw-control-load="'+p.nextOffset+'">'+esc(t.next)+'</button>';
  }
  host.querySelector("[data-lw-control-body]").innerHTML=body;
 }
 function clearControl(){
- control.seq++;control.page=null;control.busy=false;control.notice="";
+ control.seq++;control.page=null;control.busy=false;control.notice="";control.scope="shipments";
  document.getElementById(CONTROL_ID)?.remove();
 }
 function mountControl(){
@@ -281,17 +295,19 @@ function mountControl(){
  if(host)clearControl();
  const t=controlText();
  host=document.createElement("section");host.id=CONTROL_ID;host.className="lw-pending-task-box";
- host.innerHTML='<details><summary><strong>'+esc(t.title)+'</strong></summary><p>'+esc(t.help)+'</p><button type="button" data-lw-control-load="0">'+esc(t.load)+'</button><div data-lw-control-body></div></details>';
+ host.innerHTML='<details><summary><strong>'+esc(t.title)+'</strong></summary><p>'+esc(t.help)+'</p><button type="button" data-lw-control-load="0">'+esc(t.load)+'</button> <button type="button" data-lw-control-scope="shipments">'+esc(t.shipments)+'</button> <button type="button" data-lw-control-scope="partners">'+esc(t.partners)+'</button><div data-lw-control-body></div></details>';
  home.prepend(host);
 }
-async function loadControl(offset=0,notice=""){
+async function loadControl(offset=0,notice="",scope=control.scope){
  if(state.role!=="owner"||control.busy)return;
- const seq=++control.seq;control.busy=true;control.page=null;control.notice=notice;paintControl();
+ if(!["shipments","partners"].includes(scope))return;
+ const seq=++control.seq;control.busy=true;control.page=null;control.notice=notice;control.scope=scope;paintControl();
  try{
-  const p=await get("/api/pending-tasks?ownerControl=1&offset="+offset);
-  if(p.ownerControl!==true||p.ok!==true||!Array.isArray(p.items)||!Array.isArray(p.recipients))throw Error("Owner control unavailable");
+  const p=await get("/api/pending-tasks?ownerControl=1&scope="+scope+"&offset="+offset);
+  if(p.ownerControl!==true||p.ok!==true||!Array.isArray(p.items))throw Error("Owner control unavailable");
+  if(scope==="partners"?p.scope!=="partners":p.scope==="partners"||!Array.isArray(p.recipients))throw Error("Owner scope unavailable");
   if(seq!==control.seq||state.role!=="owner")return;
-  control.page={...p,offset};
+  control.page={...p,offset,scope};
  }catch{if(seq===control.seq)control.notice=controlText().failed;}
  finally{if(seq===control.seq){control.busy=false;paintControl();}}
 }
@@ -352,6 +368,8 @@ document.addEventListener("submit",event=>{
  if(!form)return;event.preventDefault();void reassignControl(form);
 });
 document.addEventListener("click",event=>{
+ const scope=event.target.closest?.("#"+CONTROL_ID+" [data-lw-control-scope]");
+ if(scope){event.preventDefault();void loadControl(0,"",scope.dataset.lwControlScope);return;}
  const load=event.target.closest?.("#"+CONTROL_ID+" [data-lw-control-load]");
  if(load){event.preventDefault();void loadControl(Number(load.dataset.lwControlLoad)||0);return;}
  const open=event.target.closest?.("#"+CONTROL_ID+" [data-lw-control-open]");
