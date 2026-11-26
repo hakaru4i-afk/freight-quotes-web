@@ -1,5 +1,5 @@
 name: Emergency chat contrast only
-run-name: Owner-approved emergency chat CSS #217
+run-name: Owner-approved emergency chat UI #217 + #219
 on:
   push:
     branches: [main]
@@ -7,12 +7,13 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: 'Owner approval: only chat CSS, no API or data changes'
+        description: 'Owner approval: chat UI only, no API or data changes'
         required: true
         type: choice
         options: ['CHAT CSS ONLY']
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 concurrency:
@@ -25,7 +26,7 @@ jobs:
       github.ref == 'refs/heads/main' &&
       github.actor == 'hakaru4i-afk' &&
       github.triggering_actor == 'hakaru4i-afk' &&
-      ((github.event_name == 'push' && github.event.head_commit.message == 'release(owner): emergency chat CSS only #217') ||
+      ((github.event_name == 'push' && github.event.head_commit.message == 'release(owner): emergency chat UI #217 and #219') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'CHAT CSS ONLY'))
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -39,10 +40,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Download exact previously deployed staging Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: locked-staging-pages-attempt-1
+          run-id: 45778306459
+          github-token: ${{ github.token }}
+          path: verified-pages-archive
+      - name: Unpack known verified public Pages artifact
+        run: |
+          set -euo pipefail
+          mkdir verified-pages
+          tar -tf verified-pages-archive/artifact.tar | head -n 5 || true
+          tar --no-same-owner --no-same-permissions -xf verified-pages-archive/artifact.tar -C verified-pages
+          test -f verified-pages/test/app.js
       - name: Validate approved CSS and unchanged live inventory
         run: |
           node scripts/build-css-bundle.mjs --check
           node --check scripts/release/chat-contrast-emergency-20261126.mjs
+          node --check lw-ved-shared-chat-20261109.js
           node scripts/release/chat-contrast-emergency-20261126.mjs prepare
       - name: Browser contrast check in all cabinet roles and four chat surfaces
         run: |
