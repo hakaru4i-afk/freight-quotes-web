@@ -83,3 +83,19 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
   assert.match(src,/action:"resolve",order:task.order_code,notificationId:task.notification_id,expectedRevision:revision,reason,confirmed:true/);
  });
 }
+
+for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
+ test('Partner recovery forms expose only server-approved, role-scoped operations: '+path,()=>{
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const CONTROL_ID='),end=src.indexOf('function paintControl()',start);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const {partnerControlForms,controlWords}=runInNewContext(src.slice(start,end)+';({partnerControlForms,controlWords})',{esc});
+  for(const lang of ['ru','en','zh']){
+   const task={id:'supplier:one',orderId:'one',source:'partners',role:'supplier',assignee:'old',revision:7,nativeActions:['edit','reopen','delete','design_edit']};
+   const people=[{role:'supplier',login:'old'},{role:'supplier',login:'next',name:'<img onerror=alert(1)>'},{role:'designer',login:'other'}];
+   const html=partnerControlForms(task,controlWords[lang],people);assert.match(html,/data-operation="edit"/);assert.match(html,/data-operation="reopen"/);assert.match(html,/value="next"/);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img|value="other"|value="old"|data-operation="delete"|data-operation="design_edit"/);assert.match(html,/name="confirmed" type="checkbox" required/);
+   assert.equal(partnerControlForms({...task,nativeActions:[]},controlWords[lang],people),'');
+   assert.equal(partnerControlForms({...task,revision:null},controlWords[lang],people),'');
+  }
+  assert.match(src,/const body=\{action,id:task.orderId,expectedRevision:revision,reason,confirmed:true,ownerProcess:true\}/);
+ });
+}
