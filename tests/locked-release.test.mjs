@@ -501,12 +501,37 @@ test('release rejects any unreviewed live login, password hash, session or datab
  for(const [from,to] of [['loginHandler','changedLogin'],['hash(password,salt)','newHash(password,salt)'],['session(userId)','newSession(userId)'],['sessionHandler','changedSession'],['"freight"','"other"'],['"production"','"staging"']])
   assert.throws(()=>verifyAuthContinuity(live,live.replace(from,to)),/AUTH_CONTINUITY_/);
 });
-test('login smoke reports the first actual rejection without retrying passwords',()=>{
+test('direct Owner API smoke performs one real login, fails closed, and never forwards credentials to browser',async()=>{
+ const {loginProductionOwner}=await import('../scripts/release/production-owner-login.mjs');
+ const endpoint='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api-release-'+'a'.repeat(32);
+ const credentials={endpoint,login:'synthetic-owner',password:' synthetic-test-password '};
+ const session='a'.repeat(64);
+ let calls=0;
+ const fetchImpl=async(url,options)=>{
+  calls++;
+  assert.equal(url,endpoint+'/api/auth?forceFunctionRegion=eu-central-1');
+  assert.equal(options.method,'POST');
+  assert.equal(options.redirect,'error');
+  assert.equal(options.headers.Authorization,undefined);
+  assert.deepEqual(JSON.parse(options.body),{action:'login',login:credentials.login,password:credentials.password});
+  return new Response(JSON.stringify({ok:true,sessionToken:session}),{status:200});
+ };
+ assert.equal(await loginProductionOwner({...credentials,fetchImpl}),session);
+ assert.equal(calls,1);
+ for(const [status,code] of [[401,'PRODUCTION_LOGIN_REJECTED_401'],[429,'PRODUCTION_LOGIN_RATE_LIMIT_429'],[500,'PRODUCTION_LOGIN_HTTP_500']]){
+  let count=0;
+  await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>{count++;return new Response(null,{status});}}),new RegExp(code));
+  assert.equal(count,1);
+ }
+ await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>{throw Error('synthetic network error');}}),/PRODUCTION_LOGIN_NETWORK_FAILURE/);
+ await assert.rejects(loginProductionOwner({...credentials,fetchImpl:async()=>new Response('{"ok":true}',{status:200})}),/NORMAL_LOGIN_DID_NOT_ISSUE_SESSION/);
+ await assert.rejects(loginProductionOwner({...credentials,password:'',fetchImpl:async()=>{assert.fail('missing credentials must not issue a request');}}),/PRODUCTION_SMOKE_OWNER_CREDENTIALS_REQUIRED/);
+ await assert.rejects(loginProductionOwner({...credentials,endpoint:'https://example.com',fetchImpl:async()=>{assert.fail('credentials must not leave the exact API');}}),/PRODUCTION_SMOKE_ENDPOINT_INVALID/);
  const source=readFileSync('scripts/release/production-authenticated-browser.mjs','utf8');
- assert.match(source,/loginAttempts<1/);
- assert.match(source,/PRODUCTION_LOGIN_REJECTED_401/);
- assert.match(source,/PRODUCTION_LOGIN_RATE_LIMIT_429/);
- assert.match(source,/PRODUCTION_LOGIN_NETWORK_FAILURE/);
- assert.match(source,/PRODUCTION_LOGIN_NOT_COMPLETED/);
+ assert.match(source,/chromium\.launch\(\{headless:true\}\)/);
+ assert.match(source,/delete process\.env\.SMOKE_OWNER_PASSWORD/);
+ assert.match(source,/profile\.role,'owner'/);
+ assert.match(source,/PRODUCTION_SMOKE_SESSION_REVOKED/);
+ assert.doesNotMatch(source,/PRODUCTION_SMOKE_OWNER_LOGIN_REQUIRED_ON_MAC|bringToFront\(/);
  assert.doesNotMatch(source,/console\.(?:log|error)\([^\n]*(?:postDataJSON|sessionToken|password)\b/);
 });

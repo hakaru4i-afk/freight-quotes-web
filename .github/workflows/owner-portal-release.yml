@@ -168,14 +168,6 @@ jobs:
         run: node scripts/release/locked-release-pages.mjs preflight candidate-web
       - name: Reject incompatible production API path before backup
         run: node scripts/release/production-route-contract.mjs candidate-web source
-      - name: Check local interactive Owner browser availability before backup
-        if: inputs.publish
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(uname -s)" = Darwin
-          test "$(stat -f %Su /dev/console)" = "$(id -un)" || { echo '::error::OWNER_MAC_CONSOLE_MUST_BE_ACTIVE'; exit 1; }
-          launchctl print "gui/$(id -u)" >/dev/null 2>&1 || { echo '::error::OWNER_MAC_GUI_UNAVAILABLE'; exit 1; }
       - name: Require explicit approval and verified reports for the locked pair
         id: evidence
         if: inputs.publish
@@ -298,10 +290,11 @@ jobs:
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
           npx playwright install chromium
-      - name: Open authenticated candidate cabinet before switching live Pages
-        run: |
-          echo "::notice::Sign in once to the candidate browser opened on the Mac; no credentials are entered into GitHub."
-          node scripts/release/production-authenticated-browser.mjs candidate .release-pages
+      - name: Verify direct Owner API login and headless candidate cabinet before switching live Pages
+        env:
+          SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}
+          SMOKE_OWNER_PASSWORD: ${{ secrets.SMOKE_OWNER_PASSWORD }}
+        run: node scripts/release/production-authenticated-browser.mjs candidate .release-pages
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages

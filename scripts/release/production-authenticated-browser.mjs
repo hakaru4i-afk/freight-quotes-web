@@ -3,6 +3,7 @@ import {readFileSync,statSync,mkdirSync,writeFileSync,rmSync,existsSync} from 'n
 import {resolve,extname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {chromium} from 'playwright';
+import {loginProductionOwner} from './production-owner-login.mjs';
 
 const mode=process.argv[2],root=resolve(process.argv[3]||'.release-pages');
 assert.ok(['candidate','live','cleanup'].includes(mode),'INVALID_PRODUCTION_SMOKE_MODE');
@@ -28,7 +29,6 @@ if(mode==='cleanup'){
  }finally{rmSync(stateDir,{recursive:true,force:true});}
  process.exit(0);
 }
-const token=mode==='live'?readSession():'';
 const app=readFileSync(resolve(root,'app.js'),'utf8');
 // Production app constructs the persistence key from the base "freight-session".
 assert.ok(app.includes('"freight-session"')&&app.includes('+"-persistent-v1"'),'PRODUCTION_SESSION_STORAGE_KEY_UNVERIFIED');
@@ -51,21 +51,28 @@ await window.fetch(endpoint+'/api/session');
 assert.equal(calls.length,1);
 assert.equal(new URL(calls[0][0]).searchParams.get('forceFunctionRegion'),'eu-central-1','VERSIONED_PRODUCTION_ROUTE_NOT_REGION_BOUND');
 const mime={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.woff2':'font/woff2','.wasm':'application/wasm'};
-const browser=await chromium.launch({headless:mode!=='candidate'});
+let token;
+if(mode==='candidate'){
+ const login=process.env.SMOKE_OWNER_LOGIN||process.env.SMOKE_OWNER_EMAIL;
+ const password=process.env.SMOKE_OWNER_PASSWORD;
+ // Do not pass credentials to the browser or any child process.
+ delete process.env.SMOKE_OWNER_LOGIN;
+ delete process.env.SMOKE_OWNER_EMAIL;
+ delete process.env.SMOKE_OWNER_PASSWORD;
+ mkdirSync(stateDir,{mode:0o700});
+ token=await loginProductionOwner({endpoint,login,password});
+ writeFileSync(statePath,token,{mode:0o600,flag:'wx'});
+ console.log('PRODUCTION_DIRECT_OWNER_LOGIN_PASS');
+}else token=readSession();
+const browser=await chromium.launch({headless:true});
 try{
  const context=await browser.newContext({serviceWorkers:'block'});
- if(mode==='live')await context.addInitScript(({token,key,origin})=>{if(location.origin===origin&&window.top===window)localStorage.setItem(key,token)},{token,key:storageKey,origin:new URL(base).origin});
+ await context.addInitScript(({token,key,origin})=>{if(location.origin===origin&&window.top===window)localStorage.setItem(key,token)},{token,key:storageKey,origin:new URL(base).origin});
  const page=await context.newPage();
- const observed=new Set();let legacy=false,mutation=false,loginAttempts=0;
- const wait=mode==='candidate'?480000:55000;
+ const observed=new Set();let legacy=false,mutation=false;
+ const wait=55000;
  const exact=(r,name)=>new URL(r.url()).origin===new URL(endpoint).origin&&new URL(r.url()).pathname===new URL(endpoint+'/api/'+name).pathname;
- const authenticated=async r=>validToken(((await r.request().allHeaders()).authorization||'').replace(/^Bearer /i,''));
- const loginProof=mode==='candidate'?Promise.race([
-  page.waitForResponse(r=>exact(r,'auth')&&r.request().method()==='POST',{timeout:wait}),
-  page.waitForEvent('requestfailed',{predicate:r=>r.method()==='POST'&&r.url().startsWith(endpoint+'/api/auth?'),timeout:wait})
-   .then(()=>{throw Error('PRODUCTION_LOGIN_NETWORK_FAILURE');})
- ]).catch(e=>{throw Error(e?.message==='PRODUCTION_LOGIN_NETWORK_FAILURE'?e.message:'PRODUCTION_LOGIN_NOT_COMPLETED');}):null;
- loginProof?.catch(()=>{});
+ const authenticated=async r=>((await r.request().allHeaders()).authorization||'').replace(/^Bearer /i,'')===token;
  const sessionResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'session')&&await authenticated(r),{timeout:wait});
  const dataResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'data')&&await authenticated(r),{timeout:wait});
  const responseProof=Promise.all([sessionResponse,dataResponse]);responseProof.catch(()=>{});
@@ -74,12 +81,8 @@ try{
   if(u.hostname==='ooclsrndeygojtofuyte.supabase.co'){
    if(!u.pathname.startsWith('/functions/v1/'+slug+'/')){legacy=true;return route.abort();}
    if(!['GET','OPTIONS','HEAD'].includes(req.method())){
-    // A human logs in normally in an isolated browser; never permit business writes.
+    // Login occurred through the direct API; no browser writes are permitted.
     if(u.pathname===new URL(endpoint+'/api/site-events').pathname&&req.method()==='POST')return route.abort();
-    if(mode==='candidate'&&u.pathname===new URL(endpoint+'/api/auth').pathname&&req.method()==='POST'&&loginAttempts<1){
-     let action;try{action=req.postDataJSON()?.action;}catch{}
-     if(action==='login'){loginAttempts++;return route.continue();}
-    }
     mutation=true;return route.abort();
    }
    return route.continue();
@@ -99,22 +102,7 @@ try{
    for(const name of ['session','data'])if(u.pathname.endsWith('/api/'+name))observed.add(name);
   }
  });
- await page.goto(base+'?'+(mode==='candidate'?'page=login&':'')+'production-smoke='+Date.now(),{waitUntil:'domcontentloaded',timeout:30000});
- if(mode==='candidate'){
-  console.log('PRODUCTION_SMOKE_OWNER_LOGIN_REQUIRED_ON_MAC');
-  await page.bringToFront();
-  const login=await loginProof;
-  if(login.status()!==200){
-   const code=login.status()===401?'PRODUCTION_LOGIN_REJECTED_401':login.status()===429?'PRODUCTION_LOGIN_RATE_LIMIT_429':'PRODUCTION_LOGIN_HTTP_'+login.status();
-   // Only one real login attempt per run; preserve the server message, never log credentials.
-   console.error(code);
-   throw Error(code);
-  }
-  const receipt=await login.json();
-  assert.ok(validToken(receipt.sessionToken),'NORMAL_LOGIN_DID_NOT_ISSUE_SESSION');
-  mkdirSync(stateDir,{mode:0o700});
-  writeFileSync(statePath,receipt.sessionToken,{mode:0o600,flag:'wx'});
- }
+ await page.goto(base+'?production-smoke='+Date.now(),{waitUntil:'domcontentloaded',timeout:30000});
  await page.locator('.cabinet-sidebar').first().waitFor({state:'visible',timeout:45000});
  await page.waitForFunction(()=>!!document.querySelector('.cabinet-sidebar')&&!!document.querySelector('.cabinet-panel, .cabinet-app'),null,{timeout:45000});
  const [session,data]=await responseProof;
