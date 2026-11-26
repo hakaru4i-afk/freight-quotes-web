@@ -178,7 +178,8 @@ async function publishApi(source, work, resultPath, lock, releaseVersion, token)
       writeFileSync(resultPath, JSON.stringify(proof) + '\n', {mode: 0o600});
       console.log('Verified the published API identity and private-route access control.');
       return;
-    } catch {
+    } catch (error) {
+      if (String(error?.message||'').startsWith('AUTH_CONTINUITY_')) throw error;
       if (attempt === 17) throw Error('HEALTH_CHECK_FAILED_PAGES_NOT_UPDATED');
       await new Promise(done => setTimeout(done, 6000));
     }
