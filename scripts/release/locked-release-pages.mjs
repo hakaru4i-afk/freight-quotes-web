@@ -42,12 +42,20 @@ export function bindPages(files, lock, proof, baseline, currentStatus, publicati
   const apiPattern = /https:\/\/ooclsrndeygojtofuyte\.supabase\.co\/functions\/v1\/freight-api(?:-release-[a-f0-9]{32})?(?=["'])/g;
   requireCheck([...app.matchAll(apiPattern)].length === 1, 'FRONTEND_API_BINDING_AMBIGUOUS');
   requireCheck([...app.matchAll(/currentVersion:"[a-f0-9]{20}"/g)].length === 1, 'FRONTEND_BUILD_MARKER_AMBIGUOUS');
+  const regionImport = /(\.\/staging-api-region\.mjs\?v=)[a-f0-9]{12,40}/g;
+  const regionModule = files.get('staging-api-region.mjs');
+  const regionTransport = files.get('staging-transport-20261111.js');
+  requireCheck(regionModule && regionTransport && [...app.matchAll(regionImport)].length === 1, 'PRODUCTION_REGION_MODULE_MISSING');
   set('app.js', app.replace(apiPattern, legacyApi.replace(/freight-api$/, () => proof.apiFunction))
+    .replace(regionImport, (_, prefix) => prefix + digest(regionModule).slice(0, 20))
     .replace(/currentVersion:"[a-f0-9]{20}"/g, 'currentVersion:"' + build + '"'));
   let html = read('index.html');
   requireCheck([...html.matchAll(/app\.js\?v=[a-f0-9]{12,40}/g)].length === 1, 'FRONTEND_CACHE_KEY_AMBIGUOUS');
   html = html.replace(/app\.js\?v=[a-f0-9]{12,40}/g, 'app.js?v=' + build)
     .replace(/(portal-release-status-[^"?'\s]+\.js\?v=)[^"'&\s]+/g, '$1' + encodeURIComponent(releaseVersion));
+  const transportCache = /(staging-transport-20261111\.js\?v=)[a-f0-9]{12,40}/g;
+  requireCheck([...html.matchAll(transportCache)].length === 1, 'PRODUCTION_TRANSPORT_CACHE_KEY_AMBIGUOUS');
+  html = html.replace(transportCache, (_, prefix) => prefix + digest(regionTransport).slice(0, 20));
   const feedback = files.get('test/' + feedbackScript);
   requireCheck(feedback && files.has(feedbackScript), 'REVIEWED_OWNER_FEEDBACK_SCRIPT_MISSING');
   const feedbackCache = /(portal-feedback-center-20261107\.js\?v=)[a-f0-9]{12,40}/g;

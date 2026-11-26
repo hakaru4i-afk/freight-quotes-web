@@ -10,6 +10,10 @@ on:
       - .github/workflows/locked-backend-regression.yml
       - .github/workflows/isolated-qa-oidc-browser.yml
       - tests/locked-release.test.mjs
+      - tests/production-versioned-api-routing.test.mjs
+      - scripts/release/production-*.mjs
+      - staging-api-region.mjs
+      - staging-transport-20261111.js
   workflow_dispatch:
     inputs:
       publish:
@@ -51,7 +55,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/locked-release.test.mjs
+      - run: node --test tests/locked-release.test.mjs tests/production-versioned-api-routing.test.mjs
 
   mac-route-smoke:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk' && github.actor == 'hakaru4i-afk'
@@ -89,7 +93,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      - run: node --test tests/locked-release.test.mjs
+      - run: node --test tests/locked-release.test.mjs tests/production-versioned-api-routing.test.mjs
 
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
@@ -162,6 +166,13 @@ jobs:
           persist-credentials: false
       - name: Check that the immutable frontend includes the staging runtime
         run: node scripts/release/locked-release-pages.mjs preflight candidate-web
+      - name: Reject incompatible production API path before backup
+        run: node scripts/release/production-route-contract.mjs candidate-web source
+      - name: Require protected dedicated smoke session before backup
+        if: inputs.publish
+        env:
+          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
+        run: node -e 'if(!/^[a-f0-9]{64}$/i.test(process.env.PRODUCTION_SMOKE_SESSION||""))throw Error("DEDICATED_PRODUCTION_SMOKE_SESSION_REQUIRED")'
       - name: Require explicit approval and verified reports for the locked pair
         id: evidence
         if: inputs.publish
@@ -278,6 +289,16 @@ jobs:
           RELEASE_BACKUP: ${{ needs.backup.outputs.receipt }}
           RELEASE_ROLLBACK_PATH: .rollback-pages
         run: node scripts/release/locked-release-pages.mjs package candidate-web .release-pages "$RUNNER_TEMP/api-proof.json"
+      - name: Verify exact packaged production route and cache keys
+        run: node scripts/release/production-route-contract.mjs .release-pages package
+      - name: Install pinned browser for production smoke
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install chromium
+      - name: Open authenticated candidate cabinet before switching live Pages
+        env:
+          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
+        run: node scripts/release/production-authenticated-browser.mjs candidate .release-pages
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
@@ -286,8 +307,11 @@ jobs:
       - name: Confirm public site serves the release and Owner button
         id: readback
         env:
+          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: node scripts/release/locked-release-pages.mjs verify . .release-pages
+        run: |
+          node scripts/release/locked-release-pages.mjs verify . .release-pages
+          node scripts/release/production-authenticated-browser.mjs live .release-pages
       - name: Restore previous Pages if publication readback fails
         id: rollback
         if: failure() && steps.deployment.outcome == 'success' && steps.readback.outcome == 'failure'

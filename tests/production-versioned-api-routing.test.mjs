@@ -25,3 +25,14 @@ test('does not modify staging, malformed slug or unrelated origin',async()=>{
  const {window,calls}=fixture();await window.fetch(url);assert.equal(calls.length,1);assert.equal(calls[0][0],url);
  }
 });
+
+import {stagingRegionalUrl} from '../staging-api-region.mjs';
+test('the actual imported app module accepts legacy and immutable API before fetch',()=>{
+ for(const name of ['freight-api',slug])for(const endpoint of ['session','data','auth','chats']){
+  const u=new URL(stagingRegionalUrl(host+name+'/api/'+endpoint+'?x=1'));
+  assert.equal(u.pathname,'/functions/v1/'+name+'/api/'+endpoint);assert.equal(u.searchParams.get('x'),'1');assert.equal(u.searchParams.get('forceFunctionRegion'),'eu-central-1');
+ }
+});
+test('imported module fails closed for wrong project, credentials and malformed slug',()=>{
+ for(const url of ['https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/api/session',host+'freight-api-release-bad/api/session','https://example.com/functions/v1/'+slug+'/api/session','https://user@ooclsrndeygojtofuyte.supabase.co/functions/v1/'+slug+'/api/session',host+slug+'/health'])assert.throws(()=>stagingRegionalUrl(url),/PRODUCTION_API_SCOPE_REQUIRED/);
+});
