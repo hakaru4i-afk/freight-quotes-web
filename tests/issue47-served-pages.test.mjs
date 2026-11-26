@@ -1,3 +1,4 @@
+import {readLock, qaRun, qaProject} from '../scripts/release/locked-release.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -48,7 +49,7 @@ test('GitHub Pages serves an attested staging baseline independently of the unpu
  assert.ok(local('index.html').toString().includes('app.js?v='+manifest.servedAppBlobSha.slice(0,12)),'Candidate cache key stale');
 });
 test('Staging API health and anonymous denial are independently verified',async()=>{
- const api='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api';
+ const api='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
  const health=await fetch(api+'/health',{signal:AbortSignal.timeout(15000)});
  assert.equal(health.status,200);
  const result=await health.json();
@@ -56,7 +57,9 @@ test('Staging API health and anonymous denial are independently verified',async(
  assert.equal(result.environment,'staging');
  const served=JSON.parse((await get('build-info.json')).toString('utf8'));
  assert.equal(served.releaseVersion,served.primaryBusinessVersion,'Deployed staging business version metadata inconsistent');
- assert.equal(result.build,served.primaryBusinessVersion,'Staging API business release does not match currently published primary version');
+ assert.equal(result.qaRun,qaRun);
+ assert.equal(result.backendSha,readLock().backendSha,'Isolated API differs from locked Backend');
+ assert.match(result.deploymentId,new RegExp('^'+qaProject+'_[a-f0-9-]{36}_[1-9][0-9]*$'));
  // task2.backendBuild is Task 2 historical artifact metadata, not API /health.build.
  assert.equal(apiManifest.task2.backendFunction,'freight-api');
  assert.equal(apiManifest.task2.backendVersion,apiManifest.task2.lastObservedBackendVersion);
