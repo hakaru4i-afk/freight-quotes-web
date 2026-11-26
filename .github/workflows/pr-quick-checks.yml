@@ -72,7 +72,7 @@ jobs:
           echo "CRM_QA_SCOPE=$scope"
       - name: Validate release and evidence contracts before acceptance
         if: steps.scope.outputs.scope == 'full'
-        run: node --test --test-concurrency=2 tests/locked-release.test.mjs tests/locked-staging.test.mjs
+        run: node --test --test-concurrency=2 tests/locked-release.test.mjs tests/locked-staging.test.mjs tests/isolated-qa-acceptance.test.mjs tests/locked-qa-package.test.mjs
       - name: Fast deterministic regressions (no network, browser or deployment)
         if: steps.scope.outputs.scope == 'full'
         run: |
