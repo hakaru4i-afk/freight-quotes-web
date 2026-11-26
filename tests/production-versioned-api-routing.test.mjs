@@ -58,7 +58,7 @@ test('release smoke uses normal API credentials in the protected deployment step
  assert.match(browser,/authenticated===false/);
  assert.match(browser,/action:'logout'/);
  assert.match(wf,/Revoke the run-scoped login and delete local session state\n        if: always\(\)/);
- assert.ok(wf.indexOf('production-authenticated-browser.mjs candidate')<wf.indexOf('uses: actions/deploy-pages@v4'));
+ assert.ok(wf.indexOf('production-authenticated-browser.mjs candidate')<wf.indexOf('uses: actions/deploy-pages@v5'));
  assert.match(wf,/production-authenticated-browser.mjs live/);
  assert.match(wf,/artifact_name: rollback-pages/);
  assert.doesNotMatch(wf,/upload-pages-artifact[\s\S]{0,150}freight-prod-smoke/);
