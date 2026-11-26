@@ -1,0 +1,5 @@
+# IM-2026-000007 · Блок 6 · Блокировки подготовки ставок
+RU: Владелец → Главная → Управление процессами → Блокировки ставок. Отображаются активные подготовки текущего раунда без победителя. Выберите строку, укажите причину от 10 до 1000 символов и подтвердите снятие. При конфликте обновите список. Сервер сверяет права, раунд, редакцию и отсутствие победителя; записывает автора и основание в аудит. Снятие не назначает победителя и не изменяет ставку.
+EN: Owner → Home → Process control → Quote preparation locks. Active current-round preparations without a winner are listed. Provide a reason of 10–1000 characters and confirm. Refresh on conflict. Server validates Owner identity, round, revision and absence of winner, and audits actor and rationale. Resolution neither selects a winner nor edits a quote.
+ZH: 所有者 → 主页 → 流程管理 → 报价准备锁定。仅显示当前轮次尚未选定中标人的活动准备。输入10–1000字符原因并确认解除。冲突时刷新。服务端检查所有者身份、轮次、版本及无中标人条件，并记录操作者及原因。解除不选择中标人，也不修改报价。
+Backend #145/#146. No production publication or final acceptance confirmed.

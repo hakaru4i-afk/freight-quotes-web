@@ -68,3 +68,18 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
   assert.match(src,/scope==="partners"\?p.scope!=="partners"/);
  });
 }
+
+for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
+ test('Draft unlock form is active, revision and server gated: '+path,()=>{
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const CONTROL_ID='),end=src.indexOf('function paintControl()',start);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const {draftControlRow,controlWords}=runInNewContext(src.slice(start,end)+';({draftControlRow,controlWords})',{esc});
+  for(const lang of ['ru','en','zh']){
+   const task={id:'draft',order_code:'QA',notification_id:'notification',carrier_login:'<img onerror=alert(1)>',status:'active',revision:4,unlockAllowed:true};
+   const html=draftControlRow(task,controlWords[lang]);assert.match(html,/data-lw-control-draft/);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);assert.match(html,/name="confirmed" type="checkbox" required/);
+   for(const patch of [{unlockAllowed:false},{revision:null},{revision:-1},{revision:'bad'}])assert.doesNotMatch(draftControlRow({...task,...patch},controlWords[lang]),/<form/);
+   assert.equal(draftControlRow({...task,status:'resolved'},controlWords[lang]),'');
+  }
+  assert.match(src,/action:"resolve",order:task.order_code,notificationId:task.notification_id,expectedRevision:revision,reason,confirmed:true/);
+ });
+}
