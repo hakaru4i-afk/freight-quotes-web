@@ -138,7 +138,16 @@ jobs:
           LOCKED_FRONTEND_SHA: ${{ needs.lock.outputs.frontend }}
           QA_SERVED_EXPECTED_DIR: .
         run: |
+          set -euo pipefail
           test "$(git rev-parse HEAD)" = "$LOCKED_FRONTEND_SHA"
+          test "$(git -C .. rev-parse HEAD)" = "$GITHUB_SHA"
+          git diff --quiet HEAD --
+          test -f release-lock.json
+          test ! -L release-lock.json
+          # Candidate tests read this file from their working directory. Use the
+          # authoritative dispatch lock as temporary test configuration.
+          trap 'git restore --source=HEAD --worktree -- release-lock.json' EXIT
+          git -C .. show "$GITHUB_SHA:release-lock.json" > release-lock.json
           rm -rf reports
           mkdir -p reports
           node --test --test-concurrency=3 --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/full-regression.xml tests/*.test.mjs
