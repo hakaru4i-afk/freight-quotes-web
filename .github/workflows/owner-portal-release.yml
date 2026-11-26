@@ -66,11 +66,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - run: node --test tests/locked-release.test.mjs tests/production-versioned-api-routing.test.mjs
 
@@ -89,11 +90,12 @@ jobs:
             printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
           for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - run: node --test tests/locked-release.test.mjs tests/production-versioned-api-routing.test.mjs
 
@@ -119,12 +121,13 @@ jobs:
             printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
           for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Resolve exact source and next version from the served receipt
         id: lock
@@ -145,7 +148,7 @@ jobs:
           echo "backend=$(jq -er '.backendSha' <<< "$plan")" >> "$GITHUB_OUTPUT"
           echo "version=$(jq -er '.releaseVersion' <<< "$plan")" >> "$GITHUB_OUTPUT"
           echo "$plan" >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           ref: ${{ steps.lock.outputs.frontend }}
           path: candidate-web
@@ -176,11 +179,12 @@ jobs:
     outputs:
       receipt: ${{ steps.backup.outputs.receipt }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Capture, encrypt and verify recovery on the protected backup workflow
         id: backup
@@ -211,15 +215,15 @@ jobs:
             printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
           fi
           for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: candidate-web
           ref: ${{ needs.verify.outputs.frontend }}
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate-backend
@@ -227,8 +231,9 @@ jobs:
           token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Check protected smoke credentials before publishing any API
         env:
