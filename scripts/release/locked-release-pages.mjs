@@ -1,13 +1,12 @@
 import {execFileSync} from 'node:child_process';
-import {lstatSync, mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {digest, nextVersion, project, readCurrentSite, readLock, requireCheck, sha40, sha64, site, targetFunction, validId} from './locked-release.mjs';
 import {readSchemaVersion} from './locked-release-api.mjs';
+import {readFiles, captureRoot, rootInventory, stagingFiles} from './locked-pages-assets.mjs';
+export {readFiles} from './locked-pages-assets.mjs';
 
-const staticFile = /\.(?:js|mjs|css|html|json|svg|webp|png|jpe?g|gif|ico|wasm|gz|woff2?|ttf|otf|txt)$/i;
-const publicDirs = new Set(['test', 'global-view', 'processes', 'process-history']);
-const exclude = /(?:^|\/)(?:node_modules|reports|scripts|tests|docs|config|release|verified)(?:\/|$)|(?:^|[-_.])(?:secret|private-key|credential|session-token|password|database-url)(?:[-_.]|$)/i;
 const legacyApi = 'https://' + project + '.supabase.co/functions/v1/freight-api';
 const manifestName = 'production-release-manifest.json';
 const feedbackScript = 'portal-feedback-center-20261107.js';
@@ -18,22 +17,6 @@ export function validateApiProof(lock, proof, releaseVersion) {
     proof.apiFunction === targetFunction(lock) && proof.releaseVersion === releaseVersion &&
     Number.isSafeInteger(proof.apiVersion) && proof.apiVersion > 0 && sha64.test(proof.apiBundleSha256),
   'PAGES_REQUIRES_VERIFIED_EXACT_API');
-}
-
-export function readFiles(source) {
-  const indexed = execFileSync('git', ['-C', source, 'ls-files', '-z'], {encoding: 'utf8'}).split('\0').filter(Boolean);
-  const files = new Map();
-  for (const name of indexed) {
-    const parts = name.split('/');
-    if (name !== '.nojekyll' && (parts.some(part => part.startsWith('.')) || exclude.test(name) || !staticFile.test(name) ||
-        (parts.length > 1 && !publicDirs.has(parts[0])) || ['release-lock.json', manifestName].includes(name))) continue;
-    const path = join(source, name);
-    requireCheck(lstatSync(path).isFile(), 'UNSAFE_PAGES_SOURCE');
-    files.set(name, readFileSync(path));
-  }
-  for (const name of ['app.js', 'index.html', 'build-info.json', 'release-status.json', 'site-status.json',
-    'test/app.js', 'test/index.html', 'test/staging-manifest.json']) requireCheck(files.has(name), 'MISSING_LOCKED_PAGES_ASSET:' + name);
-  return files;
 }
 
 export function publicationRecord(proof, actions, evidence, backup) {
@@ -154,7 +137,6 @@ async function verifyServed(expected) {
       await new Promise(done => setTimeout(done, 6000));
     }
   }
-  const {captureRoot} = await import('./locked-staging.mjs');
   const root = await captureRoot();
   requireCheck(JSON.stringify(JSON.parse(root.get(manifestName))) === JSON.stringify(expected), 'PUBLISHED_PAIR_CHANGED_DURING_READBACK');
 }
@@ -169,7 +151,6 @@ function writePages(out, files) {
 }
 
 async function verifyRollback(out) {
-  const {captureRoot} = await import('./locked-staging.mjs');
   const root = await captureRoot();
   const expected = readFileSync(join(out, manifestName));
   requireCheck(root.get(manifestName).equals(expected), 'ROLLBACK_ROOT_NOT_RESTORED');
@@ -207,11 +188,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         const actions = {runId: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, workflowSha: process.env.GITHUB_SHA};
         const publication = publicationRecord(proof, actions, JSON.parse(process.env.RELEASE_EVIDENCE), JSON.parse(process.env.RELEASE_BACKUP));
         const manifest = bindPages(files, lock, proof, baseline, status, publication);
-        const {rootInventory} = await import('./locked-staging.mjs');
         rootInventory(manifest);
         writePages(out, files);
       } else if (mode === 'snapshot') {
-        const {captureRoot, stagingFiles} = await import('./locked-staging.mjs');
         writePages(out, [...await captureRoot(), ...stagingFiles(source), ['.nojekyll', Buffer.alloc(0)]]);
       } else {
         requireCheck(mode === 'preflight' || mode === 'offline', 'INVALID_PAGES_RELEASE_COMMAND');
