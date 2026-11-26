@@ -244,10 +244,10 @@ jobs:
         env:
           BACKEND_SHA: ${{ needs.verify.outputs.backend }}
         run: git -C candidate-backend merge-base --is-ancestor "$BACKEND_SHA" refs/remotes/origin/main
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
       - name: Preserve the verified production root and current candidate staging
         run: node scripts/release/locked-release-pages.mjs snapshot candidate-web .rollback-pages
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           name: rollback-pages
           path: .rollback-pages
@@ -280,10 +280,10 @@ jobs:
           SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}
           SMOKE_OWNER_PASSWORD: ${{ secrets.SMOKE_OWNER_PASSWORD }}
         run: node scripts/release/production-authenticated-browser.mjs candidate .release-pages
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .release-pages
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deployment
       - name: Confirm public site serves the release and Owner button
         id: readback
@@ -295,7 +295,7 @@ jobs:
       - name: Restore previous Pages if publication readback fails
         id: rollback
         if: failure() && steps.deployment.outcome == 'success' && steps.readback.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         with:
           artifact_name: rollback-pages
       - name: Verify the restored production root and API health
