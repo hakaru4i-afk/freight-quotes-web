@@ -33,6 +33,21 @@ on:
       e2e_run_id:
         description: Optional exact authenticated 37-scenario run override; otherwise resolve automatically
         type: string
+      release_runner:
+        description: "Release verification and headless publication runner"
+        type: choice
+        options:
+          - github
+          - mac
+        default: github
+      backup_runner:
+        description: "Protected backup execution: auto prefers Mac, github selects hosted explicitly"
+        type: choice
+        options:
+          - auto
+          - mac
+          - github
+        default: auto
       task_id:
         description: Associated CRM task
         type: string
@@ -64,11 +79,15 @@ jobs:
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     steps:
-      - name: Check hosted release toolchain
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          for tool in gh jq git tar; do command -v "$tool" >/dev/null; done
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          fi
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -79,7 +98,7 @@ jobs:
 
   verify:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-latest"]') }}
     timeout-minutes: 12
     permissions:
       actions: read
@@ -90,11 +109,15 @@ jobs:
       version: ${{ steps.lock.outputs.version }}
       evidence: ${{ steps.evidence.outputs.receipt }}
     steps:
-      - name: Check hosted release toolchain
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          for tool in gh jq git tar; do command -v "$tool" >/dev/null; done
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          fi
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -162,12 +185,13 @@ jobs:
         id: backup
         env:
           BACKEND_RELEASE_TOKEN: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          RELEASE_BACKUP_RUNNER: ${{ inputs.backup_runner || 'auto' }}
         run: node scripts/release/locked-release.mjs backup
 
   deploy-pages:
     needs: [verify, backup]
     if: inputs.publish && needs.verify.result == 'success' && needs.backup.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.release_runner == 'mac' && fromJSON('["self-hosted","macOS","ARM64","freight-mac-qa"]') || fromJSON('["ubuntu-latest"]') }}
     timeout-minutes: 32
     environment:
       name: github-pages
@@ -177,11 +201,15 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - name: Check hosted release toolchain
+      - name: Check release toolchain
         shell: bash
         run: |
           set -euo pipefail
-          for tool in gh jq git tar; do command -v "$tool" >/dev/null; done
+          if [[ "$(uname -s)" == Darwin ]]; then
+            export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+            printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          fi
+          for tool in gh jq git tar; do command -v "$tool" >/dev/null || { echo "::error::RELEASE_TOOL_MISSING: $tool"; exit 1; }; done
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -236,7 +264,11 @@ jobs:
       - name: Install pinned browser for production smoke
         run: |
           npm install --no-save --ignore-scripts playwright@1.56.1
-          npx playwright install --with-deps chromium
+          if [[ "$RUNNER_OS" == Linux ]]; then
+            npx playwright install --with-deps chromium
+          else
+            npx playwright install chromium
+          fi
       - name: Verify direct Owner API login and headless candidate cabinet before switching live Pages
         env:
           SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}

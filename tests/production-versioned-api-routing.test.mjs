@@ -45,6 +45,7 @@ test('release smoke uses normal API credentials in the protected deployment step
  assert.match(wf,/name: github-pages/);
  assert.ok(wf.indexOf('validateSmokeCredentials(process.env')<wf.indexOf('locked-release-api.mjs publish'));
  assert.match(wf,/playwright install --with-deps chromium/);
+ assert.match(wf,/playwright install chromium/);
  assert.match(wf,/SMOKE_OWNER_LOGIN: \$\{\{ secrets\.SMOKE_OWNER_LOGIN \|\| secrets\.SMOKE_OWNER_EMAIL \}\}/);
  assert.match(wf,/SMOKE_OWNER_PASSWORD: \$\{\{ secrets\.SMOKE_OWNER_PASSWORD \}\}/);
  assert.match(browser,/headless:true/);

@@ -268,9 +268,9 @@ export function currentBackupRun(runs, parent, workflowSha) {
 export function waitingForBackupGuest(result) {
   const jobs = result?.jobs;
   if (!Array.isArray(jobs) || result.total_count !== jobs.length) return false;
-  return jobs.some(job => ['protected-readiness', 'capture-and-readback'].includes(job.name) &&
+  return jobs.some(job => ['offline-safety', 'synthetic-restore-arm64', 'protected-readiness', 'capture-and-readback'].includes(job.name) &&
     job.status === 'queued' && !job.runner_name) &&
-    !jobs.some(job => job.name === 'capture-and-readback' && (job.runner_name || job.status === 'completed'));
+    !jobs.some(job => job.status === 'in_progress' || (job.name === 'capture-and-readback' && (job.runner_name || job.status === 'completed')));
 }
 
 function backupGithubJson(phase, path, token, opts = {}) {
@@ -354,6 +354,12 @@ export async function waitForBackupRunIdentity(readRun, {id, parent, workflowSha
   throw Error('BACKUP_DISPATCH_IDENTITY_CHANGED');
 }
 
+export function backupRunnerPolicy(value) {
+  const mode = value || 'auto';
+  requireCheck(['auto','mac','github'].includes(mode), 'INVALID_BACKUP_RUNNER_POLICY');
+  return {initial: mode === 'github' ? 'github' : 'mac', fallback: mode === 'auto'};
+}
+
 async function dispatchBackup(env) {
   const parent = env.GITHUB_RUN_ID;
   const token = env.BACKEND_RELEASE_TOKEN;
@@ -381,12 +387,13 @@ async function dispatchBackup(env) {
   const getJobs = run => backupGithubJson('JOB_INVENTORY', runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
   const previous = currentBackupRun(backupGithubJson('RUN_INVENTORY', repository + '/actions/workflows/' + backupWorkflow +
     '/runs?event=workflow_dispatch&branch=main&per_page=100', token)?.workflow_runs, parent, trustedWorkflowSha);
-  let runner = previous ? null : 'mac';
+  const policy = backupRunnerPolicy(env.RELEASE_BACKUP_RUNNER);
+  let runner = previous ? null : policy.initial;
   let id = previous?.id ?? launch(runner);
   let waitingSince = null;
   let run = await getRun(id);
   while (run.status !== 'completed' && Date.now() < deadline) {
-    if (runner === 'mac') {
+    if (policy.fallback && runner === 'mac') {
       const unattended = waitingForBackupGuest(getJobs(run));
       waitingSince = unattended ? waitingSince ?? Date.now() : null;
       if (waitingSince !== null && Date.now() - waitingSince >= 120000 && waitingForBackupGuest(getJobs(run))) {

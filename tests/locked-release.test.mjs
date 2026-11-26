@@ -5,7 +5,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {delimiter, join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupRunnerPolicy, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage, verifyAuthContinuity} from '../scripts/release/locked-release-api.mjs';
@@ -63,6 +63,15 @@ test('hosted fallback is allowed only while the dedicated guest is unassigned an
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 2, jobs: [readiness, {name: 'capture-and-readback', status: 'in_progress', runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, name: 'capture-and-readback'}]}), true);
+  for(const name of ['offline-safety','synthetic-restore-arm64']) {
+    assert.equal(waitingForBackupGuest({total_count:1,jobs:[{...readiness,name}]}),true);
+    assert.equal(waitingForBackupGuest({total_count:1,jobs:[{...readiness,name,status:'in_progress',runner_name:'local'}]}),false);
+  }
+  assert.equal(waitingForBackupGuest({total_count:2,jobs:[readiness,{...readiness,name:'offline-safety',status:'in_progress'}]}),false);
+  assert.deepEqual(backupRunnerPolicy(),{initial:'mac',fallback:true});
+  assert.deepEqual(backupRunnerPolicy('github'),{initial:'github',fallback:false});
+  assert.deepEqual(backupRunnerPolicy('mac'),{initial:'mac',fallback:false});
+  assert.throws(()=>backupRunnerPolicy('unknown'),/INVALID_BACKUP_RUNNER_POLICY/);
 });
 
 test('backup preflight reports only a fixed phase and safe GitHub status', t => {
@@ -320,10 +329,14 @@ test('Pages bind the new route while retaining staging and the release history',
 test('the deployment graph puts confirmed backup and API health before publishing Pages', () => {
   const workflow = readFileSync('.github/workflows/owner-portal-release.yml', 'utf8');
   const legacy = readFileSync('.github/workflows/controlled-sh59-publish.yml', 'utf8');
-  assert.doesNotMatch(workflow, /runs-on: \[self-hosted/);
+  assert.match(workflow, /release_runner:\n[\s\S]*?default: github/);
+  assert.match(workflow, /backup_runner:\n[\s\S]*?default: auto/);
+  assert.equal((workflow.match(/inputs\.release_runner == 'mac'/g)||[]).length,2);
+  assert.match(workflow, /fromJSON\('\["self-hosted","macOS","ARM64","freight-mac-qa"\]'\)/);
+  assert.match(workflow, /RELEASE_BACKUP_RUNNER: /);
   assert.match(workflow, /mac-route-smoke:[\s\S]*?runs-on: ubuntu-24\.04-arm/);
-  assert.match(workflow, /verify:\n    if: [^\n]+\n    runs-on: ubuntu-latest/);
-  assert.match(workflow, /deploy-pages:\n    needs: \[verify, backup\]\n    if: [^\n]+\n    runs-on: ubuntu-latest/);
+  assert.match(workflow, /verify:\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
+  assert.match(workflow, /deploy-pages:\n    needs: \[verify, backup\]\n    if: [^\n]+\n    runs-on: [^\n]+inputs\.release_runner/);
   // The coordinator must not occupy the only Mac runner while awaiting backend offline-safety.
   const backupJob = workflow.split('\n  backup:\n')[1].split('\n  deploy-pages:')[0];
   assert.match(backupJob, /runs-on: ubuntu-latest/);
