@@ -450,3 +450,36 @@ test('backup dispatch waits for exact identity without creating another run', as
   }
   await assert.rejects(waitForBackupRunIdentity(() => {throw Error('BACKUP_GITHUB_RUN_READBACK_HTTP_403');}, target, async () => {assert.fail('must not retry forbidden access');}), /HTTP_403/);
 });
+
+
+test('direct production snapshot CLI exits successfully and preserves exact root and candidate staging', t => {
+  const dir = mkdtempSync(join(tmpdir(), 'locked-pages-cli-'));
+  t.after(() => rmSync(dir, {recursive: true, force: true}));
+  const candidate = join(dir, 'candidate'), out = join(dir, 'rollback');
+  mkdirSync(candidate); mkdirSync(join(candidate, 'test'));
+  const root = {'index.html':'<script src="./app.js"></script>', 'app.js':'live application', 'style.css':'live style',
+    'build-info.json':'{}','site-status.json':'{}'};
+  const manifest = {environment:'production',publicationState:'PUBLISHED',
+    assets:Object.fromEntries(Object.entries(root).map(([name,value])=>[name,digest(Buffer.from(value))]))};
+  root['production-release-manifest.json'] = JSON.stringify(manifest);
+  const files = {...root,'app.js':'candidate root must not replace live root','release-status.json':'{}',
+    'test/index.html':'candidate staging html','test/app.js':'candidate staging script','test/style.css':'candidate staging style',
+    'test/staging-manifest.json':'{}','test/staging-transport-20261111.js':'LOCKED_STAGING_ISOLATION_V1'};
+  for (const [name,value] of Object.entries(files)) writeFileSync(join(candidate,name),value);
+  const git = (...args) => {
+    const result = spawnSync('git',['-C',candidate,...args],{encoding:'utf8'});
+    assert.equal(result.status,0,result.stderr);
+    return result.stdout.trim();
+  };
+  git('init','-q'); git('add','.'); git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-qm','fixture');
+  writeFileSync(join(dir,'release-lock.json'),JSON.stringify({frontendSha:git('rev-parse','HEAD'),backendSha:lock.backendSha}));
+  const preload = 'globalThis.fetch = async url => { const root = ' + JSON.stringify(root) +
+    '; const name = new URL(url).pathname.split("/freight-quotes-web/")[1]; return Object.hasOwn(root,name) ? new Response(root[name]) : new Response("",{status:404}); };';
+  const script = fileURLToPath(new URL('../scripts/release/locked-release-pages.mjs',import.meta.url));
+  const result = spawnSync(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(preload),script,'snapshot',candidate,out],
+    {cwd:dir,encoding:'utf8',timeout:15000});
+  assert.equal(result.status,0,result.stderr || String(result.error));
+  assert.equal(readFileSync(join(out,'app.js'),'utf8'),root['app.js']);
+  assert.equal(readFileSync(join(out,'production-release-manifest.json'),'utf8'),root['production-release-manifest.json']);
+  assert.equal(readFileSync(join(out,'test/app.js'),'utf8'),files['test/app.js']);
+});
