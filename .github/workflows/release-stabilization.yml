@@ -13,12 +13,13 @@ jobs:
     outputs:
       frontend: ${{ steps.lock.outputs.frontend }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - id: lock
         run: |
@@ -34,17 +35,18 @@ jobs:
       run:
         working-directory: candidate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: candidate
           ref: ${{ needs.lock.outputs.frontend }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify current asset digests, cache keys and update banner build ID
         run: node scripts/stamp-staging-rc.mjs --check
@@ -52,7 +54,7 @@ jobs:
         run: node scripts/build-process-maps.mjs --check
       - name: Cache npm and Playwright Chromium
         id: browser-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -82,7 +84,7 @@ jobs:
         run: |
           node scripts/release/locked-evidence-run.mjs frontend candidate \
             candidate/reports/task12-robot-matrix.json candidate/reports/run-receipt.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: locked-frontend-regression-attempt-${{ github.run_attempt }}
           path: |
@@ -99,17 +101,18 @@ jobs:
       run:
         working-directory: candidate
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: candidate
           ref: ${{ needs.lock.outputs.frontend }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify the separately served production root against its own manifest
         working-directory: .
@@ -125,7 +128,7 @@ jobs:
           NODE
       - name: Cache npm and Playwright Chromium
         id: browser-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.npm
@@ -151,7 +154,7 @@ jobs:
           rm -rf reports
           mkdir -p reports
           node --test --test-concurrency=3 --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/full-regression.xml tests/*.test.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         if: always()
         with:
           name: complete-frontend-regression

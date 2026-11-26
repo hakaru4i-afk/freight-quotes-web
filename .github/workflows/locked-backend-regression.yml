@@ -26,11 +26,12 @@ jobs:
           test "$(id -un)" = freight-qa
           test "$HOME" = /Users/freight-qa
           echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - id: lock
         working-directory: .
@@ -47,7 +48,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -95,11 +96,12 @@ jobs:
           test "$(id -un)" = freight-qa
           test "$HOME" = /Users/freight-qa
           echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - id: lock
         working-directory: .
@@ -116,7 +118,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -164,11 +166,12 @@ jobs:
           test "$(id -un)" = freight-qa
           test "$HOME" = /Users/freight-qa
           echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - id: lock
         working-directory: .
@@ -185,7 +188,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -212,8 +215,9 @@ jobs:
           echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
           test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
           echo MAC_SOURCE_TREE_COMPLETE
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Start isolated Colima Docker engine for synthetic PostgreSQL only
         shell: bash
@@ -260,7 +264,7 @@ jobs:
           node scripts/release/locked-evidence-run.mjs backend candidate "$output/evidence/schema-transition-rehearsal.json" \
             "$output/evidence/run-receipt.json"
           echo "LOCKED_EVIDENCE_DIR=$output/evidence" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: locked-backend-regression-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_EVIDENCE_DIR }}/*.json
