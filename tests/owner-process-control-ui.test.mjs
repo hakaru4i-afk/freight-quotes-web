@@ -38,3 +38,18 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
   assert.match(src,/action:"owner_transition_document_task"/);assert.match(src,/expectedRevision:task.revision/);
  });
 }
+
+for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
+ test('Owner risk controls are server-gated and history is escaped: '+path,()=>{
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const CONTROL_ID='),end=src.indexOf('function paintControl()',start);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const {riskControlForm,controlWords}=runInNewContext(src.slice(start,end)+';({riskControlForm,controlWords})',{esc});
+  for(const lang of ['ru','en','zh']){
+   const task={id:'task',revision:'r1',riskRecordAllowed:true,riskHistory:[{decision:'accept',revision:'r0',actor:'owner',reason:'<img onerror=alert(1)>',createdAt:'2026-11-26'}]};
+   const html=riskControlForm(task,controlWords[lang]);assert.match(html,/value="accept"/);assert.match(html,/value="withdraw"/);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img/);assert.match(html,/name="confirmed" type="checkbox" required/);
+   assert.doesNotMatch(riskControlForm({...task,riskRecordAllowed:false},controlWords[lang]),/<form/);
+   assert.doesNotMatch(riskControlForm({...task,riskHistory:[]},controlWords[lang]),/value="withdraw"/);
+  }
+  assert.match(src,/action:"owner_record_process_risk"/);assert.match(src,/expectedRevision:task.revision,requestId,decision,reason,confirmed:true/);
+ });
+}
