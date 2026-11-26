@@ -253,7 +253,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: isolated-qa-redacted-evidence
+          name: isolated-qa-redacted-evidence-attempt-${{ github.run_attempt }}
           path: |
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json

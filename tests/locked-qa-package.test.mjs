@@ -117,5 +117,6 @@ test('browser and backend evidence reuse staged package bytes without compiling 
   const staging = read('locked-qa-staging.yml');
   assert.match(staging, /locked-staging-attestation-attempt-/);
   assert.match(staging, /path: locked-staging-attestation\.json/);
+  assert.match(e2e, /name: isolated-qa-redacted-evidence-attempt-\$\{\{ github\.run_attempt \}\}/);
   assert.doesNotMatch(staging, /path:.*\/api/);
 });
