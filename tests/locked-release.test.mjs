@@ -275,9 +275,12 @@ test('schema is observed from production migration history', async () => {
 
 test('Pages bind the new route while retaining staging and the release history', () => {
   const files = new Map(Object.entries({
-    'app.js': 'const x="https://'+project+'.supabase.co/functions/v1/freight-api"; const info={currentVersion:"'+'0'.repeat(20)+'"};',
+    'app.js': 'import {stagingRegionalUrl} from "./staging-api-region.mjs?v='+'0'.repeat(20)+'"; const x="https://'+project+'.supabase.co/functions/v1/freight-api"; const info={currentVersion:"'+'0'.repeat(20)+'"};',
+    'staging-api-region.mjs': 'reviewed region module',
+    'staging-transport-20261111.js': 'reviewed wrapper',
     'index.html': '<script src="./app.js?v='+'0'.repeat(20)+'"></script>' +
-      '<script src="./portal-feedback-center-20261107.js?v='+'0'.repeat(12)+'"></script>',
+      '<script src="./portal-feedback-center-20261107.js?v='+'0'.repeat(12)+'"></script>' +
+      '<script src="./staging-transport-20261111.js?v='+'0'.repeat(20)+'"></script>',
     'portal-feedback-center-20261107.js': 'previous Owner center',
     'test/portal-feedback-center-20261107.js': 'attested Owner center',
     'build-info.json': '{}',
@@ -306,6 +309,8 @@ test('Pages bind the new route while retaining staging and the release history',
   assert.equal(files.get('portal-feedback-center-20261107.js').toString(), 'attested Owner center');
   assert.ok(files.get('index.html').includes(digest(files.get('portal-feedback-center-20261107.js')).slice(0, 12)));
   assert.ok(files.get('app.js').includes(apiFunction));
+  assert.ok(files.get('app.js').includes(digest(files.get('staging-api-region.mjs')).slice(0,20)));
+  assert.ok(files.get('index.html').includes(digest(files.get('staging-transport-20261111.js')).slice(0,20)));
   assert.equal(files.get('test/app.js').toString(), 'staging script');
   assert.deepEqual(JSON.parse(files.get('site-status.json')).releases[1], history.releases[0]);
   assert.throws(() => assertPreservesEntrypoints(files.get('index.html').toString(), '<script src="./current.js"></script>'),
