@@ -6,8 +6,8 @@ import {join} from 'node:path';
 import test from 'node:test';
 import {qaInputSha256, verifyQaPackageProof} from '../scripts/release/locked-qa-package.mjs';
 import {stagingArtifact, verifyExpectedDeployment, verifyStagingProof, verifyStagingRun} from '../scripts/release/locked-qa-provenance.mjs';
-import {verifyDownloadedHashes} from '../scripts/release/locked-qa-runtime.mjs';
-import {digest, qaFunction, qaProject, web} from '../scripts/release/locked-release.mjs';
+import {attestQaApi, verifyDownloadedHashes} from '../scripts/release/locked-qa-runtime.mjs';
+import {digest, qaFunction, qaProject, qaRun, web} from '../scripts/release/locked-release.mjs';
 
 const lock = {frontendSha: 'a'.repeat(40), backendSha: 'b'.repeat(40)};
 const input = 'c'.repeat(64);
@@ -86,6 +86,25 @@ test('independent provider readback rejects cache drift, missing files and mode 
   await assert.rejects(verifyDownloadedHashes(form, proof, metadata), /SERVED_QA_API_SOURCE_MISMATCH/);
   form.append('source', new Blob([entry]), 'index.ts');
   await assert.rejects(verifyDownloadedHashes(form, proof, metadata), /UNEXPECTED_QA_API_DOWNLOAD_PART/);
+});
+
+test('staging can reuse verified package bytes after redeploy while E2E requires the exact deployment', async () => {
+  const renewed = {...deployment, version: deployment.version + 1, bundle: 'f'.repeat(64)};
+  const metadata = {slug: qaFunction, status: 'ACTIVE', verify_jwt: false, id: renewed.id, version: renewed.version,
+    ezbr_sha256: renewed.bundle};
+  const read = async url => {
+    if (url.endsWith('/health')) return Response.json({ok: true, projectRef: qaProject, environment: 'staging', qaRun,
+      backendSha: lock.backendSha, deploymentId: [qaProject, renewed.id, renewed.version].join('_')});
+    if (url.endsWith('/body')) {
+      const form = new FormData();
+      form.append('source', new Blob([entry]), 'index.ts');
+      form.append('source', new Blob([config]), 'deno.json');
+      return new Response(form);
+    }
+    return Response.json(metadata);
+  };
+  assert.deepEqual(await attestQaApi(lock, proof, 'synthetic', undefined, read), renewed);
+  await assert.rejects(attestQaApi(lock, proof, 'synthetic', deployment, read), /SERVED_QA_API_DEPLOYMENT_DRIFT/);
 });
 
 test('browser and backend evidence reuse staged package bytes without compiling or deploying them', () => {

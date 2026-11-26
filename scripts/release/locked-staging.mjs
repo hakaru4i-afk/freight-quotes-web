@@ -119,13 +119,14 @@ async function prepareStagingApi(source,api,receipt,lock,env) {
  let proof, deployment;
  if(prior) {
   try {
-   deployment=await attestQaApi(lock,prior.package,env.SUPABASE_ACCESS_TOKEN,prior.deployment);
+   // Staging can attest a new provider identity if it independently serves the exact same package.
+   deployment=await attestQaApi(lock,prior.package,env.SUPABASE_ACCESS_TOKEN);
    await verifyAnonymousDenial();
    proof=prior.package;
    console.log('ISOLATED_QA_ARTIFACT_REUSED',deployment.version,deployment.bundle);
   } catch(error) {
-   if(error.message!=='SERVED_QA_API_DEPLOYMENT_DRIFT') throw error;
-   console.log('ISOLATED_QA_PREVIOUS_DEPLOYMENT_CHANGED');
+   if(error.message!=='SERVED_QA_API_SOURCE_MISMATCH') throw error;
+   console.log('ISOLATED_QA_PREVIOUS_PACKAGE_CHANGED');
   }
  }
  if(!proof) {

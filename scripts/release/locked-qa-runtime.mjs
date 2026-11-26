@@ -61,25 +61,25 @@ export async function verifyServedAssets(frontend, read = request) {
   return Object.fromEntries(entries);
 }
 
-export async function attestQaApi(lock, proof, token, expectedDeployment) {
+export async function attestQaApi(lock, proof, token, expectedDeployment, read = request) {
   requireCheck(token, 'QA_PROVIDER_READBACK_CREDENTIAL_REQUIRED');
   const management = 'https://api.supabase.com/v1/projects/' + qaProject + '/functions/' + qaFunction;
   const headers = {Authorization: 'Bearer ' + token};
-  const metadata = await (await request(management, headers)).json();
+  const metadata = await (await read(management, headers)).json();
   requireCheck(metadata.slug === qaFunction && metadata.status === 'ACTIVE' && metadata.verify_jwt === false &&
     Number.isSafeInteger(metadata.version) && metadata.version > 0 && sha64.test(metadata.ezbr_sha256) &&
     typeof metadata.id === 'string' && /^[a-f0-9-]{36}$/.test(metadata.id), 'SERVED_QA_API_PROVIDER_PROOF_MISSING');
   if (expectedDeployment) verifyExpectedDeployment(expectedDeployment, metadata);
   const [deployed, health] = await Promise.all([
-    request(management + '/body', {...headers, Accept: 'multipart/form-data'}),
-    request('https://' + qaProject + '.supabase.co/functions/v1/' + qaFunction + '/health').then(response => response.json())
+    read(management + '/body', {...headers, Accept: 'multipart/form-data'}),
+    read('https://' + qaProject + '.supabase.co/functions/v1/' + qaFunction + '/health').then(response => response.json())
   ]);
   requireCheck(deployed.headers.get('content-type')?.startsWith('multipart/form-data;'), 'SERVED_QA_API_DOWNLOAD_INVALID');
   await verifyDownloadedHashes(await deployed.formData(), proof, metadata);
   requireCheck(health.ok === true && health.projectRef === qaProject && health.environment === 'staging' &&
     health.qaRun === qaRun && health.backendSha === lock.backendSha &&
     health.deploymentId === [qaProject, metadata.id, metadata.version].join('_'), 'SERVED_QA_API_RUNTIME_MISMATCH');
-  const confirm = await (await request(management, headers)).json();
+  const confirm = await (await read(management, headers)).json();
   requireCheck(confirm.id === metadata.id && confirm.version === metadata.version &&
     confirm.ezbr_sha256 === metadata.ezbr_sha256, 'SERVED_QA_API_CHANGED_DURING_READBACK');
   return {project: qaProject, function: qaFunction, id: metadata.id, version: metadata.version, bundle: metadata.ezbr_sha256};
