@@ -1,0 +1,61 @@
+name: SH73 emergency API routing only
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        type: choice
+        required: true
+        options: ['SH73 ROUTING ONLY']
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && inputs.confirmation == 'SH73 ROUTING ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node --test tests/production-versioned-api-routing.test.mjs
+      - uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          run-id: 45818064696
+          github-token: ${{ github.token }}
+          path: archive
+      - name: Preserve exact published release and prepare narrow hotfix
+        run: |
+          mkdir .hotfix-before .hotfix-pages
+          tar --no-same-owner --no-same-permissions -xf archive/artifact.tar -C .hotfix-before
+          cp -a .hotfix-before/. .hotfix-pages/
+          node scripts/release/sh73-api-region-hotfix.mjs .hotfix-pages prepare
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          name: sh73-before
+          path: .hotfix-before
+          retention-days: 7
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: .hotfix-pages
+      - uses: actions/deploy-pages@v4
+        id: deploy
+      - name: Verify exact published hotfix and unchanged API identity
+        id: verify
+        run: node scripts/release/sh73-api-region-hotfix.mjs .hotfix-pages verify
+      - name: Restore exact preceding Pages on failed readback
+        if: failure() && steps.deploy.outcome == 'success' && steps.verify.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: sh73-before
