@@ -3,6 +3,7 @@
 const SELECTOR=".lw-ved-chat-mount";
 const escape=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const trim=v=>String(v||"").trim();
+const winnerName=x=>trim(x?.carrier_name)||trim(x?.carrier_login)||"Не указан сервером";
 const labelTime=value=>{
  if(!value)return "";
  const d=new Date(value);
@@ -25,11 +26,12 @@ function notify(root,message,error=false){
 function renderShell(root,order){
  root.innerHTML='<div class="lw-ved-chat-layout">'+
    '<div class="lw-ved-chat-header"><div><strong>Чат перевозки · '+escape(order)+'</strong>'+
-   '<small>Общая переписка с владельцем и выбранным перевозчиком</small></div>'+
+   '<small data-vc-winner>Победитель: загружаем…</small><small>Общий чат: Владелец · ВЭД · Победитель</small></div>'+
    '<button type="button" data-vc-refresh>Обновить</button></div>'+
    '<div class="lw-ved-chat-thread" role="log" aria-label="История сообщений" aria-live="polite">'+
    '<p class="lw-ved-chat-placeholder">Загружаем переписку…</p></div>'+
-   '<form data-vc-send class="lw-ved-chat-composer">'+
+   '<p data-vc-access role="status" hidden style="padding:10px 17px;margin:0;color:#18344f"></p>'+
+   '<form data-vc-send class="lw-ved-chat-composer" hidden>'+
    '<label>Ваше сообщение<textarea name="body" rows="3" maxlength="6000" placeholder="Напишите сообщение…" aria-label="Сообщение"></textarea></label>'+
    '<label class="lw-ved-chat-files">Прикрепить файлы (до 5)<input name="files" type="file" multiple></label>'+
    '<div class="lw-ved-chat-send-row"><span data-vc-status role="status" aria-live="polite"></span>'+
@@ -53,7 +55,9 @@ function renderMessages(root,payload){
  if(current!==html){thread.innerHTML=html;if(wasNearBottom||!root.dataset.chatRendered)thread.scrollTop=thread.scrollHeight;}
  root.dataset.chatRendered="yes";
  const form=root.querySelector("[data-vc-send]");
- const canWrite=Boolean(payload.writable);
+ const canWrite=payload.writable===true;
+ const winner=root.querySelector("[data-vc-winner]");if(winner)winner.textContent="Победитель: "+winnerName(payload.chat);
+ const access=root.querySelector("[data-vc-access]");if(access){access.hidden=canWrite;access.textContent=canWrite?"":(payload.reason||"Переписка доступна только для просмотра");}
  if(form){form.hidden=!canWrite;form.querySelector("button[type=submit]").disabled=!canWrite;}
  if(!canWrite){
   const msg=payload.reason||"Переписка доступна только для просмотра";
@@ -62,9 +66,10 @@ function renderMessages(root,payload){
 }
 async function resolve(order){
  const list=await api("/api/chats");
- const chat=(list.chats||[]).find(x=>x.order_code===order&&x.source_kind==="request");
- if(chat)return chat.id;
+ const chat=(list.chats||[]).filter(x=>x.order_code===order&&x.source_kind==="request").sort((a,b)=>Number(b.writable===true)-Number(a.writable===true))[0];
+ if(chat&&chat.writable!==false)return chat.id;
  const candidate=(list.awards||[]).find(x=>x.order_code===order&&x.source_kind==="request");
+ if(!candidate&&chat)return chat.id;
  if(!candidate)throw Error("Общий чат недоступен: перевозка ещё не принята в работу либо доступ ограничен.");
  const opened=await api("/api/chats",{action:"open",kind:"request",sourceId:candidate.source_id,awardId:candidate.award_id});
  if(!opened.id)throw Error("Сервер не подтвердил открытие чата.");
@@ -81,7 +86,7 @@ async function refresh(root,{first=false}={}){
    if(result.lastSeq>0&&result.writable!==undefined){
     api("/api/chats",{action:"read",id:root.dataset.vedChatId,seq:result.lastSeq}).catch(()=>{});
    }
-   if(first)notify(root,"");
+   if(first&&result.writable===true)notify(root,"");
   }
  }catch(e){if(root.isConnected)notify(root,"Не удалось обновить чат: "+e.message,true);}
  finally{if(root.isConnected)root.dataset.vedLoading="false";}
@@ -149,14 +154,16 @@ async function loadPageChats(page,prefer=""){
   const dedupe=new Map();
   for(const x of [...(result.chats||[]),...(result.awards||[])]){
    if(x.source_kind!=="request"||!x.order_code)continue;
-   if(!dedupe.has(x.order_code))dedupe.set(x.order_code,x);
+   const old=dedupe.get(x.order_code);
+   if(!old||old.writable===false&&x.writable!==false)dedupe.set(x.order_code,x);
   }
   const options=[...dedupe.values()];
-  const chosen=prefer||page.querySelector(SELECTOR)?.dataset.lwVedChatOrder||options[0]?.order_code||"";
+  const desired=prefer||page.querySelector(SELECTOR)?.dataset.lwVedChatOrder||"";
+  const chosen=dedupe.has(desired)?desired:(options[0]?.order_code||"");
   if(list)list.innerHTML=options.length?options.map(x=>
    '<button type="button" data-vc-order="'+escape(x.order_code)+'"'+
    (x.order_code===chosen?' class="is-current"':"")+'>'+
-   '<span>'+escape(x.order_code)+'</span>'+(Number(x.unread)>0?'<b>'+Number(x.unread)+'</b>':"")+
+   '<span>'+escape(x.order_code)+' · '+escape(winnerName(x))+'</span>'+(Number(x.unread)>0?'<b>'+Number(x.unread)+'</b>':"")+
    '</button>').join(""):'<p>Пока нет перевозок с доступной перепиской.</p>';
   const mount=page.querySelector(SELECTOR);
   if(mount&&chosen&&dedupe.has(chosen)&&mount.dataset.lwVedChatOrder!==chosen){
@@ -200,7 +207,7 @@ document.addEventListener("submit",async ev=>{
  const form=ev.target.closest(SELECTOR+" [data-vc-send]");
  if(!form)return;ev.preventDefault();
  const root=form.closest(SELECTOR);
- if(!root?.dataset.vedChatId){notify(root,"Переписка ещё не открыта. Повторите через кнопку «Обновить».",true);return;}
+ if(!root?.dataset.vedChatId||form.hidden){notify(root,"Переписка ещё не открыта. Повторите через кнопку «Обновить».",true);return;}
  const body=trim(form.querySelector('[name="body"]').value),files=Array.from(form.querySelector('[name="files"]').files||[]);
  if(!body&&!files.length){notify(root,"Напишите сообщение или прикрепите файл.",true);return;}
  if(files.length>5||files.some(f=>f.size>10*1024*1024)||files.reduce((n,f)=>n+f.size,0)>20*1024*1024){
@@ -216,7 +223,7 @@ document.addEventListener("submit",async ev=>{
   await refresh(root);
   window.dispatchEvent(new Event("lw-tasks-changed"));
  }catch(e){notify(root,"Не отправлено: "+e.message,true);}
- finally{button.disabled=false;button.textContent="Отправить";}
+ finally{button.disabled=form.hidden;button.textContent="Отправить";}
 });
 document.addEventListener("click",e=>{
  const button=e.target.closest(SELECTOR+" [data-vc-refresh]");
