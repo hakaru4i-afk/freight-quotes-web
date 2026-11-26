@@ -53,3 +53,18 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
   assert.match(src,/action:"owner_record_process_risk"/);assert.match(src,/expectedRevision:task.revision,requestId,decision,reason,confirmed:true/);
  });
 }
+
+for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
+ test('Partner control keeps actual roles separate and links only native workflows: '+path,()=>{
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const CONTROL_ID='),end=src.indexOf('function paintControl()',start);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const {partnerControlRow,controlWords}=runInNewContext(src.slice(start,end)+';({partnerControlRow,controlWords})',{esc});
+  for(const lang of ['ru','en','zh']){
+   const task={source:'partners',role:'supplier',route:'supplier-orders',order_code:'QA',description:'<img onerror=alert(1)>',status:'completed',revision:0,nativeActions:['reopen']};
+   const html=partnerControlRow(task,controlWords[lang]);assert.match(html,/href="#supplier-orders"/);assert.match(html,/&lt;img/);assert.doesNotMatch(html,/<img|<form/);assert.match(html,/: 0/);
+   assert.match(partnerControlRow({...task,role:'designer',route:'content-tasks',blocker:'WAITING_SUPPLIER'},controlWords[lang]),/href="#content-tasks"/);
+   assert.equal(partnerControlRow({...task,route:'javascript:alert(1)'},controlWords[lang]),'');assert.equal(partnerControlRow({...task,role:'content'},controlWords[lang]),'');
+  }
+  assert.match(src,/scope==="partners"\?p.scope!=="partners"/);
+ });
+}
