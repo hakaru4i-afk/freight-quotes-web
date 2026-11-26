@@ -1,0 +1,99 @@
+name: SH73 emergency restore previous working Pages
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        type: choice
+        required: true
+        options: ['RESTORE PREVIOUS PAGES ONLY']
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  restore:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && inputs.confirmation == 'RESTORE PREVIOUS PAGES ONLY'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    environment: github-pages
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v4
+        with:
+          name: rollback-pages
+          run-id: 45818064696
+          github-token: ${{ github.token }}
+          path: previous
+      - name: Verify exact previous root and current SH73 identity
+        run: |
+          mkdir .restore-pages
+          tar --no-same-owner --no-same-permissions -xf previous/artifact.tar -C .restore-pages
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {rootInventory} from './scripts/release/locked-pages-assets.mjs';
+          import {digest} from './scripts/release/locked-release.mjs';
+          const base='https://hakaru4i-afk.github.io/freight-quotes-web/';
+          const r=await fetch(base+'production-release-manifest.json?restore='+Date.now(),{cache:'no-store',redirect:'error',signal:AbortSignal.timeout(20000)});
+          assert.ok(r.ok);const current=await r.json();
+          assert.equal(current.businessVersion,'SH-01.30.73 v');
+          assert.equal(current.apiFunction,'freight-api-release-83fd49986d138ab80c0ae7b96b970b64');
+          const old=JSON.parse(readFileSync('.restore-pages/production-release-manifest.json'));
+          assert.equal(old.businessVersion,current.previous.businessVersion);
+          assert.equal(old.frontendSourceCommit,current.previous.frontendSourceCommit);
+          assert.equal(old.backendSourceCommit,current.previous.backendSourceCommit);
+          assert.equal(old.apiFunction??'freight-api','freight-api');
+          for(const [p,h] of rootInventory(old))assert.equal(digest(readFileSync('.restore-pages/'+p)),h,p);
+          assert.ok(readFileSync('.restore-pages/test/index.html').length);
+          assert.ok(readFileSync('.restore-pages/test/app.js').length);
+          const health=await fetch('https://ooclsrndeygojtofuyte.supabase.co/functions/v1/freight-api/health',{signal:AbortSignal.timeout(20000)});
+          assert.ok(health.ok);const runtime=await health.json();
+          assert.equal(runtime.projectRef,'ooclsrndeygojtofuyte');
+          assert.equal(runtime.environment,'production');
+          assert.equal(runtime.ok,true);
+          if(old.apiDeploymentId)assert.equal(runtime.deploymentId,old.apiDeploymentId);
+          console.log('VERIFIED_PREVIOUS_PAGES_AND_API');
+          JS
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        id: upload
+        with:
+          name: sh73-restore-attempt-${{ github.run_attempt }}
+          path: .restore-pages
+          retention-days: 7
+      - name: Check exact uploaded artifact readiness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+          ARTIFACT_NAME: sh73-restore-attempt-${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 24); do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?per_page=100" | jq -e --arg id "$ARTIFACT_ID" --arg name "$ARTIFACT_NAME" '.artifacts | any((.id|tostring)==$id and .name==$name and .expired==false)' >/dev/null; then
+              sleep 15
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
+      - uses: actions/deploy-pages@v4
+        with:
+          artifact_name: sh73-restore-attempt-${{ github.run_attempt }}
+      - name: Verify restored public root and API health
+        run: |
+          for attempt in $(seq 1 5); do
+            if node scripts/release/locked-release-pages.mjs verify-rollback . .restore-pages; then
+              exit 0
+            fi
+            sleep 5
+          done
+          exit 1
