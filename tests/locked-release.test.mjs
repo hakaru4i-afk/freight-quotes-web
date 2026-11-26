@@ -5,7 +5,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {delimiter, join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage} from '../scripts/release/locked-release-api.mjs';
@@ -422,4 +422,31 @@ test('backup proof log retries delayed availability and reports transport failur
   assert.equal(log, 'proof');
   assert.deepEqual(pauses, [2000]);
   await assert.rejects(downloadBackupJobLog(123, 'secret', async () => { throw Error('private signed URL secret'); }, async () => {}), {message:'BACKUP_GITHUB_LOG_TRANSPORT_FAILED'});
+});
+
+
+test('backup dispatch waits for exact identity without creating another run', async () => {
+  const run = {id: 51, head_sha: lock.backendSha, display_title: 'Production backup 100',
+    repository: {full_name: backend}, path: '.github/workflows/' + backupWorkflow,
+    head_branch: 'main', event: 'workflow_dispatch', actor: {login: 'hakaru4i-afk'}, status: 'queued'};
+  const target = {id: 51, parent: '100', workflowSha: lock.backendSha};
+  let reads = 0;
+  const delays = [];
+  assert.deepEqual(await waitForBackupRunIdentity(id => {
+    assert.equal(id, 51);
+    reads++;
+    if (reads === 1) throw Error('BACKUP_GITHUB_RUN_READBACK_HTTP_404');
+    if (reads === 2) return {...run, display_title: ''};
+    return run;
+  }, target, async ms => delays.push(ms)), run);
+  assert.equal(reads, 3);
+  assert.deepEqual(delays, [5000, 5000]);
+  for (const bad of [{id: 52}, {head_sha: lock.frontendSha}, {display_title: 'Production backup 99'},
+    {repository: {full_name: web}}, {path: '.github/workflows/other.yml'},
+    {head_branch: 'other'}, {event: 'push'}, {actor: {login: 'other'}}]) {
+    let count = 0;
+    await assert.rejects(waitForBackupRunIdentity(() => {count++; return {...run, ...bad};}, target, async () => {}), /BACKUP_DISPATCH_IDENTITY_CHANGED/);
+    assert.equal(count, 7);
+  }
+  await assert.rejects(waitForBackupRunIdentity(() => {throw Error('BACKUP_GITHUB_RUN_READBACK_HTTP_403');}, target, async () => {assert.fail('must not retry forbidden access');}), /HTTP_403/);
 });
