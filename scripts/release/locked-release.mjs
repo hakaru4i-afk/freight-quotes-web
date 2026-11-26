@@ -334,6 +334,26 @@ export function parseBackupRestoreProof(log) {
   }
 }
 
+// Dispatch returns an ID before all run metadata is necessarily visible.
+// Wait for the exact identity; never act on or accept an unverified run.
+export async function waitForBackupRunIdentity(readRun, {id, parent, workflowSha}, pause = ms => new Promise(done => setTimeout(done, ms))) {
+  requireCheck(validId(id) && validId(parent) && sha40.test(workflowSha), 'BACKUP_DISPATCH_IDENTITY_INPUT_INVALID');
+  for (let attempt = 0; attempt < 7; attempt++) {
+    let run;
+    try {
+      run = readRun(id);
+    } catch (error) {
+      if (!/^BACKUP_GITHUB_RUN_READBACK_HTTP_(404|429|500|502|503|504)$/.test(error.message)) throw error;
+      if (attempt === 6) throw error;
+    }
+    if (run?.id === Number(id) && run.head_sha === workflowSha && run.display_title === 'Production backup ' + parent &&
+      run.repository?.full_name === backend && run.path === '.github/workflows/' + backupWorkflow &&
+      run.head_branch === 'main' && run.event === 'workflow_dispatch' && run.actor?.login === 'hakaru4i-afk') return run;
+    if (attempt < 6) await pause(5000);
+  }
+  throw Error('BACKUP_DISPATCH_IDENTITY_CHANGED');
+}
+
 async function dispatchBackup(env) {
   const parent = env.GITHUB_RUN_ID;
   const token = env.BACKEND_RELEASE_TOKEN;
@@ -354,19 +374,17 @@ async function dispatchBackup(env) {
     console.log('Backup run ' + result.workflow_run_id + ' queued for release ' + parent + ' using ' + runner);
     return result.workflow_run_id;
   };
-  const getRun = id => {
-    const run = backupGithubJson('RUN_READBACK', runPath + id, token);
-    requireCheck(run.head_sha === trustedWorkflowSha && run.display_title === 'Production backup ' + parent,
-      'BACKUP_DISPATCH_IDENTITY_CHANGED');
-    return run;
-  };
+  const getRun = id => waitForBackupRunIdentity(
+    runId => backupGithubJson('RUN_READBACK', runPath + runId, token),
+    {id, parent, workflowSha: trustedWorkflowSha}
+  );
   const getJobs = run => backupGithubJson('JOB_INVENTORY', runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
   const previous = currentBackupRun(backupGithubJson('RUN_INVENTORY', repository + '/actions/workflows/' + backupWorkflow +
     '/runs?event=workflow_dispatch&branch=main&per_page=100', token)?.workflow_runs, parent, trustedWorkflowSha);
   let runner = previous ? null : 'mac';
   let id = previous?.id ?? launch(runner);
   let waitingSince = null;
-  let run = getRun(id);
+  let run = await getRun(id);
   while (run.status !== 'completed' && Date.now() < deadline) {
     if (runner === 'mac') {
       const unattended = waitingForBackupGuest(getJobs(run));
@@ -377,7 +395,7 @@ async function dispatchBackup(env) {
         const cancellationDeadline = Date.now() + 90000;
         do {
           await pause();
-          run = getRun(id);
+          run = await getRun(id);
         } while (run.status !== 'completed' && Date.now() < cancellationDeadline);
         requireCheck(run.status === 'completed' && run.conclusion === 'cancelled', 'MAC_BACKUP_CANCELLATION_UNCONFIRMED');
         runner = 'github';
@@ -385,7 +403,7 @@ async function dispatchBackup(env) {
       }
     }
     await pause();
-    run = getRun(id);
+    run = await getRun(id);
   }
   requireCheck(run.status === 'completed' && run.conclusion === 'success', 'FRESH_AUTOMATIC_BACKUP_FAILED_OR_TIMED_OUT');
   const today = new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Minsk'});
