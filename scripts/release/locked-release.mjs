@@ -89,9 +89,11 @@ export function verifyCandidateEvidence(lock, {pair, regression, security, e2e})
 
 export function gh(args, token, opts = {}) {
   requireCheck(token, 'RELEASE_GITHUB_CREDENTIAL_UNAVAILABLE');
+  const {captureStderr = false, ...commandOptions} = opts;
   return execFileSync('gh', args, {
-    ...opts, env: {...process.env, GH_TOKEN: token}, encoding: 'utf8',
-    stdio: [opts.input ? 'pipe' : 'ignore', 'pipe', 'ignore'], timeout: 60000, maxBuffer: 8 * 1024 * 1024
+    ...commandOptions, env: {...process.env, GH_TOKEN: token}, encoding: 'utf8',
+    stdio: [commandOptions.input ? 'pipe' : 'ignore', 'pipe', captureStderr ? 'pipe' : 'ignore'],
+    timeout: 60000, maxBuffer: 8 * 1024 * 1024
   });
 }
 
@@ -271,6 +273,24 @@ export function waitingForBackupGuest(result) {
     !jobs.some(job => job.name === 'capture-and-readback' && (job.runner_name || job.status === 'completed'));
 }
 
+function backupGithubJson(phase, path, token, opts = {}) {
+  requireCheck(token, 'RELEASE_GITHUB_CREDENTIAL_UNAVAILABLE');
+  const prefix = 'BACKUP_GITHUB_' + phase + '_';
+  let output;
+  try {
+    output = gh(['api', path, ...opts.args ?? []], token, {...opts, captureStderr: true});
+  } catch (error) {
+    // Only the HTTP status is safe to report. The command and response can contain private data.
+    const status = /^gh: [^\r\n]*\(HTTP ([45]\d{2})\)\r?$/m.exec(error.stderr ?? '')?.[1];
+    throw Error(prefix + (status ? 'HTTP_' + status : 'COMMAND_FAILED'));
+  }
+  try {
+    return JSON.parse(output);
+  } catch {
+    throw Error(prefix + 'INVALID_JSON');
+  }
+}
+
 async function dispatchBackup(env) {
   const parent = env.GITHUB_RUN_ID;
   const token = env.BACKEND_RELEASE_TOKEN;
@@ -278,16 +298,16 @@ async function dispatchBackup(env) {
   const repository = 'repos/' + backend;
   const runPath = repository + '/actions/runs/';
   // Match the current main source, including the protected workflow with the automatic input.
-  const trustedWorkflowSha = ghJson(repository + '/git/ref/heads/main', token).object?.sha;
+  const trustedWorkflowSha = backupGithubJson('MAIN_REF', repository + '/git/ref/heads/main', token)?.object?.sha;
   requireCheck(sha40.test(trustedWorkflowSha), 'BACKUP_WORKFLOW_SHA_UNAVAILABLE');
   const pause = () => new Promise(done => setTimeout(done, 15000));
   const deadline = Date.now() + 85 * 60 * 1000;
   const launch = runner => {
     const request = {ref: 'main', return_run_details: true, inputs: {operation: 'capture', release_run: parent, runner}};
-    const result = ghJson(repository + '/actions/workflows/' + backupWorkflow + '/dispatches', token, {
+    const result = backupGithubJson('DISPATCH', repository + '/actions/workflows/' + backupWorkflow + '/dispatches', token, {
       args: ['--method', 'POST', '--input', '-'], input: JSON.stringify(request)
     });
-    requireCheck(validId(result.workflow_run_id), 'BACKUP_DISPATCH_RUN_ID_MISSING');
+    requireCheck(validId(result?.workflow_run_id), 'BACKUP_DISPATCH_RUN_ID_MISSING');
     console.log('Backup run ' + result.workflow_run_id + ' queued for release ' + parent + ' using ' + runner);
     return result.workflow_run_id;
   };
@@ -298,8 +318,8 @@ async function dispatchBackup(env) {
     return run;
   };
   const getJobs = run => ghJson(runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
-  const previous = currentBackupRun(ghJson(repository + '/actions/workflows/' + backupWorkflow +
-    '/runs?event=workflow_dispatch&branch=main&per_page=100', token).workflow_runs, parent, trustedWorkflowSha);
+  const previous = currentBackupRun(backupGithubJson('RUN_INVENTORY', repository + '/actions/workflows/' + backupWorkflow +
+    '/runs?event=workflow_dispatch&branch=main&per_page=100', token)?.workflow_runs, parent, trustedWorkflowSha);
   let runner = previous ? null : 'mac';
   let id = previous?.id ?? launch(runner);
   let waitingSince = null;
