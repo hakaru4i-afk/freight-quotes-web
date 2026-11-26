@@ -60,7 +60,11 @@ try{
  const wait=mode==='candidate'?480000:55000;
  const exact=(r,name)=>new URL(r.url()).origin===new URL(endpoint).origin&&new URL(r.url()).pathname===new URL(endpoint+'/api/'+name).pathname;
  const authenticated=async r=>validToken(((await r.request().allHeaders()).authorization||'').replace(/^Bearer /i,''));
- const loginProof=mode==='candidate'?page.waitForResponse(r=>exact(r,'auth')&&r.status()===200&&r.request().method()==='POST',{timeout:wait}):null;
+ const loginProof=mode==='candidate'?Promise.race([
+  page.waitForResponse(r=>exact(r,'auth')&&r.request().method()==='POST',{timeout:wait}),
+  page.waitForEvent('requestfailed',{predicate:r=>r.method()==='POST'&&r.url().startsWith(endpoint+'/api/auth?'),timeout:wait})
+   .then(()=>{throw Error('PRODUCTION_LOGIN_NETWORK_FAILURE');})
+ ]).catch(e=>{throw Error(e?.message==='PRODUCTION_LOGIN_NETWORK_FAILURE'?e.message:'PRODUCTION_LOGIN_NOT_COMPLETED');}):null;
  loginProof?.catch(()=>{});
  const sessionResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'session')&&await authenticated(r),{timeout:wait});
  const dataResponse=page.waitForResponse(async r=>r.status()===200&&r.request().method()==='GET'&&exact(r,'data')&&await authenticated(r),{timeout:wait});
@@ -72,7 +76,7 @@ try{
    if(!['GET','OPTIONS','HEAD'].includes(req.method())){
     // A human logs in normally in an isolated browser; never permit business writes.
     if(u.pathname===new URL(endpoint+'/api/site-events').pathname&&req.method()==='POST')return route.abort();
-    if(mode==='candidate'&&u.pathname===new URL(endpoint+'/api/auth').pathname&&req.method()==='POST'&&loginAttempts<2){
+    if(mode==='candidate'&&u.pathname===new URL(endpoint+'/api/auth').pathname&&req.method()==='POST'&&loginAttempts<1){
      let action;try{action=req.postDataJSON()?.action;}catch{}
      if(action==='login'){loginAttempts++;return route.continue();}
     }
@@ -100,6 +104,12 @@ try{
   console.log('PRODUCTION_SMOKE_OWNER_LOGIN_REQUIRED_ON_MAC');
   await page.bringToFront();
   const login=await loginProof;
+  if(login.status()!==200){
+   const code=login.status()===401?'PRODUCTION_LOGIN_REJECTED_401':login.status()===429?'PRODUCTION_LOGIN_RATE_LIMIT_429':'PRODUCTION_LOGIN_HTTP_'+login.status();
+   // Only one real login attempt per run; preserve the server message, never log credentials.
+   console.error(code);
+   throw Error(code);
+  }
   const receipt=await login.json();
   assert.ok(validToken(receipt.sessionToken),'NORMAL_LOGIN_DID_NOT_ISSUE_SESSION');
   mkdirSync(stateDir,{mode:0o700});
@@ -120,6 +130,6 @@ try{
  console.log('PRODUCTION_AUTHENTICATED_BROWSER_PASS '+mode+' '+slug);
  await context.close();
 }catch(error){
- const code=/^[A-Z0-9_]+$/.test(error?.message||'')?error.message:'BROWSER_OR_NETWORK_FAILURE';
+ const code=/^[A-Z0-9_]+$/.test(error?.message||'')?error.message:error?.name==='TimeoutError'?'PRODUCTION_CABINET_TIMEOUT':'BROWSER_OR_NETWORK_FAILURE';
  throw Error('PRODUCTION_AUTHENTICATED_BROWSER_FAILED_'+mode+':'+code);
 }finally{await browser.close();}

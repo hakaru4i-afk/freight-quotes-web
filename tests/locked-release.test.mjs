@@ -8,7 +8,7 @@ import {fileURLToPath} from 'node:url';
 import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
-import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage} from '../scripts/release/locked-release-api.mjs';
+import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage, verifyAuthContinuity} from '../scripts/release/locked-release-api.mjs';
 import {assertPreservesEntrypoints, bindPages, publicationRecord, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
 
 const lock = {frontendSha: 'a'.repeat(40), backendSha: 'b'.repeat(40)};
@@ -487,4 +487,26 @@ test('direct production snapshot CLI exits successfully and preserves exact root
   assert.equal(readFileSync(join(out,'app.js'),'utf8'),root['app.js']);
   assert.equal(readFileSync(join(out,'production-release-manifest.json'),'utf8'),root['production-release-manifest.json']);
   assert.equal(readFileSync(join(out,'test/app.js'),'utf8'),files['test/app.js']);
+});
+
+test('release rejects any unreviewed live login, password hash, session or database contract change',()=>{
+ const live=[
+  'var DATA_SCHEMA = "freight";','var DEPLOYMENT_ENV = "production";','var sql = postgres(Deno.env.get("SUPABASE_DB_URL"));',
+  'async function passwordHash2(password,salt){return hash(password,salt)}',
+  'async function createSession2(userId){return session(userId)}','async function lookupSiteUser2(){return user}',
+  'const route_auth = loginHandler;','const route_bids = bidsHandler;',
+  'const route_session = sessionHandler;','const route_shipments = shipmentsHandler;'
+ ].join('\n');
+ assert.doesNotThrow(()=>verifyAuthContinuity(live,live.replace('bidsHandler','updatedBidsHandler')));
+ for(const [from,to] of [['loginHandler','changedLogin'],['hash(password,salt)','newHash(password,salt)'],['session(userId)','newSession(userId)'],['sessionHandler','changedSession'],['"freight"','"other"'],['"production"','"staging"']])
+  assert.throws(()=>verifyAuthContinuity(live,live.replace(from,to)),/AUTH_CONTINUITY_/);
+});
+test('login smoke reports the first actual rejection without retrying passwords',()=>{
+ const source=readFileSync('scripts/release/production-authenticated-browser.mjs','utf8');
+ assert.match(source,/loginAttempts<1/);
+ assert.match(source,/PRODUCTION_LOGIN_REJECTED_401/);
+ assert.match(source,/PRODUCTION_LOGIN_RATE_LIMIT_429/);
+ assert.match(source,/PRODUCTION_LOGIN_NETWORK_FAILURE/);
+ assert.match(source,/PRODUCTION_LOGIN_NOT_COMPLETED/);
+ assert.doesNotMatch(source,/console\.(?:log|error)\([^\n]*(?:postDataJSON|sessionToken|password)\b/);
 });
