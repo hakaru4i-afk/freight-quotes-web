@@ -28,7 +28,7 @@ jobs:
       github.triggering_actor == 'hakaru4i-afk' &&
       ((github.event_name == 'push' && github.event.head_commit.message == 'release(owner): emergency chat UI #217 and #219') ||
       (github.event_name == 'workflow_dispatch' && inputs.confirmation == 'CHAT CSS ONLY'))
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment:
       name: github-pages
@@ -63,7 +63,7 @@ jobs:
       - name: Browser contrast check in all cabinet roles and four chat surfaces
         run: |
           npm install --no-save playwright@1.56.1
-          npx playwright install chromium
+          npx playwright install --with-deps chromium
           node --input-type=module <<'NODE'
           import {chromium} from 'playwright';
           import assert from 'node:assert/strict';
