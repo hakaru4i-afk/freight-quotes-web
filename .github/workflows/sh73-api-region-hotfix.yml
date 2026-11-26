@@ -43,14 +43,37 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
-          name: sh73-before
+          name: sh73-before-attempt-${{ github.run_attempt }}
           path: .hotfix-before
           retention-days: 7
       - uses: actions/upload-pages-artifact@v4
+        id: upload
         with:
+          name: sh73-pages-attempt-${{ github.run_attempt }}
           path: .hotfix-pages
+      - name: Wait for exact Pages artifact to become visible
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.upload.outputs.artifact_id }}
+          ARTIFACT_NAME: sh73-pages-attempt-${{ github.run_attempt }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_ID" =~ ^[0-9]+$ ]]
+          for attempt in $(seq 1 24); do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?per_page=100" |
+               jq -e --arg id "$ARTIFACT_ID" --arg name "$ARTIFACT_NAME" '.artifacts | any((.id|tostring)==$id and .name==$name and .expired==false)' >/dev/null; then
+              echo "Exact uploaded Pages artifact is visible."
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::PAGES_ARTIFACT_NOT_VISIBLE"
+          exit 1
       - uses: actions/deploy-pages@v4
         id: deploy
+        with:
+          artifact_name: sh73-pages-attempt-${{ github.run_attempt }}
       - name: Verify exact published hotfix and unchanged API identity
         id: verify
         run: node scripts/release/sh73-api-region-hotfix.mjs .hotfix-pages verify
@@ -58,4 +81,4 @@ jobs:
         if: failure() && steps.deploy.outcome == 'success' && steps.verify.outcome == 'failure'
         uses: actions/deploy-pages@v4
         with:
-          artifact_name: sh73-before
+          artifact_name: sh73-before-attempt-${{ github.run_attempt }}
