@@ -2,7 +2,7 @@ import {copyFileSync, lstatSync, mkdirSync, readdirSync, readFileSync, writeFile
 import {execFileSync} from 'node:child_process';
 import {join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {project, readLock, requireCheck, sha64, targetFunction} from './locked-release.mjs';
+import {project, readLock, readCurrentSite, requireCheck, sha64, targetFunction} from './locked-release.mjs';
 
 const host = 'https://' + project + '.supabase.co/functions/v1/';
 
@@ -38,6 +38,50 @@ export function prepareApi(source, workspace, lock, releaseVersion) {
     ', backendSha: ' + JSON.stringify(lock.backendSha) + ', apiFunction: API_FUNCTION, legacyContractRelease:');
   writeFileSync(entry, code);
   return slug;
+}
+
+
+/** Existing passwords and sessions must remain valid across the exact deployed pair.
+ * Compare the actual live auth implementation, not a version label or account dump.
+ * An intentional auth migration needs separate review and compatibility evidence.
+ */
+export function verifyAuthContinuity(live, candidate) {
+  function section(code, start, end) {
+    const i=code.indexOf(start), j=code.indexOf(end,i+start.length);
+    requireCheck(i>=0&&j>i&&code.indexOf(start,i+start.length)===-1,'AUTH_CONTINUITY_SOURCE_MARKER_MISSING');
+    return code.slice(i,j);
+  }
+  for(const code of [live,candidate]){
+    requireCheck(/(^|\n)var DATA_SCHEMA = "freight";/.test(code)&&
+      /(^|\n)var DEPLOYMENT_ENV = "production";/.test(code)&&
+      code.includes('Deno.env.get("SUPABASE_DB_URL")'),'AUTH_CONTINUITY_DATABASE_TARGET_MISMATCH');
+  }
+  for(const [name,start,end] of [
+    ['LOGIN','const route_auth =','const route_bids ='],
+    ['HASH_AND_SESSION','async function passwordHash2(','async function lookupSiteUser2('],
+    ['SESSION_ROUTE','const route_session =','const route_shipments =']
+  ]) requireCheck(section(live,start,end)===section(candidate,start,end),'AUTH_CONTINUITY_CHANGED_'+name);
+}
+async function verifyLiveAuthContinuity(management, headers, candidate) {
+  const receipt=await readCurrentSite();
+  const slug=receipt.apiFunction??'freight-api';
+  requireCheck(/^freight-api(?:-release-[a-f0-9]{32})?$/.test(slug),'AUTH_CONTINUITY_LIVE_SLUG_INVALID');
+  const get=async path=>{
+    const response=await fetch(management+path,{headers:{...headers,Accept:path.endsWith('/body')?'multipart/form-data':'application/json'},redirect:'error',signal:AbortSignal.timeout(30000)});
+    requireCheck(response.ok,'AUTH_CONTINUITY_PROVIDER_HTTP_'+response.status);
+    return response;
+  };
+  const before=await (await get(slug)).json();
+  requireCheck(before.slug===slug&&before.status==='ACTIVE'&&before.verify_jwt===false&&sha64.test(before.ezbr_sha256),'AUTH_CONTINUITY_LIVE_IDENTITY_INVALID');
+  const identity=[project,before.id,before.version].join('_');
+  requireCheck(!receipt.apiDeploymentId||receipt.apiDeploymentId===identity,'AUTH_CONTINUITY_LIVE_RECEIPT_MISMATCH');
+  const form=await (await get(slug+'/body')).formData();
+  const entries=[...form.values()].filter(v=>v instanceof File&&/(^|\/)index\.ts$/.test(v.name));
+  requireCheck(entries.length===1,'AUTH_CONTINUITY_LIVE_ENTRY_MISSING');
+  verifyAuthContinuity(await entries[0].text(),candidate);
+  const after=await (await get(slug)).json();
+  requireCheck(after.id===before.id&&after.version===before.version&&after.ezbr_sha256===before.ezbr_sha256,'AUTH_CONTINUITY_LIVE_CHANGED');
+  console.log('PRODUCTION_EXISTING_PASSWORD_AND_SESSION_CONTRACT_PASS');
 }
 
 export function verifyApiEvidence(lock, releaseVersion, metadata, health, deniedStatus) {
@@ -130,6 +174,7 @@ async function publishApi(source, work, resultPath, lock, releaseVersion, token)
         'PRODUCTION_API_CHANGED_DURING_READBACK');
       requireCheck(await readSchemaVersion(token) === schemaVersion, 'PRODUCTION_SCHEMA_CHANGED_DURING_DEPLOY');
       proof.schemaVersion = schemaVersion;
+      await verifyLiveAuthContinuity(management,headers,readFileSync(join(work,'supabase','functions',slug,'index.ts'),'utf8'));
       writeFileSync(resultPath, JSON.stringify(proof) + '\n', {mode: 0o600});
       console.log('Verified the published API identity and private-route access control.');
       return;
