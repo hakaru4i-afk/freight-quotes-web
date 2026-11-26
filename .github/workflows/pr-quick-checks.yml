@@ -95,6 +95,23 @@ jobs:
             tests/lw2-transport-classification.test.mjs \
             tests/owner-offer-status-clarity-sh70.test.mjs \
             tests/owner-offer-scoring-r3.test.mjs
+      - name: Targeted transport dashboard browser regression
+        if: github.event_name == 'pull_request'
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if ! git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -Eq '^(test/)?lw2-staging-20261107\.js$|^tests/lw2-dashboard-browser\.test\.mjs$'; then
+            echo 'Transport dashboard unchanged; targeted browser test not required'
+            exit 0
+          fi
+          browser="$(command -v google-chrome || command -v chromium || command -v chromium-browser)"
+          test -x "$browser" || { echo '::error::HOSTED_CHROMIUM_NOT_AVAILABLE'; exit 1; }
+          "$browser" --version
+          npm install --no-save --ignore-scripts --no-audit --no-fund playwright@1.56.1
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="$browser" node --test tests/lw2-dashboard-browser.test.mjs
       - name: Validate generated CSS bundle and asset ordering
         run: |
           if [ -f scripts/build-css-bundle.mjs ]; then
