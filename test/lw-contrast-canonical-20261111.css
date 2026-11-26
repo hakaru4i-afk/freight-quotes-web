@@ -14,3 +14,54 @@
 
 /* Production: keep multi-digit shipment counters on one line. */
 #root [data-cabinet-role] #task2-root button.t2-list-filter > span{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;flex:0 0 auto!important;min-width:2.25em!important;width:auto!important;max-width:none!important}
+
+/* CHAT-CONTRAST-20261126: light chat surfaces in every cabinet, including
+   the main winner chat, shared VED chat, supplier workspace and Task2.
+   Do not inherit the surrounding dark cabinet's text or text-fill. */
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-messages,.sw-chat-compose,.t2-chat){
+  --pr-text:#18344f;--pr-muted:#435a70;--pr-surface:#fff;--pr-line:#aebfcd;
+  --pr-tint:#e6f5ee;--surface-hint:#435a70;--ink:#18344f;--muted:#435a70;
+  --cab-ink:#18344f;--cab-muted:#435a70;
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;
+  background:#fff!important;color-scheme:light;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-messages,.sw-chat-compose,.t2-chat) :is(h2,h3,h4,p,label:not(.btn),legend,strong,b,span:not(.badge),li,small,time,.hint,.quiet,.muted,.small,.help-text,.form-help,.field-help,.lw-field-help,.form-hint,.field-label):not(:where(button *, .btn *, .badge *, .chat-conversation em, .lw-ved-chat-send-row [data-error="true"])){
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;
+  text-shadow:none!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-messages,.sw-chat-compose,.t2-chat) :is(small,time,.hint,.quiet,.muted,.small,.help-text,.form-help,.field-help,.lw-field-help,.form-hint):not(:where(button *, .btn *, .badge *)){
+  color:#435a70!important;-webkit-text-fill-color:currentColor!important;
+}
+#root [data-cabinet-role] :is(.chat-message,.lw-ved-chat-message,.sw-chat-messages article,.t2-chat p,.chat-pending-files li,.chat-attachment){
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;
+  background:#fff!important;
+}
+#root [data-cabinet-role] :is(.chat-message.own,.lw-ved-chat-message.mine,.sw-chat-messages article.is-mine){
+  background:#e6f5ee!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(input:not([type="file"]):not([type="checkbox"]):not([type="radio"]),textarea,select):not(:disabled){
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;
+  background:#fff!important;border-color:#859eae!important;caret-color:#18344f!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(input,textarea)::placeholder{
+  color:#435a70!important;-webkit-text-fill-color:currentColor!important;opacity:1!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(button.btn,a.btn,label.btn,.chat-conversation,[data-vc-submit],[data-vc-refresh]):not(:disabled):not([aria-disabled="true"]):not(.disabled){
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;
+  background:#edf4f8!important;border-color:#859eae!important;text-shadow:none!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(button.btn,a.btn,label.btn,.chat-conversation,[data-vc-submit],[data-vc-refresh]):not(:disabled):not([aria-disabled="true"]):not(.disabled) :is(span,b,small,strong){
+  color:inherit!important;-webkit-text-fill-color:currentColor!important;
+}
+#root [data-cabinet-role] .chat-workspace .chat-conversation.selected{background:#e6f5ee!important;border-color:#629b87!important;}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(button.btn,a.btn,label.btn,.chat-conversation,[data-vc-submit],[data-vc-refresh]):hover:not(:disabled):not([aria-disabled="true"]):not(.disabled){
+  color:#18344f!important;-webkit-text-fill-color:currentColor!important;background:#dcebf3!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-compose) :is(button.btn,a.btn,label.btn,.chat-conversation,[data-vc-submit],[data-vc-refresh]):focus-visible{
+  outline:2px solid #174f94!important;outline-offset:2px!important;
+}
+#root [data-cabinet-role] :is(.chat-workspace,.lw-ved-chat-layout,.sw-chat-messages,.t2-chat) a:not(.btn){
+  color:#124e80!important;-webkit-text-fill-color:currentColor!important;
+}
+#root [data-cabinet-role] .chat-workspace .chat-conversation em{color:#fff!important;-webkit-text-fill-color:currentColor!important;background:#176a47!important;}
+#root [data-cabinet-role] .lw-ved-chat-layout .lw-ved-chat-send-row [data-error="true"]{color:#ab2c2c!important;-webkit-text-fill-color:currentColor!important;}
