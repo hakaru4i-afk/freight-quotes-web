@@ -5,7 +5,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {delimiter, join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
-import {approval, backend, backupWorkflow, currentBackupRun, digest, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
+import {approval, backend, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage} from '../scripts/release/locked-release-api.mjs';
@@ -388,4 +388,38 @@ test('independent served asset reads start together and preserve exact hashes', 
     const name = new URL(url).pathname.split('/').pop();
     return new Response(name === 'app.js' ? 'wrong bytes' : name);
   }), /SERVED_STAGING_ASSET_MISMATCH:app.js/);
+});
+
+
+test('backup proof log follows signed HTTPS redirect without forwarding credential', async () => {
+  const calls = [];
+  const credential = 'SYNTHETIC_SECRET';
+  const log = '2026-11-26T11:12:42.5908397Z CAPTURE_RESTORE_PROOF {"result":"PASS"}\n';
+  const fetcher = async (url, options) => {
+    calls.push({url, options});
+    return calls.length === 1 ? new Response(null, {status: 302, headers: {location: 'https://logs.example.test/signed'}}) : new Response(log);
+  };
+  assert.equal(await downloadBackupJobLog(123, credential, fetcher), log);
+  assert.equal(calls[0].options.headers.Authorization, 'Bearer ' + credential);
+  assert.equal(calls[1].options.headers, undefined);
+  assert.equal(calls[1].options.redirect, 'error');
+  assert.deepEqual(parseBackupRestoreProof(log), {result: 'PASS'});
+  assert.throws(() => parseBackupRestoreProof(log + log), /BACKUP_RESTORE_PROOF_MISSING/);
+  assert.throws(() => parseBackupRestoreProof('2026-11-26T11:12:42Z CAPTURE_RESTORE_PROOF {broken'), /BACKUP_RESTORE_PROOF_INVALID_JSON/);
+  await assert.rejects(downloadBackupJobLog(123, credential, async () => new Response(null, {status:403}), async () => {}), /BACKUP_GITHUB_LOG_HTTP_403/);
+  await assert.rejects(downloadBackupJobLog(123, credential, async () => new Response(null, {status:302,headers:{location:'http://logs.example.test/'}}), async () => {}), /BACKUP_GITHUB_LOG_REDIRECT_INVALID/);
+});
+
+test('backup proof log retries delayed availability and reports transport failure without secrets', async () => {
+  let calls = 0;
+  const pauses = [];
+  const log = await downloadBackupJobLog(123, 'secret', async () => {
+    calls++;
+    if (calls === 1) return new Response(null, {status:404});
+    if (calls === 2) return new Response(null, {status:302,headers:{location:'https://logs.example.test/signed'}});
+    return new Response('proof');
+  }, async ms => pauses.push(ms));
+  assert.equal(log, 'proof');
+  assert.deepEqual(pauses, [2000]);
+  await assert.rejects(downloadBackupJobLog(123, 'secret', async () => { throw Error('private signed URL secret'); }, async () => {}), {message:'BACKUP_GITHUB_LOG_TRANSPORT_FAILED'});
 });
