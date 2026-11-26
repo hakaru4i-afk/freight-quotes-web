@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {spawnSync} from 'node:child_process';
 import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
-import {join} from 'node:path';
+import {delimiter, join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {fileURLToPath} from 'node:url';
 import {approval, backend, backupWorkflow, currentBackupRun, digest, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
@@ -61,6 +63,49 @@ test('hosted fallback is allowed only while the dedicated guest is unassigned an
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 2, jobs: [readiness, {name: 'capture-and-readback', status: 'in_progress', runner_name: 'backup'}]}), false);
   assert.equal(waitingForBackupGuest({total_count: 1, jobs: [{...readiness, name: 'capture-and-readback'}]}), true);
+});
+
+test('backup preflight reports only a fixed phase and safe GitHub status', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'backup-preflight-'));
+  t.after(() => rmSync(directory, {recursive: true, force: true}));
+  const credential = 'SYNTHETIC_BACKUP_CREDENTIAL';
+  writeFileSync(join(directory, 'release-lock.json'), JSON.stringify(lock));
+  writeFileSync(join(directory, 'gh'), `#!/usr/bin/env node
+const path = process.argv[3];
+const [phase, response] = [
+  ['MAIN_REF', {object: {sha: '${lock.backendSha}'}}, '/git/ref/heads/main'],
+  ['RUN_INVENTORY', {workflow_runs: []}, '/runs?'],
+  ['DISPATCH', {}, '/dispatches']
+].find(([, , part]) => path.includes(part)) ?? [];
+if (!phase) process.exit(2);
+if (phase !== process.env.FIXTURE_BACKUP_PHASE) {
+  console.log(JSON.stringify(response));
+} else {
+  const failure = process.env.FIXTURE_BACKUP_FAILURE;
+  console.log('untrusted response ' + process.env.GH_TOKEN);
+  if (failure === 'INVALID_JSON') process.exit(0);
+  const detail = 'untrusted error ' + process.env.GH_TOKEN;
+  console.error(failure === 'COMMAND_FAILED' ? detail : 'gh: ' + detail + ' (HTTP ' + failure + ')');
+  process.exit(1);
+}
+`, {mode: 0o700});
+  const script = fileURLToPath(new URL('../scripts/release/locked-release.mjs', import.meta.url));
+  const invoke = (phase, failure, token = credential) => spawnSync(process.execPath, [script, 'backup'], {
+    cwd: directory, encoding: 'utf8', env: {...process.env, PATH: directory + delimiter + process.env.PATH,
+      BACKEND_RELEASE_TOKEN: token, GITHUB_RUN_ID: '100', GITHUB_OUTPUT: '',
+      FIXTURE_BACKUP_PHASE: phase, FIXTURE_BACKUP_FAILURE: failure}
+  });
+  for (const [phase, failure, suffix] of [
+    ['MAIN_REF', '401', 'HTTP_401'], ['RUN_INVENTORY', '403', 'HTTP_403'], ['DISPATCH', '422', 'HTTP_422'],
+    ['MAIN_REF', 'INVALID_JSON', 'INVALID_JSON'], ['DISPATCH', 'INVALID_JSON', 'INVALID_JSON'],
+    ['RUN_INVENTORY', 'COMMAND_FAILED', 'COMMAND_FAILED']
+  ]) {
+    const result = invoke(phase, failure);
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr.trim(), 'BACKUP_GITHUB_' + phase + '_' + suffix);
+  }
+  assert.equal(invoke('MAIN_REF', '401', '').stderr.trim(), 'RELEASE_GITHUB_CREDENTIAL_UNAVAILABLE');
 });
 
 test('validates 37 authenticated scenarios for the exact reviewed pair', () => {
