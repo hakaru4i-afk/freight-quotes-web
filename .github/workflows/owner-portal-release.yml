@@ -168,11 +168,14 @@ jobs:
         run: node scripts/release/locked-release-pages.mjs preflight candidate-web
       - name: Reject incompatible production API path before backup
         run: node scripts/release/production-route-contract.mjs candidate-web source
-      - name: Require protected dedicated smoke session before backup
+      - name: Check local interactive Owner browser availability before backup
         if: inputs.publish
-        env:
-          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
-        run: node -e 'if(!/^[a-f0-9]{64}$/i.test(process.env.PRODUCTION_SMOKE_SESSION||""))throw Error("DEDICATED_PRODUCTION_SMOKE_SESSION_REQUIRED")'
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(uname -s)" = Darwin
+          test "$(stat -f %Su /dev/console)" = "$(id -un)" || { echo '::error::OWNER_MAC_CONSOLE_MUST_BE_ACTIVE'; exit 1; }
+          launchctl print "gui/$(id -u)" >/dev/null 2>&1 || { echo '::error::OWNER_MAC_GUI_UNAVAILABLE'; exit 1; }
       - name: Require explicit approval and verified reports for the locked pair
         id: evidence
         if: inputs.publish
@@ -296,9 +299,9 @@ jobs:
           npm install --no-save --ignore-scripts playwright@1.56.1
           npx playwright install chromium
       - name: Open authenticated candidate cabinet before switching live Pages
-        env:
-          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
-        run: node scripts/release/production-authenticated-browser.mjs candidate .release-pages
+        run: |
+          echo "::notice::Sign in once to the candidate browser opened on the Mac; no credentials are entered into GitHub."
+          node scripts/release/production-authenticated-browser.mjs candidate .release-pages
       - uses: actions/upload-pages-artifact@v4
         with:
           path: .release-pages
@@ -307,7 +310,6 @@ jobs:
       - name: Confirm public site serves the release and Owner button
         id: readback
         env:
-          PRODUCTION_SMOKE_SESSION: ${{ secrets.PRODUCTION_SMOKE_SESSION }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           node scripts/release/locked-release-pages.mjs verify . .release-pages
@@ -321,3 +323,12 @@ jobs:
       - name: Verify the restored production root and API health
         if: failure() && steps.rollback.outcome == 'success'
         run: node scripts/release/locked-release-pages.mjs verify-rollback . .rollback-pages
+      - name: Revoke the run-scoped login and delete local session state
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          session_dir="$RUNNER_TEMP/freight-prod-smoke-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          if [ -f "$session_dir/session" ]; then
+            node scripts/release/production-authenticated-browser.mjs cleanup .release-pages
+          fi
