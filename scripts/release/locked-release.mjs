@@ -291,6 +291,49 @@ function backupGithubJson(phase, path, token, opts = {}) {
   }
 }
 
+// Job logs are a short-lived signed HTTPS redirect, not a JSON API response.
+export async function downloadBackupJobLog(jobId, token, fetcher = fetch, pause = ms => new Promise(done => setTimeout(done, ms))) {
+  requireCheck(validId(jobId), 'BACKUP_CAPTURE_JOB_MISSING');
+  requireCheck(token, 'RELEASE_GITHUB_CREDENTIAL_UNAVAILABLE');
+  let code = 'BACKUP_GITHUB_LOG_TRANSPORT_FAILED';
+  for (let attempt = 0; attempt < 4; attempt++) {
+    try {
+      const response = await fetcher('https://api.github.com/repos/' + backend + '/actions/jobs/' + jobId + '/logs', {
+        headers: {Authorization: 'Bearer ' + token, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'},
+        redirect: 'manual', signal: AbortSignal.timeout(30000)
+      });
+      if (response.status !== 302) {
+        code = 'BACKUP_GITHUB_LOG_HTTP_' + response.status;
+        if (![404, 429, 500, 502, 503, 504].includes(response.status)) break;
+      } else {
+        const location = response.headers.get('location');
+        let url;
+        try { url = new URL(location); } catch { throw Error('BACKUP_GITHUB_LOG_REDIRECT_INVALID'); }
+        requireCheck(url.protocol === 'https:' && !url.username && !url.password, 'BACKUP_GITHUB_LOG_REDIRECT_INVALID');
+        // Never forward the repository token to the signed download host.
+        const download = await fetcher(url.href, {redirect: 'error', signal: AbortSignal.timeout(60000)});
+        if (download.ok) return await download.text();
+        code = 'BACKUP_GITHUB_LOG_DOWNLOAD_HTTP_' + download.status;
+      }
+    } catch (error) {
+      if (error.message === 'BACKUP_GITHUB_LOG_REDIRECT_INVALID') throw error;
+      code = 'BACKUP_GITHUB_LOG_TRANSPORT_FAILED';
+    }
+    if (attempt < 3) await pause(2000 * (attempt + 1));
+  }
+  throw Error(code);
+}
+
+export function parseBackupRestoreProof(log) {
+  const markers = log.split('\n').filter(line => /^\d{4}-\d\d-\d\dT\S+ CAPTURE_RESTORE_PROOF \{/.test(line));
+  requireCheck(markers.length === 1, 'BACKUP_RESTORE_PROOF_MISSING');
+  try {
+    return JSON.parse(markers[0].slice(markers[0].indexOf(' CAPTURE_RESTORE_PROOF ') + ' CAPTURE_RESTORE_PROOF '.length));
+  } catch {
+    throw Error('BACKUP_RESTORE_PROOF_INVALID_JSON');
+  }
+}
+
 async function dispatchBackup(env) {
   const parent = env.GITHUB_RUN_ID;
   const token = env.BACKEND_RELEASE_TOKEN;
@@ -312,12 +355,12 @@ async function dispatchBackup(env) {
     return result.workflow_run_id;
   };
   const getRun = id => {
-    const run = ghJson(runPath + id, token);
+    const run = backupGithubJson('RUN_READBACK', runPath + id, token);
     requireCheck(run.head_sha === trustedWorkflowSha && run.display_title === 'Production backup ' + parent,
       'BACKUP_DISPATCH_IDENTITY_CHANGED');
     return run;
   };
-  const getJobs = run => ghJson(runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
+  const getJobs = run => backupGithubJson('JOB_INVENTORY', runPath + run.id + '/attempts/' + run.run_attempt + '/jobs?per_page=100', token);
   const previous = currentBackupRun(backupGithubJson('RUN_INVENTORY', repository + '/actions/workflows/' + backupWorkflow +
     '/runs?event=workflow_dispatch&branch=main&per_page=100', token)?.workflow_runs, parent, trustedWorkflowSha);
   let runner = previous ? null : 'mac';
@@ -351,10 +394,7 @@ async function dispatchBackup(env) {
   const jobs = getJobs(run);
   const job = jobs.jobs?.find(entry => entry.name === 'capture-and-readback');
   requireCheck(validId(job?.id), 'BACKUP_CAPTURE_JOB_MISSING');
-  const log = gh(['api', repository + '/actions/jobs/' + job.id + '/logs'], token);
-  const markers = log.split('\n').filter(line => / CAPTURE_RESTORE_PROOF \{/.test(line));
-  requireCheck(markers.length === 1, 'BACKUP_RESTORE_PROOF_MISSING');
-  const proof = JSON.parse(markers[0].slice(markers[0].indexOf(' CAPTURE_RESTORE_PROOF ') + ' CAPTURE_RESTORE_PROOF '.length));
+  const proof = parseBackupRestoreProof(await downloadBackupJobLog(job.id, token));
   verifyBackup(run, jobs, proof, {id, parent});
   return {runId: String(id), attempt: String(run.run_attempt), ciphertextSha256: proof.ciphertextSha256};
 }
