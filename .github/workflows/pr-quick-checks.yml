@@ -92,6 +92,7 @@ jobs:
             tests/feedback-deadline-issue173.test.mjs \
             tests/carrier-multirow-import.test.mjs \
             tests/lw-carrier-winner-only-sh71.test.mjs \
+            tests/owner-process-control-ui.test.mjs \
             tests/owner-offer-status-clarity-sh70.test.mjs \
             tests/owner-offer-scoring-r3.test.mjs
       - name: Validate generated CSS bundle and asset ordering
