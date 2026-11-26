@@ -4,7 +4,9 @@ on:
     paths:
       - '.github/workflows/locked-qa-staging.yml'
       - 'scripts/release/locked-staging.mjs'
+      - 'scripts/release/locked-qa-*.mjs'
       - 'tests/locked-staging.test.mjs'
+      - 'tests/locked-qa-package.test.mjs'
       - 'test/staging-transport-20261111.js'
   workflow_dispatch:
     inputs:
@@ -34,7 +36,7 @@ jobs:
           set -euo pipefail
           git sparse-checkout disable
           git restore --source=HEAD --worktree -- .
-          node --test tests/locked-staging.test.mjs
+          node --test tests/locked-staging.test.mjs tests/locked-qa-package.test.mjs
       - name: Read-only complete live production inventory preflight (no credentials or deployment)
         run: node --input-type=module -e 'import {captureRoot} from "./scripts/release/locked-staging.mjs"; console.log("LIVE_ROOT_INVENTORY_PASS",(await captureRoot()).size)'
   prepare:
@@ -43,6 +45,7 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 30
     permissions:
+      actions: read
       contents: read
       pages: read
     steps:
@@ -53,12 +56,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Locate the existing GitHub CLI for protected staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+          command -v gh >/dev/null || { echo '::error::MAC_QA_GH_UNAVAILABLE'; exit 1; }
+          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
       - id: lock
         name: Verify immutable candidate ancestry and resolve exact pair
         shell: bash
         run: |
           set -euo pipefail
-          node --test tests/locked-staging.test.mjs
+          node --test tests/locked-staging.test.mjs tests/locked-qa-package.test.mjs
           frontend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().frontendSha)')
           backend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().backendSha)')
           git merge-base --is-ancestor "$frontend" "$GITHUB_SHA"
@@ -87,7 +97,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Assemble exact QA bundle and preserve every inventoried live production asset
+      - name: Assemble staging assets and preserve every inventoried live production asset
         shell: bash
         run: |
           set -euo pipefail
@@ -97,24 +107,27 @@ jobs:
           done
           work=$(mktemp -d "$RUNNER_TEMP/locked-staging.XXXXXX")
           echo "LOCKED_STAGE_DIR=$work" >> "$GITHUB_ENV"
-          node scripts/release/locked-qa-runtime.mjs build candidate-backend "$work/api"
           node scripts/release/locked-staging.mjs package candidate-web "$work/pages" "$work/root-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$work/root-proof.json"
-      - name: Deploy and independently read back only the existing isolated QA function
+      - name: Reuse or build and independently read back the existing isolated QA function
         env:
+          GH_TOKEN: ${{ github.token }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
-          node scripts/release/locked-staging.mjs deploy-api "$LOCKED_STAGE_DIR/api"
+          node scripts/release/locked-staging.mjs prepare-api candidate-backend "$LOCKED_STAGE_DIR/api" "$LOCKED_STAGE_DIR/build-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$LOCKED_STAGE_DIR/root-proof.json"
       - uses: actions/upload-artifact@v4
         with:
-          name: locked-staging-root-proof
-          path: ${{ env.LOCKED_STAGE_DIR }}/root-proof.json
+          name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
+          path: |
+            ${{ env.LOCKED_STAGE_DIR }}/root-proof.json
+            ${{ env.LOCKED_STAGE_DIR }}/build-proof.json
           if-no-files-found: error
           retention-days: 2
       - uses: actions/upload-pages-artifact@v4
         with:
+          name: locked-staging-pages-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_STAGE_DIR }}/pages
       - name: Remove private backend package
         if: always() && env.LOCKED_STAGE_DIR != ''
@@ -143,12 +156,14 @@ jobs:
           node-version: '24'
       - uses: actions/download-artifact@v4
         with:
-          name: locked-staging-root-proof
+          name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: verified-stage
       - name: Confirm unchanged production root immediately before Pages deployment
         run: node scripts/release/locked-staging.mjs verify-root verified-stage/root-proof.json
       - uses: actions/deploy-pages@v4
         id: pages
+        with:
+          artifact_name: locked-staging-pages-attempt-${{ github.run_attempt }}
       - name: Verify the production root still matches its published inventory
         run: node scripts/release/locked-staging.mjs verify-root verified-stage/root-proof.json
   verify:
@@ -157,6 +172,9 @@ jobs:
     environment: isolated-qa
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
@@ -195,7 +213,11 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Independently rebuild and attest served staging assets and QA API
+      - uses: actions/download-artifact@v4
+        with:
+          name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
+          path: verified-stage
+      - name: Independently attest served staging assets and QA package bytes
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         shell: bash
@@ -205,15 +227,12 @@ jobs:
             git -C "$dir" sparse-checkout disable
             git -C "$dir" restore --source=HEAD --worktree -- .
           done
-          work=$(mktemp -d "$RUNNER_TEMP/locked-stage-verify.XXXXXX")
-          trap 'rm -rf "$work"' EXIT
-          node scripts/release/locked-qa-runtime.mjs build candidate-backend "$work/api"
-          node scripts/release/locked-qa-runtime.mjs attest candidate-web "$work/api" "$work/proof.json"
-          cp "$work/proof.json" locked-staging-attestation.json
+          node scripts/release/locked-staging.mjs verify-api candidate-web candidate-backend \
+            verified-stage/build-proof.json locked-staging-attestation.json
           echo STAGING_PAIR_ATTESTED_NOT_PRODUCTION_APPROVAL
       - uses: actions/upload-artifact@v4
         with:
-          name: locked-staging-attestation
+          name: locked-staging-attestation-attempt-${{ github.run_attempt }}
           path: locked-staging-attestation.json
           if-no-files-found: error
-          retention-days: 2
+          retention-days: 14

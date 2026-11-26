@@ -46,12 +46,19 @@ export function latePenaltyCorrection({request, notification, ledger, login, ord
   const [event] = penalties;
   if (!event) return null;
   assert.match(event.id, uuid, 'INVALID_QA_PENALTY_ID');
-  assert.deepEqual([event.login, event.actor, event.source_kind, event.source_id, event.event_key, Number(event.requested_delta)],
-    [login, 'system', 'request', round, 'response-missing:' + notification.id, -3], 'QA_PENALTY_PROVENANCE_MISMATCH');
+  assert.deepEqual([event.login, event.actor, event.source_kind, event.source_id, event.event_key],
+    [login, 'system', 'request', round, 'response-missing:' + notification.id], 'QA_PENALTY_PROVENANCE_MISMATCH');
   if (event.corrected) {
-    assert.equal(Number(event.delta), 0, 'QA_PENALTY_NOT_NEUTRALIZED');
+    // Replay replaces requested_delta with the effective correction; original_delta retains the historical penalty.
+    assert.equal(Number(event.original_delta), -3, 'QA_PENALTY_PROVENANCE_MISMATCH');
+    assert.deepEqual([Number(event.requested_delta), Number(event.delta)], [0, 0], 'QA_PENALTY_NOT_NEUTRALIZED');
+    const latest = (ledger.corrections ?? []).filter(c => c.event_id === event.id)
+      .sort((a,b) => Number(a.revision) - Number(b.revision)).at(-1);
+    assert.ok(latest && latest.login === login && latest.action === 'void_event' && Number(latest.value) === 0,
+      'QA_FIXTURE_CORRECTION_RECEIPT_MISSING');
     return null;
   }
+  assert.equal(Number(event.requested_delta), -3, 'QA_PENALTY_PROVENANCE_MISMATCH');
   assert.ok(Number.isSafeInteger(ledger.revision) && ledger.revision >= 0, 'INVALID_QA_LEDGER_REVISION');
   const key = createHash('sha256').update(`isolated-qa/late-fixture/${login}/${event.id}`).digest('hex').slice(0, 32);
   return {

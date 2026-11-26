@@ -55,8 +55,19 @@ test('forced deadline cleanup neutralizes the exact synthetic penalty with an id
   assert.equal(command.expectedRevision,7);
   assert.deepEqual(latePenaltyCorrection(fixture),command);
   const [event] = fixture.ledger.events;
-  fixture.ledger.events = [{...event,corrected:true,delta:0}];
+  fixture.ledger.events = [{...event,corrected:true,original_delta:-3,requested_delta:0,delta:0}];
+  const receipt = {id:command.requestId,event_id:event.id,login:fixture.login,revision:8,action:'void_event',value:0};
+  fixture.ledger.corrections = [receipt];
   assert.equal(latePenaltyCorrection(fixture),null);
+  fixture.ledger.corrections = [];
+  assert.throws(() => latePenaltyCorrection(fixture), /QA_FIXTURE_CORRECTION_RECEIPT_MISSING/);
+  fixture.ledger.corrections = [receipt,{...receipt,revision:9,action:'adjust_event'}];
+  assert.throws(() => latePenaltyCorrection(fixture), /QA_FIXTURE_CORRECTION_RECEIPT_MISSING/);
+  fixture.ledger.corrections = [receipt];
+  fixture.ledger.events = [{...event,corrected:true,original_delta:-5,requested_delta:0,delta:0}];
+  assert.throws(() => latePenaltyCorrection(fixture), /QA_PENALTY_PROVENANCE_MISMATCH/);
+  fixture.ledger.events = [{...event,corrected:true,original_delta:-3,requested_delta:0,delta:-1}];
+  assert.throws(() => latePenaltyCorrection(fixture), /QA_PENALTY_NOT_NEUTRALIZED/);
 });
 
 test('fixture cleanup rejects foreign requests, notifications, ledger identities and event provenance', () => {

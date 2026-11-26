@@ -1,0 +1,4 @@
+self-hosted-runner:
+  labels:
+    - freight-mac-ci-vm
+    - freight-mac-qa

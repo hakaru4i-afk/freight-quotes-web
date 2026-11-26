@@ -250,16 +250,15 @@ jobs:
           QA_POSTGRES_MODULE: ${{ runner.temp }}/freight-tools/node_modules/postgres/src/index.js
           PERFORMANCE_REPORT: docs/releases/PROD-GO-LIVE-20261114/evidence/issue99-postgres-performance.json
         run: node tests/shipment-list-read-integration.mjs
-      - name: Bind the fresh schema report and reproducible QA package to the lock
+      - name: Bind the fresh schema report and immutable QA build inputs to the lock
         working-directory: .
         run: |
           output=$(mktemp -d)
-          node scripts/release/locked-qa-runtime.mjs build candidate "$output/api"
           mkdir -p "$output/evidence"
           report=docs/releases/PROD-GO-LIVE-20261114/evidence/schema-transition-rehearsal.json
           cp "candidate/$report" "$output/evidence/"
           node scripts/release/locked-evidence-run.mjs backend candidate "$output/evidence/schema-transition-rehearsal.json" \
-            "$output/evidence/run-receipt.json" "$output/api/package-proof.json"
+            "$output/evidence/run-receipt.json"
           echo "LOCKED_EVIDENCE_DIR=$output/evidence" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:

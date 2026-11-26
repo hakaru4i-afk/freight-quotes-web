@@ -1,4 +1,4 @@
-import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
+import {assertProductionSourceFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
@@ -52,5 +52,5 @@ test("switching language preserves original labels and does not translate user d
 test("translation loader stays pinned and production promotion requires its integrity manifest",()=>{
  const html=readFileSync("test/index.html","utf8");
  assert.match(html,/task2-i18n\.js\?v=[a-f0-9]{12}/);
- assertProductionFeatureBoundary(readFileSync("index.html","utf8"),'task2-i18n.js');
+ assertProductionSourceFeatureBoundary('index.html','task2-i18n.js');
 });

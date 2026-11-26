@@ -5,6 +5,7 @@ concurrency:
   group: task12-staging-observer
   cancel-in-progress: false
 permissions:
+  actions: read
   contents: read
   id-token: write
 jobs:
@@ -43,7 +44,7 @@ jobs:
           ref: ${{ steps.lock.outputs.frontend }}
           path: candidate-web
           persist-credentials: false
-      - name: Fail early on malformed browser scenarios before API compilation or QA sessions
+      - name: Fail early on malformed browser scenarios before runtime attestation or QA sessions
         shell: bash
         run: |
           set -euo pipefail
@@ -70,12 +71,13 @@ jobs:
           persist-credentials: false
       - name: Verify the live staging assets and deployed isolated API before opening sessions
         env:
+          GH_TOKEN: ${{ github.token }}
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           set -euo pipefail
           output=$(mktemp -d)
-          node scripts/release/locked-qa-runtime.mjs build candidate-backend "$output/api"
-          node scripts/release/locked-qa-runtime.mjs attest candidate-web "$output/api" "$output/before.json"
+          node scripts/release/locked-qa-runtime.mjs select-and-attest candidate-web candidate-backend \
+            "$output/staging-proof.json" "$output/before.json"
           rm -rf reports
           {
             echo "LOCKED_QA_DIR=$output"
@@ -239,7 +241,8 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
-          node scripts/release/locked-qa-runtime.mjs attest candidate-web "$LOCKED_QA_DIR/api" "$LOCKED_QA_DIR/after.json"
+          node scripts/release/locked-qa-runtime.mjs attest candidate-web candidate-backend \
+            "$LOCKED_QA_DIR/staging-proof.json" "$LOCKED_QA_DIR/after.json"
           node scripts/release/locked-e2e-evidence.mjs "$LOCKED_QA_DIR/before.json" "$LOCKED_QA_DIR/after.json" reports "$LOCKED_QA_DIR/evidence"
       - uses: actions/upload-artifact@v4
         with:
@@ -250,7 +253,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: isolated-qa-redacted-evidence
+          name: isolated-qa-redacted-evidence-attempt-${{ github.run_attempt }}
           path: |
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json

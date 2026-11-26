@@ -28,7 +28,7 @@ jobs:
           python3 - <<'PY'
           import os,re
           assert re.fullmatch(r'[0-9]{1,18}',os.environ['QA_RUN_ID'])
-          assert re.fullmatch(r'isolated-qa-(?:redacted-evidence|safe-evidence-[0-9]{1,18})',os.environ['QA_ARTIFACT_NAME'])
+          assert re.fullmatch(r'isolated-qa-(?:redacted-evidence(?:-attempt-[1-9][0-9]{0,17})?|safe-evidence-[0-9]{1,18})',os.environ['QA_ARTIFACT_NAME'])
           PY
       - uses: actions/download-artifact@v4
         with:
