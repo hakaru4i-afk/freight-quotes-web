@@ -210,19 +210,107 @@ async function refresh(force=false){
  try{
   const session=await get("/api/session");
   const role=toRole(session.authenticated?session.role:"");
-  if(!roles.has(role)){state.role="";state.items=[];state.total=0;state.loaded=false;
+  if(!roles.has(role)){clearControl();state.role="";state.items=[];state.total=0;state.loaded=false;
    document.getElementById(ROOT_ID)?.remove();return;}
-  if(role!==state.role){state.visible=5;state.role=role;state.items=[];state.total=0;state.loaded=false;state.errors=[];state.supported=false;}
+  if(role!==state.role){clearControl();state.visible=5;state.role=role;state.items=[];state.total=0;state.loaded=false;state.errors=[];state.supported=false;}
   paint();
   const result=await loadRole(role);
   if(token!==state.request)return;
   state.items=result.tasks||[];state.total=result.total||0;state.errors=result.errors||[];
   state.supported=result.supported;state.loaded=true;state.updated=Date.now();
  }catch(_){
+  clearControl();
   state.items=[];state.total=0;state.errors=["network"];state.supported=true;state.loaded=true;state.updated=Date.now();
  }finally{state.loading=false;refreshing=false;paint();}
 }
+
+const CONTROL_ID="lw-owner-process-control";
+const control={seq:0,page:null,busy:false,notice:""};
+const controlWords={
+ ru:{title:"Управление процессами · Владелец",help:"Открытые назначения по перевозкам всех ролей. Доступные действия определяет сервер. Документы, финансы и стадии перевозки подтверждаются в исходных карточках.",load:"Проверить назначения",loading:"Читаем назначения…",empty:"Открытых назначений нет.",failed:"Не удалось подтвердить назначения. Обновите список.",next:"Следующая страница",back:"Первая страница",recipient:"Новый логист",reason:"Причина переназначения (10–1000 символов)",confirm:"Подтверждаю перенос адресного задания",reassign:"Переназначить",saved:"Исполнитель изменён. Событие записано в аудит.",stale:"Данные изменились. Обновите назначения.",native:"Действие через исходный процесс",inactive:"Заявка неактивна или изменена",award:"Победитель изменён или не подтверждён",shipment:"Перевозка не в активном исполнении",closed:"Задача закрыта",role:"Роль",assignee:"Исполнитель",status:"Статус",select:"Выбрать",showing:"Показано",open:"Открыть перевозку",ready:"Доступно переназначение логисту"},
+ en:{title:"Process control · Owner",help:"Open shipment assignments across roles. The server determines available actions. Documents, finance and shipment milestones remain in their native workflows.",load:"Check assignments",loading:"Reading assignments…",empty:"No open assignments.",failed:"Assignments could not be verified. Refresh the list.",next:"Next page",back:"First page",recipient:"New logistics employee",reason:"Reason (10–1000 characters)",confirm:"Confirm transfer of this assigned task",reassign:"Reassign",saved:"Assignment changed and audited.",stale:"Data changed. Refresh assignments.",native:"Use native workflow",inactive:"Request inactive or changed",award:"Award changed or unverified",shipment:"Shipment not active",closed:"Task closed",role:"Role",assignee:"Assignee",status:"Status",select:"Select",showing:"Showing",open:"Open shipment",ready:"Logistics reassignment available"},
+ zh:{title:"流程管理 · 所有者",help:"查看各角色未完成运输任务。服务端决定可执行操作。文件、财务及运输阶段仍由原流程确认。",load:"检查任务",loading:"正在读取任务…",empty:"暂无未完成任务。",failed:"无法核实任务，请刷新。",next:"下一页",back:"第一页",recipient:"新物流人员",reason:"重新分配原因（10–1000 字符）",confirm:"确认转移此指定任务",reassign:"重新分配",saved:"任务已重新分配并记录审计。",stale:"数据已更改，请刷新任务。",native:"使用原流程",inactive:"申请无效或已更改",award:"中标人已更改或未确认",shipment:"运输未处于执行状态",closed:"任务已关闭",role:"角色",assignee:"负责人",status:"状态",select:"选择",showing:"显示",open:"打开运输",ready:"可重新分配物流任务"}
+};
+function controlText(){return controlWords[language()]||controlWords.ru;}
+function controlReason(code,t){return ({INACTIVE_REQUEST:t.inactive,AWARD_CHANGED_OR_MISSING:t.award,SHIPMENT_NOT_ACTIVE:t.shipment,USE_NATIVE_WORKFLOW:t.native,TASK_NOT_OPEN:t.closed})[code]||t.native;}
+function controlForm(task,people,t){
+ if(task.blocker||!Array.isArray(task.actions)||!task.actions.includes("reassign_logistic")||!task.revision)return "";
+ const old=String(task.assigned_login||"").toLowerCase(),requester=String(task.requested_by||"").toLowerCase();
+ const options=people.filter(p=>p.login&&![old,requester].includes(String(p.login).toLowerCase())).map(p=>'<option value="'+esc(p.login)+'">'+esc(p.name||p.login)+'</option>').join("");
+ if(!options)return "";
+ return '<form data-lw-control-task="'+esc(task.id)+'"><label>'+esc(t.recipient)+'<select name="assignedLogin" required><option value="">'+esc(t.select)+'</option>'+options+'</select></label><label>'+esc(t.reason)+'<textarea name="reason" minlength="10" maxlength="1000" required rows="3"></textarea></label><label><input name="confirmed" type="checkbox" required> '+esc(t.confirm)+'</label><button type="submit">'+esc(t.reassign)+'</button></form>';
+}
+function paintControl(){
+ const host=document.getElementById(CONTROL_ID);if(!host||state.role!=="owner")return;
+ const t=controlText(),p=control.page;
+ let body=control.busy?'<p role="status">'+esc(t.loading)+'</p>':"";
+ if(control.notice)body+='<p role="status">'+esc(control.notice)+'</p>';
+ if(p){
+  const items=p.items,people=p.recipients;
+  body+='<p>'+esc(t.showing)+' '+items.length+' / '+esc(p.total)+'</p>';
+  if(!items.length)body+='<p>'+esc(t.empty)+'</p>';
+  body+='<ul>'+items.map(task=>'<li><details><summary><strong>'+esc(task.order_code)+' · '+esc(task.task_type)+'</strong><small> · '+esc(task.assigned_role)+' · '+esc(task.status)+'</small></summary><p>'+esc(task.description)+'</p><p>'+esc(t.role)+': '+esc(task.assigned_role)+' · '+esc(t.assignee)+': '+esc(task.assigned_login||"—")+'</p><p>'+esc(task.blocker?controlReason(task.blocker,t):t.ready)+'</p>'+(task.blocker==='INACTIVE_REQUEST'||task.blocker==='AWARD_CHANGED_OR_MISSING'?'':'<p><a href="#approved-shipments" data-lw-control-open="'+esc(task.order_code)+'">'+esc(t.open)+'</a></p>')+controlForm(task,people,t)+'</details></li>').join("")+'</ul>';
+  if(p.offset>0)body+='<button type="button" data-lw-control-load="0">'+esc(t.back)+'</button>';
+  if(Number.isInteger(p.nextOffset))body+='<button type="button" data-lw-control-load="'+p.nextOffset+'">'+esc(t.next)+'</button>';
+ }
+ host.querySelector("[data-lw-control-body]").innerHTML=body;
+}
+function clearControl(){
+ control.seq++;control.page=null;control.busy=false;control.notice="";
+ document.getElementById(CONTROL_ID)?.remove();
+}
+function mountControl(){
+ if(state.role!=="owner"){if(document.getElementById(CONTROL_ID))clearControl();return;}
+ const home=homeTarget();if(!home)return;
+ let host=document.getElementById(CONTROL_ID);
+ if(host&&home.contains(host))return;
+ if(host)clearControl();
+ const t=controlText();
+ host=document.createElement("section");host.id=CONTROL_ID;host.className="lw-pending-task-box";
+ host.innerHTML='<details><summary><strong>'+esc(t.title)+'</strong></summary><p>'+esc(t.help)+'</p><button type="button" data-lw-control-load="0">'+esc(t.load)+'</button><div data-lw-control-body></div></details>';
+ home.prepend(host);
+}
+async function loadControl(offset=0,notice=""){
+ if(state.role!=="owner"||control.busy)return;
+ const seq=++control.seq;control.busy=true;control.page=null;control.notice=notice;paintControl();
+ try{
+  const p=await get("/api/pending-tasks?ownerControl=1&offset="+offset);
+  if(p.ownerControl!==true||p.ok!==true||!Array.isArray(p.items)||!Array.isArray(p.recipients))throw Error("Owner control unavailable");
+  if(seq!==control.seq||state.role!=="owner")return;
+  control.page={...p,offset};
+ }catch{if(seq===control.seq)control.notice=controlText().failed;}
+ finally{if(seq===control.seq){control.busy=false;paintControl();}}
+}
+async function reassignControl(form){
+ if(control.busy||state.role!=="owner"||!control.page)return;
+ const task=control.page.items.find(t=>t.id===form.dataset.lwControlTask);
+ if(!task||task.blocker||!task.actions?.includes("reassign_logistic"))return;
+ const values=new FormData(form),reason=String(values.get("reason")||"").trim(),assignedLogin=String(values.get("assignedLogin")||"");
+ if(reason.length<10||reason.length>1000||!assignedLogin||values.get("confirmed")!=="on")return;
+ const seq=++control.seq,offset=control.page.offset;
+ control.busy=true;form.querySelector('button[type="submit"]').disabled=true;
+ try{
+  const response=await fetch("/api/task2",{method:"POST",cache:"no-store",credentials:"same-origin",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"owner_reassign_logistic",order:task.order_code,taskId:task.id,expectedRevision:task.revision,assignedLogin,reason,confirmed:true})});
+  const data=await response.json();
+  if(seq!==control.seq||state.role!=="owner")return;
+  control.busy=false;
+  await loadControl(offset,response.ok&&data.ok===true?controlText().saved:data.error==="PROCESS_STALE"?controlText().stale:controlText().failed);
+ }catch{if(seq===control.seq){control.busy=false;control.notice=controlText().failed;paintControl();}}
+ finally{if(seq===control.seq)control.busy=false;}
+}
+document.addEventListener("submit",event=>{
+ const form=event.target.closest?.("#"+CONTROL_ID+" form[data-lw-control-task]");
+ if(!form)return;event.preventDefault();void reassignControl(form);
+});
+document.addEventListener("click",event=>{
+ const load=event.target.closest?.("#"+CONTROL_ID+" [data-lw-control-load]");
+ if(load){event.preventDefault();void loadControl(Number(load.dataset.lwControlLoad)||0);return;}
+ const open=event.target.closest?.("#"+CONTROL_ID+" [data-lw-control-open]");
+ if(open&&state.role==="owner")window.dispatchEvent(new CustomEvent("carrier-flow-open-execution",{detail:{order:open.dataset.lwControlOpen}}));
+});
+
 function mount(){
+ mountControl();
  if(!state.role||!homeTarget())return;
  if(!homeTarget().contains(document.getElementById(ROOT_ID)))paint();
 }
