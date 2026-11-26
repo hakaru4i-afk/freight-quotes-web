@@ -102,7 +102,7 @@ for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tas
 
 for(const path of ['lw-pending-tasks-all-roles-20261109.js','test/lw-pending-tasks-all-roles-20261109.js']){
  test('In-cabinet FAQ covers all eight roles and three languages without inventing actions: '+path,()=>{
-  const src=readFileSync(path,'utf8'),start=src.indexOf('const processFaq='),end=src.indexOf('function paint()',start);assert.ok(start>=0&&end>start);
+  const src=readFileSync(path,'utf8'),start=src.indexOf('const processFaq='),end=src.indexOf('function mountProcessFaq()',start);assert.ok(start>=0&&end>start);
   const {processFaqHtml,processFaq}=runInNewContext(src.slice(start,end)+';({processFaqHtml,processFaq})',{esc:v=>String(v??'')});
   for(const lang of ['ru','en','zh']){
    for(const role of ['owner','carrier','logistic','supplier','designer','content','purchasing','certification']){
