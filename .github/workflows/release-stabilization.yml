@@ -41,6 +41,7 @@ jobs:
         with:
           path: candidate
           ref: ${{ needs.lock.outputs.frontend }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -100,12 +101,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           path: candidate
           ref: ${{ needs.lock.outputs.frontend }}
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Verify the separately served production root against its own manifest
+        working-directory: .
+        run: |
+          node --input-type=module <<'NODE'
+          import {digest} from './scripts/release/locked-release.mjs';
+          import {captureRoot} from './scripts/release/locked-staging.mjs';
+          import {assertPublishedProductionRoot} from './tests/helpers/production-release-boundary.mjs';
+          const files = await captureRoot();
+          const manifest = assertPublishedProductionRoot(files);
+          console.log('VERIFIED_PRODUCTION_ROOT', manifest.businessVersion,
+            digest(files.get('production-release-manifest.json')), files.size - 1);
+          NODE
       - name: Cache npm and Playwright Chromium
         id: browser-cache
         uses: actions/cache@v4

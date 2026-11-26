@@ -1,4 +1,4 @@
-import {assertProductionFeatureBoundary} from './helpers/production-release-boundary.mjs';
+import {assertProductionSourceFeatureBoundary} from './helpers/production-release-boundary.mjs';
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -8,7 +8,6 @@ const app = readFileSync("test/app.js", "utf8");
 const css = readFileSync("test/style.css", "utf8");
 const html = readFileSync("test/index.html", "utf8");
 const manifest = JSON.parse(readFileSync("test/build-info.json", "utf8"));
-const production = readFileSync("app.js", "utf8");
 const start = app.indexOf("function issue47Stage(n,b)");
 const end = app.indexOf("function S0(", start);
 assert.ok(start >= 0 && end > start, "carrier workspace helpers exist");
@@ -52,5 +51,5 @@ test("carrier assets stay isolated until a verified production promotion", () =>
   assert.equal(manifest.carrierWorkspace.status,"COMMITTED_STAGING_QA_PENDING");
   assert.ok(html.includes("app.js?v="+manifest.servedAppBlobSha.slice(0,12)));
   assert.ok(html.includes("style.css?v="+manifest.servedStyleBlobSha.slice(0,12)));
- assertProductionFeatureBoundary(production,'issue47CarrierDeadlines');
+ assertProductionSourceFeatureBoundary('app.js','issue47CarrierDeadlines');
 });
