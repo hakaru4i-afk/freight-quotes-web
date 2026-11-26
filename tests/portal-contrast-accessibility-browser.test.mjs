@@ -173,7 +173,7 @@ test("staging app role shells with synthetic sessions at both viewports",{timeou
         return await route.fulfill({body:readFileSync("test/"+file),contentType:types[file.split(".").at(-1)]||"application/octet-stream"});
        } catch { return route.fulfill({status:404,body:"Fixture asset unavailable"}); }
       }
-      if(!url.pathname.includes("/freight-api/api/"))return route.abort();
+      if(!(url.origin==="https://ibclzdkxiozbzmniiygv.supabase.co"&&url.pathname.startsWith("/functions/v1/freight-api-qa-rc20261110/api/")))return route.abort();
       const headers={"access-control-allow-origin":origin,"access-control-allow-credentials":"true","access-control-allow-headers":route.request().headers()["access-control-request-headers"]||"content-type"};
       if(route.request().method()==="OPTIONS")return route.fulfill({status:204,headers});
       const body={role,user:{role},access:{owner:role==="owner",permissions:["workspace.read","requests.read","documents.read"]},

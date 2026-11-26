@@ -73,6 +73,8 @@ jobs:
       - name: Validate release and evidence contracts before acceptance
         if: steps.scope.outputs.scope == 'full'
         run: node --test --test-concurrency=2 tests/locked-release.test.mjs tests/locked-staging.test.mjs tests/isolated-qa-acceptance.test.mjs tests/locked-qa-package.test.mjs
+      - name: Reject stale reviewed process diagrams before expensive QA
+        run: node scripts/build-process-maps.mjs --check
       - name: Fast deterministic regressions (no network, browser or deployment)
         if: steps.scope.outputs.scope == 'full'
         run: |

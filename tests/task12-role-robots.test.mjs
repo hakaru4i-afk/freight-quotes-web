@@ -25,8 +25,8 @@ async function withBrowser(t,role,viewport={width:1366,height:900}){
  page.on("pageerror",e=>errors.push(e.message));
  page.on("console",e=>{if(e.type()==="error")errors.push(e.text().slice(0,500))});
  const respond=(route,status,body)=>route.fulfill({status,contentType:"application/json",body:JSON.stringify(body),headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS"}});
- await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/**",async route=>{
-   const req=route.request(),path=new URL(req.url()).pathname.split("/freight-api")[1]||"";
+ await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110/**",async route=>{
+   const req=route.request(),path=new URL(req.url()).pathname.split("/freight-api-qa-rc20261110")[1]||"";
    requests.push({path,method:req.method()});
    if(req.method()==="OPTIONS")return route.fulfill({status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS"}});
    if(path==="/api/test-cabinets")return respond(route,200,{environment:"staging",presets:[],users:[]});

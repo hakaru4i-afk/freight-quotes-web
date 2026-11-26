@@ -31,8 +31,8 @@ async function fixture(t){
  page.on("requestfailed",r=>failedRequests.push(r.url()+": "+r.failure()?.errorText));
  page.on("pageerror",e=>errors.push(e.message));
  page.on("dialog",d=>d.accept());
- await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api/**",async(route)=>{
-  const req=route.request(),url=new URL(req.url()),path=url.pathname.split("/freight-api")[1]||"";
+ await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110/**",async(route)=>{
+  const req=route.request(),url=new URL(req.url()),path=url.pathname.split("/freight-api-qa-rc20261110")[1]||"";
   const respond=(status,payload)=>route.fulfill({status,contentType:"application/json",body:JSON.stringify(payload),headers:{"Access-Control-Allow-Origin":"*"}});
   if(req.method()==="OPTIONS")return route.fulfill({status:204,headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS"}});
   if(path==="/api/test-cabinets")return respond(200,{environment:"staging",presets:[],users:[]});

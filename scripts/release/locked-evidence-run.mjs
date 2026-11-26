@@ -24,7 +24,8 @@ export function runReceipt(lock, kind, env = process.env) {
 }
 
 
-if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
+// Do not await the CLI at module scope: locked-qa-package imports checkoutSha from this module.
+async function main() {
   const [kind, candidate, reportPath, outputPath] = process.argv.slice(2);
   const lock = readLock();
   const field = {frontend: 'frontendSha', backend: 'backendSha'}[kind];
@@ -37,4 +38,8 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
     receipt.qaInputSha256 = qaInputSha256(candidate, lock);
   }
   writeFileSync(outputPath, JSON.stringify(receipt) + '\n', {flag: 'wx'});
+}
+
+if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename)) {
+  main().catch(error => { console.error(error); process.exitCode = 1; });
 }
