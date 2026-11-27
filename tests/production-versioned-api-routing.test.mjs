@@ -63,3 +63,13 @@ test('release smoke uses normal API credentials in the protected deployment step
  assert.match(wf,/artifact_name: rollback-pages/);
  assert.doesNotMatch(wf,/upload-pages-artifact[\s\S]{0,150}freight-prod-smoke/);
 });
+
+
+test('production smoke retains fail-closed mutation and route guards with redacted request diagnostics',()=>{
+ const browser=readFileSync(new URL('../scripts/release/production-authenticated-browser.mjs',import.meta.url),'utf8');
+ assert.match(browser,/legacy=true;recordBlocked\('api-route-mismatch',req,u\);return route.abort\(\)/);
+ assert.match(browser,/mutation=true;recordBlocked\('browser-mutation',req,u\);return route.abort\(\)/);
+ assert.match(browser,/assert.ok\(!legacy&&!mutation,'PRODUCTION_SMOKE_UNEXPECTED_ROUTE_OR_MUTATION'\)/);
+ assert.match(browser,/JSON.stringify\(\{kind,method,route:known.includes\(route\)\?route:'other',action\}\)/);
+ assert.match(browser,/PRODUCTION_SMOKE_BLOCKED_REQUEST/);
+});
