@@ -69,7 +69,15 @@ try{
  const context=await browser.newContext({serviceWorkers:'block'});
  await context.addInitScript(({token,key,origin})=>{if(location.origin===origin&&window.top===window)localStorage.setItem(key,token)},{token,key:storageKey,origin:new URL(base).origin});
  const page=await context.newPage();
- const observed=new Set();let legacy=false,mutation=false;
+ const observed=new Set(),blocked=new Set();let legacy=false,mutation=false;
+ const recordBlocked=(kind,req,u)=>{
+  const route=u.pathname.match(/\/api\/([a-z-]+)(?:\/|$)/)?.[1];
+  const known=['session','auth','data','chats','task2','route-distance','site-events','pending-tasks','supplier-orders','late-bid-drafts','requests','shipments','documents','audit','health','owner-registers','release'];
+  let action=null;try{const body=req.postDataJSON();const value=body?.action;if(['geocode_points','geocode_route','geocode_retry','login','logout','route_metrics','owner_reassign_logistic','owner_transition_document_task','owner_record_process_risk'].includes(value))action=value;}catch{}
+  const method=['GET','POST','PUT','PATCH','DELETE','OPTIONS','HEAD'].includes(req.method())?req.method():'OTHER';
+  const key=JSON.stringify({kind,method,route:known.includes(route)?route:'other',action});
+  if(!blocked.has(key)){blocked.add(key);console.log('PRODUCTION_SMOKE_BLOCKED_REQUEST '+key);}
+ };
  const wait=55000;
  const exact=(r,name)=>new URL(r.url()).origin===new URL(endpoint).origin&&new URL(r.url()).pathname===new URL(endpoint+'/api/'+name).pathname;
  const authenticated=async r=>((await r.request().allHeaders()).authorization||'').replace(/^Bearer /i,'')===token;
@@ -79,11 +87,11 @@ try{
  await context.route('**/*',async route=>{
   const req=route.request(),u=new URL(req.url());
   if(u.hostname==='ooclsrndeygojtofuyte.supabase.co'){
-   if(!u.pathname.startsWith('/functions/v1/'+slug+'/')){legacy=true;return route.abort();}
+   if(!u.pathname.startsWith('/functions/v1/'+slug+'/')){legacy=true;recordBlocked('api-route-mismatch',req,u);return route.abort();}
    if(!['GET','OPTIONS','HEAD'].includes(req.method())){
     // Login occurred through the direct API; no browser writes are permitted.
     if(u.pathname===new URL(endpoint+'/api/site-events').pathname&&req.method()==='POST')return route.abort();
-    mutation=true;return route.abort();
+    mutation=true;recordBlocked('browser-mutation',req,u);return route.abort();
    }
    return route.continue();
   }
