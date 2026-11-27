@@ -99,7 +99,9 @@ async function createFromForm(page,email,role,secret){
   r.request().method()==='POST'&&r.request().postDataJSON()?.email===email,{timeout:30000});
  pending.catch(()=>{});
  await form.locator('button[type=submit]').click();
- const result=await body(await pending,200,'Team UI POST '+role);
+ const response=await pending;
+ assert.equal(response.status(),200,'Team UI POST '+role);
+ const result=await response.json();
  assert.ok(result.members.some(m=>m.email===email&&m.role===role),'Team UI receipt '+role);
  await form.waitFor({state:'hidden',timeout:10000});
 }
