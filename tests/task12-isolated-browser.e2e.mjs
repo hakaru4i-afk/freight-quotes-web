@@ -2,7 +2,7 @@ import{map50Scenario}from'./map50-real-scenario.mjs';
 import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
-import {fixtureOrder,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {fixtureOrder,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -43,6 +43,11 @@ if(runtime){
  assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
  Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
 }
+if(lockedCandidate&&process.env.QA_BROWSER_PUBLISHED==='true'){
+ assert.ok(runtime?.activeRuntimePair,'ATTESTED_BROWSER_RUNTIME_RECEIPT_REQUIRED');
+ // Add only the attested generated file to the private frozen copy, not Git.
+ await writeFile(resolve(frozenSource,'test/active-runtime-pair.json'),browserRuntimeReceipt(frozenSource,runtime,gitSha),{flag:'wx'});
+}
 assert.equal(metadata.isolatedQaFunction,qaFunction);
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
 assert.match(metadata.isolatedQaBundleSha256,/^[a-f0-9]{64}$/);
@@ -77,7 +82,7 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers:{'access-control-allow-origin':origin,'access-control-allow-headers':'*','access-control-allow-methods':'GET,POST,PATCH,OPTIONS','access-control-allow-credentials':'true'}});return;}
    const start=Date.now(),headers={...req.headers(),origin:'https://hakaru4i-afk.github.io'};delete headers.host;delete headers['content-length'];
    let r;try{r=await fetch(base+path+url.search,{method:req.method(),headers,body:['GET','HEAD'].includes(req.method())?undefined:req.postDataBuffer(),signal:AbortSignal.timeout(60000)});}catch(error){report.calls.push({actor,path,method:req.method(),status:null,durationMs:Date.now()-start,error:'REAL_HTTP_TRANSPORT_FAILED'});await route.abort('timedout');return;}
-   const body=Buffer.from(await r.arrayBuffer());report.calls.push({actor,path,method:req.method(),status:r.status,requestId:r.headers.get('x-freight-request-id'),durationMs:Date.now()-start,requestedRegion:url.searchParams.get('forceFunctionRegion'),actualRegion:r.headers.get('x-sb-edge-region')});
+   const body=Buffer.from(await r.arrayBuffer());const chatOperation=path==='/api/chats'&&req.method()==='POST'&&req.headers()['content-type']?.includes('multipart/form-data')?'send':undefined;report.calls.push({actor,path,method:req.method(),status:r.status,requestId:r.headers.get('x-freight-request-id'),durationMs:Date.now()-start,requestedRegion:url.searchParams.get('forceFunctionRegion'),actualRegion:r.headers.get('x-sb-edge-region'),...(chatOperation?{chatOperation}:{})});
    const out=Object.fromEntries(r.headers);delete out['content-encoding'];delete out['content-length'];out['access-control-allow-origin']=origin;out['access-control-allow-credentials']='true';
    await route.fulfill({status:r.status,headers:out,body});return;
   }
@@ -86,6 +91,14 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const name=decodeURIComponent(url.pathname.slice('/freight-quotes-web/test/'.length))||'index.html';
    if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(lockedCandidate||/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
    const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];await route.fulfill({status:r.status,headers,body:bytes});return;
+  }
+  if(isolatedHealthRequest(url.href,req.method(),qaFunction)){
+   // Read the actual isolated public health endpoint, without browser credentials.
+   const r=await fetch(url.href,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(30000)});
+   assert.equal(r.status,200,'ISOLATED_BROWSER_HEALTH_HTTP');
+   const body=Buffer.from(await r.arrayBuffer());verifyBrowserHealth(JSON.parse(body.toString('utf8')),runtime);
+   const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];headers['access-control-allow-origin']=origin;
+   await route.fulfill({status:r.status,headers,body});return;
   }
   if(map50&&url.hostname==='router.project-osrm.org'&&url.pathname.startsWith('/route/v1/driving/')&&req.method()==='GET'){
    try{const r=await fetch(url.href,{signal:AbortSignal.timeout(20000)});const bytes=Buffer.from(await r.arrayBuffer());(report.externalRoutes??=[]).push({provider:'OSRM',status:r.status,realHttp:true,authorizationForwarded:false});await route.fulfill({status:r.status,contentType:'application/json',body:bytes});}catch{await route.abort('timedout');}return;
@@ -231,9 +244,9 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    await page.locator('.cabinet-sidebar nav a[href="#chats"]').first().evaluate(el=>el.click());const chatPage=page.locator('#lw-ved-chat-page');await chatPage.locator('[data-vc-order="'+order+'"]').click({timeout:60000});const root=chatPage.locator('[data-lw-ved-chat-order="'+order+'"]');const composer=root.locator('[data-vc-send]');await composer.waitFor({state:'visible',timeout:60000});
    await page.waitForFunction(order=>document.querySelector('#lw-ved-chat-page [data-lw-ved-chat-order="'+order+'"]')?.dataset.vedChatId,order);const chatId=await root.getAttribute('data-ved-chat-id');const before=await api('ved','/api/chats?id='+chatId);assert.equal(before.status,200);assert.equal(before.data.messages.length,0,'Uploads and document requests must not create template messages');
    const message='Synthetic browser VED message '+Date.now(),bytes=Buffer.from('Synthetic VED chat attachment '+order+'\n');await composer.locator('textarea[name="body"]').fill(message);await composer.locator('input[name="files"]').setInputFiles({name:'qa-ved-chat.txt',mimeType:'text/plain',buffer:bytes});
-   const sent=page.waitForResponse(r=>r.url().includes('/api/chats')&&r.request().method()==='POST'&&(r.request().headers()['content-type']||'').includes('multipart/form-data'),{timeout:60000});await composer.getByRole('button',{name:'Отправить',exact:true}).click();assert.equal((await sent).status(),200);await root.getByText(message,{exact:true}).waitFor({timeout:60000});
+   const sent=page.waitForResponse(r=>r.url().includes('/api/chats')&&r.request().method()==='POST'&&(r.request().headers()['content-type']||'').includes('multipart/form-data'),{timeout:60000});await composer.getByRole('button',{name:'Отправить',exact:true}).click();const sentResponse=await sent;assert.equal(sentResponse.status(),200);const sendRequestId=await sentResponse.headerValue('x-freight-request-id');assert.match(sendRequestId||'',/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/,'CHAT_SEND_REQUEST_ID_REQUIRED');await root.getByText(message,{exact:true}).waitFor({timeout:60000});
    let fileId;for(const id of ['ved','owner',owner.selection.winnerActor]){const r=await api(id,'/api/chats?id='+chatId);assert.equal(r.status,200);assert.equal(r.data.messages.length,1);assert.equal(r.data.messages[0].body,message);assert.equal(r.data.messages[0].files.length,1);fileId=r.data.messages[0].files[0].id;const file=await fetch(base+'/api/chat-files?id='+fileId+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[id]}});assert.equal(file.status,200);assert.deepEqual(Buffer.from(await file.arrayBuffer()),bytes);}
-   const loser=owner.selection.winnerActor==='carrierA'?'carrierB':'carrierA';assert.ok([403,404].includes((await api(loser,'/api/chats?id='+chatId)).status));const file=await fetch(base+'/api/chat-files?id='+fileId+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[loser]}});assert.ok([403,404].includes(file.status));rec.sharedChat={http:200,chatId,manualMessages:1,files:1,realRecipients:3,sha256:createHash('sha256').update(bytes).digest('hex'),loserDenied:true,automaticTemplates:0};
+   const loser=owner.selection.winnerActor==='carrierA'?'carrierB':'carrierA';assert.ok([403,404].includes((await api(loser,'/api/chats?id='+chatId)).status));const file=await fetch(base+'/api/chat-files?id='+fileId+'&forceFunctionRegion=eu-central-1',{headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[loser]}});assert.ok([403,404].includes(file.status));rec.sharedChat={http:200,chatId,sendRequestId,manualMessages:1,files:1,realRecipients:3,sha256:createHash('sha256').update(bytes).digest('hex'),loserDenied:true,automaticTemplates:0};
   }
   if(process.env.QA_BROWSER_TRACK==='true'&&['carrierA','carrierB'].includes(actor)){
    const owner=JSON.parse(await readFile(evidenceDir+'/browser-results-owner.json','utf8')).roles[0];const order=owner.createdOrder;assert.equal(owner.selection.winnerActor,actor);rec.bidOrder=order;rec.tracking={uiPlanSaves:0};

@@ -117,6 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/release/locked-staging.mjs prepare-api candidate-backend "$LOCKED_STAGE_DIR/api" "$LOCKED_STAGE_DIR/build-proof.json"
+          node scripts/release/locked-staging.mjs write-pair candidate-web "$LOCKED_STAGE_DIR/pages" "$LOCKED_STAGE_DIR/build-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$LOCKED_STAGE_DIR/root-proof.json"
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:

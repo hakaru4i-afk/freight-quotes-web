@@ -5,7 +5,7 @@ import {digest,qaProject,qaFunction,readLock,requireCheck} from './locked-releas
 import {checkoutSha,runReceipt,readJson} from './locked-evidence-run.mjs';
 import {captureRoot, stagingFiles, live} from './locked-pages-assets.mjs';
 export {captureRoot, stagingFiles, rootInventory, live} from './locked-pages-assets.mjs';
-import {attestQaApi,attestRuntime,verifyDownloadedPackage} from './locked-qa-runtime.mjs';
+import {attestQaApi,attestRuntime,verifyDownloadedPackage,createStagingPair,stagingIdentityAssets,stagingPairFile,stagingPairBytes} from './locked-qa-runtime.mjs';
 import {buildQaApi,qaInputSha256,verifyQaPackageProof} from './locked-qa-package.mjs';
 import {findStagingProof} from './locked-qa-provenance.mjs';
 
@@ -88,6 +88,15 @@ async function prepareStagingApi(source,api,receipt,lock,env) {
  writeFileSync(receipt,JSON.stringify({...runReceipt(lock,'qa-staging'),package:proof,deployment})+'\n',{flag:'wx',mode:0o600});
 }
 
+function writeStagingPair(frontend,pages,receipt,lock) {
+ const build=readJson(receipt),run=runReceipt(lock,'qa-staging');
+ requireCheck(Object.entries(run).every(([key,value])=>build[key]===value)&&build.package?.sourceCommit===lock.backendSha,'QA_STAGING_BUILD_ATTEMPT_MISMATCH');
+ checkoutSha(frontend,lock.frontendSha,{cleanPath:'test'});
+ const assets=stagingIdentityAssets(frontend),packaged=stagingIdentityAssets(pages);
+ for(const [name,bytes] of Object.entries(assets))requireCheck(bytes.equals(packaged[name]),'STAGING_PACKAGE_ASSET_MISMATCH:'+name);
+ writeFileSync(join(pages,'test',stagingPairFile),stagingPairBytes(createStagingPair(lock,build.deployment,assets)),{flag:'wx'});
+}
+
 async function verifyStagingApi(frontend,source,receipt,output,lock,env) {
  const build=readJson(receipt);
  const run=runReceipt(lock,'qa-staging');
@@ -102,6 +111,7 @@ if(process.argv[1]&&pathToFileURL(resolve(process.argv[1])).href===import.meta.u
  if(mode==='package')await packageStage(a,b,c,lock);
  else if(mode==='verify-root')console.log('PRODUCTION_ROOT_UNCHANGED',await assertRootUnchanged(readJson(a),lock));
  else if(mode==='prepare-api')await prepareStagingApi(a,b,c,lock,process.env);
+ else if(mode==='write-pair')writeStagingPair(a,b,c,lock);
  else if(mode==='verify-api')await verifyStagingApi(a,b,c,d,lock,process.env);
  else throw Error('UNKNOWN_LOCKED_STAGING_COMMAND');
 }

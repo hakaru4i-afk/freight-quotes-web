@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createStagingPair,stagingIdentityAssets,stagingPairBytes} from '../scripts/release/locked-qa-runtime.mjs';
 import test from 'node:test';
-import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
+import {assertQaSession,expectAuditRequest,requireCertificationAuditEvidence,sessionPolicyCheck,verifyAuditRecord,requireChatSendAuditEvidence} from './helpers/isolated-qa-acceptance.mjs';
 
 const runId = '45648242961';
 const runAttempt = '2';
@@ -19,6 +23,84 @@ test('browser acceptance needs a successful fixture from the current run, attemp
   }
   assert.throws(() => requireBusinessFixture(business,modeCheck,source), /DATA_FIXTURE_ERROR:BUSINESS_CHECK/);
   assert.throws(() => requireBusinessFixture({...business,productionDataUsed:true},tenderCheck,source));
+});
+
+const auditRun = {...source,runtime:{...runtime,function:'freight-api-qa-rc20261110',version:55}};
+const requestId = index => `aaaaaaaa-aaaa-4aaa-8aaa-${String(index).padStart(12,'0')}`;
+function certificationAuditFixture() {
+  const calls = [
+    {path:'/api/session',status:200,authenticated:true,role:'certification'},
+    {path:'/api/site-monitor',status:403},
+    {path:'/api/session',status:200,authenticated:false,role:null},
+    {path:'/api/site-monitor',status:403},
+  ].map((call,index)=>({...call,actor:'certification',method:'GET',requestId:requestId(index+1)}));
+  const auditDenials = {
+    before:{sessionRequestId:requestId(1),requestId:requestId(2)},
+    after:{sessionRequestId:requestId(3),requestId:requestId(4)},
+  };
+  const evidence = {oldSessionRevoked:true,auditDenials};
+  const report = {...auditRun,result:'PASS',environment:'isolated-qa',productionDataUsed:false,calls,
+    checks:[{id:sessionPolicyCheck,status:'PASS',evidence}]};
+  return {report,auditDenials};
+}
+
+test('certification audit needs both HTTP denials from the exact run, attempt and deployed pair', () => {
+  const {report} = certificationAuditFixture();
+  assert.deepEqual(requireCertificationAuditEvidence(report,auditRun),{before:requestId(2),after:requestId(4)});
+  for (const drift of [{runId:'1234'},{runAttempt:'1'},...[
+    {frontendSha:'other-web'},{backendSha:'other-api'},{function:'other-function'},{version:56},{bundle:'other-bundle'},
+  ].map(value=>({runtime:{...auditRun.runtime,...value}}))]) {
+    assert.throws(()=>requireCertificationAuditEvidence({...report,...drift},auditRun),/AUDIT_EVIDENCE_CONTEXT_MISMATCH/);
+  }
+  assert.throws(()=>requireCertificationAuditEvidence({...report,result:'FAIL'},auditRun),/CERTIFICATION_AUDIT_BUSINESS_REPORT_FAILED/);
+  assert.throws(()=>requireCertificationAuditEvidence({...report,checks:[]},auditRun),/CERTIFICATION_AUDIT_CHECK_NOT_UNIQUE/);
+  for (const phase of ['before','after']) {
+    const fixture = certificationAuditFixture();
+    delete fixture.auditDenials[phase];
+    assert.throws(()=>requireCertificationAuditEvidence(fixture.report,auditRun),/CERTIFICATION_AUDIT_REQUEST_ID_MISSING/);
+  }
+});
+
+test('certification audit rejects missing, substituted and reused request IDs', () => {
+  const scenarios = [
+    [({report})=>report.calls.splice(3,1), /CERTIFICATION_AUDIT_REQUEST_NOT_UNIQUE/],
+    [({report})=>report.calls.push({...report.calls[1]}), /CERTIFICATION_AUDIT_REQUEST_NOT_UNIQUE/],
+    [({report})=>{report.calls[3].actor='purchasing';}, /CERTIFICATION_AUDIT_REQUEST_MISMATCH/],
+    [({report})=>{report.calls[2].authenticated=true;}, /CERTIFICATION_AUDIT_REVOKED_SESSION_MISMATCH/],
+    [({report})=>{report.calls[1].status=401;}, /CERTIFICATION_AUDIT_DENIAL_MISMATCH/],
+    [({auditDenials})=>{auditDenials.after.requestId=auditDenials.before.requestId;}, /CERTIFICATION_AUDIT_REQUEST_ID_REUSED/],
+    [({auditDenials})=>{[auditDenials.before.requestId,auditDenials.after.requestId]=[auditDenials.after.requestId,auditDenials.before.requestId];}, /CERTIFICATION_AUDIT_DENIAL_ORDER/],
+  ];
+  for (const [alter, error] of scenarios) {
+    const fixture = certificationAuditFixture();
+    alter(fixture);
+    assert.throws(()=>requireCertificationAuditEvidence(fixture.report,auditRun),error);
+  }
+  const required = new Map();
+  expectAuditRequest(required,requestId(2),{label:'first'});
+  assert.throws(()=>expectAuditRequest(required,requestId(2),{label:'second'}),/AUDIT_REQUEST_ID_REUSED/);
+  assert.throws(()=>expectAuditRequest(required,undefined,{label:'missing'}),/AUDIT_REQUEST_ID_MISSING/);
+});
+
+test('server audit distinguishes the authenticated employee and the revoked session', () => {
+  const identity = {login:'rc20261110-certification',role:'certification'};
+  const actors = {certification:identity};
+  const expected = {label:'certification',actor:'certification',path:'/api/site-monitor',status:403,
+    kind:'denied',reasonCode:'ACCESS_DENIED',action:'get',phase:'access_denied'};
+  const detail = {reasonCode:expected.reasonCode,phase:expected.phase};
+  const row = {source:'server',path:expected.path,status:403,kind:'denied',action:'get'};
+  const active = {...row,actor:identity.login,role:identity.role,detail:{...detail,effectiveRole:identity.role},request_id:requestId(2)};
+  const revoked = {...row,actor:'',role:'',detail,request_id:requestId(4)};
+  const authenticatedDenial = {...expected,sessionState:'authenticated'};
+  const revokedDenial = {...expected,sessionState:'revoked'};
+  assert.equal(verifyAuditRecord(active,authenticatedDenial,actors).actor,identity.login);
+  assert.equal(verifyAuditRecord(revoked,revokedDenial,actors).actor,'');
+  assert.throws(()=>verifyAuditRecord(active,revokedDenial,actors),/: actor/);
+  assert.throws(()=>verifyAuditRecord(revoked,authenticatedDenial,actors),/: actor/);
+  assert.throws(()=>verifyAuditRecord({...revoked,detail:{...detail,effectiveRole:identity.role}},revokedDenial,actors),/: effective role/);
+  assert.throws(()=>verifyAuditRecord({...active,source:'client'},authenticatedDenial,actors),/: source/);
+  assertQaSession({status:200,data:{authenticated:true,role:'supplier'}},'supplier','session');
+  assert.throws(()=>assertQaSession({status:200,data:{authenticated:false,role:null}},'supplier','session'),/session/);
 });
 
 test('compatibility suppresses only the two expected background posts before any forwarding', () => {
@@ -117,4 +199,46 @@ test('previous production compatibility routes the attested legacy or immutable 
  assert.match(script,/JSON\.parse\(manifest\)\.apiFunction/);
  assert.match(script,/previousUiApiPath\(u,publishedSlug\)/);
  assert.doesNotMatch(script,/\.split\('\/freight-api'\)/);
+});
+
+test('generated active staging receipt is reconstructed only from exact frozen source and attested deployment',t=>{
+ const root=mkdtempSync(join(tmpdir(),'qa-receipt-'));t.after(()=>rmSync(root,{recursive:true,force:true}));mkdirSync(join(root,'test'));
+ const project='ibclzdkxiozbzmniiygv',fn='freight-api-qa-rc20261110',sha='a'.repeat(40),backend='b'.repeat(40),build='c'.repeat(20),v='SH-01.30.59 v';
+ const assets={'index.html':'index','app.js':'app','style.css':'css','build-info.json':{environment:'staging',primaryBusinessVersion:v,stagingAssetBuildId:build,version:build},'staging-manifest.json':{environment:'staging',primaryBusinessVersion:v},'site-status.json':{environment:'staging',version:build,release:{version:v}},'release-status.json':{version:v},'staging-transport-20261111.js':'LOCKED_STAGING_ISOLATION_V1'};
+ for(const [n,x] of Object.entries(assets))writeFileSync(join(root,'test',n),typeof x==='string'?x:JSON.stringify(x));
+ const lock={frontendSha:sha,backendSha:backend},deployment={project,function:fn,id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',version:55,bundle:'d'.repeat(64)};
+ const pair=createStagingPair(lock,deployment,stagingIdentityAssets(root));
+ const runtime={...lock,sourceCommit:backend,function:fn,version:55,bundle:deployment.bundle,deployment,activeRuntimePair:pair};
+ assert.deepEqual(browserRuntimeReceipt(root,runtime,sha),stagingPairBytes(pair));
+ assert.throws(()=>browserRuntimeReceipt(root,{...runtime,activeRuntimePair:undefined},sha),/BROWSER_RUNTIME_RECEIPT_MISMATCH/);
+ assert.throws(()=>browserRuntimeReceipt(root,{...runtime,version:56},sha),/BROWSER_RUNTIME_DEPLOYMENT_MISMATCH/);
+ assert.throws(()=>browserRuntimeReceipt(root,runtime,'e'.repeat(40)),/BROWSER_RUNTIME_FRONTEND_MISMATCH/);
+ writeFileSync(join(root,'test/app.js'),'drift');
+ assert.throws(()=>browserRuntimeReceipt(root,runtime,sha),/BROWSER_RUNTIME_RECEIPT_MISMATCH/);
+ const health={ok:true,environment:'staging',projectRef:project,qaRun:'rc20261110',backendSha:backend,deploymentId:pair.apiDeploymentId};
+ verifyBrowserHealth(health,runtime);
+ assert.throws(()=>verifyBrowserHealth({...health,deploymentId:'different'},runtime),/BROWSER_HEALTH_RUNTIME_MISMATCH/);
+ const url='https://'+project+'.supabase.co/functions/v1/'+fn+'/health?t=1';
+ assert.equal(isolatedHealthRequest(url,'GET',fn),true);
+ for(const u of [url.replace(project,'ooclsrndeygojtofuyte'),url.replace(fn,'freight-api'),url.replace('/health','/api/session'),url.replace('https:','http:')])assert.equal(isolatedHealthRequest(u,'GET',fn),false);
+ assert.equal(isolatedHealthRequest(url,'POST',fn),false);
+});
+
+test('audit selects the actual VED message with attachment, never a successful background read POST',()=>{
+ const ctx={runId:'1234',runAttempt:'1',runtime:{frontendSha:'a'.repeat(40),backendSha:'b'.repeat(40),function:'freight-api-qa-rc20261110',version:55,bundle:'c'.repeat(64)}};
+ const id=n=>'aaaaaaaa-aaaa-4aaa-8aaa-'+String(n).padStart(12,'0');
+ const report={runId:ctx.runId,runAttempt:ctx.runAttempt,frontendSha:ctx.runtime.frontendSha,backendSourceCommit:ctx.runtime.backendSha,
+   backendFunction:ctx.runtime.function,backendVersion:ctx.runtime.version,backendBundle:ctx.runtime.bundle,environment:'isolated-qa-rc20261110',
+   scenario:'ved-work',mocks:false,immutableSource:true,roles:[{actor:'ved',status:'PASS',sharedChat:{http:200,manualMessages:1,files:1,realRecipients:3,loserDenied:true,automaticTemplates:0,sendRequestId:id(2)}}],
+   calls:[{actor:'ved',path:'/api/chats',method:'POST',status:200,requestId:id(1)},{actor:'ved',path:'/api/chats',method:'POST',status:200,requestId:id(2),chatOperation:'send'}]};
+ assert.equal(requireChatSendAuditEvidence(report,ctx),id(2));
+ for(const [alter,expected] of [
+  [r=>r.roles[0].sharedChat.sendRequestId=id(1),/CHAT_SEND_HTTP_EVIDENCE_MISMATCH/],
+  [r=>delete r.roles[0].sharedChat.sendRequestId,/CHAT_SEND_REQUEST_ID_REQUIRED/],
+  [r=>r.calls.push({...r.calls[1]}),/CHAT_SEND_REQUEST_ID_NOT_UNIQUE/],
+  [r=>r.calls[1].actor='owner',/CHAT_SEND_HTTP_EVIDENCE_MISMATCH/],
+  [r=>r.roles[0].sharedChat.realRecipients=2,/CHAT_AUDIT_MESSAGE_READBACK_REQUIRED/],
+  [r=>r.runAttempt='2',/AUDIT_EVIDENCE_CONTEXT_MISMATCH/],
+  [r=>r.scenario='ved-verify',/CHAT_AUDIT_SCENARIO/]
+ ]){const copy=structuredClone(report);alter(copy);assert.throws(()=>requireChatSendAuditEvidence(copy,ctx),expected);}
 });
