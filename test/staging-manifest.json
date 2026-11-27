@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "3f79ac2067a5e895525ffd2a4786523406595056",
+  "frontendCommit": "10a6b75fc04ef89fc46f3e4d3a279e699af5312a",
   "assetHashes": {
     ".github/workflows/actions-runtime-policy.yml": "4b80dbd2e5fad7fae7bfa9bdc5257956e865e5fd8b41afc8a925da2f718c7d33",
     ".github/workflows/carrier-acceptance-singleton.yml": "914f9649e3e3faab1e9c0403305d242ced351427c1937e9aafa0861831813564",
@@ -102,7 +102,6 @@
     ".github/workflows/owner-workflow-sh67-release.yml": "390884c3c7f1792b99dcafe4ff57bc0da5bad5b490940ebe03254ca445c7fcbd",
     ".github/workflows/owner-workspace-compact.yml": "29e537dcd1475a41da9301d25b390bf3adff22e12c1e101ead9e5c207f5a4a3e",
     ".github/workflows/p0-codex-headless-smoke.yml": "07843154709475033b1ebabd6b27eaf7027a2fade4be7fb27f07bf2de73b8d23",
-    ".github/workflows/p0-staging-banner-prepare.yml": "9f15a177256ec88b2fcbfdddea85e38665c45b5fcca6602ab5ba6b84b4399e5b",
     ".github/workflows/portal-contrast-accessibility.yml": "cde0e2505c5607d36783deb13a1f2950515a81b8ae83f9916d4dfc6b37594e4e",
     ".github/workflows/pr-quick-checks.yml": "6be22ced4292f8c51379fbaaecf636dbf02ea186d653b1dc49811eaeb4bcb4e3",
     ".github/workflows/pr157-regenerate-staging-manifest.yml": "f318942a7affb3afedb7b97ad2a7b16a6b79a61d0cbb9a9db53bfc2f133809e3",
