@@ -566,3 +566,14 @@ test('direct Owner API smoke performs one real login, fails closed, and never fo
  assert.doesNotMatch(source,/PRODUCTION_SMOKE_OWNER_LOGIN_REQUIRED_ON_MAC|bringToFront\(/);
  assert.doesNotMatch(source,/console\.(?:log|error)\([^\n]*(?:postDataJSON|sessionToken|password)\b/);
 });
+
+
+test('published staging QA and production/staging deploy share one non-preemptive concurrency group', () => {
+  for (const name of ['isolated-qa-oidc-browser','isolated-qa-published-browser','task12-observer','locked-qa-staging','owner-portal-release']) {
+    const yaml=readFileSync('.github/workflows/'+name+'.yml','utf8');
+    const block=yaml.match(/^concurrency:\n((?:  [^\n]*\n)+)/m)?.[1] || '';
+    assert.match(block,/group:.*owner-portal-production-release/,name);
+    assert.match(block,/cancel-in-progress: (?:false|\$\{\{ github.event_name == 'pull_request' \}\})/,name);
+    assert.doesNotMatch(block,/group: task12-staging-observer/,name);
+  }
+});
