@@ -84,8 +84,6 @@ jobs:
         id: deployment
       - name: Verify the published pair and create, authenticate and deactivate synthetic employees
         id: readback
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: |
           node scripts/release/employee-roles-emergency.mjs verify .employee-roles-pages
           node scripts/release/employee-roles-production-smoke.mjs live .employee-roles-pages
