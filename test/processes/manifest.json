@@ -1,6 +1,6 @@
 {
   "version": "20261125-logic-13",
-  "modelSha256": "4fb454fbc0d9366adc2d8f94ae9684d93393bfc76e38b85f7c1bbf409875d7ee",
+  "modelSha256": "72e52ad6cd6cb40cf29c0ddd6db0e602a3e707938aa473c05a1bbc63c8153b7e",
   "modelSnapshot": {
     "version": "20261125-logic-13",
     "date": "2026-11-25",
@@ -652,7 +652,7 @@
       "test/carrier-cta-hotfix.js": "f5ca353149747ea931d73a18f50189f46773082dc8dc75ea943b4737ca707bc6",
       "test/carrier-csv-wps-hotfix.js": "8ad31dc467c4c3134069ce913cb69a197c41416f26257c9e4c1ee36da2c7f856",
       "test/carrier-acceptance-workflow-20261107.js": "686b4ba2b95d92fa7807c8ba388d5bb6ddbe3332da4b966405d0a86994054a91",
-      "test/portal-feedback-center-20261107.js": "07f29c93b8ce26b362f59ce10633992c33a3327ed2021ea6bce3f1c9edb21ef7",
+      "test/portal-feedback-center-20261107.js": "f0d6222bf702ad30f947c7255a6d245af079f59e078cf57971238b5a9d9abb8a",
       "test/issue28-document-navigation-20261107.js": "c345e8a70f49fb2dd732d2bc026a0a25195d28beb7beb40cffb70649abcf7093",
       "test/incoterms-place-label-fix-20261107.js": "d35b05b901f1efd234070087f121933cd39b0d0953b90b71ac04fbb132967fae",
       "test/carrier-dashboard-compact-20261107.js": "46d17a5cfce84720b7982befb3de9e8f167aac5a10ce23f6ec44e94d74ebd9f0",
