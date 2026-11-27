@@ -171,3 +171,12 @@ test('locked staging and portable evidence use independent hosted Linux runners 
  assert.match(frontend,/npx playwright install --with-deps chromium/);
  assert.match(frontend,/node --test --test-concurrency=3/);
 });
+
+
+test('mobile staging dispatch requires an explicit selection and defaults to no deployment',()=>{
+ const workflow=readFileSync(new URL('../.github/workflows/locked-qa-staging.yml',import.meta.url),'utf8');
+ assert.match(workflow,/options: \['CANCEL', 'STAGING ONLY'\]/);
+ assert.match(workflow,/default: 'CANCEL'/);
+ assert.match(workflow,/inputs\.confirmation == 'STAGING ONLY'/);
+ assert.doesNotMatch(workflow,/inputs\.confirmation == 'CANCEL'/);
+});
