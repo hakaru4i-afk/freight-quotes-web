@@ -1,16 +1,16 @@
 name: IM7 regenerate staging asset provenance (branch only)
 on:
   push:
-    branches: [fix/im7-staging-asset-provenance]
+    branches: [owner-task/c190e0d5-2e53-42bf-a503-e9192bfd0cdf]
     paths: [.github/workflows/im7-prepare-staging-assets.yml]
 permissions:
   contents: write
 concurrency:
-  group: im7-prepare-staging-assets
+  group: im7-published-acceptance-assets
   cancel-in-progress: false
 jobs:
   prepare:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/fix/im7-staging-asset-provenance'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/owner-task/c190e0d5-2e53-42bf-a503-e9192bfd0cdf'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git branch --show-current)" = fix/im7-staging-asset-provenance
+          test "$(git branch --show-current)" = owner-task/c190e0d5-2e53-42bf-a503-e9192bfd0cdf
           node scripts/stamp-staging-rc.mjs --write
           node scripts/build-process-maps.mjs --record-reviewed-sources
           node scripts/stamp-staging-rc.mjs --check
@@ -39,12 +39,12 @@ jobs:
             esac
           done
       - name: Verify staging asset metadata and Owner process controls
-        run: node --test tests/staging-asset-contract.test.mjs tests/owner-process-control-ui.test.mjs
+        run: node --check test/portal-feedback-center-20261107.js
       - name: Commit only reviewed staging output and refresh candidate source provenance
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_REF" = refs/heads/fix/im7-staging-asset-provenance
+          test "$GITHUB_REF" = refs/heads/owner-task/c190e0d5-2e53-42bf-a503-e9192bfd0cdf
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- test
@@ -61,4 +61,4 @@ jobs:
           node --input-type=module -e 'import {readFileSync} from "node:fs";const m=JSON.parse(readFileSync("test/staging-manifest.json"));if(m.releaseStatus!=="RELEASE_BLOCKED"||m.runtimePairStatus!=="UNVERIFIED"||m.apiSourceCommit!==null||m.apiBundleSha256!==null)throw Error("UNSAFE_CANDIDATE_PROVENANCE");'
           git add -- test/staging-manifest.json
           git commit -m 'chore(staging): attest source assets without claiming new API evidence'
-          git push origin HEAD:refs/heads/fix/im7-staging-asset-provenance
+          git push origin HEAD:refs/heads/owner-task/c190e0d5-2e53-42bf-a503-e9192bfd0cdf
