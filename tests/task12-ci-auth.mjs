@@ -2,13 +2,13 @@ import{ensureAddressedLogistic}from'./qa-addressed-logistic-profile.mjs';
 import {mkdir,readFile,writeFile,rm} from 'node:fs/promises';
 const path='/tmp/freight-ci-qa/sessions.json',base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const actors={owner:['OWNER','owner'],carrierA:['CARRIER_A','carrier'],carrierB:['CARRIER_B','carrier'],ved:['VED','logistic'],logistic:['LOGISTIC','logistic'],supplier:['SUPPLIER','supplier'],supplierB:['SUPPLIER_B','supplier'],designer:['DESIGNER','designer'],content:['CONTENT','content'],purchasing:['PURCHASING','purchasing'],certification:['CERTIFICATION','certification']};
-async function request(route,body,token){const r=await fetch(base+route,{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(45000)});return{status:r.status,data:await r.json()};}
+async function request(route,body,token){const r=await fetch(base+route,{method:body?'POST':'GET',headers:{Origin:'https://hakaru4i-afk.github.io','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(45000)});return{status:r.status,data:await r.json(),requestId:r.headers.get('x-freight-request-id')};}
 if(process.argv.includes('--logout')){
  let sessions={};try{sessions=JSON.parse(await readFile(path,'utf8'));}catch{}
  let failed=0;for(const token of Object.values(sessions)){try{if((await request('/api/auth',{action:'logout'},token)).status!==200)failed++;}catch{failed++;}}
  await rm('/tmp/freight-ci-qa',{recursive:true,force:true});console.log('QA_SESSION_CLEANUP',failed?'FAILED':'PASS');if(failed)process.exitCode=1;
 }else{
- const report={result:'BLOCKED',environment:'isolated-qa',checks:[]};
+ const report={result:'BLOCKED',environment:'isolated-qa',startedAt:new Date().toISOString(),checks:[]};
  try{
   const missing=Object.entries(actors).filter(([, [prefix]])=>!process.env['QA_'+prefix+'_LOGIN']||!process.env['QA_'+prefix+'_PASSWORD']).map(([id])=>id);
   if(missing.length)throw Error('MISSING_PROTECTED_QA_BINDINGS:'+missing.join(','));
@@ -20,7 +20,7 @@ if(process.argv.includes('--logout')){
    if(auth.status!==200||! /^[a-f0-9]{64}$/.test(auth.data.sessionToken||''))throw Error('QA_LOGIN_FAILED:'+id+':'+auth.status);
    sessions[id]=auth.data.sessionToken;await writeFile(path,JSON.stringify(sessions),{mode:0o600});
    const profile=await request('/api/session',null,sessions[id]);if(profile.status!==200||profile.data.role!==role)throw Error('QA_ROLE_MISMATCH:'+id);
-   report.checks.push({actor:id,result:'PASS',profileStatus:profile.status});console.log('QA_REAL_AUTH_PASS',id);
+   report.checks.push({actor:id,result:'PASS',profileStatus:profile.status,loginRequestId:auth.requestId});console.log('QA_REAL_AUTH_PASS',id);
   }
   await ensureAddressedLogistic(request,process.env.QA_LOGISTIC_LOGIN,sessions.owner);
   report.result='PASS';

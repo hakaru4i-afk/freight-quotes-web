@@ -15,7 +15,7 @@ async function call(actor,path,body,method){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
  const verb=method||(body?'POST':'GET');
  const r=await fetch(url,{method:verb,headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(60000)});
- const context={actor,path:url.pathname.slice(new URL(base).pathname.length),method:verb,status:r.status};
+ const context={actor,path:url.pathname.slice(new URL(base).pathname.length),method:verb,status:r.status,requestId:r.headers.get('x-freight-request-id')};
  if(typeof body?.action==='string')context.action=body.action;
  report.calls.push(context);return {status:r.status,data:await r.json(),context};
 }
