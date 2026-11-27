@@ -23,14 +23,15 @@ concurrency:
 jobs:
   source-tests:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - run: |
           set -euo pipefail
@@ -42,27 +43,26 @@ jobs:
   prepare:
     if: github.event_name == 'workflow_dispatch' && github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk' && inputs.confirmation == 'STAGING ONLY'
     environment: isolated-qa
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     permissions:
       actions: read
       contents: read
       pages: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
-      - name: Locate the existing GitHub CLI for protected staging
+      - name: Verify GitHub CLI for protected staging
         shell: bash
         run: |
           set -euo pipefail
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-          command -v gh >/dev/null || { echo '::error::MAC_QA_GH_UNAVAILABLE'; exit 1; }
-          printf '%s\n' /opt/homebrew/bin /usr/local/bin >> "$GITHUB_PATH"
+          command -v gh >/dev/null || { echo '::error::QA_GH_UNAVAILABLE'; exit 1; }
       - id: lock
         name: Verify immutable candidate ancestry and resolve exact pair
         shell: bash
@@ -84,12 +84,12 @@ jobs:
           node tests/task12-ci-environment-policy.mjs
           node scripts/release/check-qa-credentials.mjs e2e
           test "$(gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '.build_type')" = workflow
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: candidate-web
           ref: ${{ steps.lock.outputs.frontend }}
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate-backend
@@ -137,7 +137,7 @@ jobs:
   deploy:
     needs: prepare
     if: needs.prepare.result == 'success'
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:
       name: github-pages
@@ -148,11 +148,12 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - uses: actions/download-artifact@v4
         with:
@@ -170,18 +171,19 @@ jobs:
     needs: deploy
     if: needs.deploy.result == 'success'
     environment: isolated-qa
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
+          package-manager-cache: false
           node-version: '24'
       - id: lock
         run: |
@@ -200,12 +202,12 @@ jobs:
         run: |
           node tests/task12-ci-environment-policy.mjs
           node scripts/release/check-qa-credentials.mjs e2e
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           path: candidate-web
           ref: ${{ steps.lock.outputs.frontend }}
           persist-credentials: false
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate-backend
