@@ -4,7 +4,7 @@ import {mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import test from 'node:test';
-import {qaInputSha256, verifyQaPackageProof} from '../scripts/release/locked-qa-package.mjs';
+import {isolateQaTransactions, qaInputSha256, verifyQaPackageProof} from '../scripts/release/locked-qa-package.mjs';
 import {stagingArtifact, verifyExpectedDeployment, verifyStagingProof, verifyStagingRun} from '../scripts/release/locked-qa-provenance.mjs';
 import {attestQaApi, verifyDownloadedHashes} from '../scripts/release/locked-qa-runtime.mjs';
 import {digest, qaFunction, qaProject, qaRun, web} from '../scripts/release/locked-release.mjs';
@@ -179,4 +179,23 @@ test('mobile staging dispatch requires an explicit selection and defaults to no 
  assert.match(workflow,/default: 'CANCEL'/);
  assert.match(workflow,/inputs\.confirmation == 'STAGING ONLY'/);
  assert.doesNotMatch(workflow,/inputs\.confirmation == 'CANCEL'/);
+});
+
+test('SH78 isolated package sets restricted role before all three transaction search paths',()=>{
+ const search='await tx.unsafe(searchPathStatement(DATA_SCHEMA));';
+ const role='await tx.unsafe("SET LOCAL ROLE freight_qa_'+qaRun+'_runner");';
+ const normal='await sql.begin(async (tx) => {\n      '+search+'\n      return await dispatch(req, tx, cleanup, postCommit);\n    });';
+ const pending='await sql.begin(async tx=>{\n        '+search+'\n        await auditDetachedResponse(tx,req,pending,requestId,{phase:"post_commit_pending"});\n      });';
+ const rollback='await sql.begin(async tx=>{\n        '+search+'\n        await auditDetachedResponse(tx,req,errorResponse,requestId,{phase:"transaction_rollback"});\n      });';
+ const source=[normal,pending,rollback].join('\n');
+ const transformed=isolateQaTransactions(source);
+ assert.equal(transformed.split(role).length-1,3);
+ const begins=[...transformed.matchAll(/sql\.begin\(async\s*(?:\(tx\)|tx)\s*=>\s*\{\s*await tx\.unsafe\("SET LOCAL ROLE ([a-z0-9_]+)"\);\s*await tx\.unsafe\(searchPathStatement\(DATA_SCHEMA\)\);/g)];
+ assert.equal(begins.length,3);
+ assert.ok(begins.every(m=>m[1]==='freight_qa_'+qaRun+'_runner'));
+ for(const invalid of [source+'\nawait sql.begin(async tx=>{});',source.replace(pending,''),source.replace(search,'await tx.unsafe("SELECT 1"); '+search),source+'\n'+search,source.replace('req,pending,','req,unknown,')]){
+   assert.throws(()=>isolateQaTransactions(invalid),/UNREVIEWED_ISOLATED_API_TRANSFORMATION/);
+ }
+ const legacy=normal+'\nawait sql.begin(async (tx) => {\n        const token = "fixture";\n      });';
+ assert.equal(isolateQaTransactions(legacy).split(role).length-1,2);
 });
