@@ -63,10 +63,24 @@ const taskStatusLabels={
  en:{label:'Development status',codex_queued:'Codex queued',codex_failed:'Codex failed',codex_complete:'Codex finished; checking PR',task_queued:'Task queued',branch_awaiting_codex:'GitHub task ready for implementation in ChatGPT',codex_writing:'Codex is writing code (Running)',scope_incomplete:'Block checks passed; task scope incomplete',ready_for_review:'Checks passed, ready for review',github_unavailable:'Unable to verify task with GitHub',dispatch_pending:'Waiting to send to GitHub',dispatch_failed:'GitHub dispatch failed',branch_pending:'Task queued',branch_created:'GitHub task ready for implementation in ChatGPT',code_committed_pr_required:'In progress. Waiting for a pull request',pr_unavailable:'Could not verify the pull request',checks_unavailable:'Check results unavailable',tests_running:'GitHub is running checks',basic_checks_failed:'Quick checks failed',task_e2e_failed:'The task-e2e check failed',tests_failed:'Some GitHub checks failed',required_tests_missing:'Code ready, PR opened',owner_returned_for_rework:'The Owner returned the task for rework',unknown:'Waiting for GitHub confirmation'},
  zh:{label:'开发状态',codex_queued:'Codex 排队中',codex_failed:'Codex 执行失败',codex_complete:'Codex 已完成，正在检查 PR',task_queued:'任务排队中',branch_awaiting_codex:'GitHub 任务已准备好，等待通过 ChatGPT 开发',codex_writing:'Codex 正在编写代码（运行中）',scope_incomplete:'阶段检查已通过，任务尚未完成',ready_for_review:'检查已通过，等待验收',github_unavailable:'无法连接 GitHub 验证任务',dispatch_pending:'等待发送到 GitHub',dispatch_failed:'发送到 GitHub 失败',branch_pending:'任务排队中',branch_created:'GitHub 任务已准备好，等待通过 ChatGPT 开发',code_committed_pr_required:'开发中，等待拉取请求',pr_unavailable:'无法验证拉取请求',checks_unavailable:'检查结果暂不可用',tests_running:'GitHub 正在运行检查',basic_checks_failed:'快速检查失败',task_e2e_failed:'task-e2e 检查失败',tests_failed:'部分 GitHub 检查失败',required_tests_missing:'代码已完成，PR 已创建',owner_returned_for_rework:'所有者已退回返工',unknown:'等待 GitHub 确认'}
 };
+function validBackendEvidence(e){
+ return Boolean(e&&['open','merged'].includes(e.status)&&Number.isSafeInteger(e.number)&&e.number>0&&/^[a-f0-9]{40}$/.test(e.headSha||'')&&e.merged===(e.status==='merged'));
+}
+function backendEvidenceMarkup(execution){
+ const e=execution?.backendEvidence;
+ const w=byLang==='en'?{unavailable:'Backend: verification unavailable',merged:'merged',open:'PR opened',tests:'checks passed',pending:'pending',other:'other results',unknown:'checks not verified'}:byLang==='zh'?{unavailable:'Backend：暂时无法验证',merged:'已合并',open:'PR 已创建',tests:'检查通过',pending:'等待中',other:'其他结果',unknown:'检查尚未验证'}:{unavailable:'Backend: проверка недоступна',merged:'объединён',open:'PR открыт',tests:'проверок пройдено',pending:'ожидают',other:'прочие результаты',unknown:'проверки не подтверждены'};
+ if(e?.status==='unavailable')return '<p>'+esc(w.unavailable)+'</p>';
+ if(!validBackendEvidence(e))return '';
+ const c=e.checks;
+ const valid=c&&['passed','total','pending','other'].every(k=>Number.isSafeInteger(c[k])&&c[k]>=0)&&c.passed+c.pending+c.other===c.total;
+ const result=valid&&c.total>0?c.passed+'/'+c.total+' '+w.tests+(c.pending?' · '+w.pending+': '+c.pending:'')+(c.other?' · '+w.other+': '+c.other:''):w.unknown;
+ return '<p><a href="https://github.com/hakaru4i-afk/freight-quotes/pull/'+e.number+'" target="_blank" rel="noopener noreferrer">Backend PR #'+e.number+'</a> · '+esc(w[e.status])+' · '+esc(result)+'</p>';
+}
 function taskStatusText(execution){
  const labels=taskStatusLabels[byLang];
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review') return labels.ready_for_review;
  if(execution?.step==='ready_for_review'&&execution?.checksPassed!==true)return labels.required_tests_missing;
+ if(validBackendEvidence(execution?.backendEvidence)&&['branch_awaiting_codex','code_committed_pr_required','task_queued','branch_created'].includes(execution?.step))return byLang==='en'?'Backend development recorded; full task acceptance still pending':byLang==='zh'?'已记录后端开发；任务尚未完成验收':'Работа Backend подтверждена; полная приёмка ещё не выполнена';
  // The work branch may predate main: SHA mismatch is not proof Codex has run.
  if(execution?.codexStatus==='branch_awaiting_codex'&&execution?.step==='code_committed_pr_required')return labels.branch_awaiting_codex;
  if(execution?.dispatchStatus==='failed') return String(execution.lastError||'').startsWith('CODEX_')?labels.branch_awaiting_codex:labels.dispatch_failed;
@@ -172,7 +186,7 @@ function detail(){
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
  const deadlineStage=deadlineState(item,execution);
  const deadlinePanel=!archived&&!alreadyPublished&&deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
- const progressPanel=!archived&&execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
+ const progressPanel=!archived&&execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+backendEvidenceMarkup(execution)+
   (!alreadyPublished&&execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
   (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
  const words=byLang==='en'?{send:'Start development',tip:'Creates a GitHub issue and branch without Codex or paid API. To implement code, paste the copied prompt into ChatGPT.',date:'Completion deadline',copy:'Copy task for ChatGPT',registered:'Task registered in GitHub. To implement the code, paste the task into ChatGPT.',issues:'Open GitHub issues'}:
