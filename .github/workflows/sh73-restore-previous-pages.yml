@@ -21,13 +21,13 @@ jobs:
     timeout-minutes: 25
     environment: github-pages
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: rollback-pages
           run-id: 45818064696
@@ -63,8 +63,8 @@ jobs:
           if(old.apiDeploymentId)assert.equal(runtime.deploymentId,old.apiDeploymentId);
           console.log('VERIFIED_PREVIOUS_PAGES_AND_API');
           JS
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         id: upload
         with:
           name: sh73-restore-attempt-${{ github.run_attempt }}
@@ -85,7 +85,7 @@ jobs:
             sleep 5
           done
           exit 1
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         with:
           artifact_name: sh73-restore-attempt-${{ github.run_attempt }}
       - name: Verify restored public root and API health
