@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {qaProject,qaFunction,readLock,requireFreshTime} from '../scripts/release/locked-release.mjs';
-import {assertQaSession,expectAuditRequest,requireAuditEvidenceContext,requireCertificationAuditEvidence,verifyAuditRecord} from './helpers/isolated-qa-acceptance.mjs';
+import {assertQaSession,expectAuditRequest,requireAuditEvidenceContext,requireCertificationAuditEvidence,verifyAuditRecord,requireChatSendAuditEvidence} from './helpers/isolated-qa-acceptance.mjs';
 const root='/tmp/freight-ci-qa';
 const evidenceDir='reports/isolated-rc';
 const read=async p=>JSON.parse(await readFile(p,'utf8'));
@@ -66,21 +66,23 @@ assert.equal(integration.status,422,'ROUTE_DISTANCE_VALIDATION_STATUS');
 assert.equal(typeof integration.data.error,'string','ROUTE_DISTANCE_VALIDATION_BODY');
 expect(integration.id,{label:'integration-validation',actor:'owner',path:'/api/route-distance',status:422,kind:'validation',reasonCode:'VALIDATION_FAILED'});
 const files=(await readdir(evidenceDir)).filter(n=>/^browser-results-.*\.json$/.test(n));
-const calls=[...business.calls];
+const calls=[...business.calls];let chatSendRequestId;
 for(const file of files){
  const report=await read(evidenceDir+'/'+file);
  requireAuditEvidenceContext({...report,runtime:{frontendSha:report.frontendSha,backendSha:report.backendSourceCommit,
   function:report.backendFunction,version:report.backendVersion,bundle:report.backendBundle}},run);
  requireFreshTime(report.startedAt,Date.parse(auth.completedAt),Date.parse(startedAt));
  requireFreshTime(report.completedAt,Date.parse(report.startedAt),Date.parse(startedAt));
+ if(file==='browser-results-ved-ved-work.json')chatSendRequestId=requireChatSendAuditEvidence(report,run);
  calls.push(...report.calls);
 }
 const mutation=c=>['POST','PATCH','PUT','DELETE'].includes(c.method)&&c.status>=200&&c.status<300&&uuid.test(c.requestId||'');
-for(const [label,path,actor] of [['request','/api/requests','owner'],['offer','/api/quote','carrierA'],['tracking','/api/task2','carrierA'],['documents','/api/documents','owner'],['chat','/api/chats','ved']]){
+for(const [label,path,actor] of [['request','/api/requests','owner'],['offer','/api/quote','carrierA'],['tracking','/api/task2','carrierA'],['documents','/api/documents','owner']]){
  const c=calls.find(c=>c.path===path&&c.actor===actor&&mutation(c));
  if(!c)throw Error('AUDIT_BUSINESS_PROBE_MISSING:'+label);
  expect(c.requestId,{label,actor,path,status:c.status,kind:'action'});
 }
+expect(chatSendRequestId,{label:'chat',actor:'ved',path:'/api/chats',status:200,kind:'action',action:'upload',reasonCode:'HTTP_SUCCESS',phase:'handler'});
 for(const [label,path] of [['document-download','/api/documents/file'],['task2-download','/api/task2']]){
  const c=calls.find(c=>c.path===path&&c.download===true&&c.method==='GET'&&c.status===200&&uuid.test(c.requestId||''));
  if(!c)throw Error('AUDIT_DOWNLOAD_PROBE_MISSING:'+label);

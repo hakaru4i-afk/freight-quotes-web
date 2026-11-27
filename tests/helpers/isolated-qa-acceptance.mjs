@@ -182,3 +182,28 @@ export function verifyBrowserHealth(health,runtime) {
       ['staging',pair.apiProject,'rc20261110',pair.backendSha,pair.apiDeploymentId],'BROWSER_HEALTH_RUNTIME_MISMATCH');
   }
 }
+
+ // An acknowledged read is also POST /api/chats, but the server intentionally
+ // excludes routine read receipts from its business audit. Never select by verb alone.
+export function requireChatSendAuditEvidence(report, context) {
+  requireAuditEvidenceContext({...report,runtime:{frontendSha:report.frontendSha,
+    backendSha:report.backendSourceCommit,function:report.backendFunction,
+    version:report.backendVersion,bundle:report.backendBundle}},context);
+  assert.equal(report.environment,'isolated-qa-rc20261110','CHAT_AUDIT_ENVIRONMENT');
+  assert.equal(report.scenario,'ved-work','CHAT_AUDIT_SCENARIO');
+  assert.equal(report.mocks,false,'CHAT_AUDIT_REAL_BROWSER_REQUIRED');
+  assert.equal(report.immutableSource,true,'CHAT_AUDIT_FROZEN_SOURCE_REQUIRED');
+  assert.equal(report.roles?.length,1,'CHAT_AUDIT_ROLE_COUNT');
+  const [role]=report.roles;
+  assert.deepEqual([role.actor,role.status],['ved','PASS'],'CHAT_AUDIT_ROLE');
+  const chat=role.sharedChat;
+  assert.deepEqual([chat?.http,chat?.manualMessages,chat?.files,chat?.realRecipients,chat?.loserDenied,chat?.automaticTemplates],
+    [200,1,1,3,true,0],'CHAT_AUDIT_MESSAGE_READBACK_REQUIRED');
+  assert.match(chat.sendRequestId??'',uuid,'CHAT_SEND_REQUEST_ID_REQUIRED');
+  const matching=report.calls.filter(call=>call.requestId===chat.sendRequestId);
+  assert.equal(matching.length,1,'CHAT_SEND_REQUEST_ID_NOT_UNIQUE');
+  const [call]=matching;
+  assert.deepEqual([call.actor,call.path,call.method,call.status,call.chatOperation],
+    ['ved','/api/chats','POST',200,'send'],'CHAT_SEND_HTTP_EVIDENCE_MISMATCH');
+  return chat.sendRequestId;
+}

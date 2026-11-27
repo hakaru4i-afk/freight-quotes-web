@@ -5,7 +5,7 @@ import {join} from 'node:path';
 import {createStagingPair,stagingIdentityAssets,stagingPairBytes} from '../scripts/release/locked-qa-runtime.mjs';
 import test from 'node:test';
 import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
-import {assertQaSession,expectAuditRequest,requireCertificationAuditEvidence,sessionPolicyCheck,verifyAuditRecord} from './helpers/isolated-qa-acceptance.mjs';
+import {assertQaSession,expectAuditRequest,requireCertificationAuditEvidence,sessionPolicyCheck,verifyAuditRecord,requireChatSendAuditEvidence} from './helpers/isolated-qa-acceptance.mjs';
 
 const runId = '45648242961';
 const runAttempt = '2';
@@ -222,4 +222,23 @@ test('generated active staging receipt is reconstructed only from exact frozen s
  assert.equal(isolatedHealthRequest(url,'GET',fn),true);
  for(const u of [url.replace(project,'ooclsrndeygojtofuyte'),url.replace(fn,'freight-api'),url.replace('/health','/api/session'),url.replace('https:','http:')])assert.equal(isolatedHealthRequest(u,'GET',fn),false);
  assert.equal(isolatedHealthRequest(url,'POST',fn),false);
+});
+
+test('audit selects the actual VED message with attachment, never a successful background read POST',()=>{
+ const ctx={runId:'1234',runAttempt:'1',runtime:{frontendSha:'a'.repeat(40),backendSha:'b'.repeat(40),function:'freight-api-qa-rc20261110',version:55,bundle:'c'.repeat(64)}};
+ const id=n=>'aaaaaaaa-aaaa-4aaa-8aaa-'+String(n).padStart(12,'0');
+ const report={runId:ctx.runId,runAttempt:ctx.runAttempt,frontendSha:ctx.runtime.frontendSha,backendSourceCommit:ctx.runtime.backendSha,
+   backendFunction:ctx.runtime.function,backendVersion:ctx.runtime.version,backendBundle:ctx.runtime.bundle,environment:'isolated-qa-rc20261110',
+   scenario:'ved-work',mocks:false,immutableSource:true,roles:[{actor:'ved',status:'PASS',sharedChat:{http:200,manualMessages:1,files:1,realRecipients:3,loserDenied:true,automaticTemplates:0,sendRequestId:id(2)}}],
+   calls:[{actor:'ved',path:'/api/chats',method:'POST',status:200,requestId:id(1)},{actor:'ved',path:'/api/chats',method:'POST',status:200,requestId:id(2),chatOperation:'send'}]};
+ assert.equal(requireChatSendAuditEvidence(report,ctx),id(2));
+ for(const [alter,expected] of [
+  [r=>r.roles[0].sharedChat.sendRequestId=id(1),/CHAT_SEND_HTTP_EVIDENCE_MISMATCH/],
+  [r=>delete r.roles[0].sharedChat.sendRequestId,/CHAT_SEND_REQUEST_ID_REQUIRED/],
+  [r=>r.calls.push({...r.calls[1]}),/CHAT_SEND_REQUEST_ID_NOT_UNIQUE/],
+  [r=>r.calls[1].actor='owner',/CHAT_SEND_HTTP_EVIDENCE_MISMATCH/],
+  [r=>r.roles[0].sharedChat.realRecipients=2,/CHAT_AUDIT_MESSAGE_READBACK_REQUIRED/],
+  [r=>r.runAttempt='2',/AUDIT_EVIDENCE_CONTEXT_MISMATCH/],
+  [r=>r.scenario='ved-verify',/CHAT_AUDIT_SCENARIO/]
+ ]){const copy=structuredClone(report);alter(copy);assert.throws(()=>requireChatSendAuditEvidence(copy,ctx),expected);}
 });
