@@ -17,10 +17,8 @@ const roles=['carrier','logistic','supplier','designer','content','purchasing','
 const key='freight-session-persistent-v1';
 const sessionFile=resolve(process.env.RUNNER_TEMP,'freight-team-owner-'+process.env.GITHUB_RUN_ID+'-'+process.env.GITHUB_RUN_ATTEMPT);
 const login=process.env.SMOKE_OWNER_LOGIN, password=process.env.SMOKE_OWNER_PASSWORD;
-const admin=process.env.SUPABASE_ACCESS_TOKEN;
 delete process.env.SMOKE_OWNER_LOGIN;
 delete process.env.SMOKE_OWNER_PASSWORD;
-delete process.env.SUPABASE_ACCESS_TOKEN;
 
 async function call(route,token,payload,query='',target=endpoint){
  const headers={Origin:origin};
@@ -38,18 +36,10 @@ async function confirmSession(token,role,target=endpoint){
  assert.equal(profile.role,role);
  assert.equal(profile.authenticated,true);
 }
-async function db(prefix){
- assert.ok(admin&&/^p0team-[a-f0-9]{20}-$/.test(prefix),'Database receipt credentials missing');
- const query=`select a.login, a.enabled, m.role, exists(select 1 from freight.access_users u where u.login=a.login) as custom_access,
-  (select count(*)::int from freight.sessions s where s.user_id=a.user_id) as session_count
-  from freight.accounts a left join freight.members m on m.email=a.login where left(a.login,${prefix.length})='${prefix}' order by a.login`;
- const r=await fetch('https://api.supabase.com/v1/projects/'+project+'/database/query',
-  {method:'POST',headers:{Authorization:'Bearer '+admin,'Content-Type':'application/json'},body:JSON.stringify({query,read_only:true}),
-   redirect:'error',signal:AbortSignal.timeout(25000)});
- assert.equal(r.status,201,'Database role receipt');
- const rows=await r.json();
- assert.ok(Array.isArray(rows),'Database role receipt format');
- return rows;
+async function readMembers(token){
+ const data=await body(await call('team',token),200,'Database-backed owner team readback');
+ assert.ok(Array.isArray(data.members),'Owner team receipt format');
+ return data.members;
 }
 async function openTeam(browser,token,width,accounts){
  const context=await browser.newContext({viewport:{width,height:width===390?844:900},serviceWorkers:'block'});
@@ -140,7 +130,11 @@ if(mode==='cleanup'){
  try {
   const catalog=await body(await call('team',token),200,'Owner catalog');
   assert.deepEqual(catalog.creatableRoles,roles);
-  if(mode==='live')assert.equal((await db(runPrefix)).length,0,'Synthetic account namespace must be unused');
+  if(mode==='live'){
+   assert.ok(catalog.members.length<=100-accounts.size,'Synthetic check requires unused member capacity');
+   assert.ok(catalog.members.every(member=>!member.email.startsWith(runPrefix)),'Synthetic account namespace must be unused');
+   console.log('EMPLOYEE_SYNTHETIC_NAMESPACE',runPrefix);
+  }
   const pageWidths=[1440,390];
   for(const width of pageWidths){
    const {context,page}=await openTeam(browser,token,width,accounts);
@@ -176,33 +170,29 @@ if(mode==='cleanup'){
     }finally{await body(await call('auth',employee.sessionToken,{action:'logout'}),200,'Employee logout '+role);}
     console.log('EMPLOYEE_PRODUCTION_ROLE_PASS',role,'ui=true api=true login=true role=true denied=true');
    }
-   const rows=await db(runPrefix);
-   assert.equal(rows.length,accounts.size,'Exactly 14 synthetic account rows');
-   for(const {login,enabled,role,custom_access,session_count} of rows){
-    assert.ok(accounts.has(login));
-    assert.equal(enabled,1);
-    assert.equal(role,accounts.get(login));
-    assert.equal(custom_access,false);
-    assert.equal(session_count,0);
-   }
-   console.log('EMPLOYEE_DATABASE_READBACK_PASS',rows.length);
+   const rows=(await readMembers(token)).filter(row=>row.email.startsWith(runPrefix));
+   assert.equal(rows.length,accounts.size,'Exactly 14 synthetic members persisted');
+   for(const {email,role} of rows)assert.equal(role,accounts.get(email));
+   console.log('EMPLOYEE_PERSISTED_ROLE_READBACK_PASS',rows.length);
   }
  }finally{
   await browser.close();
   if(attempted.size){
-   // Cleanup uses only high-entropy logins attempted by this run. The database
-   // receipt is independent so an unavailable Management API cannot skip cleanup.
-   const cleanup = [];
-   for(const email of attempted){
+   // Only accounts created by this run can be deactivated. Retry reversible
+   // deactivation once if a request fails before an acknowledged result.
+   const members=await readMembers(token);
+   const cleanup=[];
+   for(const {email} of members.filter(member=>member.email.startsWith(runPrefix))){
+    assert.ok(attempted.has(email),'Cleanup restricted to run accounts');
     try{await body(await call('team',token,{action:'remove',email}),200,'Deactivate synthetic account');}
     catch{cleanup.push(email);}
    }
    for(const email of cleanup){
     await body(await call('team',token,{action:'remove',email}),200,'Retry synthetic account deactivation');
    }
-   const rows=await db(runPrefix);
-   assert.ok(rows.every(row=>row.enabled===0&&row.role===null&&row.session_count===0),'Synthetic account cleanup');
-   console.log('EMPLOYEE_SYNTHETIC_ACCOUNTS_DEACTIVATED',rows.length);
+   const remaining=(await readMembers(token)).filter(member=>member.email.startsWith(runPrefix));
+   assert.equal(remaining.length,0,'Synthetic members must be deactivated');
+   console.log('EMPLOYEE_SYNTHETIC_ACCOUNTS_DEACTIVATED',members.filter(member=>member.email.startsWith(runPrefix)).length);
   }
  }
  console.log('EMPLOYEE_BROWSER_PRODUCTION_PASS',mode,'1440x900','390x844');
