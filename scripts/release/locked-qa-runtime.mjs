@@ -85,13 +85,53 @@ export async function attestQaApi(lock, proof, token, expectedDeployment, read =
   return {project: qaProject, function: qaFunction, id: metadata.id, version: metadata.version, bundle: metadata.ezbr_sha256};
 }
 
+
+// Canonical current runtime receipt, independent of historical shared-staging fields.
+export const stagingPairFile = 'active-runtime-pair.json';
+const stagingIdentityFiles = ['index.html','app.js','style.css','build-info.json','staging-manifest.json','site-status.json','release-status.json','staging-transport-20261111.js'];
+export function stagingIdentityAssets(frontend) {
+  return Object.fromEntries(stagingIdentityFiles.map(name=>[name,readFileSync(join(frontend,'test',name))]));
+}
+export function createStagingPair(lock,deployment,assets) {
+  const parse=name=>JSON.parse(assets[name].toString('utf8'));
+  const build=parse('build-info.json'), manifest=parse('staging-manifest.json'), site=parse('site-status.json'), release=parse('release-status.json');
+  const version=build.primaryBusinessVersion, assetBuild=build.stagingAssetBuildId;
+  requireCheck(/^[a-f0-9]{40}$/.test(lock.frontendSha)&&/^[a-f0-9]{40}$/.test(lock.backendSha),'STAGING_PAIR_SOURCE_INVALID');
+  requireCheck(build.environment==='staging'&&manifest.environment==='staging'&&site.environment==='staging'&&
+    /^SH-\d{2}\.\d{2}\.\d{2} v$/.test(version)&&manifest.primaryBusinessVersion===version&&site.release?.version===version&&release.version===version&&
+    /^[a-f0-9]{20}$/.test(assetBuild)&&build.version===assetBuild&&site.version===assetBuild,'STAGING_VERSION_METADATA_MISMATCH');
+  requireCheck(deployment.project===qaProject&&deployment.function===qaFunction&&/^[a-f0-9-]{36}$/.test(deployment.id)&&
+    Number.isSafeInteger(deployment.version)&&deployment.version>0&&sha64.test(deployment.bundle),'STAGING_PAIR_DEPLOYMENT_INVALID');
+  requireCheck(assets['staging-transport-20261111.js'].toString('utf8').includes('LOCKED_STAGING_ISOLATION_V1'),'STAGING_TRANSPORT_NOT_ISOLATED');
+  return {schemaVersion:1,environment:'staging',productionAuthorized:false,frontendSha:lock.frontendSha,backendSha:lock.backendSha,
+    sourceBusinessVersion:version,frontendAssetBuild:assetBuild,apiProject:deployment.project,apiFunction:deployment.function,
+    apiVersion:deployment.version,apiDeploymentId:[deployment.project,deployment.id,deployment.version].join('_'),apiBundleSha256:deployment.bundle,
+    assets:Object.fromEntries(stagingIdentityFiles.map(name=>[name,digest(assets[name])]))};
+}
+export const stagingPairBytes = pair=>Buffer.from(JSON.stringify(pair,null,2)+'\n');
+export async function verifyActiveStagingPair(frontend,lock,deployment,servedHashes,read=request) {
+  const assets=stagingIdentityAssets(frontend),pair=createStagingPair(lock,deployment,assets);
+  for(const name of ['index.html','app.js','style.css']) requireCheck(servedHashes[name]===pair.assets[name],'SERVED_STAGING_ASSET_MISMATCH:'+name);
+  const fetchBytes=async name=>{
+    const url=new URL(name,stagingUrl);url.searchParams.set('locked-qa',String(Date.now()));
+    return Buffer.from(await (await read(url)).arrayBuffer());
+  };
+  await Promise.all(stagingIdentityFiles.slice(3).map(async name=>{
+    requireCheck((await fetchBytes(name)).equals(assets[name]),'SERVED_STAGING_METADATA_MISMATCH:'+name);
+  }));
+  const receipt=await fetchBytes(stagingPairFile);
+  requireCheck(receipt.equals(stagingPairBytes(pair)),'SERVED_STAGING_ACTIVE_PAIR_MISMATCH');
+  return pair;
+}
+
 export async function attestRuntime(lock, frontend, proof, token, expectedDeployment) {
   checkoutSha(frontend, lock.frontendSha, {cleanPath: 'test'});
   const [deployment, servedHashes] = await Promise.all([
     attestQaApi(lock, proof, token, expectedDeployment),
     verifyServedAssets(frontend)
   ]);
-  return {...lock, function: qaFunction, version: deployment.version, bundle: deployment.bundle, deployment,
+  const activeRuntimePair = await verifyActiveStagingPair(frontend,lock,deployment,servedHashes);
+  return {...lock, function: qaFunction, version: deployment.version, bundle: deployment.bundle, deployment,activeRuntimePair,
     sourceCommit: lock.backendSha, qaEntrySha256: proof.entrySha256, qaInputSha256: proof.qaInputSha256,
     stagingUrl, servedHashes, observedAt: new Date().toISOString()};
 }
