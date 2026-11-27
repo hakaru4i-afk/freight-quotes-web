@@ -4,6 +4,7 @@ import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {digest, nextVersion, project, readCurrentSite, readLock, requireCheck, sha40, sha64, site, targetFunction, validId} from './locked-release.mjs';
 import {readSchemaVersion} from './locked-release-api.mjs';
+import {readReleaseNotes, releaseNotesFor, restoreReleaseHistory} from './locked-release-notes.mjs';
 import {readFiles, captureRoot, rootInventory, stagingFiles} from './locked-pages-assets.mjs';
 export {readFiles} from './locked-pages-assets.mjs';
 
@@ -29,11 +30,13 @@ export function publicationRecord(proof, actions, evidence, backup) {
   return {actions, evidence, backup: {runId: backup.runId, attempt: backup.attempt}};
 }
 
-export function bindPages(files, lock, proof, baseline, currentStatus, publication, now = new Date()) {
+export function bindPages(files, lock, proof, baseline, currentStatus, publication, now = new Date(), notes) {
   const releaseVersion = nextVersion(baseline.businessVersion);
   validateApiProof(lock, proof, releaseVersion);
   requireCheck(currentStatus?.release?.version === baseline.businessVersion && Array.isArray(currentStatus.releases),
     'CURRENT_RELEASE_HISTORY_MISMATCH');
+  const releaseNote = releaseNotesFor(notes, lock, releaseVersion);
+  const restoredHistory = restoreReleaseHistory(currentStatus.releases, notes);
   const build = digest(lock.frontendSha + lock.backendSha + releaseVersion).slice(0, 20);
   const read = name => files.get(name).toString('utf8');
   const readJson = name => JSON.parse(read(name));
@@ -70,14 +73,14 @@ export function bindPages(files, lock, proof, baseline, currentStatus, publicati
   }
 
   const date = new Intl.DateTimeFormat('en-CA', {timeZone: 'Europe/Minsk'}).format(now);
-  const record = {version: releaseVersion, date, title: 'Обновление Freight Quotes', changes: []};
+  const record = {...releaseNote, date};
   set('build-info.json', {...readJson('build-info.json'), environment: 'production', projectRef: project,
     releaseVersion, releaseDate: date, version: build, build, releaseStatus: 'PUBLISHED',
     frontendSourceCommit: lock.frontendSha, backendSourceCommit: lock.backendSha, backendApiVersion: proof.apiVersion,
     backendApiBundleSha256: proof.apiBundleSha256, apiFunction: proof.apiFunction});
-  set('release-status.json', {...readJson('release-status.json'), version: releaseVersion, date, status: 'released', changes: []});
+  set('release-status.json', {...readJson('release-status.json'), version: releaseVersion, date, status: 'released', title: record.title, changes: record.changes});
   set('site-status.json', {...currentStatus, environment: 'production', version: build, release: record,
-    releases: [record, ...currentStatus.releases]});
+    releases: [record, ...restoredHistory]});
   const manifest = {schemaVersion: 3, environment: 'production', publicationState: 'PUBLISHED',
     businessVersion: releaseVersion, frontendBuild: build, frontendSourceCommit: lock.frontendSha,
     backendSourceCommit: lock.backendSha, backendApiVersion: proof.apiVersion, apiFunction: proof.apiFunction,
@@ -195,7 +198,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         requireCheck(JSON.stringify(snapshot) === JSON.stringify(baseline), 'PRODUCTION_CHANGED_AFTER_ROLLBACK_SNAPSHOT');
         const actions = {runId: process.env.GITHUB_RUN_ID, attempt: process.env.GITHUB_RUN_ATTEMPT, workflowSha: process.env.GITHUB_SHA};
         const publication = publicationRecord(proof, actions, JSON.parse(process.env.RELEASE_EVIDENCE), JSON.parse(process.env.RELEASE_BACKUP));
-        const manifest = bindPages(files, lock, proof, baseline, status, publication);
+        const manifest = bindPages(files, lock, proof, baseline, status, publication, new Date(), readReleaseNotes());
         rootInventory(manifest);
         writePages(out, files);
       } else if (mode === 'snapshot') {
