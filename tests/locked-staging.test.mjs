@@ -44,3 +44,22 @@ test('all missing and changed root files are diagnosed, never substituted',async
  const raw=Buffer.from(JSON.stringify({environment:'production',publicationState:'PUBLISHED',assets:Object.fromEntries([...files].map(([n,b])=>[n,digest(b)]))}));
  await assert.rejects(captureRoot(async n=>{if(n==='production-release-manifest.json')return raw;if(n==='app.js')throw Error('HTTP_404:app.js');if(n==='style.css')return Buffer.from('different');return files.get(n)}),e=>e.message.includes('HTTP_404:app.js')&&e.message.includes('LIVE_ROOT_DIGEST_MISMATCH:style.css'));
 });
+
+test('canonical active staging pair distinguishes historical API metadata and binds exact source/asset/deployment identities',async()=>{
+ const {createStagingPair,stagingPairBytes}=await import('../scripts/release/locked-qa-runtime.mjs');
+ const {qaProject,qaFunction}=await import('../scripts/release/locked-release.mjs');
+ const lock={frontendSha:'a'.repeat(40),backendSha:'b'.repeat(40)},deployment={project:qaProject,function:qaFunction,id:'a'.repeat(8)+'-aaaa-aaaa-aaaa-'+'a'.repeat(12),version:54,bundle:'c'.repeat(64)};
+ const v='SH-01.30.59 v',id='d'.repeat(20),json=x=>Buffer.from(JSON.stringify(x));
+ const assets={'index.html':Buffer.from('index'),'app.js':Buffer.from('app'),'style.css':Buffer.from('css'),
+  'build-info.json':json({environment:'staging',primaryBusinessVersion:v,stagingAssetBuildId:id,version:id,sharedStagingRuntime:{version:115}}),
+  'staging-manifest.json':json({environment:'staging',primaryBusinessVersion:v,apiVersion:115}),
+  'site-status.json':json({environment:'staging',version:id,release:{version:v}}),'release-status.json':json({version:v}),
+  'staging-transport-20261111.js':Buffer.from('LOCKED_STAGING_ISOLATION_V1')};
+ const pair=createStagingPair(lock,deployment,assets);
+ assert.equal(pair.apiVersion,54);assert.equal(pair.backendSha,lock.backendSha);assert.equal(pair.frontendAssetBuild,id);
+ assert.equal(pair.productionAuthorized,false);assert.equal(Object.keys(pair.assets).length,8);
+ assert.notDeepEqual(stagingPairBytes(pair),stagingPairBytes(createStagingPair(lock,{...deployment,version:55},assets)));
+ assert.throws(()=>createStagingPair(lock,{...deployment,project:'production'},assets),/STAGING_PAIR_DEPLOYMENT_INVALID/);
+ assert.throws(()=>createStagingPair(lock,deployment,{...assets,'release-status.json':json({version:'SH-01.30.58 v'})}),/STAGING_VERSION_METADATA_MISMATCH/);
+ assert.throws(()=>createStagingPair(lock,deployment,{...assets,'site-status.json':json({environment:'staging',version:'e'.repeat(20),release:{version:v}})}),/STAGING_VERSION_METADATA_MISMATCH/);
+});
