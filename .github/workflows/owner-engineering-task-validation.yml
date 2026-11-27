@@ -13,16 +13,17 @@ jobs:
       (github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk')) &&
       (github.event.pull_request.head.repo.full_name == github.repository && (startsWith(github.head_ref, 'owner-task/') || github.head_ref == 'fix/owner-portal-one-click-release-20261122'))
     name: task-e2e
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
+          package-manager-cache: false
       - name: Syntax check changed JS modules
         shell: bash
         env:
@@ -62,7 +63,7 @@ jobs:
         run: npm install --no-save playwright@1.56.1
       - name: Install Chromium
         if: steps.scope.outputs.scope == 'full'
-        run: npx playwright install chromium
+        run: npx playwright install --with-deps chromium
       - name: Run source and local browser regressions, fail closed
         if: steps.scope.outputs.scope == 'full'
         shell: bash
