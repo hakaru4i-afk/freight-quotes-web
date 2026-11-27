@@ -6,6 +6,17 @@ import {project, readLock, readCurrentSite, requireCheck, sha64, targetFunction}
 
 const host = 'https://' + project + '.supabase.co/functions/v1/';
 
+// Assert the exact business contract on the candidate that will serve production.
+export function verifyEmployeeRoleCatalog(code) {
+  const route = code.split('  const route_team = (() => {')[1]?.split('  const route_tenders = (() => {')[0];
+  const declaration = route?.match(/const creatableRoles = Object\.freeze\((\[[^\n]+\])\);/);
+  requireCheck(declaration && route.includes('members: r.results, creatableRoles') &&
+    route.includes('!creatableRoles.includes(b.role)'), 'EMPLOYEE_ROLE_CATALOG_NOT_SHARED');
+  const roles = JSON.parse(declaration[1]);
+  requireCheck(roles.sort().join(',') === 'carrier,certification,content,designer,logistic,purchasing,supplier',
+    'EMPLOYEE_ROLE_CATALOG_INCOMPLETE');
+}
+
 export function prepareApi(source, workspace, lock, releaseVersion) {
   const slug = targetFunction(lock);
   requireCheck(/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(releaseVersion), 'INVALID_API_TARGET_RELEASE');
@@ -138,6 +149,7 @@ async function publishApi(source, work, resultPath, lock, releaseVersion, token)
   requireCheck(token, 'SUPABASE_RELEASE_CREDENTIAL_UNAVAILABLE');
   const schemaVersion = await readSchemaVersion(token);
   const slug = prepareApi(source, work, lock, releaseVersion);
+  verifyEmployeeRoleCatalog(readFileSync(join(work, 'supabase', 'functions', slug, 'index.ts'), 'utf8'));
   const management = 'https://api.supabase.com/v1/projects/' + project + '/functions/';
   const headers = {Authorization: 'Bearer ' + token};
   const signal = () => AbortSignal.timeout(12000);
