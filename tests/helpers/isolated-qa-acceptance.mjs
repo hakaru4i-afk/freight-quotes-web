@@ -5,6 +5,7 @@ import {createStagingPair, stagingIdentityAssets, stagingPairBytes} from '../../
 const uuid = /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
 export const tenderCheck = 'competitive_tender_step_final_protocol_and_role_guard';
 export const modeCheck = 'sea_air_multimodal_shipments_retain_actual_tracking_without_guessed_coordinates';
+export const sessionPolicyCheck = 'two_sessions_and_three_wrong_passwords';
 export const fixtureSummary = 'Synthetic API business acceptance';
 
 export function fixtureOrder(order, runId, kind) {
@@ -22,6 +23,77 @@ export function requireBusinessFixture(report, checkId, {runId, runAttempt, runt
   const check = report.checks.find(check => check.id === checkId);
   assert.equal(check?.status, 'PASS', `DATA_FIXTURE_ERROR:BUSINESS_CHECK_${checkId}`);
   return check.evidence;
+}
+
+export function requireAuditEvidenceContext(report, {runId, runAttempt, runtime}) {
+  assert.match(runId ?? '', /^\d+$/, 'AUDIT_RUN_ID_REQUIRED');
+  assert.match(runAttempt ?? '', /^[1-9]\d*$/, 'AUDIT_RUN_ATTEMPT_REQUIRED');
+  const identity = value => [value.frontendSha, value.backendSha, value.function, value.version, value.bundle];
+  assert.deepEqual([report.runId, report.runAttempt, ...identity(report.runtime ?? {})],
+    [runId, runAttempt, ...identity(runtime)], 'AUDIT_EVIDENCE_CONTEXT_MISMATCH');
+}
+
+export function assertQaSession({status, data}, role, label) {
+  assert.deepEqual([status, data?.authenticated, data?.role], [200, role !== null, role], label);
+}
+
+export function requireCertificationAuditEvidence(report, context) {
+  requireAuditEvidenceContext(report, context);
+  assert.equal(report.result, 'PASS', 'CERTIFICATION_AUDIT_BUSINESS_REPORT_FAILED');
+  assert.equal(report.checks.filter(check => check.id === sessionPolicyCheck).length, 1, 'CERTIFICATION_AUDIT_CHECK_NOT_UNIQUE');
+  const evidence = requireBusinessFixture(report, sessionPolicyCheck, context);
+  assert.equal(evidence?.oldSessionRevoked, true, 'CERTIFICATION_AUDIT_REVOCATION_MISSING');
+  const {before, after} = evidence.auditDenials ?? {};
+  const ids = [before?.sessionRequestId, before?.requestId, after?.sessionRequestId, after?.requestId];
+  for (const id of ids) assert.match(id ?? '', uuid, 'CERTIFICATION_AUDIT_REQUEST_ID_MISSING');
+  assert.equal(new Set(ids).size, ids.length, 'CERTIFICATION_AUDIT_REQUEST_ID_REUSED');
+  assert.ok(Array.isArray(report.calls), 'CERTIFICATION_AUDIT_CALLS_MISSING');
+  const calls = ids.map(id => {
+    const matches = report.calls.filter(call => call.requestId === id);
+    assert.equal(matches.length, 1, 'CERTIFICATION_AUDIT_REQUEST_NOT_UNIQUE');
+    const [call] = matches;
+    assert.deepEqual([call.actor, call.method], ['certification', 'GET'], 'CERTIFICATION_AUDIT_REQUEST_MISMATCH');
+    return call;
+  });
+  const [active, deniedActive, revoked, deniedRevoked] = calls;
+  assert.deepEqual([active.path, active.status, active.authenticated, active.role],
+    ['/api/session', 200, true, 'certification'], 'CERTIFICATION_AUDIT_ACTIVE_SESSION_MISMATCH');
+  assert.deepEqual([revoked.path, revoked.status, revoked.authenticated, revoked.role],
+    ['/api/session', 200, false, null], 'CERTIFICATION_AUDIT_REVOKED_SESSION_MISMATCH');
+  for (const denial of [deniedActive, deniedRevoked]) {
+    assert.deepEqual([denial.path, denial.status], ['/api/site-monitor', 403], 'CERTIFICATION_AUDIT_DENIAL_MISMATCH');
+  }
+  assert.deepEqual(report.calls.filter(call => call.actor === 'certification' && call.path === '/api/site-monitor').map(call => call.requestId),
+    [before.requestId, after.requestId], 'CERTIFICATION_AUDIT_DENIAL_ORDER');
+  assert.deepEqual(report.calls.filter(call => ids.includes(call.requestId)), calls, 'CERTIFICATION_AUDIT_REQUEST_ORDER');
+  return {before: before.requestId, after: after.requestId};
+}
+
+export function expectAuditRequest(required, id, expected) {
+  assert.match(id ?? '', uuid, 'AUDIT_REQUEST_ID_MISSING:' + expected.label);
+  assert.ok(!required.has(id), 'AUDIT_REQUEST_ID_REUSED:' + expected.label);
+  required.set(id, expected);
+}
+
+export function verifyAuditRecord(row, expected, actors) {
+  const {label} = expected;
+  const identity = expected.sessionState === 'revoked' ? {login: '', role: ''} : actors[expected.actor];
+  const detail = typeof row.detail === 'string' ? JSON.parse(row.detail) : row.detail;
+  assert.equal(row.actor, identity.login, label + ': actor');
+  assert.equal(row.role, identity.role, label + ': role');
+  assert.equal(row.source, 'server', label + ': source');
+  assert.equal(row.path, expected.path, label + ': path');
+  assert.equal(Number(row.status), expected.status, label + ': status');
+  assert.match(detail.reasonCode ?? '', /^[A-Z0-9_]+$/, label + ': reason');
+  if (expected.kind) assert.equal(row.kind, expected.kind, label + ': kind');
+  if (expected.reasonCode) assert.equal(detail.reasonCode, expected.reasonCode, label + ': reason code');
+  if (expected.action) assert.equal(row.action, expected.action, label + ': action');
+  if (expected.phase) assert.equal(detail.phase, expected.phase, label + ': phase');
+  if (expected.serverCode) assert.equal(detail.serverCode, expected.serverCode, label + ': server code');
+  if (expected.sessionState) assert.equal(detail.effectiveRole, identity.role || undefined, label + ': effective role');
+  return {label, role: row.role, path: row.path, status: Number(row.status), kind: row.kind,
+    reasonCode: detail.reasonCode, requestId: row.request_id,
+    ...(expected.sessionState ? {sessionState: expected.sessionState, actor: row.actor} : {})};
 }
 
 // Resolve only the API slug attested by the published manifest. Never forward to production.
