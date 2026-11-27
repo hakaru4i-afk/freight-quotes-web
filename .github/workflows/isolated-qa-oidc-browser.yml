@@ -220,9 +220,13 @@ jobs:
           QA_BROWSER_ACTORS: owner
           QA_BROWSER_TENDER: 'true'
         run: node tests/task12-isolated-browser.e2e.mjs
+      - name: Verify actual audit records for every QA cabinet and business operations
+        id: site_audit
+        run: node tests/site-audit-real.e2e.mjs
       - name: Require every independent acceptance result before declaring success
         if: always() && env.LOCKED_QA_DIR != ''
         env:
+          QA_RESULT_SITE_AUDIT: ${{ steps.site_audit.outcome }}
           QA_RESULT_SECURITY: ${{ steps.security.outcome }}
           QA_RESULT_OWNER_ALIGNMENT: ${{ steps.owner_alignment.outcome }}
           QA_RESULT_PRIVATE_DENIALS: ${{ steps.private_denials.outcome }}
@@ -257,6 +261,7 @@ jobs:
         with:
           name: isolated-qa-redacted-evidence-attempt-${{ github.run_attempt }}
           path: |
+            reports/isolated-rc/site-audit-real.json
             reports/isolated-rc/security-gate-real.json
             reports/isolated-rc/business-api-real.json
             reports/isolated-rc/business-fixture-preflight.json
