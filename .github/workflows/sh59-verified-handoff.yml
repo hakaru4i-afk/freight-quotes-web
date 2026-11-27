@@ -21,11 +21,12 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Check tested-source transfer rejects mismatched source, API and evidence
         run: node --test tests/prepare-tested-candidate.test.mjs
@@ -53,12 +54,13 @@ jobs:
       TESTED_FRONTEND_SHA: 6e0a465b2b031558989f62b38dc7939797434686
       TESTED_BACKEND_SHA: 092decf57d97fabdefa35bba0593890f52d34ef6
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: handoff-tooling
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Make GitHub CLI available on self-hosted Mac
         shell: bash
@@ -117,7 +119,7 @@ jobs:
         run: |
           set -euo pipefail
           gh api "repos/hakaru4i-afk/freight-quotes-web/actions/runs/$PROTECTED_RUN_ID" > verified-input/protected-run.json
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes-web
           ref: 6e0a465b2b031558989f62b38dc7939797434686
@@ -165,7 +167,7 @@ jobs:
           node handoff-tooling/scripts/release/check-sh59-staging-import.mjs \
             imported-staging/test tested-source "$handoff/sh59-tested-source-lock.json" \
             verified-output/sh59-isolated-staging-import.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: sh59-immutable-tested-source-handoff
           path: verified-output/

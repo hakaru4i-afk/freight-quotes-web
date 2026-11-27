@@ -20,9 +20,10 @@ jobs:
       QA_SCENARIO_STATE_DIR: /tmp/freight-carrier124-ci
       AXE_CORE_PATH: node_modules/axe-core/axe.min.js
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Restrict OIDC to protected main and known test scripts
         shell: bash
@@ -84,7 +85,7 @@ jobs:
             if [ "${!variable}" != success ]; then echo "CARRIER124_EXACT_V6_QA_INCOMPLETE:$variable=${!variable}"; exit 1; fi
           done
           echo 'CARRIER124_V6_FULL_WORKFLOW_PASS_NOT_PRODUCTION_DEPLOY'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: carrier124-v6-full-redacted-evidence

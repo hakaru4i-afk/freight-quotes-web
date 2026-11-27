@@ -23,12 +23,13 @@ jobs:
       name: github-pages
       url: https://hakaru4i-afk.github.io/freight-quotes-web/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: true
           fetch-depth: 1
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify strict owner intake and Center regression before publication
         shell: bash
@@ -52,13 +53,13 @@ jobs:
           echo PRODUCTION_API_OWNER_ROUTE_PROTECTED
       - name: Build updating notification and SH61 staging publication
         run: node scripts/release/sh61-publish.mjs updating
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: sh61-updating-pages
           path: .release-pages
       - name: Publish visible "Идёт обновление" notification
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: sh61-updating-pages
       - name: Verify interim notification is actually served
@@ -92,12 +93,12 @@ jobs:
           git commit -m "release(production): SH-01.30.61 v owner registers, CSS 36-to-1, status and manifest"
           git push origin HEAD:refs/heads/main
           echo SH61_PRODUCTION_METADATA_COMMITTED
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: sh61-final-pages
           path: .release-pages
       - name: Publish approved SH61 production files
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         with:
           artifact_name: sh61-final-pages
       - name: Verify final release and notification lifecycle

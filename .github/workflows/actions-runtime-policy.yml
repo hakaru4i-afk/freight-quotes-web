@@ -1,0 +1,63 @@
+name: GitHub Actions runtime policy
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: actions-runtime-policy-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  audit:
+    name: Audit GitHub Actions runtimes
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - name: Check approved runtimes and transitive metadata
+        run: |
+          python3 -m venv "$RUNNER_TEMP/actions-runtime"
+          "$RUNNER_TEMP/actions-runtime/bin/pip" install --require-hashes -r scripts/ci/actions-runtime-requirements.txt
+          "$RUNNER_TEMP/actions-runtime/bin/python" scripts/ci/check-actions-runtime.py --self-test
+          "$RUNNER_TEMP/actions-runtime/bin/python" scripts/ci/check-actions-runtime.py
+  artifacts:
+    name: Round-trip workflow and Pages artifacts
+    needs: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Create isolated samples
+        run: |
+          mkdir -p "$RUNNER_TEMP/sample-pages/test"
+          printf '%s\n' 'public root' > "$RUNNER_TEMP/sample-pages/index.html"
+          printf '%s\n' 'isolated staging' > "$RUNNER_TEMP/sample-pages/test/index.html"
+          printf '%s\n' 'excluded' > "$RUNNER_TEMP/sample-pages/.hidden"
+          printf '%s\n' 'workflow receipt' > "$RUNNER_TEMP/receipt.txt"
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: runtime-receipt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/receipt.txt
+          if-no-files-found: error
+          retention-days: 1
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: runtime-pages-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/sample-pages
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          pattern: runtime-*-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded-artifacts
+      - name: Verify receipt and Pages archive bytes
+        env:
+          ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          cmp "$RUNNER_TEMP/receipt.txt" "$RUNNER_TEMP/downloaded-artifacts/runtime-receipt-$ATTEMPT/receipt.txt"
+          mkdir "$RUNNER_TEMP/readback-pages"
+          tar -xf "$RUNNER_TEMP/downloaded-artifacts/runtime-pages-$ATTEMPT/artifact.tar" -C "$RUNNER_TEMP/readback-pages"
+          for path in index.html test/index.html; do
+            cmp "$RUNNER_TEMP/sample-pages/$path" "$RUNNER_TEMP/readback-pages/$path"
+          done
+          test ! -e "$RUNNER_TEMP/readback-pages/.hidden"
+          echo 'Workflow and Pages artifact bytes verified'

@@ -29,12 +29,13 @@ jobs:
     env:
       PORTAL_BACKEND_SHA: 63a61bb4ff67d81cfaa9579fb1f80f678acdebe2
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: true
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Check approved P0 source and fast tests (no heavy E2E or restore)
         shell: bash
@@ -61,11 +62,11 @@ jobs:
         run: node scripts/release/owner-ui-live-bootstrap.mjs
       - name: Build approved SH62 static release and metadata
         run: node scripts/release/sh62-finalize.mjs
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: .release-pages
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
       - name: Confirm production version and exact published P0 script
         shell: bash
         run: |

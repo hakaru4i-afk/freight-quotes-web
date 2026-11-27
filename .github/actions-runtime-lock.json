@@ -1,0 +1,50 @@
+{
+  "actions/attest-build-provenance/predicate@864457a58d4733d7f1574bd8821fa24e02cf7538": {
+    "path": "predicate/action.yml",
+    "sha256": "7c768aff7de1e4404e658d89d4541bbece24709a7ba46c9b2bea01441670b7d9"
+  },
+  "actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a": {
+    "path": "action.yml",
+    "sha256": "70468c90d247618b7ffad979b5b9db08caabb8f0566e6443b29c502c96af15bf"
+  },
+  "actions/attest@daf44fb950173508f38bd2406030372c1d1162b1": {
+    "path": "action.yml",
+    "sha256": "f83833dbde4404cb0c2589219a683be4913ad2251ccf17132f706689da9b6190"
+  },
+  "actions/cache@caa296126883cff596d87d8935842f9db880ef25": {
+    "path": "action.yml",
+    "sha256": "c04edf35104c16c8944076df01561748bac9cd10941417e467a236e508e52dda"
+  },
+  "actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09": {
+    "path": "action.yml",
+    "sha256": "d59219cb79590abdb877deaa14e3b65a00c05318bf5a6f3b989b9162b5d08c35"
+  },
+  "actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d": {
+    "path": "action.yml",
+    "sha256": "55f1486ae3901c69be182cea1c1e3313954c78be626751a85b19ddaf14ae8da6"
+  },
+  "actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346": {
+    "path": "action.yml",
+    "sha256": "64c44539fba53559a157b5de16c01d3ab91dbc999c1b98b5c0b2fc3528d5d059"
+  },
+  "actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131": {
+    "path": "action.yml",
+    "sha256": "834f2e0884ebc4b61150ecb61b3538786ee2f9e9910740a74463246268db3bd2"
+  },
+  "actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444": {
+    "path": "action.yml",
+    "sha256": "ecb4d4624961e84f02739e223d2e947f2e95c28407d7b811ee71caf118d7ba09"
+  },
+  "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f": {
+    "path": "action.yml",
+    "sha256": "3760874f860e631be3d785d0589ade7cecb541eeac6f581989a814a2c99fc94f"
+  },
+  "actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f": {
+    "path": "action.yml",
+    "sha256": "c5979822866a72362e609844b6ebe77d4b7e759af68cc1c2c425dcf51481fab4"
+  },
+  "actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9": {
+    "path": "action.yml",
+    "sha256": "f84e759011e0c497e696f5bce4ebb5fbe9bbdc5aea309b73795283fa139c1558"
+  }
+}
