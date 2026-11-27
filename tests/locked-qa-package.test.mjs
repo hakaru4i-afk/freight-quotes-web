@@ -115,7 +115,7 @@ test('browser and backend evidence reuse staged package bytes without compiling 
   assert.doesNotMatch(e2e, /esbuild|locked-qa-runtime\.mjs build|prepare-api/);
   assert.doesNotMatch(read('locked-backend-regression.yml'), /locked-qa-runtime\.mjs build|prepare-api/);
   const staging = read('locked-qa-staging.yml');
-  assert.match(staging, /MAC_QA_GH_UNAVAILABLE/);
+  assert.match(staging, /QA_GH_UNAVAILABLE/);
   assert.match(staging, /locked-staging-attestation-attempt-/);
   assert.match(staging, /path: locked-staging-attestation\.json/);
   assert.match(e2e, /name: isolated-qa-redacted-evidence-attempt-\$\{\{ github\.run_attempt \}\}/);
@@ -149,4 +149,25 @@ test('backend receipt CLI terminates successfully and binds a fresh report witho
   assert.equal(receipt.runId,'123');
   assert.equal(receipt.attempt,'1');
   assert.throws(() => execFileSync(process.execPath, [new URL('../scripts/release/locked-evidence-run.mjs', import.meta.url).pathname, 'backend', candidate, report, output], {cwd:work, env:{...env,GITHUB_ACTOR:'not-owner'}, timeout:15000, stdio:'pipe'}), /PROTECTED_MAIN_EVIDENCE_REQUIRED/);
+});
+
+
+test('locked staging and portable evidence use independent hosted Linux runners without relaxing release proof',()=>{
+ const read=name=>readFileSync(new URL('../.github/workflows/'+name,import.meta.url),'utf8');
+ const staging=read('locked-qa-staging.yml'), backend=read('locked-backend-regression.yml'), frontend=read('release-stabilization.yml');
+ for(const source of [staging,backend,frontend]){
+  assert.doesNotMatch(source,/runs-on:.*(?:self-hosted|macOS)/);
+  assert.match(source,/runs-on: ubuntu-24\.04/);
+ }
+ assert.match(staging,/inputs\.confirmation == 'STAGING ONLY'/);
+ assert.match(staging,/owner-portal-production-release/);
+ assert.match(staging,/verify-root/);
+ assert.match(staging,/verify-api/);
+ assert.match(backend,/schema-transition:[\s\S]*?runs-on: ubuntu-24\.04-arm/);
+ assert.match(backend,/test "\$\(uname -m\)" = aarch64/);
+ assert.match(backend,/docker pull postgres@sha256:/);
+ assert.match(backend,/python3 tests\/schema-transition-rehearsal\.py/);
+ assert.match(backend,/python3 -m unittest discover/);
+ assert.match(frontend,/npx playwright install --with-deps chromium/);
+ assert.match(frontend,/node --test --test-concurrency=3/);
 });

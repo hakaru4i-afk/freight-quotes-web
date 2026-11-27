@@ -10,22 +10,20 @@ jobs:
   regression:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     defaults:
       run:
         working-directory: candidate
     steps:
-      - name: Verify isolated free macOS QA runner
+      - name: Verify isolated GitHub-hosted Linux QA runner
         working-directory: .
         shell: bash
         run: |
           set -euo pipefail
-          test "$RUNNER_OS" = macOS
-          test "$(uname -m)" = arm64
-          test "$(id -un)" = freight-qa
-          test "$HOME" = /Users/freight-qa
-          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+          test "$RUNNER_OS" = Linux
+          test "${{ runner.environment }}" = github-hosted
+          echo GITHUB_HOSTED_LINUX_QA
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
@@ -56,7 +54,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify complete source checkout on reused Mac runner
+      - name: Verify complete source checkout and exact SHA
         env:
           LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
         shell: bash
@@ -80,22 +78,20 @@ jobs:
   backup-safety:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
     defaults:
       run:
         working-directory: candidate
     steps:
-      - name: Verify isolated free macOS QA runner
+      - name: Verify isolated GitHub-hosted Linux QA runner
         working-directory: .
         shell: bash
         run: |
           set -euo pipefail
-          test "$RUNNER_OS" = macOS
-          test "$(uname -m)" = arm64
-          test "$(id -un)" = freight-qa
-          test "$HOME" = /Users/freight-qa
-          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+          test "$RUNNER_OS" = Linux
+          test "${{ runner.environment }}" = github-hosted
+          echo GITHUB_HOSTED_LINUX_QA
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
@@ -126,7 +122,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify complete source checkout on reused Mac runner
+      - name: Verify complete source checkout and exact SHA
         env:
           LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
         shell: bash
@@ -150,22 +146,20 @@ jobs:
   schema-transition:
     if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.ref == 'refs/heads/main' && github.actor == 'hakaru4i-afk' && github.triggering_actor == 'hakaru4i-afk'
     environment: isolated-qa
-    runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 10
     defaults:
       run:
         working-directory: candidate
     steps:
-      - name: Verify isolated free macOS QA runner
+      - name: Verify isolated GitHub-hosted Linux QA runner
         working-directory: .
         shell: bash
         run: |
           set -euo pipefail
-          test "$RUNNER_OS" = macOS
-          test "$(uname -m)" = arm64
-          test "$(id -un)" = freight-qa
-          test "$HOME" = /Users/freight-qa
-          echo SELF_HOSTED_MAC_QA_NO_GITHUB_HOSTED_MINUTES
+          test "$RUNNER_OS" = Linux
+          test "${{ runner.environment }}" = github-hosted
+          echo GITHUB_HOSTED_LINUX_QA
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
@@ -196,7 +190,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify complete source checkout on reused Mac runner
+      - name: Verify complete source checkout and exact SHA
         env:
           LOCKED_BACKEND_SHA: ${{ steps.lock.outputs.backend }}
         shell: bash
@@ -219,16 +213,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: '24'
-      - name: Start isolated Colima Docker engine for synthetic PostgreSQL only
+      - name: Verify isolated ARM64 Docker engine for synthetic PostgreSQL only
         shell: bash
         run: |
           set -euo pipefail
-          command -v colima >/dev/null || { echo '::error::COLIMA_BINARY_MISSING'; exit 1; }
-          if ! docker info >/dev/null 2>&1; then
-            colima start --cpu 2 --memory 4
-          fi
+          test "$(uname -m)" = aarch64
           docker info >/dev/null
-          echo 'COLIMA_SYNTHETIC_POSTGRES_READY'
+          echo 'HOSTED_SYNTHETIC_POSTGRES_READY'
       - name: Fetch pinned synthetic PostgreSQL runtime
         run: docker pull postgres@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
       - name: Rebuild and verify reviewed migration
