@@ -29,6 +29,25 @@ const serviceNames={
   '/api/access':'управление полномочиями',
   '/api/site-monitor':'журнал действий',
   '/api/portal-feedback':'сообщения и предложения',
+  '/api/owner-register-execution':'Центр доработок и приёмка',
+  '/api/engineering-registers':'инженерные реестры',
+  '/api/process-models':'модели бизнес-процессов',
+  '/api/support-requests':'обращения в поддержку',
+  '/api/partner-inquiries':'обращения партнёров',
+  '/api/partner-inquiries/attachments':'вложения обращений партнёров',
+  '/api/transport-files':'транспортные файлы',
+  '/api/shipment-execution':'исполнение перевозки',
+  '/api/shipment-booking':'бронирование перевозки',
+  '/api/fulfillment':'исполнение обязательств',
+  '/api/late-bid-drafts':'черновики поздних ставок',
+  '/api/pending-tasks':'рабочие задачи',
+  '/api/offer-analysis':'анализ предложений',
+  '/api/session':'проверка сеанса',
+  '/api/site-events':'события интерфейса',
+  '/api/reports':'отчёты',
+  '/api/decline':'отказ от участия',
+  '/api/request-status':'статус заявки',
+  '/api/sla':'сроки и качество обслуживания',
   'Работа сайта':'журнал действий',
   'Перевозки':'перевозки и движение грузов',
   'Заявки':'заявки на перевозку',
@@ -96,6 +115,38 @@ const knownEventFamilies=[
 ];
 
 const safe=v=>String(v??'').trim();
+const roleNames={owner:'Владелец',logistic:'Логист / ВЭД',carrier:'Перевозчик',supplier:'Поставщик',designer:'Дизайнер',content:'Контент',purchasing:'Закупки',certification:'Сертификация'};
+const serverReasons={
+ PUBLICATION_NOT_VERIFIED:'Сервер не подтвердил доказательство публикации.',
+ PUBLICATION_PROOF_UNAVAILABLE:'Сервер не смог получить доказательство публикации.',
+ TASK_EXECUTION_NOT_LINKED:'Задача не связана с зарегистрированным выполнением.',
+ TASK_NOT_ACTIVE:'Задача не находится в допустимом активном состоянии.',
+ TASK_LINK_NOT_FOUND:'Связь с зарегистрированной задачей не найдена.',
+ TASK_STATUS_CHANGED:'Состояние задачи изменилось.',
+ TASK_CLOSED:'Задача уже закрыта.',
+ TASK_NOT_READY:'Задача не готова к следующему этапу.',
+ EXPLICIT_SCOPE_ACCEPTANCE_REQUIRED:'Не подтверждены объём приёмки и остаточные риски.',
+ HISTORICAL_RECORD:'Историческая запись не допускает эту операцию.',
+ OWNER_ONLY:'Операция разрешена только владельцу.',
+ INVALID_ACTION:'Сервер не распознал действие.',
+ INVALID_BODY:'Неверная структура запроса.',
+ INVALID_JSON:'Не удалось разобрать JSON запроса.',
+ TOO_LARGE:'Превышен допустимый размер.',
+ METHOD_NOT_ALLOWED:'Этот HTTP-метод не разрешён.',
+ REGIONAL_EXECUTION_UNAVAILABLE:'Не удалось выполнить запрос в требуемом регионе.'
+};
+const phaseNames={handler:'Обработка запроса',access_denied:'Проверка доступа',early_denial:'Отказ до обработчика',transaction_rollback:'Откат транзакции',post_commit_error:'Ошибка после сохранения',post_commit_pending:'Ожидается завершение после сохранения'};
+function applyObservedDetails(result,event){
+ if(event.source!=='server')return result;
+ const code=safe(event.serverCode),phase=safe(event.phase);
+ if(Object.hasOwn(serverReasons,code))result.why=serverReasons[code];
+ if(phase==='transaction_rollback')result.outcome='Транзакция откатилась: изменения в рамках этой транзакции не сохранены.';
+ if(phase==='post_commit_error')result.outcome='Транзакция уже зафиксирована, но последующая обработка завершилась ошибкой. Не повторяйте действие автоматически.';
+ if(phase==='post_commit_pending')result.outcome='Транзакция сохранена; последующая очистка файлов ещё выполняется.';
+ const actual=roleNames[event.role],effective=roleNames[event.effectiveRole];
+ if(actual&&effective&&event.role!==event.effectiveRole)result.origin='Фактическая роль: '+actual+'. Роль просматриваемого кабинета: '+effective+'. Запись не доказывает, что запрос был инициирован вручную.';
+ return result;
+}
 const serviceFor=path=>serviceNames[path]||(/^\/api\/[a-z0-9/-]+$/.test(path)?'функцию портала':'раздел портала');
 export function explainAuditEvent(event){
  const path=safe(event.path),status=Number(event.status||0),kind=event.kind||'';
@@ -104,7 +155,7 @@ export function explainAuditEvent(event){
  const operation=actionNames[action]||('операция «'+(action||'не указана')+'»');
  const targetText=target?' по заявке/объекту '+target:'';
  const result={title:'Обращение к разделу «'+service+'»',where:'Раздел: '+service,what:'Запрос: '+operation+targetText,why:'Точная причина не указана в сохранённой записи.',outcome:'Результат требует проверки.',origin:'По этой записи нельзя установить, нажимал ли пользователь кнопку вручную.'};
- if(path==='/api/test-cabinets'&&status===403){
+ if(path==='/api/test-cabinets'&&status===403&&!event.reasonCode){
    result.title='Автоматический запрос списка кабинетов владельца';
    result.what='При загрузке страницы прежний интерфейс запросил служебный список кабинетов, доступный только владельцу.';
    result.why='Список доступен только владельцу. Сотрудник с другой ролью не имеет права получать его.';
@@ -163,12 +214,20 @@ export function explainAuditEvent(event){
    result.title='Выход из кабинета';
    result.why='Запрос выхода принят.';
    result.outcome='Сеанс завершён.';
- }else if(status>0&&status<400){
+ }else if(status===202){
+   result.title='Запрос принят к дальнейшей обработке — «'+service+'»';
+   result.why='Сервер принял запрос, но ещё не подтвердил завершение.';
+   result.outcome='Операция ожидает завершения; HTTP 202 не означает готовый бизнес-результат.';
+ }else if(status>=300&&status<400){
+   result.title='Перенаправление запроса — «'+service+'»';
+   result.why='Сервер направил запрос дальше.';
+   result.outcome='Окончательный бизнес-результат этой записью не подтверждён.';
+ }else if(status>0&&status<300){
    result.title='Запрос к разделу «'+service+'» выполнен';
    result.why='Сервер обработал запрос без ошибки.';
    result.outcome='Сервер ответил успешно; подтверждение бизнес-результата проверяется отдельно.';
  }
- return result;
+ return applyObservedDetails(result,event);
 }
 function logRow(row){
  if(row.dataset.ownerAuditExplained==='1')return;
@@ -179,9 +238,11 @@ function logRow(row){
  if(!title||!details)return;
  const paras=[...details.querySelectorAll(':scope > p')];
  const http=paras.map(p=>p.textContent).find(x=>/^HTTP \d{3}$/.test(x||''));
- const path=safe(section?.textContent),kind=kindLabels[safe(title.textContent)]||'';
- const event={kind,path,action:safe(paras[0]?.textContent),status:http?Number(http.slice(5)):0,
-  target:safe(paras[1]?.textContent&&!/^HTTP \d{3}$/.test(paras[1].textContent)?paras[1].textContent:'')};
+ const path=safe(row.dataset.siteAuditPath||section?.textContent),kind=row.dataset.siteAuditKind||kindLabels[safe(title.textContent)]||'';
+ const target=details.querySelector('[data-site-audit-target]')?.textContent||((paras[1]?.textContent&&!/^(?:HTTP \d{3}$|ID:)/.test(paras[1].textContent))?paras[1].textContent:'');
+ const event={kind,path,action:safe(paras[0]?.textContent),status:http?Number(http.slice(5)):0,target:safe(target),
+  source:row.dataset.siteAuditSource,role:row.dataset.siteAuditRole,effectiveRole:row.dataset.siteAuditEffectiveRole,
+  reasonCode:row.dataset.siteAuditReasonCode,serverCode:row.dataset.siteAuditServerCode,phase:row.dataset.siteAuditPhase};
  // The original row (including method, HTTP code, ID and raw path) remains intact.
  const note=explainAuditEvent(event);
  const summary=document.createElement('div');
@@ -207,6 +268,23 @@ function logRow(row){
  technical.className='ow-audit-technical-line';
  technical.textContent='Исходная запись: '+path+(event.action?' · '+event.action:'')+(http?' · '+http:'');
  details.append(technical);
+ if(event.source==='server'){
+   const facts=[
+     ['Код HTTP-результата',event.reasonCode],
+     ['Причина сервера',event.serverCode],
+     ['Этап',phaseNames[event.phase]],
+     ['Фактическая роль',roleNames[event.role]],
+     ['Роль кабинета',roleNames[event.effectiveRole]]
+   ];
+   for(const [label,value] of facts){
+     if(!value)continue;
+     if(label.startsWith('Код')||label==='Причина сервера')if(!/^[A-Z0-9_]{1,80}$/.test(value))continue;
+     const p=document.createElement('p');
+     p.className='ow-audit-technical-line';
+     p.textContent=label+': '+value;
+     details.append(p);
+   }
+ }
  row.dataset.ownerAuditExplained='1';
 }
 function apply(){
@@ -223,7 +301,7 @@ function apply(){
    heading.textContent='Какие события бывают и что фиксируется';
    details.append(heading);
    const disclaimer=document.createElement('p');
-   disclaimer.textContent='Это перечень событий для полного аудита. Появление категории здесь не означает, что сервер уже сохраняет каждое событие. Фильтр выше работает только с фактически записанными типами.';
+   disclaimer.textContent='Сервер фиксирует результат обращений к зарегистрированным API, действия и ошибки, а также скачивания. Успешный фоновый опрос и неизвестные пути не дублируются. Категория сама по себе не доказывает, что конкретное действие совершено.';
    details.append(disclaimer);
    const list=document.createElement('ul');
    for(const [name,examples] of knownEventFamilies){

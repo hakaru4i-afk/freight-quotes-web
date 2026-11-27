@@ -37,3 +37,24 @@ test("existing audit is preserved and security gateway untouched",()=>{
  assert.match(ui,/details\.append\(technical\)/);
  assert.match(ui,/ownerAuditExplained/);
 });
+
+test('new server evidence preserves exact causes, rollback and actual preview role',()=>{
+ const event=explainAuditEvent({source:'server',kind:'validation',path:'/api/owner-register-execution',action:'accept_published',status:409,reasonCode:'STATE_CONFLICT',serverCode:'PUBLICATION_NOT_VERIFIED',phase:'transaction_rollback',role:'owner',effectiveRole:'logistic'});
+ assert.match(event.why,/не подтвердил доказательство публикации/);
+ assert.match(event.outcome,/откатилась/);
+ assert.match(event.origin,/Владелец.*ВЭД/);
+ const pending=explainAuditEvent({source:'server',path:'/api/requests',status:202,phase:'post_commit_pending'});
+ assert.match(pending.outcome,/ещё выполняется/);
+ assert.doesNotMatch(pending.outcome,/полностью завершена/);
+ const rejected=explainAuditEvent({source:'server',path:'/api/test-cabinets',status:403,reasonCode:'ACCESS_DENIED'});
+ assert.doesNotMatch(rejected.title,/Автоматический запрос/);
+ const unknown=explainAuditEvent({source:'server',path:'/api/quote',status:409,serverCode:'UNTRUSTED_SECRET'});
+ assert.doesNotMatch(JSON.stringify(unknown),/UNTRUSTED_SECRET/);
+});
+test('both bundles pass the actual route and observed details to the existing Owner table',()=>{
+ for(const name of ['app.js','test/app.js']){
+  const app=readFileSync(name,'utf8');
+  for(const key of ['path','kind','source','role','reason-code','server-code','phase','effective-role','target'])assert.ok(app.includes('data-site-audit-'+key),name+': '+key);
+  assert.ok(app.includes('S.status===202?"Ожидает завершения"'));
+ }
+});
