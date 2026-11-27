@@ -13,7 +13,8 @@ on:
       confirmation:
         description: 'Staging only; no production release authorization'
         type: choice
-        options: ['STAGING ONLY']
+        options: ['CANCEL', 'STAGING ONLY']
+        default: 'CANCEL'
         required: true
 permissions:
   contents: read
