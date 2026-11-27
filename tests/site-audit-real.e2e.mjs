@@ -52,10 +52,11 @@ for(const [label,path,actor] of [['request','/api/requests','owner'],['offer','/
  if(!c)throw Error('AUDIT_BUSINESS_PROBE_MISSING:'+label);
  expect(c.requestId,{label,actor,path,status:c.status,kind:'action'});
 }
-const download=calls.find(c=>c.path==='/api/documents/file'&&c.method==='GET'&&c.status===200&&uuid.test(c.requestId||''));
-if(download)expect(download.requestId,{label:'document-download',actor:download.actor,path:download.path,status:200,action:'download'});
-// Existing suites may use a direct fetch for downloads rather than the shared recorder;
-// never manufacture a receipt from that untracked call.
+for(const [label,path] of [['document-download','/api/documents/file'],['task2-download','/api/task2']]){
+ const c=calls.find(c=>c.path===path&&c.download===true&&c.method==='GET'&&c.status===200&&uuid.test(c.requestId||''));
+ if(!c)throw Error('AUDIT_DOWNLOAD_PROBE_MISSING:'+label);
+ expect(c.requestId,{label,actor:c.actor,path,status:200,action:'download'});
+}
 const evidence=[];let cursor='';
 for(let page=0;page<100&&required.size;page++){
  const q=new URLSearchParams({since:auth.startedAt,until:new Date().toISOString(),...(cursor?{cursor}:{})});
