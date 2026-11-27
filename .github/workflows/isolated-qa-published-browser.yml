@@ -2,7 +2,8 @@ name: Isolated QA published role browser
 on:
   workflow_dispatch:
 concurrency:
-  group: task12-staging-observer
+  # Hold the same lease as staging and production publication throughout QA.
+  group: owner-portal-production-release
   cancel-in-progress: false
 permissions:
   contents: read
