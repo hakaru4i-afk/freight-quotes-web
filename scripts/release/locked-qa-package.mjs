@@ -36,6 +36,30 @@ export function verifyQaPackageProof(proof, lock, inputSha256) {
   return proof;
 }
 
+// Both the business transaction and every detached audit transaction must run
+// with the isolated role before any database access. Only the reviewed layouts
+// are supported; a new transaction or misplaced search path fails closed.
+export function isolateQaTransactions(code) {
+  const search = 'await tx.unsafe(searchPathStatement(DATA_SCHEMA));';
+  const role = 'await tx.unsafe("SET LOCAL ROLE freight_qa_' + qaRun + '_runner");';
+  const normal = 'await sql.begin(async (tx) => {\n      ' + search;
+  const pending = 'await sql.begin(async tx=>{\n        ' + search + '\n        await auditDetachedResponse(tx,req,pending,requestId,';
+  const rollback = 'await sql.begin(async tx=>{\n        ' + search + '\n        await auditDetachedResponse(tx,req,errorResponse,requestId,';
+  const legacy = 'await sql.begin(async (tx) => {\n        const token';
+  const count = (source, needle) => source.split(needle).length - 1;
+  const modern = [normal,pending,rollback];
+  const old = [normal,legacy];
+  const valid = anchors => anchors.every(a => count(code,a) === 1) &&
+    (code.match(/\bsql\s*\.\s*begin\s*\(/g) || []).length === anchors.length;
+  const isModern = valid(modern) && count(code,search) === 3 && count(code,legacy) === 0;
+  const isLegacy = valid(old) && count(code,search) === 1;
+  requireCheck(!code.includes('SET LOCAL ROLE') && (isModern || isLegacy), 'UNREVIEWED_ISOLATED_API_TRANSFORMATION');
+  code = code.replaceAll(search, role + '\n      ' + search);
+  if (isLegacy) code = code.replace(legacy, 'await sql.begin(async (tx) => {\n        ' + role + '\n        const token');
+  requireCheck(count(code,role) === (isModern ? 3 : 2), 'ISOLATED_QA_ROLE_INJECTION_MISMATCH');
+  return code;
+}
+
 function prepareQaApi(source, out, lock) {
   const directory = join(source, 'src/transport-application');
   mkdirSync(out);
@@ -55,11 +79,7 @@ function prepareQaApi(source, out, lock) {
   replace('var API_FUNCTION = "freight-api";', 'var API_FUNCTION = "' + qaFunction + '";');
   replace('var QA_RUN = "";', 'var QA_RUN = "' + qaRun + '";');
   code = code.replaceAll('freight.', 'freight_qa_' + qaRun + '.');
-  const role = 'await tx.unsafe("SET LOCAL ROLE freight_qa_' + qaRun + '_runner");';
-  replace('await tx.unsafe(searchPathStatement(DATA_SCHEMA));',
-    role + '\n      await tx.unsafe(searchPathStatement(DATA_SCHEMA));');
-  replace('await sql.begin(async (tx) => {\n        const token',
-    'await sql.begin(async (tx) => {\n        ' + role + '\n        const token');
+  code = isolateQaTransactions(code);
   replace('service: "freight-quotes", release: SOURCE_BUILD,', 'service: "freight-quotes", release: SOURCE_BUILD,' +
     ' backendSha: ' + JSON.stringify(lock.backendSha) + ', deploymentId: Deno.env.get("DENO_DEPLOYMENT_ID"),');
   writeFileSync(entry, code);
