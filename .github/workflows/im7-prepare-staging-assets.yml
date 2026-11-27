@@ -1,0 +1,64 @@
+name: IM7 regenerate staging asset provenance (branch only)
+on:
+  push:
+    branches: [fix/im7-staging-asset-provenance]
+    paths: [.github/workflows/im7-prepare-staging-assets.yml]
+permissions:
+  contents: write
+concurrency:
+  group: im7-prepare-staging-assets
+  cancel-in-progress: false
+jobs:
+  prepare:
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/fix/im7-staging-asset-provenance'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-node@v5
+        with:
+          package-manager-cache: false
+          node-version: '24'
+      - name: Regenerate reviewed staging assets and maps
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = fix/im7-staging-asset-provenance
+          node scripts/stamp-staging-rc.mjs --write
+          node scripts/build-process-maps.mjs --record-reviewed-sources
+          node scripts/stamp-staging-rc.mjs --check
+          node scripts/build-process-maps.mjs --check
+          git diff --check
+          git diff --name-only | while IFS= read -r file; do
+            case "$file" in
+              test/app.js|test/index.html|test/build-info.json|test/site-status.json|test/business-process-model.json|test/process-map.html|test/business-process-current.drawio|test/business-process-current.svg|test/processes/*|test/process-history/*|test/process-editor-20261111.mjs|test/process-model-diff.mjs|test/global-view/*.mjs) ;;
+              *) echo "Unexpected generated file: $file"; exit 1;;
+            esac
+          done
+      - name: Verify staging asset metadata and Owner process controls
+        run: node --test tests/staging-asset-contract.test.mjs tests/owner-process-control-ui.test.mjs
+      - name: Commit only reviewed staging output and refresh candidate source provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF" = refs/heads/fix/im7-staging-asset-provenance
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- test
+          git diff --cached --check
+          git commit -m 'build(staging): regenerate IM7 candidate assets and diagrams'
+          test -z "$(git status --porcelain --untracked-files=no)"
+          # npm/browser artifacts must never enter the source attestation.
+          clean=$(mktemp -d)
+          git worktree add --detach "$clean" HEAD
+          trap 'git worktree remove --force "$clean"' EXIT
+          test -z "$(git -C "$clean" status --porcelain)"
+          (cd "$clean" && node scripts/release/refresh-pr157-staging-manifest.mjs --stdout) > $RUNNER_TEMP/im7-manifest.json
+          cp $RUNNER_TEMP/im7-manifest.json test/staging-manifest.json
+          node --input-type=module -e 'import {readFileSync} from "node:fs";const m=JSON.parse(readFileSync("test/staging-manifest.json"));if(m.releaseStatus!=="RELEASE_BLOCKED"||m.runtimePairStatus!=="UNVERIFIED"||m.apiSourceCommit!==null||m.apiBundleSha256!==null)throw Error("UNSAFE_CANDIDATE_PROVENANCE");'
+          git add -- test/staging-manifest.json
+          git commit -m 'chore(staging): attest source assets without claiming new API evidence'
+          git push origin HEAD:refs/heads/fix/im7-staging-asset-provenance
