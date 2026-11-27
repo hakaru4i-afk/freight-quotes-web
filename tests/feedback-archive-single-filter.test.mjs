@@ -33,3 +33,22 @@ test('closed tasks do not display old development progress or handoff; published
 test('switching filters clears an invisible selection',()=>{
  assert.match(source,/statusFilter=ev.target.value;if\(!visibleFeedbackItems\(\).some\(i=>i.id===selected\)\)selected='';render\(\);/);
 });
+
+test('backend PR evidence is visible without making a partial task ready for release',()=>{
+ const first=source.indexOf('const taskStatusLabels='),last=source.indexOf('const readinessReasonKeys=',first);
+ assert.ok(first>=0&&last>first);
+ const e={status:'merged',number:158,headSha:'a'.repeat(40),merged:true,checks:{passed:5,total:5,pending:0,other:0}};
+ for(const lang of ['ru','en','zh']){
+  const ctx={byLang:lang,esc:String};
+  runInNewContext(source.slice(first,last)+';globalThis.markup=backendEvidenceMarkup;globalThis.statusText=taskStatusText;',ctx);
+  const execution={step:'branch_awaiting_codex',progress:0,checksPassed:false,backendEvidence:e};
+  assert.match(ctx.markup(execution),/https:\/\/github\.com\/hakaru4i-afk\/freight-quotes\/pull\/158/);
+  assert.match(ctx.markup(execution),/5\/5/);
+  assert.notEqual(ctx.statusText(execution),ctx.statusText({...execution,backendEvidence:null}));
+  assert.equal(ctx.markup({...execution,backendEvidence:{...e,number:'<script>'}}),'');
+  assert.doesNotMatch(ctx.markup({...execution,backendEvidence:{...e,checks:{passed:5,total:2,pending:0,other:0}}}),/5\/2/);
+  assert.equal(ctx.markup({}), '');
+  assert.match(ctx.markup({backendEvidence:{status:'unavailable'}}),/Backend/);
+ }
+ assert.match(source,/esc\(progressText\)\+'<\/p>'\+backendEvidenceMarkup\(execution\)/);
+});
