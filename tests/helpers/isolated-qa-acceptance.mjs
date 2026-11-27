@@ -23,6 +23,21 @@ export function requireBusinessFixture(report, checkId, {runId, runAttempt, runt
   return check.evidence;
 }
 
+// Resolve only the API slug attested by the published manifest. Never forward to production.
+export function previousUiApiPath(url, publishedSlug = 'freight-api') {
+  assert.match(publishedSlug, /^freight-api(?:-release-[a-f0-9]{32})?$/, 'INVALID_PUBLISHED_API_SLUG');
+  const u = new URL(url);
+  if (u.hostname === 'ooclsrndeygojtofuyte.supabase.co') {
+    assert.equal(u.origin, 'https://ooclsrndeygojtofuyte.supabase.co', 'PRODUCTION_API_ORIGIN_MISMATCH');
+    assert.ok(!u.username && !u.password, 'PRODUCTION_API_CREDENTIALS_IN_URL');
+    const prefix = '/functions/v1/' + publishedSlug;
+    assert.ok(u.pathname.startsWith(prefix + '/api/'), 'PRODUCTION_API_ROUTE_MISMATCH');
+    return u.pathname.slice(prefix.length);
+  }
+  if (u.origin === 'https://hakaru4i-afk.github.io' && u.pathname.startsWith('/api/')) return u.pathname;
+  return null;
+}
+
 export function previousUiSuppression(method, path) {
   if (method !== 'POST') return null;
   if (path === '/api/site-events') return 'telemetry';

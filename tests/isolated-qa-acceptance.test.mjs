@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import test from 'node:test';
-import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiSuppression,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
 
 const runId = '45648242961';
 const runAttempt = '2';
@@ -92,4 +92,29 @@ test('fixture policy preflight precedes Chromium and dependent checks cannot use
   assert.ok(preflight > workflow.indexOf('node tests/task12-ci-auth.mjs') && preflight < workflow.indexOf('npx playwright install'));
   assert.match(workflow,/id: mode_matrix\n\s+if: steps\.business_api\.outputs\.mode_ready == 'true'/);
   assert.match(workflow,/id: tender_pdf\n\s+if: steps\.business_api\.outputs\.tender_ready == 'true'/);
+});
+
+
+test('previous production compatibility routes the attested legacy or immutable slug to the isolated API',()=>{
+ const host='https://ooclsrndeygojtofuyte.supabase.co/functions/v1/';
+ const slug='freight-api-release-50cbee0bfac84e62b1eafee17012491e';
+ for(const name of ['freight-api',slug]){
+  for(const endpoint of ['session','data','carrier','site-events','route-distance']){
+   assert.equal(previousUiApiPath(host+name+'/api/'+endpoint+'?forceFunctionRegion=eu-central-1',name),'/api/'+endpoint);
+  }
+  assert.equal(previousUiSuppression('POST',previousUiApiPath(host+name+'/api/site-events',name)),'telemetry');
+  assert.equal(previousUiSuppression('POST',previousUiApiPath(host+name+'/api/route-distance',name)),'routeCalculation');
+ }
+ assert.equal(previousUiApiPath('https://hakaru4i-afk.github.io/api/data',slug),'/api/data');
+ assert.equal(previousUiApiPath('https://hakaru4i-afk.github.io/freight-quotes-web/app.js',slug),null);
+ assert.equal(previousUiApiPath('https://example.com/api/session',slug),null);
+ for(const name of ['freight-api','freight-api-release-'+'a'.repeat(32),'freight-api-release-bad',slug+'-other']){
+  assert.throws(()=>previousUiApiPath(host+name+'/api/session',slug),/PRODUCTION_API_ROUTE_MISMATCH/);
+ }
+ assert.throws(()=>previousUiApiPath(host+slug+'/health',slug),/PRODUCTION_API_ROUTE_MISMATCH/);
+ assert.throws(()=>previousUiApiPath(host+slug+'/api/session','invalid'),/INVALID_PUBLISHED_API_SLUG/);
+ const script=readFileSync('tests/production-previous-ui-compatibility.e2e.mjs','utf8');
+ assert.match(script,/JSON\.parse\(manifest\)\.apiFunction/);
+ assert.match(script,/previousUiApiPath\(u,publishedSlug\)/);
+ assert.doesNotMatch(script,/\.split\('\/freight-api'\)/);
 });

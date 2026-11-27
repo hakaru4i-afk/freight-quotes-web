@@ -2,7 +2,7 @@
 // Every API request goes to the isolated QA function; production gets asset GETs only.
 import{chromium}from'playwright';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash}from'node:crypto';import assert from'node:assert/strict';
 import{captureRoot,live}from'../scripts/release/locked-staging.mjs';
-import{previousUiSuppression}from'./helpers/isolated-qa-acceptance.mjs';
+import{previousUiApiPath,previousUiSuppression}from'./helpers/isolated-qa-acceptance.mjs';
 const origin='https://hakaru4i-afk.github.io',prefix='/freight-quotes-web/',qa='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE,'utf8'));
 const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
@@ -16,6 +16,8 @@ let browser;
 try{
  const published=await captureRoot();
  const manifest=published.get('production-release-manifest.json');
+ const publishedSlug=JSON.parse(manifest).apiFunction??'freight-api';
+ report.productionApiFunction=publishedSlug;
  report.productionManifestSha256=createHash('sha256').update(manifest).digest('hex');
  report.verifiedRootAssetCount=published.size;
  browser=await chromium.launch({headless:true});
@@ -26,7 +28,7 @@ try{
   const controller=new AbortController();transport.controllers.add(controller);
   try{
   const req=route.request(),u=new URL(req.url());
-  const api=u.hostname==='ooclsrndeygojtofuyte.supabase.co'?u.pathname.split('/freight-api')[1]:u.origin===origin&&u.pathname.startsWith('/api/')?u.pathname:null;
+  const api=previousUiApiPath(u,publishedSlug);
   const suppressed=previousUiSuppression(req.method(),api);
   if(suppressed){report.suppressed[suppressed]++;await route.abort('blockedbyclient');return;}
   if(!['GET','HEAD'].includes(req.method())){report.calls.push({actor,path:u.pathname,method:req.method(),status:null,blockedMutation:true});await route.abort();return;}
