@@ -41,8 +41,10 @@ const direct=await call('owner','/api/owner-register-execution',{action:'qa_inva
 assert.equal(direct.status,400);
 expect(direct.id,{label:'direct-handler',actor:'owner',path:'/api/owner-register-execution',status:400,serverCode:'INVALID_ACTION'});
 const integration=await call('owner','/api/route-distance',{action:'geocode_points',addresses:[]});
-assert.equal(integration.status,400);
-expect(integration.id,{label:'integration-validation',actor:'owner',path:'/api/route-distance',status:400});
+// Valid JSON with an invalid number of points is a semantic validation failure (422), not malformed JSON (400).
+assert.equal(integration.status,422,'ROUTE_DISTANCE_VALIDATION_STATUS');
+assert.equal(typeof integration.data.error,'string','ROUTE_DISTANCE_VALIDATION_BODY');
+expect(integration.id,{label:'integration-validation',actor:'owner',path:'/api/route-distance',status:422,kind:'validation',reasonCode:'VALIDATION_FAILED'});
 const files=(await readdir('reports/isolated-rc')).filter(n=>/^browser-results-.*\.json$/.test(n)||n==='business-api-real.json');
 let calls=[];
 for(const file of files){const report=await read('reports/isolated-rc/'+file);calls.push(...(report.calls||[]));}
@@ -71,6 +73,7 @@ for(let page=0;page<100&&required.size;page++){
   assert.equal(row.path,e.path,e.label+': path');assert.equal(Number(row.status),e.status,e.label+': status');
   assert.match(d.reasonCode||'',/^[A-Z0-9_]+$/,e.label+': reason');
   if(e.kind)assert.equal(row.kind,e.kind,e.label+': kind');
+  if(e.reasonCode)assert.equal(d.reasonCode,e.reasonCode,e.label+': reason code');
   if(e.action)assert.equal(row.action,e.action,e.label+': action');
   if(e.serverCode)assert.equal(d.serverCode,e.serverCode,e.label+': server code');
   evidence.push({label:e.label,role:row.role,path:row.path,status:Number(row.status),kind:row.kind,reasonCode:d.reasonCode,requestId:row.request_id});
