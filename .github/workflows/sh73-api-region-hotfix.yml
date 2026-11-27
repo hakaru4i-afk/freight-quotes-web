@@ -21,14 +21,14 @@ jobs:
     timeout-minutes: 20
     environment: github-pages
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
       - run: node --test tests/production-versioned-api-routing.test.mjs
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: github-pages
           run-id: 45818064696
@@ -40,13 +40,13 @@ jobs:
           tar --no-same-owner --no-same-permissions -xf archive/artifact.tar -C .hotfix-before
           cp -a .hotfix-before/. .hotfix-pages/
           node scripts/release/sh73-api-region-hotfix.mjs .hotfix-pages prepare
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           name: sh73-before-attempt-${{ github.run_attempt }}
           path: .hotfix-before
           retention-days: 7
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         id: upload
         with:
           name: sh73-pages-attempt-${{ github.run_attempt }}
@@ -70,7 +70,7 @@ jobs:
           done
           echo "::error::PAGES_ARTIFACT_NOT_VISIBLE"
           exit 1
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deploy
         with:
           artifact_name: sh73-pages-attempt-${{ github.run_attempt }}
@@ -79,6 +79,6 @@ jobs:
         run: node scripts/release/sh73-api-region-hotfix.mjs .hotfix-pages verify
       - name: Restore exact preceding Pages on failed readback
         if: failure() && steps.deploy.outcome == 'success' && steps.verify.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         with:
           artifact_name: sh73-before-attempt-${{ github.run_attempt }}
