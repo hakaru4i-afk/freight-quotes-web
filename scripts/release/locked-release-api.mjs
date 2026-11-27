@@ -149,7 +149,7 @@ async function publishApi(source, work, resultPath, lock, releaseVersion, token)
   requireCheck(token, 'SUPABASE_RELEASE_CREDENTIAL_UNAVAILABLE');
   const schemaVersion = await readSchemaVersion(token);
   const slug = prepareApi(source, work, lock, releaseVersion);
-  verifyEmployeeRoleCatalog(readFileSync(join(work, "supabase", "functions", slug, "index.ts"), "utf8"));
+  verifyEmployeeRoleCatalog(readFileSync(join(work, 'supabase', 'functions', slug, 'index.ts'), 'utf8'));
   const management = 'https://api.supabase.com/v1/projects/' + project + '/functions/';
   const headers = {Authorization: 'Bearer ' + token};
   const signal = () => AbortSignal.timeout(12000);

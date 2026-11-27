@@ -85,7 +85,7 @@ async function openTeam(browser,token,width,accounts){
  await page.goto(base+'?employee-smoke='+Date.now(),{waitUntil:'domcontentloaded',timeout:40000});
  const sidebar=page.locator('.cabinet-sidebar').first();
  await sidebar.waitFor({state:'attached',timeout:50000});
- let menu=page.locator('.cabinet-sidebar a[href="#team"], .cabinet-sidebar button').filter({hasText:/Пользователи и доступ|Users and access/}).first();
+ const menu=page.locator('.cabinet-sidebar a[href="#team"], .cabinet-sidebar button').filter({hasText:/Пользователи и доступ|Users and access/}).first();
  if(!await menu.isVisible()){
   const toggle=page.locator('button[aria-controls="cabinet-sidebar"], .cabinet-menu-toggle, .cabinet-sidebar-toggle, .cabinet-mobile-menu').first();
   if(await toggle.isVisible())await toggle.click();
@@ -134,12 +134,13 @@ if(mode==='cleanup'){
  await confirmSession(token,'owner');
  const runPrefix='p0team-'+randomBytes(10).toString('hex')+'-';
  const secret=randomBytes(24).toString('base64url');
- const accounts=new Map(roles.flatMap(role=>[['ui','api'].map(source=>[runPrefix+source+'-'+role,role])][0]));
+ const accounts=new Map(roles.flatMap(role=>['ui','api'].map(source=>[runPrefix+source+'-'+role,role])));
  const attempted=new Set();
  const browser=await chromium.launch({headless:true});
  try {
   const catalog=await body(await call('team',token),200,'Owner catalog');
   assert.deepEqual(catalog.creatableRoles,roles);
+  if(mode==='live')assert.equal((await db(runPrefix)).length,0,'Synthetic account namespace must be unused');
   const pageWidths=[1440,390];
   for(const width of pageWidths){
    const {context,page}=await openTeam(browser,token,width,accounts);
@@ -161,7 +162,7 @@ if(mode==='cleanup'){
     const data=await body(await call('team',token,{action:'add',email,name:'P0 employee QA '+role,role,password:secret}),200,'Team API POST '+role);
     assert.ok(data.members.some(m=>m.email===email&&m.role===role),'Team direct receipt '+role);
     const employee=await body(await call('auth',null,{action:'login',login:runPrefix+'ui-'+role,password:secret}),200,'Employee login '+role);
-    assert.match(employee.sessionToken,/^[a-f0-9]{64}$/);
+    assert.ok(typeof employee.sessionToken==='string'&&/^[a-f0-9]{64}$/.test(employee.sessionToken),'Employee session receipt');
     try{
      await confirmSession(employee.sessionToken,role);
      const access=await body(await call('access',employee.sessionToken),200,'Employee access '+role);
@@ -189,13 +190,18 @@ if(mode==='cleanup'){
  }finally{
   await browser.close();
   if(attempted.size){
-   const all=await db(runPrefix);
-   const cleanup=await Promise.allSettled(all.map(async row=>{
-    assert.ok(attempted.has(row.login),'Cleanup restricted to run accounts');
-    await body(await call('team',token,{action:'remove',email:row.login}),200,'Deactivate synthetic account');
-   }));
+   // Cleanup uses only high-entropy logins attempted by this run. The database
+   // receipt is independent so an unavailable Management API cannot skip cleanup.
+   const cleanup = [];
+   for(const email of attempted){
+    try{await body(await call('team',token,{action:'remove',email}),200,'Deactivate synthetic account');}
+    catch{cleanup.push(email);}
+   }
+   for(const email of cleanup){
+    await body(await call('team',token,{action:'remove',email}),200,'Retry synthetic account deactivation');
+   }
    const rows=await db(runPrefix);
-   assert.ok(cleanup.every(result=>result.status==='fulfilled')&&rows.every(row=>row.enabled===0&&row.role===null&&row.session_count===0),'Synthetic account cleanup');
+   assert.ok(rows.every(row=>row.enabled===0&&row.role===null&&row.session_count===0),'Synthetic account cleanup');
    console.log('EMPLOYEE_SYNTHETIC_ACCOUNTS_DEACTIVATED',rows.length);
   }
  }
