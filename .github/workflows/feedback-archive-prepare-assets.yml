@@ -64,3 +64,5 @@ jobs:
           git add -- test/staging-manifest.json
           git commit -m 'chore(staging): attest source assets without claiming new API evidence'
           git push origin HEAD:refs/heads/fix/feedback-archive-single-filter
+
+# Regenerate after lifecycle filter ordering adjustment (27.11.2026).
