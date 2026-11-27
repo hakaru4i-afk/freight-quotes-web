@@ -16,6 +16,7 @@ const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="active",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
+let publishedTask={taskId:'',evidence:null};
 const releaseWords={
  ru:{prepare:'Запустить проверки',preflightQueued:'Проверяются базовые тесты, E2E на main и свежая резервная копия',prepareHelp:'Подготовка запускает только тесты; итоги появятся в X/4.',testsSummary:'Ожидаются тесты',readySummary:'Проверки пройдены, можно выпускать',blocked:'Ожидается завершение разработки (100%).',candidateMissing:'Кандидат выпуска не привязан к этой заявке: 4 проверки ещё не подготовлены.',candidateInvalid:'Для выпуска не указаны корректные SHA и четыре группы проверок.',checksPending:'Не все проверки frontend, backend, E2E и восстановления завершились успешно.',checksUnavailable:'Подтверждение проверок из GitHub сейчас недоступно.',devComplete:'Выпуск доступен после завершения разработки (100%).',title:'Публикация обновления',launch:'Выпустить обновление',running:'Выпуск выполняется',unstarted:'Нажмите кнопку для запуска проверок и публикации',queued:'Запрос принят GitHub; ожидается запуск',in_progress:'Выполняются проверки и публикация',failed:'Выпуск остановлен. Откройте журнал GitHub Actions',published:'Публикация подтверждена GitHub Actions',unknown:'Статус GitHub временно недоступен',journal:'Журнал выпуска'},
  en:{prepare:'Run release checks',preflightQueued:'Checking source tests, main E2E and a recent backup',prepareHelp:'Preflight runs checks only; results appear in X/4.',testsSummary:'Waiting for tests',readySummary:'Checks passed, ready to release',blocked:'Waiting for completed development (100%).',candidateMissing:'No release candidate is linked to this task; the four release checks are not configured yet.',candidateInvalid:'Valid source SHAs and all four check groups are missing.',checksPending:'Not all frontend, backend, E2E and recovery checks have passed.',checksUnavailable:'GitHub check evidence is currently unavailable.',devComplete:'Release is available once development reaches 100%.',title:'Publish update',launch:'Start release',running:'Release in progress',unstarted:'Start tests and publication with this button',queued:'GitHub accepted the request; waiting to start',in_progress:'Verification and publication in progress',failed:'Release stopped. Open GitHub Actions logs',published:'Publication confirmed by GitHub Actions',unknown:'GitHub status temporarily unavailable',journal:'Release log'},
@@ -202,6 +203,9 @@ function detail(){
    '<button type="submit" class="pf-secondary" '+(busy?'disabled':'')+'>'+esc(l.return)+'</button></form></section>':
   execution?.decision==='in_progress'&&item.status==='in_progress'?
    '<section class="pf-workflow-actions"><p>'+esc(l.waiting)+'</p><button class="pf-primary" data-pf="submit-review" type="button" '+(!canSubmit||busy?'disabled':'')+'>'+esc(l.send)+'</button></section>':'';
+ const publishedProof=publishedTask.taskId===item.id?publishedTask.evidence:null;
+ const publishedWords=byLang==='en'?{title:'Accept already published result',help:'The release is independently verified on confirmation. This is a personal decision on the published scope and remaining risks, not a new CI PASS or release.',reason:'Describe the accepted scope and remaining risks (at least 10 characters).',confirm:'Confirm acceptance of this exact published version and remaining risks? This archives the task without another release.'}:byLang==='zh'?{title:'接受已发布结果',help:'确认时独立核验发布。此操作仅表示本人接受已发布范围及剩余风险，不代表新的测试通过或发布。',reason:'说明接受的范围及剩余风险（至少10字）。',confirm:'确认接受此确切版本及剩余风险？任务将归档，不会再次发布。'}:{title:'Принять опубликованный результат',help:'При подтверждении сервер проверит выпуск. Это личное решение о фактически опубликованном объёме и остаточных рисках, не новый PASS тестов и не повторный выпуск.',reason:'Укажите принятый объём и остаточные риски (не менее 10 символов).',confirm:'Подтвердить принятие именно этой опубликованной версии и остаточных рисков? Задача будет архивирована без повторного выпуска.'};
+ const publishedPanel=data.owner&&publishedProof&&['in_progress','release'].includes(item.status)?'<section class="pf-workflow-actions"><h4>'+esc(publishedWords.title)+'</h4><p>'+esc(publishedProof.version)+' · '+esc(publishedProof.releaseRun)+'</p><small>'+esc(publishedWords.help)+'</small><p><code>'+esc(publishedProof.frontendSha)+'</code><br><code>'+esc(publishedProof.backendSha)+'</code></p><button class="pf-primary" type="button" data-pf="accept-published-result" '+(busy?'disabled':'')+'>'+esc(publishedWords.title)+'</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
@@ -215,7 +219,7 @@ function detail(){
  '<dt>'+esc(t().created)+'</dt><dd>'+esc(formatTime(item.created_at))+'</dd>'+
  (item.release_date?'<dt>'+esc(t().date)+'</dt><dd>'+esc(item.release_date)+'</dd>':'')+
  (item.owner_note?'<dt>'+esc(t().note)+'</dt><dd>'+esc(item.owner_note)+'</dd>':'')+'</dl>'+
- progressPanel+deadlinePanel+handoffPanel+workflowPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
+ progressPanel+deadlinePanel+handoffPanel+workflowPanel+publishedPanel+releaseControls+updateControls+'<h4>'+esc(t().history)+'</h4><ol class="pf-history">'+ev.map(e=>'<li><span>'+esc(formatTime(e.created_at))+' · '+esc(statusLabels[e.status]||e.status)+'</span><small>'+esc(registerLabels[e.journal]||"")+' · '+esc(e.actor_login)+'</small><p>'+esc(e.description)+'</p></li>').join("")+'</ol></article>';
 }
 function render(){
  const r=root();if(!r)return;
@@ -257,6 +261,7 @@ async function refreshReleaseReadiness(){
 async function refreshReleaseProgress(){
  const item=data.items.find(i=>i.id===selected);
  const seq=++releaseProgressRequest;
+ if(publishedTask.taskId!==item?.id)publishedTask={taskId:item?.id||'',evidence:null};
  if(!data.owner||!item||issue173Published(item)||!['in_progress','release'].includes(item.status)){releaseRun={taskId:'',status:'not_started'};return;}
  try{
   const response=await fetch(api+'?releaseProgress='+encodeURIComponent(item.id),{cache:'no-store'});
@@ -264,6 +269,7 @@ async function refreshReleaseProgress(){
   if(seq!==releaseProgressRequest||selected!==item.id)return;
   if(!response.ok||body.ok!==true)throw Error(body.error||'HTTP '+response.status);
   releaseRun=body.release||{taskId:item.id,status:'unknown'};
+  try{const res=await fetch('/api/owner-register-execution?publishedEvidence='+encodeURIComponent(item.id),{cache:'no-store'});const proof=await res.json();if(seq===releaseProgressRequest&&selected===item.id)publishedTask={taskId:item.id,evidence:res.ok&&proof.ok===true?proof.evidence:null};}catch{if(seq===releaseProgressRequest&&selected===item.id)publishedTask={taskId:item.id,evidence:null};}
  }catch{if(seq!==releaseProgressRequest||selected!==item.id)return;releaseRun={taskId:item.id,status:'unknown'};}
  render();
 }
@@ -340,6 +346,19 @@ document.addEventListener("click",ev=>{
  if(action==="refresh")void load();
  if(action==='submit-review'||action==='accept-review'){
   const item=data.items.find(i=>i.id===selected);if(item)void ownerReviewAction(item,action==='submit-review'?'submit_review':'accept');
+ }
+ if(action==='accept-published-result'){
+  const item=data.items.find(i=>i.id===selected),e=item&&executionByFeedback.get(item.id),proof=publishedTask.taskId===item?.id?publishedTask.evidence:null;
+  if(!data.owner||busy||!item||!e||!proof)return;
+  const prompts=byLang==='en'?['Describe the accepted scope and remaining risks (at least 10 characters).','Confirm this published version and remaining risks? The task will be archived without another release.']:byLang==='zh'?['说明接受的范围及剩余风险（至少10字）。','确认接受此版本及剩余风险？任务将归档，不会再次发布。']:['Укажите принимаемый объём и остаточные риски (не менее 10 символов).','Подтвердить принятие этой версии и остаточных рисков? Задача будет архивирована без повторного выпуска.'];
+  const reason=window.prompt(prompts[0]);if(!reason||reason.trim().length<10||reason.trim().length>1000)return;
+  if(!window.confirm(proof.version+' · '+proof.releaseRun+'\n'+prompts[1]))return;
+  busy=true;error='';message='';render();
+  void (async()=>{try{
+   const res=await fetch('/api/owner-register-execution',{method:'POST',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'accept_published',register:e.register,recordId:e.recordId,reason:reason.trim(),confirmPublished:true,acceptScopeRisk:true,evidence:proof})});
+   const out=await res.json();if(!res.ok||!out.ok||out.archived!==true)throw Error(out.error||'PUBLICATION_NOT_VERIFIED');
+   busy=false;statusFilter='archive';await load();selected=item.id;message=byLang==='en'?'Publication accepted and archived.':byLang==='zh'?'已确认发布并归档。':'Опубликованный результат принят и архивирован.';render();
+  }catch(err){busy=false;error=t().error+': '+err.message;render();}})();
  }
  if(action==='archive-published'){
   const item=data.items.find(i=>i.id===selected);if(item&&!busy)void runAction({action:'archive_published',id:item.id,expectedStatus:item.status});
