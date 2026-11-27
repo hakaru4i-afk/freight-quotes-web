@@ -1,0 +1,106 @@
+name: P0 employee creation emergency release
+run-name: P0 employee creation from the verified production baseline
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Owner approval of the isolated seven-role repair
+        required: true
+        type: choice
+        options: ['PUBLISH P0 EMPLOYEE ROLES']
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+concurrency:
+  group: owner-portal-production-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: >-
+      github.repository == 'hakaru4i-afk/freight-quotes-web' &&
+      github.ref == 'refs/heads/main' &&
+      github.actor == 'hakaru4i-afk' &&
+      github.triggering_actor == 'hakaru4i-afk' &&
+      inputs.confirmation == 'PUBLISH P0 EMPLOYEE ROLES'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 28
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          path: p0-frontend
+          ref: 586694826bf334799df3528d90af16f1d2960902
+          persist-credentials: false
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          repository: hakaru4i-afk/freight-quotes
+          path: p0-backend
+          ref: 9e0624217a5df84c321db12df3248d8665cf8693
+          token: ${{ secrets.BACKEND_RELEASE_TOKEN }}
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          package-manager-cache: false
+          node-version: '24'
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: locked-staging-pages-attempt-1
+          run-id: 46005074236
+          github-token: ${{ github.token }}
+          path: verified-pages-archive
+      - name: Verify the exact source and preserve both published roots
+        run: |
+          set -euo pipefail
+          git -C p0-frontend diff --exit-code
+          node --test p0-backend/tests/owner-team-seven-roles.test.mjs
+          mkdir verified-pages
+          tar --no-same-owner --no-same-permissions -xf verified-pages-archive/artifact.tar -C verified-pages
+          node scripts/release/employee-roles-emergency.mjs prepare verified-pages p0-frontend
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          name: rollback-pages
+          path: .employee-roles-before
+          retention-days: 7
+      - name: Verify the owner cabinet and seven controls before switching live Pages
+        env:
+          SMOKE_OWNER_LOGIN: ${{ secrets.SMOKE_OWNER_LOGIN || secrets.SMOKE_OWNER_EMAIL }}
+          SMOKE_OWNER_PASSWORD: ${{ secrets.SMOKE_OWNER_PASSWORD }}
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+          node scripts/release/employee-roles-production-smoke.mjs candidate .employee-roles-pages
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: .employee-roles-pages
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        id: deployment
+      - name: Verify the published pair and create, authenticate and deactivate synthetic employees
+        id: readback
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          node scripts/release/employee-roles-emergency.mjs verify .employee-roles-pages
+          node scripts/release/employee-roles-production-smoke.mjs live .employee-roles-pages
+      - name: Restore the previous Pages artifact if verification failed
+        id: rollback
+        if: failure() && steps.deployment.outcome == 'success' && steps.readback.outcome == 'failure'
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+        with:
+          artifact_name: rollback-pages
+      - name: Verify restored Pages
+        if: failure() && steps.rollback.outcome == 'success'
+        run: node scripts/release/employee-roles-emergency.mjs verify .employee-roles-before
+      - name: Revoke the owner smoke session
+        if: always()
+        run: |
+          if [ -f "$RUNNER_TEMP/freight-team-owner-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT" ]; then
+            node scripts/release/employee-roles-production-smoke.mjs cleanup .employee-roles-pages
+          fi
