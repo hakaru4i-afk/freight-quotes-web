@@ -11,13 +11,14 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 9
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Cache npm and Playwright Chromium
         id: browser-cache
-        uses: actions/cache@v4
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             ~/.npm

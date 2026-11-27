@@ -14,9 +14,10 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 12
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify served staging artifacts, QA matrix and backlog preservation
         shell: bash
@@ -24,7 +25,7 @@ jobs:
           mkdir -p reports
           node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/staging-smoke.xml tests/task12-observer-smoke.test.mjs
       - name: Upload inspectable evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: task12-public-smoke-report
@@ -36,12 +37,13 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 17
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Restore npm and Playwright Chromium cache
-        uses: actions/cache@v4
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             ~/.npm
@@ -57,7 +59,7 @@ jobs:
           mkdir -p reports
           node --test --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/browser-smoke.xml tests/issue47-live-mobile.test.mjs
       - name: Upload inspectable browser evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: task12-browser-smoke-report
@@ -71,14 +73,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Restore npm and Playwright Chromium cache
-        uses: actions/cache@v4
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             ~/.npm
@@ -98,7 +101,7 @@ jobs:
           node tests/task12-robot-runner.mjs
       - name: Upload complete robot report, logs and screenshots
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: task12-robots-all-groups
           path: |
@@ -124,9 +127,10 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify real login sessions using isolated QA API only
         id: auth
@@ -145,7 +149,7 @@ jobs:
         run: node tests/task12-authenticated-readonly.e2e.mjs
       - name: Upload redacted results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: task12-isolated-qa-auth-preflight
           path: reports/private-auth-qa-preflight.json
@@ -167,14 +171,15 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Check browser journey syntax before connecting to the test system
         run: node --check tests/task12-live-journey.e2e.mjs
       - name: Restore npm and Playwright Chromium cache
-        uses: actions/cache@v4
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
         with:
           path: |
             ~/.npm
@@ -200,7 +205,7 @@ jobs:
           node tests/task12-live-journey.e2e.mjs
       - name: Upload private full browser journey evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: task12-isolated-real-browser-journey
           path: reports/task12-private-real-business-journey.json
@@ -225,12 +230,13 @@ jobs:
       actions: read
       contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Download robot report from this run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         continue-on-error: true
         with:
           name: task12-robots-all-groups
@@ -243,7 +249,7 @@ jobs:
         run: node tests/task12-release-gate.mjs
       - name: Upload inspectable release decision
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: task12-production-release-readiness
           path: reports/task12-release-readiness.json

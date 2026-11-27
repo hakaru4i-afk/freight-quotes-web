@@ -27,12 +27,13 @@ jobs:
     env:
       PORTAL_BACKEND_SHA: 36a923120dee1c4cbe06baaa9d710913cdb5f5a9
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           persist-credentials: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Verify all three register lifecycle tests and existing review workflow
         shell: bash
@@ -77,11 +78,11 @@ jobs:
           assert.deepEqual(m.ownerRegisterLifecycle?.registers,['remarks','developments','updates']);
           console.log('SH68_PRODUCTION_INTEGRITY_PASS',Object.keys(m.assets).length);
           NODE
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: .release-pages
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
       - name: Verify published SH68 version, exact UI bytes and receipt
         shell: bash
         run: |

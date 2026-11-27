@@ -21,11 +21,11 @@ jobs:
       QA_SCENARIO_STATE_DIR: /tmp/freight-ci-qa
       AXE_CORE_PATH: node_modules/axe-core/axe.min.js
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -40,7 +40,7 @@ jobs:
           JS
           frontend=$(node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; console.log(readLock().frontendSha)')
           git merge-base --is-ancestor "$frontend" "$GITHUB_SHA"
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: ${{ steps.lock.outputs.frontend }}
           path: candidate-web
@@ -62,7 +62,7 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         run: node scripts/release/check-qa-credentials.mjs e2e
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           ref: ${{ steps.lock.outputs.backend }}
@@ -245,13 +245,13 @@ jobs:
           node scripts/release/locked-qa-runtime.mjs attest candidate-web candidate-backend \
             "$LOCKED_QA_DIR/staging-proof.json" "$LOCKED_QA_DIR/after.json"
           node scripts/release/locked-e2e-evidence.mjs "$LOCKED_QA_DIR/before.json" "$LOCKED_QA_DIR/after.json" reports "$LOCKED_QA_DIR/evidence"
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: locked-release-evidence-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_QA_DIR }}/evidence/*.json
           if-no-files-found: error
           retention-days: 2
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
           name: isolated-qa-redacted-evidence-attempt-${{ github.run_attempt }}

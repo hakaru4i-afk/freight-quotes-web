@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -51,11 +51,11 @@ jobs:
       contents: read
       pages: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -85,12 +85,12 @@ jobs:
           node tests/task12-ci-environment-policy.mjs
           node scripts/release/check-qa-credentials.mjs e2e
           test "$(gh api repos/hakaru4i-afk/freight-quotes-web/pages --jq '.build_type')" = workflow
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: candidate-web
           ref: ${{ steps.lock.outputs.frontend }}
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate-backend
@@ -118,7 +118,7 @@ jobs:
           set -euo pipefail
           node scripts/release/locked-staging.mjs prepare-api candidate-backend "$LOCKED_STAGE_DIR/api" "$LOCKED_STAGE_DIR/build-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$LOCKED_STAGE_DIR/root-proof.json"
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: |
@@ -126,7 +126,7 @@ jobs:
             ${{ env.LOCKED_STAGE_DIR }}/build-proof.json
           if-no-files-found: error
           retention-days: 2
-      - uses: actions/upload-pages-artifact@v5
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           name: locked-staging-pages-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_STAGE_DIR }}/pages
@@ -149,20 +149,20 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: verified-stage
       - name: Confirm unchanged production root immediately before Pages deployment
         run: node scripts/release/locked-staging.mjs verify-root verified-stage/root-proof.json
-      - uses: actions/deploy-pages@v5
+      - uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
         id: pages
         with:
           artifact_name: locked-staging-pages-attempt-${{ github.run_attempt }}
@@ -178,11 +178,11 @@ jobs:
       contents: read
       actions: read
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -203,12 +203,12 @@ jobs:
         run: |
           node tests/task12-ci-environment-policy.mjs
           node scripts/release/check-qa-credentials.mjs e2e
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           path: candidate-web
           ref: ${{ steps.lock.outputs.frontend }}
           persist-credentials: false
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate-backend
@@ -216,7 +216,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: verified-stage
@@ -233,7 +233,7 @@ jobs:
           node scripts/release/locked-staging.mjs verify-api candidate-web candidate-backend \
             verified-stage/build-proof.json locked-staging-attestation.json
           echo STAGING_PAIR_ATTESTED_NOT_PRODUCTION_APPROVAL
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: locked-staging-attestation-attempt-${{ github.run_attempt }}
           path: locked-staging-attestation.json

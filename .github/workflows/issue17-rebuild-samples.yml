@@ -18,12 +18,13 @@ jobs:
     runs-on: [self-hosted, macOS, ARM64, freight-mac-qa]
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           ref: fix/issue17-sample-faithful-ui-20261107
           persist-credentials: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
+          package-manager-cache: false
           node-version: '24'
       - name: Assemble canonical component and immutable, hash-versioned modules
         run: node scripts/build-issue17-assets.mjs --component

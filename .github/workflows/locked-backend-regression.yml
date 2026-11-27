@@ -24,10 +24,10 @@ jobs:
           test "$RUNNER_OS" = Linux
           test "${{ runner.environment }}" = github-hosted
           echo GITHUB_HOSTED_LINUX_QA
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -46,7 +46,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -92,10 +92,10 @@ jobs:
           test "$RUNNER_OS" = Linux
           test "${{ runner.environment }}" = github-hosted
           echo GITHUB_HOSTED_LINUX_QA
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -114,7 +114,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -160,10 +160,10 @@ jobs:
           test "$RUNNER_OS" = Linux
           test "${{ runner.environment }}" = github-hosted
           echo GITHUB_HOSTED_LINUX_QA
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -182,7 +182,7 @@ jobs:
           BACKEND_QA_READ_TOKEN: ${{ secrets.BACKEND_QA_READ_TOKEN }}
         working-directory: .
         run: node scripts/release/check-qa-credentials.mjs backend
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           repository: hakaru4i-afk/freight-quotes
           path: candidate
@@ -209,7 +209,7 @@ jobs:
           echo "TRACKED_NODE_TEST_FILES=$tracked CHECKED_OUT_NODE_TEST_FILES=$actual"
           test "$tracked" -eq "$actual" || { echo '::error::INCOMPLETE_CHECKOUT'; exit 1; }
           echo MAC_SOURCE_TREE_COMPLETE
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           package-manager-cache: false
           node-version: '24'
@@ -255,7 +255,7 @@ jobs:
           node scripts/release/locked-evidence-run.mjs backend candidate "$output/evidence/schema-transition-rehearsal.json" \
             "$output/evidence/run-receipt.json"
           echo "LOCKED_EVIDENCE_DIR=$output/evidence" >> "$GITHUB_ENV"
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: locked-backend-regression-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_EVIDENCE_DIR }}/*.json

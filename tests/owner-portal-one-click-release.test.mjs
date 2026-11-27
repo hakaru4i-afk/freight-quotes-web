@@ -44,7 +44,7 @@ test('Owner-only release requires the locked pair, backup and verified API befor
  assert.match(workflow,/locked-release\.mjs backup/);
  assert.match(workflow,/needs\.backup\.result == 'success'/);
  assert.match(workflow,/locked-release-api\.mjs publish/);
- assert.match(workflow,/actions\/deploy-pages@v5/);
+ assert.match(workflow,/uses: actions\/deploy-pages@[0-9a-f]{40}\b/);
 });
 test('deep browser tests can be run manually but do not run for ordinary pushes',()=>{
  const deep=readFileSync('.github/workflows/owner-main-e2e.yml','utf8');

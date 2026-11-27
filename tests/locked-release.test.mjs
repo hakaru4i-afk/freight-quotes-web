@@ -356,7 +356,9 @@ test('the deployment graph puts confirmed backup and API health before publishin
   assert.match(workflow, /if: inputs.publish\n[\s\S]*?node scripts\/release\/locked-release.mjs evidence/);
   assert.match(workflow, /needs\.backup\.result == 'success'/);
   assert.doesNotMatch(workflow, /continue-on-error/);
-  assert.ok(workflow.indexOf('locked-release-api.mjs publish') < workflow.indexOf('actions/deploy-pages@v5'));
+  const deploy = workflow.search(/uses: actions\/deploy-pages@[0-9a-f]{40}\b/);
+  const publish = workflow.indexOf('locked-release-api.mjs publish');
+  assert.ok(publish >= 0 && publish < deploy);
   assert.ok(workflow.indexOf('snapshot candidate-web') < workflow.indexOf('locked-release-api.mjs publish'));
   assert.match(workflow, /failure\(\) && steps.deployment.outcome == 'success' && steps.readback.outcome == 'failure'/);
   assert.match(workflow, /artifact_name: rollback-pages/);
