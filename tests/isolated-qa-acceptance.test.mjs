@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {createStagingPair,stagingIdentityAssets,stagingPairBytes} from '../scripts/release/locked-qa-runtime.mjs';
 import test from 'node:test';
-import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
 
 const runId = '45648242961';
 const runAttempt = '2';
@@ -117,4 +120,27 @@ test('previous production compatibility routes the attested legacy or immutable 
  assert.match(script,/JSON\.parse\(manifest\)\.apiFunction/);
  assert.match(script,/previousUiApiPath\(u,publishedSlug\)/);
  assert.doesNotMatch(script,/\.split\('\/freight-api'\)/);
+});
+
+test('generated active staging receipt is reconstructed only from exact frozen source and attested deployment',t=>{
+ const root=mkdtempSync(join(tmpdir(),'qa-receipt-'));t.after(()=>rmSync(root,{recursive:true,force:true}));mkdirSync(join(root,'test'));
+ const project='ibclzdkxiozbzmniiygv',fn='freight-api-qa-rc20261110',sha='a'.repeat(40),backend='b'.repeat(40),build='c'.repeat(20),v='SH-01.30.59 v';
+ const assets={'index.html':'index','app.js':'app','style.css':'css','build-info.json':{environment:'staging',primaryBusinessVersion:v,stagingAssetBuildId:build,version:build},'staging-manifest.json':{environment:'staging',primaryBusinessVersion:v},'site-status.json':{environment:'staging',version:build,release:{version:v}},'release-status.json':{version:v},'staging-transport-20261111.js':'LOCKED_STAGING_ISOLATION_V1'};
+ for(const [n,x] of Object.entries(assets))writeFileSync(join(root,'test',n),typeof x==='string'?x:JSON.stringify(x));
+ const lock={frontendSha:sha,backendSha:backend},deployment={project,function:fn,id:'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',version:55,bundle:'d'.repeat(64)};
+ const pair=createStagingPair(lock,deployment,stagingIdentityAssets(root));
+ const runtime={...lock,sourceCommit:backend,function:fn,version:55,bundle:deployment.bundle,deployment,activeRuntimePair:pair};
+ assert.deepEqual(browserRuntimeReceipt(root,runtime,sha),stagingPairBytes(pair));
+ assert.throws(()=>browserRuntimeReceipt(root,{...runtime,activeRuntimePair:undefined},sha),/BROWSER_RUNTIME_RECEIPT_MISMATCH/);
+ assert.throws(()=>browserRuntimeReceipt(root,{...runtime,version:56},sha),/BROWSER_RUNTIME_DEPLOYMENT_MISMATCH/);
+ assert.throws(()=>browserRuntimeReceipt(root,runtime,'e'.repeat(40)),/BROWSER_RUNTIME_FRONTEND_MISMATCH/);
+ writeFileSync(join(root,'test/app.js'),'drift');
+ assert.throws(()=>browserRuntimeReceipt(root,runtime,sha),/BROWSER_RUNTIME_RECEIPT_MISMATCH/);
+ const health={ok:true,environment:'staging',projectRef:project,qaRun:'rc20261110',backendSha:backend,deploymentId:pair.apiDeploymentId};
+ verifyBrowserHealth(health,runtime);
+ assert.throws(()=>verifyBrowserHealth({...health,deploymentId:'different'},runtime),/BROWSER_HEALTH_RUNTIME_MISMATCH/);
+ const url='https://'+project+'.supabase.co/functions/v1/'+fn+'/health?t=1';
+ assert.equal(isolatedHealthRequest(url,'GET',fn),true);
+ for(const u of [url.replace(project,'ooclsrndeygojtofuyte'),url.replace(fn,'freight-api'),url.replace('/health','/api/session'),url.replace('https:','http:')])assert.equal(isolatedHealthRequest(u,'GET',fn),false);
+ assert.equal(isolatedHealthRequest(url,'POST',fn),false);
 });
