@@ -2,16 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 const source='test/owner-team-users-20261117.js';
+const roles=['carrier','logistic','supplier','designer','content','purchasing','certification'];
+async function mockTeam(page){
+ await page.evaluate(creatableRoles=>{
+  window.__requests=[];
+  window.fetch=async(url,opts)=>{
+   if(!String(url).endsWith('/api/team'))throw Error('unexpected route');
+   const payload=opts?.body?JSON.parse(opts.body):null;
+   window.__requests.push(payload);
+   return Response.json(payload?{ok:true}:{creatableRoles,members:[{email:'qa-content',name:'QA Content',role:'content'}]});
+  };
+ },roles);
+}
 test('Owner may create all 7 roles and permanently delete a synthetic user',async()=>{
  const browser=await chromium.launch({headless:true});
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}});
   await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" data-section="team"><section class="card" id="owner-access-card"><h2>Уровни доступа</h2></section><section class="card" id="owner-users-card"><h2>Пользователи и права</h2><button id="native-supplier">Создать поставщика</button><button id="native-combined">Создать дизайнера / контент-менеджера</button><div class="bar" id="native-create-actions"><button>Создать поставщика</button></div><p class="small" id="legacy-instruction">Логист / сотрудник ВЭД видит все предложения</p><form class="grid" id="legacy-user-create"><input aria-label="Повторный логин" /><button type="submit">Сохранить пользователя</button></form><p class="small" id="legacy-secondary-help">Старая инструкция создания пользователей</p><div class="doc-list" id="members-list"><div>Работающий список сотрудников</div></div></section></section></div><div class="cabinet-app" data-cabinet-role="carrier"><section class="cabinet-panel" data-section="team"><h2>Пользователи</h2></section></div></div>');
-  await page.evaluate(()=>{window.__requests=[];window.fetch=async(url,opts)=>{if(!String(url).endsWith('/api/team'))throw Error('unexpected route');const p=opts?.body?JSON.parse(opts.body):null;window.__requests.push(p);return new Response(JSON.stringify(p?{ok:true}:{members:[{email:'qa-content',name:'QA Content',role:'content'}]}),{status:200,headers:{'Content-Type':'application/json'}})};});
+
   await page.addStyleTag({path:'test/owner-team-users-20261117.css'});
+  await mockTeam(page);
   await page.addScriptTag({path:source});
   const owner='.cabinet-app[data-cabinet-role="owner"]';
-  await page.waitForSelector(owner+' .ow-users-actions');
+  await page.waitForSelector(owner+' .ow-users-create');
   assert.equal(await page.locator(owner+' .ow-users-create').count(),7);
   assert.equal(await page.locator(owner+' .ow-users-delete').count(),1);
   assert.deepEqual(await page.locator(owner+' .ow-users-create').evaluateAll(nodes=>nodes.map(n=>n.dataset.userRole)),['carrier','logistic','supplier','designer','content','purchasing','certification']);
@@ -53,11 +66,12 @@ test('Owner controls mount once after delayed card render',async()=>{
  try{
   const page=await browser.newPage({viewport:{width:1440,height:900}});
   await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" id="owner-team-area" data-section="team"><h2>Пользователи и доступ</h2></section></div></div>');
+  await mockTeam(page);
   await page.addScriptTag({path:source});
   await page.waitForTimeout(80);
   assert.equal(await page.locator('#owner-team-area .ow-users-actions').count(),0,'No actions before the real card renders');
   await page.evaluate(()=>document.getElementById('owner-team-area').insertAdjacentHTML('beforeend','<section class="card" id="owner-users-card"><h2>Пользователи и права</h2></section>'));
-  await page.waitForSelector('#owner-users-card .ow-users-actions');
+  await page.waitForSelector('#owner-users-card .ow-users-create');
   assert.equal(await page.locator('#owner-team-area .ow-users-actions').count(),1,'Exactly one user management block');
   await page.evaluate(()=>{const stray=document.createElement('div');stray.className='ow-users-actions';stray.id='erroneous-duplicate';document.getElementById('owner-team-area').prepend(stray)});
   await page.waitForFunction(()=>document.querySelectorAll('#owner-team-area .ow-users-actions').length===1);
@@ -74,7 +88,8 @@ test('Owner can read text entered in every create-user field',async()=>{
   await page.setContent('<div id="root"><div class="cabinet-app" data-cabinet-role="owner"><section class="cabinet-panel" data-section="team"><section class="card"><h2>Пользователи и права</h2></section></section></div></div>');
   await page.addStyleTag({content:'input {color:white!important;-webkit-text-fill-color:white!important;caret-color:white!important}'});
   await page.addStyleTag({path:'test/owner-team-users-20261117.css'});
-  await page.addScriptTag({path:'test/owner-team-users-20261117.js'});
+  await mockTeam(page);
+  await page.addScriptTag({path:source});
   await page.waitForSelector('.ow-users-create');
   await page.getByRole('button',{name:'Создать сотрудника ВЭД',exact:true}).click();
   for(const input of await page.locator('.ow-users-dialog input').all()){

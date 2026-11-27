@@ -2,11 +2,10 @@
 (()=>{"use strict";
 if(window.__owUsers20261117)return;window.__owUsers20261117=true;
 const tr={
-ru:{carrier:"Создать перевозчика",supplier:"Создать поставщика",purchasing:"Создать сотрудника закупок",certification:"Создать сотрудника сертификации",ved:"Создать сотрудника ВЭД",designer:"Создать дизайнера",content:"Создать контент-менеджера",remove:"Удалить пользователя",login:"Логин",name:"Имя сотрудника",password:"Пароль (от 12 символов)",create:"Создать сотрудника",cancel:"Отмена",save:"Создать",delete:"Удалить учётную запись",select:"Выберите пользователя",confirm:"Повторите точный логин для удаления",warning:"Удаление отзывает сессии, но история заявок и документов сохраняется. Аккаунты с обязательными связями защищены.",successCreate:"Пользователь создан",successDelete:"Пользователь удалён",failed:"Ошибка",busy:"Выполнение…",note:"Дизайнер и контент-менеджер — отдельные роли.",vedNote:"ВЭД (роль logistic): только выигравшие перевозки, документы, задачи перед ПТО и чаты; без ранних ставок и чужих заявок.",newRights:"Сотрудник создаётся с ролью кабинета; дополнительные права владелец назначит отдельно."},
-en:{carrier:"Create carrier",supplier:"Create supplier",purchasing:"Create purchasing employee",certification:"Create certification employee",ved:"Create foreign-trade employee",designer:"Create designer",content:"Create content manager",remove:"Delete user",login:"Login",name:"Full name",password:"Password (12+ characters)",create:"Create employee",cancel:"Cancel",save:"Create",delete:"Delete account",select:"Select user",confirm:"Retype the exact login to delete",warning:"Deletion revokes sessions and preserves shipment/document history. Accounts with linked records are protected.",successCreate:"User created",successDelete:"User deleted",failed:"Error",busy:"Saving…",note:"Designer and content manager are distinct.",vedNote:"Foreign trade (logistic role): only winning shipments, documents, pre-customs tasks and chats; no early bids.",newRights:"Create the cabinet now; the Owner can assign additional permissions later."},
-zh:{carrier:"创建承运商",supplier:"创建供应商",purchasing:"创建采购员工",certification:"创建认证员工",ved:"创建外贸员工",designer:"创建设计师",content:"创建内容经理",remove:"删除用户",login:"用户名",name:"姓名",password:"密码（至少12位）",create:"创建员工",cancel:"取消",save:"创建",delete:"删除账号",select:"选择用户",confirm:"重新输入准确用户名以确认删除",warning:"删除会撤销会话并保留运输和文件记录；有关联记录的账号受到保护。",successCreate:"用户已创建",successDelete:"用户已删除",failed:"错误",busy:"正在保存…",note:"设计师和内容经理是独立角色。",vedNote:"外贸（logistic）：仅获胜运单、文件、清关前任务和聊天；不显示早期报价。",newRights:"先创建账号，其他权限由所有者稍后授予。"}
+ru:{retry:"Повторить",roleUnavailable:"Справочник ролей недоступен",carrier:"Создать перевозчика",supplier:"Создать поставщика",purchasing:"Создать сотрудника закупок",certification:"Создать сотрудника сертификации",logistic:"Создать сотрудника ВЭД",designer:"Создать дизайнера",content:"Создать контент-менеджера",remove:"Удалить пользователя",login:"Логин",name:"Имя сотрудника",password:"Пароль (от 12 символов)",create:"Создать сотрудника",cancel:"Отмена",save:"Создать",delete:"Удалить учётную запись",select:"Выберите пользователя",confirm:"Повторите точный логин для удаления",warning:"Удаление отзывает сессии, но история заявок и документов сохраняется. Аккаунты с обязательными связями защищены.",successCreate:"Пользователь создан",successDelete:"Пользователь удалён",failed:"Ошибка",busy:"Выполнение…",note:"Дизайнер и контент-менеджер — отдельные роли.",vedNote:"ВЭД (роль logistic): только выигравшие перевозки, документы, задачи перед ПТО и чаты; без ранних ставок и чужих заявок.",newRights:"Сотрудник создаётся с ролью кабинета; дополнительные права владелец назначит отдельно."},
+en:{retry:"Retry",roleUnavailable:"The role catalog is unavailable",carrier:"Create carrier",supplier:"Create supplier",purchasing:"Create purchasing employee",certification:"Create certification employee",logistic:"Create foreign-trade employee",designer:"Create designer",content:"Create content manager",remove:"Delete user",login:"Login",name:"Full name",password:"Password (12+ characters)",create:"Create employee",cancel:"Cancel",save:"Create",delete:"Delete account",select:"Select user",confirm:"Retype the exact login to delete",warning:"Deletion revokes sessions and preserves shipment/document history. Accounts with linked records are protected.",successCreate:"User created",successDelete:"User deleted",failed:"Error",busy:"Saving…",note:"Designer and content manager are distinct.",vedNote:"Foreign trade (logistic role): only winning shipments, documents, pre-customs tasks and chats; no early bids.",newRights:"Create the cabinet now; the Owner can assign additional permissions later."},
+zh:{retry:"重试",roleUnavailable:"无法获取角色列表",carrier:"创建承运商",supplier:"创建供应商",purchasing:"创建采购员工",certification:"创建认证员工",logistic:"创建外贸员工",designer:"创建设计师",content:"创建内容经理",remove:"删除用户",login:"用户名",name:"姓名",password:"密码（至少12位）",create:"创建员工",cancel:"取消",save:"创建",delete:"删除账号",select:"选择用户",confirm:"重新输入准确用户名以确认删除",warning:"删除会撤销会话并保留运输和文件记录；有关联记录的账号受到保护。",successCreate:"用户已创建",successDelete:"用户已删除",failed:"错误",busy:"正在保存…",note:"设计师和内容经理是独立角色。",vedNote:"外贸（logistic）：仅获胜运单、文件、清关前任务和聊天；不显示早期报价。",newRights:"先创建账号，其他权限由所有者稍后授予。"}
 };
-const ROLE_DEFS=[["carrier","carrier"],["logistic","ved"],["supplier","supplier"],["designer","designer"],["content","content"],["purchasing","purchasing"],["certification","certification"]];
 const locale=()=>{const l=(document.documentElement.lang||"ru").toLowerCase();return tr[l.slice(0,2)]||tr.ru};
 const el=(tag,attrs={},text)=>{const node=document.createElement(tag);for(const [k,v] of Object.entries(attrs)){if(k==="class")node.className=v;else if(k==="type")node.type=v;else node.setAttribute(k,v)}if(text!=null)node.textContent=text;return node};
 const api=async payload=>{const res=await fetch("/api/team",payload?{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload),cache:"no-store"}:{cache:"no-store"});const data=await res.json().catch(()=>({}));if(!res.ok||data.error)throw new Error(data.error||"HTTP "+res.status);return data};
@@ -21,8 +20,7 @@ function ownerTeam(){
 }
 function dialog(mode,role){
  const t=locale(),bg=el("div",{class:"ow-users-backdrop",role:"presentation"}),form=el("form",{class:"ow-users-dialog",role:"dialog","aria-modal":"true","aria-label":mode==="delete"?t.delete:t.create});
- const labels=Object.fromEntries(ROLE_DEFS.map(([id,key])=>[id,t[key]]));
- const title=el("h3",{},mode==="delete"?t.delete:labels[role]||t.create);
+ const title=el("h3",{},mode==="delete"?t.delete:(Object.hasOwn(t,role)?t[role]:t.create));
  const note=el("p",{class:"ow-users-note"},mode==="delete"?t.warning:role==="logistic"?t.vedNote:["purchasing","certification"].includes(role)?t.newRights:t.note);
  form.append(title,note);let login,pass,name,sel;
  const field=(label,input)=>{const wrap=el("label",{class:"ow-users-field"});wrap.append(el("span",{},label),input);form.append(wrap);for(const [key,value] of [["color","#142b43"],["-webkit-text-fill-color","#142b43"],["background-color","#ffffff"],["caret-color","#142b43"],["color-scheme","light"]])input.style.setProperty(key,value,"important");return input};
@@ -63,24 +61,38 @@ function apply(){
  for(const node of sets)if(node!==canonical)node.remove();
  if(canonical)return;
  const t=locale(),wrap=el("div",{class:"ow-users-actions","data-ow-users-version":"OW-20261117"});
- for(const [role,key] of ROLE_DEFS){
-  const label=t[key];
-  const btn=el("button",{type:"button",class:"ow-users-action ow-users-create","data-user-role":role},label);btn.addEventListener("click",()=>dialog("add",role));wrap.append(btn);
- }
  const del=el("button",{type:"button",class:"ow-users-action ow-users-delete"},t.remove);del.addEventListener("click",()=>dialog("delete"));wrap.append(del);
  const header=panel.querySelector("h1,h2,h3");if(header)header.insertAdjacentElement("afterend",wrap);else panel.prepend(wrap);
  const roleNote=[...panel.querySelectorAll("p.small")].find(p=>(p.textContent||"").includes("Логист / сотрудник ВЭД видит все предложения"));
  if(roleNote)roleNote.textContent="ВЭД: только победившие перевозки, проверка документов перед ПТО, назначенные задачи и чат по заявке; ранние ставки и чужие перевозки недоступны.";
 
  // Do not show a second native button with the same action, especially Supplier.
- const labels=new Set(ROLE_DEFS.map(([,key])=>t[key]));
+ const legacyCreate=/^(?:Создать дизайнера\s*\/\s*контент-менеджера|Create designer\s*\/\s*content manager)$/i;
  for(const btn of panel.querySelectorAll("button")){
   if(wrap.contains(btn))continue;
   const value=(btn.textContent||"").trim();
-  if(labels.has(value)||/^(?:Создать дизайнера\s*\/\s*контент-менеджера|Create designer\s*\/\s*content manager)$/i.test(value)){
+  if(value===t.supplier||legacyCreate.test(value)){
    btn.classList.add("ow-users-native-duplicate");btn.hidden=true;btn.style.display="none";
   }
  }
+ const status=el("p",{role:"status","aria-live":"polite"});
+ const retry=el("button",{type:"button",class:"ow-users-action",hidden:"hidden"},t.retry);
+ wrap.prepend(status,retry);
+ const loadRoles=async()=>{
+  status.textContent=t.busy;retry.hidden=true;
+  try{
+   const {creatableRoles}=await api();
+   if(!Array.isArray(creatableRoles)||!creatableRoles.length||new Set(creatableRoles).size!==creatableRoles.length||
+      creatableRoles.some(role=>typeof role!=="string"||!/^[a-z][a-z0-9_-]*$/.test(role)))throw Error(t.roleUnavailable);
+   for(const role of creatableRoles){
+    const label=Object.hasOwn(t,role)?t[role]:role;
+    const button=el("button",{type:"button",class:"ow-users-action ow-users-create","data-user-role":role},label);
+    button.addEventListener("click",()=>dialog("add",role));wrap.insertBefore(button,del);
+   }
+   status.remove();retry.remove();
+  }catch(err){status.textContent=t.failed+": "+err.message;retry.hidden=false}
+ };
+ retry.addEventListener("click",loadRoles);void loadRoles();
 }
 let scheduled=false;
 const scan=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;apply()})}};
