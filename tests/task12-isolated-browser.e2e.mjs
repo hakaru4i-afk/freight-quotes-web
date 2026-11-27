@@ -2,7 +2,7 @@ import{map50Scenario}from'./map50-real-scenario.mjs';
 import{addressedLogisticScenario}from'./addressed-logistic-real-scenario.mjs';
 import {cabinetMatrix} from "./alignment-cabinet-matrix.mjs";
 import {alignmentScenarios} from "./alignment-real-scenarios.mjs";
-import {fixtureOrder,requireBusinessFixture,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {fixtureOrder,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
 /** Real local candidate UI + real isolated Edge API. No mocked server responses.
  * Node transports HTTPS with the environment CA and proxy; Chromium loads local
  * candidate assets. No TLS checks are disabled and no machine trust is changed.
@@ -42,6 +42,11 @@ if(runtime){
  if(lockedCandidate)assert.equal(proof.frontendSha,gitSha);
  assert.equal(proof.function,qaFunction);assert.ok(Number.isInteger(proof.version)&&proof.version>0);assert.match(proof.bundle,/^[a-f0-9]{64}$/);assert.match(proof.sourceCommit,/^[a-f0-9]{40}$/);
  Object.assign(metadata,{isolatedQaVersion:proof.version,isolatedQaBundleSha256:proof.bundle,isolatedQaSourceCommit:proof.sourceCommit});
+}
+if(lockedCandidate&&process.env.QA_BROWSER_PUBLISHED==='true'){
+ assert.ok(runtime?.activeRuntimePair,'ATTESTED_BROWSER_RUNTIME_RECEIPT_REQUIRED');
+ // Add only the attested generated file to the private frozen copy, not Git.
+ await writeFile(resolve(frozenSource,'test/active-runtime-pair.json'),browserRuntimeReceipt(frozenSource,runtime,gitSha),{flag:'wx'});
 }
 assert.equal(metadata.isolatedQaFunction,qaFunction);
 assert.ok(Number.isInteger(metadata.isolatedQaVersion)&&metadata.isolatedQaVersion>0);
@@ -86,6 +91,14 @@ try{for(const actor of (process.env.QA_BROWSER_ACTORS||'owner,carrierA,carrierB,
    const name=decodeURIComponent(url.pathname.slice('/freight-quotes-web/test/'.length))||'index.html';
    if(r.ok){const local=resolve(root,'test',name);assert.ok(local.startsWith(root+'/test/'));if(lockedCandidate||/\.(?:html|js|mjs|css|svg|ttf|png)$/.test(name)||name==='build-info.json')assert.deepEqual(bytes,await readFile(local),'Published asset differs: '+name);report.servedAssetHashes[name]=createHash('sha256').update(bytes).digest('hex');}
    const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];await route.fulfill({status:r.status,headers,body:bytes});return;
+  }
+  if(isolatedHealthRequest(url.href,req.method(),qaFunction)){
+   // Read the actual isolated public health endpoint, without browser credentials.
+   const r=await fetch(url.href,{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(30000)});
+   assert.equal(r.status,200,'ISOLATED_BROWSER_HEALTH_HTTP');
+   const body=Buffer.from(await r.arrayBuffer());verifyBrowserHealth(JSON.parse(body.toString('utf8')),runtime);
+   const headers=Object.fromEntries(r.headers);delete headers['content-encoding'];delete headers['content-length'];headers['access-control-allow-origin']=origin;
+   await route.fulfill({status:r.status,headers,body});return;
   }
   if(map50&&url.hostname==='router.project-osrm.org'&&url.pathname.startsWith('/route/v1/driving/')&&req.method()==='GET'){
    try{const r=await fetch(url.href,{signal:AbortSignal.timeout(20000)});const bytes=Buffer.from(await r.arrayBuffer());(report.externalRoutes??=[]).push({provider:'OSRM',status:r.status,realHttp:true,authorizationForwarded:false});await route.fulfill({status:r.status,contentType:'application/json',body:bytes});}catch{await route.abort('timedout');}return;
