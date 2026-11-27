@@ -157,6 +157,12 @@ jobs:
         run: node scripts/release/locked-release-pages.mjs preflight candidate-web
       - name: Reject incompatible production API path before backup
         run: node scripts/release/production-route-contract.mjs candidate-web source
+      - name: Require nonempty release notes for the exact candidate before backup
+        if: inputs.publish
+        env:
+          RELEASE_VERSION: ${{ steps.lock.outputs.version }}
+        run: |
+          node --input-type=module -e 'import {readLock} from "./scripts/release/locked-release.mjs"; import {readReleaseNotes,releaseNotesFor,restoreReleaseHistory} from "./scripts/release/locked-release-notes.mjs"; const notes=readReleaseNotes(); releaseNotesFor(notes,readLock(),process.env.RELEASE_VERSION); restoreReleaseHistory([],notes);'
       - name: Require explicit approval and verified reports for the locked pair
         id: evidence
         if: inputs.publish
