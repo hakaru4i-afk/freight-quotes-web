@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "9a5a071e1a7b509ecf5203c74e0c79ecf1cde1d5",
+  "frontendCommit": "61e82ea2036a74d7eafe916e9f188c6469b7b68e",
   "assetHashes": {
     ".github/workflows/carrier-acceptance-singleton.yml": "99272dc7d0d7feb6c2c3221af1b6f1f4ebef826ea7f2a50c56756d5901dc1c62",
     ".github/workflows/carrier124-main-oidc-smoke.yml": "10e52211b5d51b9d5e917521baf9ae91189228ab5d0eb7a258bcc070a2b89802",
@@ -41,7 +41,6 @@
     ".github/workflows/chat-contrast-emergency-20261126.yml": "61ef41d30bd7df1684fccb35849c836fb02cfce93427c00d1d8142f651729ce5",
     ".github/workflows/controlled-sh59-publish.yml": "0ae53c08cdb6c8d39ab7449b98a499eaebbca7ebbb1ee7df3b84a72588bd5998",
     ".github/workflows/dispatch-protected-published-qa20.yml": "239bc69e3c699ee3266bda702746cccab6bb28790253d4fea8c39cb320c48c26",
-    ".github/workflows/feedback-archive-prepare-assets.yml": "347b6dfeca8376a9dd5016811e2ed92e8ec2f819da6362e336410724e2de921c",
     ".github/workflows/im7-prepare-staging-assets.yml": "7aa3c896e641ab481b97c6cbbdefe5764a793f3e36885457c64a925dde6a87d1",
     ".github/workflows/inspect-qa-evidence.yml": "94da1c780aeff6af79a4dac45f4b30d1b69b86eaab303bd0f5eec7d40b50e84e",
     ".github/workflows/isolated-qa-oidc-browser.yml": "1b1ec2ca44d2982b7722294d5fbae0744490dd32980ff15ff8daaa6c2872cdfa",
