@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import {appendFile,readFile,writeFile,mkdir} from 'node:fs/promises';
 import {randomUUID,createHash} from 'node:crypto';
-import {fixtureSummary,latePenaltyCorrection,modeCheck,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
+import {assertQaSession,fixtureSummary,latePenaltyCorrection,modeCheck,sessionPolicyCheck,tenderCheck} from './helpers/isolated-qa-acceptance.mjs';
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const root='/tmp/freight-ci-qa',sessions=JSON.parse(await readFile(root+'/sessions.json','utf8')),actors=JSON.parse(await readFile(root+'/actors.json','utf8'));
 assert.equal(process.env.GITHUB_REPOSITORY,'hakaru4i-afk/freight-quotes-web');assert.equal(process.env.GITHUB_REF,'refs/heads/main');assert.match(process.env.GITHUB_RUN_ID||'',/^\d+$/);
@@ -11,13 +11,16 @@ for(const [id,a]of Object.entries(actors))assert.equal(a.login,'rc20261110-'+id.
 const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
 const runtime=proofFile?JSON.parse(await readFile(proofFile,'utf8')):undefined;
 const report={startedAt:new Date().toISOString(),runtime,runAttempt:process.env.GITHUB_RUN_ATTEMPT,environment:'isolated-qa',mode:'AUTHENTICATED_QA_API',runId:process.env.GITHUB_RUN_ID,frontendSha:runtime?.frontendSha||process.env.GITHUB_SHA,productionDataUsed:false,checks:[],calls:[]};
-async function call(actor,path,body,method){
+async function call(actor,path,body,method,token=sessions[actor]){
  const url=new URL(base+path);url.searchParams.set('forceFunctionRegion','eu-central-1');const multipart=body instanceof FormData;
  const verb=method||(body?'POST':'GET');
- const r=await fetch(url,{method:verb,headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+sessions[actor],...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(60000)});
+ const r=await fetch(url,{method:verb,headers:{Origin:'https://hakaru4i-afk.github.io',Authorization:'Bearer '+token,...(multipart?{}:{'Content-Type':'application/json'})},body:multipart?body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(60000)});
  const context={actor,path:url.pathname.slice(new URL(base).pathname.length),method:verb,status:r.status,requestId:r.headers.get('x-freight-request-id')};
  if(typeof body?.action==='string')context.action=body.action;
- report.calls.push(context);return {status:r.status,data:await r.json(),context};
+ report.calls.push(context);
+ const data=await r.json();
+ if(context.path==='/api/session')Object.assign(context,{authenticated:data.authenticated,role:data.role});
+ return {status:r.status,data,context};
 }
 function ok(result){
  if(result.status!==200){
@@ -160,9 +163,42 @@ if(process.argv.includes('--preflight')){
   return {order,id,step:body.step,acceptedImprovement:a.amount-b.amount,duplicateOfferProtected:true,final:true,
    protocol:protocolNumber,title:body.title,winningAmount:b.amount,winningOffer:offerId,winner:winner.id,currency:body.currency};
  });
- await check('two_sessions_and_three_wrong_passwords',async()=>{
-  const actor='certification',old=sessions[actor],created=[];for(let i=0;i<2;i++){const r=ok(await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:process.env.QA_CERTIFICATION_PASSWORD}));assert.match(r.sessionToken||'',/^[a-f0-9]{64}$/);created.push(r.sessionToken);}
-  sessions[actor]=old;assert.equal((await call(actor,'/api/session')).data.authenticated,false);for(const token of created){sessions[actor]=token;assert.equal((await call(actor,'/api/session')).data.authenticated,true);}let r;for(let i=0;i<3;i++){r=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});assert.equal(r.status,401);}assert.equal(r.data.recoveryRequested,true);for(const token of created){sessions[actor]=token;ok(await call(actor,'/api/auth',{action:'logout'}));}sessions[actor]=old;return{oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true};
+ await check(sessionPolicyCheck,async()=>{
+  const actor='certification', original=sessions[actor], replacements=[];
+  const originalSession=await call(actor,'/api/session');
+  assertQaSession(originalSession,'certification','QA_CERTIFICATION_ORIGINAL_SESSION');
+  const before=await call(actor,'/api/site-monitor');
+  assert.equal(before.status,403,'QA_CERTIFICATION_AUTHENTICATED_DENIAL');
+  try{
+   for(let i=0;i<2;i++){
+    const {sessionToken}=ok(await call(actor,'/api/auth',{
+     action:'login',login:actors[actor].login,password:process.env.QA_CERTIFICATION_PASSWORD
+    }));
+    assert.ok(/^[a-f0-9]{64}$/.test(sessionToken??'')&&sessionToken!==original&&!replacements.includes(sessionToken),
+     'QA_CERTIFICATION_REPLACEMENT_SESSION');
+    replacements.push(sessionToken);
+   }
+   const revokedSession=await call(actor,'/api/session');
+   assertQaSession(revokedSession,null,'QA_CERTIFICATION_REVOKED_SESSION');
+   const after=await call(actor,'/api/site-monitor');
+   assert.equal(after.status,403,'QA_CERTIFICATION_REVOKED_DENIAL');
+   for(const token of replacements){
+    assertQaSession(await call(actor,'/api/session',undefined,'GET',token),'certification','QA_CERTIFICATION_ACTIVE_REPLACEMENT');
+   }
+   let failure;
+   for(let i=0;i<3;i++){
+    failure=await call(actor,'/api/auth',{action:'login',login:actors[actor].login,password:'Synthetic-deliberately-wrong-password'});
+    assert.equal(failure.status,401);
+   }
+   assert.equal(failure.data.recoveryRequested,true);
+   return {oldSessionRevoked:true,maximumActiveSessions:2,wrongAttempts:3,recoveryRequested:true,auditDenials:{
+    before:{sessionRequestId:originalSession.context.requestId,requestId:before.context.requestId},
+    after:{sessionRequestId:revokedSession.context.requestId,requestId:after.context.requestId}
+   }};
+  }finally{
+   const cleanup=await Promise.allSettled(replacements.map(async token=>ok(await call(actor,'/api/auth',{action:'logout'},'POST',token))));
+   assert.ok(cleanup.every(result=>result.status==='fulfilled'),'QA_CERTIFICATION_REPLACEMENT_CLEANUP');
+  }
  });
  report.result=report.checks.length===8&&report.checks.every(c=>c.status==='PASS')?'PASS':'FAIL';if(report.result!=='PASS')process.exitCode=1;
 }finally{

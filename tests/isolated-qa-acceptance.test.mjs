@@ -5,6 +5,7 @@ import {join} from 'node:path';
 import {createStagingPair,stagingIdentityAssets,stagingPairBytes} from '../scripts/release/locked-qa-runtime.mjs';
 import test from 'node:test';
 import {fixtureSummary,latePenaltyCorrection,modeCheck,previousUiApiPath,previousUiSuppression,requireBusinessFixture,tenderCheck,browserRuntimeReceipt,isolatedHealthRequest,verifyBrowserHealth} from './helpers/isolated-qa-acceptance.mjs';
+import {assertQaSession,expectAuditRequest,requireCertificationAuditEvidence,sessionPolicyCheck,verifyAuditRecord} from './helpers/isolated-qa-acceptance.mjs';
 
 const runId = '45648242961';
 const runAttempt = '2';
@@ -22,6 +23,84 @@ test('browser acceptance needs a successful fixture from the current run, attemp
   }
   assert.throws(() => requireBusinessFixture(business,modeCheck,source), /DATA_FIXTURE_ERROR:BUSINESS_CHECK/);
   assert.throws(() => requireBusinessFixture({...business,productionDataUsed:true},tenderCheck,source));
+});
+
+const auditRun = {...source,runtime:{...runtime,function:'freight-api-qa-rc20261110',version:55}};
+const requestId = index => `aaaaaaaa-aaaa-4aaa-8aaa-${String(index).padStart(12,'0')}`;
+function certificationAuditFixture() {
+  const calls = [
+    {path:'/api/session',status:200,authenticated:true,role:'certification'},
+    {path:'/api/site-monitor',status:403},
+    {path:'/api/session',status:200,authenticated:false,role:null},
+    {path:'/api/site-monitor',status:403},
+  ].map((call,index)=>({...call,actor:'certification',method:'GET',requestId:requestId(index+1)}));
+  const auditDenials = {
+    before:{sessionRequestId:requestId(1),requestId:requestId(2)},
+    after:{sessionRequestId:requestId(3),requestId:requestId(4)},
+  };
+  const evidence = {oldSessionRevoked:true,auditDenials};
+  const report = {...auditRun,result:'PASS',environment:'isolated-qa',productionDataUsed:false,calls,
+    checks:[{id:sessionPolicyCheck,status:'PASS',evidence}]};
+  return {report,auditDenials};
+}
+
+test('certification audit needs both HTTP denials from the exact run, attempt and deployed pair', () => {
+  const {report} = certificationAuditFixture();
+  assert.deepEqual(requireCertificationAuditEvidence(report,auditRun),{before:requestId(2),after:requestId(4)});
+  for (const drift of [{runId:'1234'},{runAttempt:'1'},...[
+    {frontendSha:'other-web'},{backendSha:'other-api'},{function:'other-function'},{version:56},{bundle:'other-bundle'},
+  ].map(value=>({runtime:{...auditRun.runtime,...value}}))]) {
+    assert.throws(()=>requireCertificationAuditEvidence({...report,...drift},auditRun),/AUDIT_EVIDENCE_CONTEXT_MISMATCH/);
+  }
+  assert.throws(()=>requireCertificationAuditEvidence({...report,result:'FAIL'},auditRun),/CERTIFICATION_AUDIT_BUSINESS_REPORT_FAILED/);
+  assert.throws(()=>requireCertificationAuditEvidence({...report,checks:[]},auditRun),/CERTIFICATION_AUDIT_CHECK_NOT_UNIQUE/);
+  for (const phase of ['before','after']) {
+    const fixture = certificationAuditFixture();
+    delete fixture.auditDenials[phase];
+    assert.throws(()=>requireCertificationAuditEvidence(fixture.report,auditRun),/CERTIFICATION_AUDIT_REQUEST_ID_MISSING/);
+  }
+});
+
+test('certification audit rejects missing, substituted and reused request IDs', () => {
+  const scenarios = [
+    [({report})=>report.calls.splice(3,1), /CERTIFICATION_AUDIT_REQUEST_NOT_UNIQUE/],
+    [({report})=>report.calls.push({...report.calls[1]}), /CERTIFICATION_AUDIT_REQUEST_NOT_UNIQUE/],
+    [({report})=>{report.calls[3].actor='purchasing';}, /CERTIFICATION_AUDIT_REQUEST_MISMATCH/],
+    [({report})=>{report.calls[2].authenticated=true;}, /CERTIFICATION_AUDIT_REVOKED_SESSION_MISMATCH/],
+    [({report})=>{report.calls[1].status=401;}, /CERTIFICATION_AUDIT_DENIAL_MISMATCH/],
+    [({auditDenials})=>{auditDenials.after.requestId=auditDenials.before.requestId;}, /CERTIFICATION_AUDIT_REQUEST_ID_REUSED/],
+    [({auditDenials})=>{[auditDenials.before.requestId,auditDenials.after.requestId]=[auditDenials.after.requestId,auditDenials.before.requestId];}, /CERTIFICATION_AUDIT_DENIAL_ORDER/],
+  ];
+  for (const [alter, error] of scenarios) {
+    const fixture = certificationAuditFixture();
+    alter(fixture);
+    assert.throws(()=>requireCertificationAuditEvidence(fixture.report,auditRun),error);
+  }
+  const required = new Map();
+  expectAuditRequest(required,requestId(2),{label:'first'});
+  assert.throws(()=>expectAuditRequest(required,requestId(2),{label:'second'}),/AUDIT_REQUEST_ID_REUSED/);
+  assert.throws(()=>expectAuditRequest(required,undefined,{label:'missing'}),/AUDIT_REQUEST_ID_MISSING/);
+});
+
+test('server audit distinguishes the authenticated employee and the revoked session', () => {
+  const identity = {login:'rc20261110-certification',role:'certification'};
+  const actors = {certification:identity};
+  const expected = {label:'certification',actor:'certification',path:'/api/site-monitor',status:403,
+    kind:'denied',reasonCode:'ACCESS_DENIED',action:'get',phase:'access_denied'};
+  const detail = {reasonCode:expected.reasonCode,phase:expected.phase};
+  const row = {source:'server',path:expected.path,status:403,kind:'denied',action:'get'};
+  const active = {...row,actor:identity.login,role:identity.role,detail:{...detail,effectiveRole:identity.role},request_id:requestId(2)};
+  const revoked = {...row,actor:'',role:'',detail,request_id:requestId(4)};
+  const authenticatedDenial = {...expected,sessionState:'authenticated'};
+  const revokedDenial = {...expected,sessionState:'revoked'};
+  assert.equal(verifyAuditRecord(active,authenticatedDenial,actors).actor,identity.login);
+  assert.equal(verifyAuditRecord(revoked,revokedDenial,actors).actor,'');
+  assert.throws(()=>verifyAuditRecord(active,revokedDenial,actors),/: actor/);
+  assert.throws(()=>verifyAuditRecord(revoked,authenticatedDenial,actors),/: actor/);
+  assert.throws(()=>verifyAuditRecord({...revoked,detail:{...detail,effectiveRole:identity.role}},revokedDenial,actors),/: effective role/);
+  assert.throws(()=>verifyAuditRecord({...active,source:'client'},authenticatedDenial,actors),/: source/);
+  assertQaSession({status:200,data:{authenticated:true,role:'supplier'}},'supplier','session');
+  assert.throws(()=>assertQaSession({status:200,data:{authenticated:false,role:null}},'supplier','session'),/session/);
 });
 
 test('compatibility suppresses only the two expected background posts before any forwarding', () => {

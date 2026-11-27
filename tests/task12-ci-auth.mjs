@@ -8,8 +8,10 @@ if(process.argv.includes('--logout')){
  let failed=0;for(const token of Object.values(sessions)){try{if((await request('/api/auth',{action:'logout'},token)).status!==200)failed++;}catch{failed++;}}
  await rm('/tmp/freight-ci-qa',{recursive:true,force:true});console.log('QA_SESSION_CLEANUP',failed?'FAILED':'PASS');if(failed)process.exitCode=1;
 }else{
- const report={result:'BLOCKED',environment:'isolated-qa',startedAt:new Date().toISOString(),checks:[]};
+ const report={result:'BLOCKED',environment:'isolated-qa',startedAt:new Date().toISOString(),runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,checks:[]};
  try{
+  const proofFile=process.env.QA_BROWSER_BACKEND_PROOF_FILE;
+  if(proofFile)report.runtime=JSON.parse(await readFile(proofFile,'utf8'));
   const missing=Object.entries(actors).filter(([, [prefix]])=>!process.env['QA_'+prefix+'_LOGIN']||!process.env['QA_'+prefix+'_PASSWORD']).map(([id])=>id);
   if(missing.length)throw Error('MISSING_PROTECTED_QA_BINDINGS:'+missing.join(','));
   for(const [id,[prefix]]of Object.entries(actors))if(process.env['QA_'+prefix+'_LOGIN']!=='rc20261110-'+id.toLowerCase())throw Error('QA_LOGIN_SCOPE_MISMATCH:'+id);
@@ -25,5 +27,6 @@ if(process.argv.includes('--logout')){
   await ensureAddressedLogistic(request,process.env.QA_LOGISTIC_LOGIN,sessions.owner);
   report.result='PASS';
  }catch(e){report.reason=String(e.message).replace(/[^A-Za-z0-9_:,-]/g,'').slice(0,250);console.log('QA_AUTH_BLOCKED',report.reason);process.exitCode=1;}
+ report.completedAt=new Date().toISOString();
  await mkdir('reports',{recursive:true});await writeFile('reports/ci-qa-auth.json',JSON.stringify(report,null,2));
 }
