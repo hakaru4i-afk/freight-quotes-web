@@ -13,7 +13,7 @@ const titleTranslations={
 };
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="active",message="",error="",busy=false,lastRoot=null;
+let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 let publishedTask={taskId:'',evidence:null};
@@ -121,6 +121,15 @@ function form(){
 }
 function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':i.status)+'">'+esc(requestStatus(i))+'</span>';}
 const isArchived=item=>['completed','denied'].includes(item?.status);
+// Explicit lifecycle order; labels do not change the persisted status codes.
+function feedbackFilterOptions(lang){
+ const labels={
+  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые','В работе','На этапе выпуска','Архив'],
+  en:['All requests','New (unread)','Read','Evaluated','In progress','Release stage','Archive'],
+  zh:['所有申请','新申请（未读）','已读','已评估','处理中','发布阶段','归档']
+ };
+ return ['all','sent','read','evaluated','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
+}
 function visibleFeedbackItems(){
  let rows=data.items;
  if(data.owner){
@@ -138,8 +147,8 @@ function itemsList(){
  const rows=visibleFeedbackItems();
  const filters=data.owner?'<div class="pf-filters"><label>'+esc(t().register)+'<select id="pf-register"><option value="all">'+esc(t().all)+'</option>'+
  Object.entries(registerLabels).map(([key,label])=>'<option value="'+key+'"'+(registry===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label>'+
- '<label>'+esc(t().status)+'<select id="pf-status-filter"><option value="active"'+(statusFilter==='active'?' selected':'')+'>'+esc(byLang==='en'?'Active':byLang==='zh'?'进行中':'Активные')+'</option><option value="archive"'+(statusFilter==='archive'?' selected':'')+'>'+esc(byLang==='en'?'Archive':byLang==='zh'?'归档':'Архив')+'</option><option value="all"'+(statusFilter==='all'?' selected':'')+'>'+esc(t().all)+'</option>'+
- Object.entries(statusLabels).filter(([k])=>!isArchived({status:k})).map(([k,label])=>'<option value="'+k+'"'+(statusFilter===k?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
+ '<label>'+esc(t().status)+'<select id="pf-status-filter">'+
+ feedbackFilterOptions(byLang).map(([key,label])=>'<option value="'+key+'"'+(statusFilter===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
  return filters+'<div class="pf-list">'+(rows.length?rows.map(i=>'<button type="button" class="pf-item '+(selected===i.id?'pf-selected':'')+'" data-pf-id="'+esc(i.id)+'" aria-label="'+esc(i.code)+'">'+
  '<span class="pf-item-top"><strong>'+esc(i.code)+'</strong>'+badge(i)+'</span><span class="pf-item-type">'+esc(categoryLabels[i.category]||i.category)+' · '+esc(registerLabels[i.journal]||"")+'</span>'+
  '<span class="pf-description">'+esc(i.description)+'</span><span class="pf-item-meta">'+esc(data.owner?i.sender_role+" · "+i.sender_login:formatTime(i.created_at))+'</span>'+
