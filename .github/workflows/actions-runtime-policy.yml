@@ -45,10 +45,44 @@ jobs:
         with:
           name: runtime-pages-${{ github.run_attempt }}
           path: ${{ runner.temp }}/sample-pages
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      # Artifact listing can lag upload completion. Fetch each named artifact
+      # into an explicit directory; pattern mode changes layout with match count.
+      - name: Download exact workflow receipt
+        id: receipt_download
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
-          pattern: runtime-*-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/downloaded-artifacts
+          name: runtime-receipt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded-artifacts/runtime-receipt-${{ github.run_attempt }}
+      - name: Wait for workflow receipt visibility
+        if: steps.receipt_download.outcome == 'failure'
+        run: |
+          rm -rf "$RUNNER_TEMP/downloaded-artifacts/runtime-receipt-$GITHUB_RUN_ATTEMPT"
+          sleep 5
+      - name: Retry exact workflow receipt
+        if: steps.receipt_download.outcome == 'failure'
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: runtime-receipt-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded-artifacts/runtime-receipt-${{ github.run_attempt }}
+      - name: Download exact Pages archive
+        id: pages_download
+        continue-on-error: true
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: runtime-pages-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded-artifacts/runtime-pages-${{ github.run_attempt }}
+      - name: Wait for Pages archive visibility
+        if: steps.pages_download.outcome == 'failure'
+        run: |
+          rm -rf "$RUNNER_TEMP/downloaded-artifacts/runtime-pages-$GITHUB_RUN_ATTEMPT"
+          sleep 5
+      - name: Retry exact Pages archive
+        if: steps.pages_download.outcome == 'failure'
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: runtime-pages-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/downloaded-artifacts/runtime-pages-${{ github.run_attempt }}
       - name: Verify receipt and Pages archive bytes
         env:
           ATTEMPT: ${{ github.run_attempt }}
