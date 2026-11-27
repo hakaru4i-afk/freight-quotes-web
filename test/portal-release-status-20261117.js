@@ -5,32 +5,35 @@ const script=document.currentScript;
 const base=script?.src||document.baseURI;
 const params=new URL(base).searchParams;
 const declared=params.get('businessVersion')||params.get('v')||'';
-const loaded=/^SH-\d{2}\.\d{2}\.\d{2} v$/.test(declared)?declared:'';
+const rank=value=>{const m=/^SH-(\d{2})\.(\d{2})\.(\d{2}) v$/.exec(value||'');return m?Number(m.slice(1).join('')):null};
+const loaded=rank(declared)!==null?declared:'';
+const loadedAppKey=()=>{const app=document.querySelector('script[src*="./app.js?"]');return app?new URL(app.src,base).searchParams.get('v'):null};
+const project='ibclzdkxiozbzmniiygv',api='freight-api-qa-rc20261110';
 const manifest=new URL('./release-status.json',base);
 const root=document.createElement('aside');
 root.id='lw-release-status';root.setAttribute('aria-live','polite');root.hidden=true;
-let data=null,collapsed=false,currentRole='';
+let data=null,collapsed=false,currentRole='',verifiedVersion='',sourceMismatch=true,loadSequence=0;
 const html=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const language=()=>{const x=(document.documentElement.lang||'ru').slice(0,2);return ['ru','en','zh'].includes(x)?x:'ru'};
 const tr={
-ru:{updating:'Идёт обновление портала',checking:'Публикация проверяется',released:'Обновление опубликовано',failed:'Обновление требует проверки',details:'Что исправлено',hide:'Свернуть',expand:'Версия',reload:'Обновить страницу',register:'Реестр обновлений',stale:'Доступна новая версия'},
-en:{updating:'Portal update in progress',checking:'Release under verification',released:'Update published',failed:'Release needs verification',details:'What changed',hide:'Collapse',expand:'Version',reload:'Reload page',register:'Update register',stale:'New version available'},
-zh:{updating:'门户正在更新',checking:'正在验证发布',released:'更新已发布',failed:'发布需要检查',details:'更新内容',hide:'收起',expand:'版本',reload:'刷新页面',register:'更新记录',stale:'发现新版本'}
+ru:{updating:'Идёт обновление портала',checking:'Публикация проверяется',released:'Обновление опубликовано',failed:'Обновление требует проверки',details:'Что исправлено',hide:'Свернуть',expand:'Версия',reload:'Обновить страницу',register:'Реестр обновлений',stale:'Доступна новая версия',mismatch:'Сведения о тестовой версии проверяются'},
+en:{updating:'Portal update in progress',checking:'Release under verification',released:'Update published',failed:'Release needs verification',details:'What changed',hide:'Collapse',expand:'Version',reload:'Reload page',register:'Update register',stale:'New version available',mismatch:'Staging version metadata is being verified'},
+zh:{updating:'门户正在更新',checking:'正在验证发布',released:'更新已发布',failed:'发布需要检查',details:'更新内容',hide:'收起',expand:'版本',reload:'刷新页面',register:'更新记录',stale:'发现新版本',mismatch:'正在核对测试版本信息'}
 };
 const owner=()=>!!document.querySelector('#root .cabinet-app[data-cabinet-role="owner"],#root .staff-portal[data-cabinet-role="owner"]');
 const signed=()=>!!document.querySelector('#root .cabinet-app[data-cabinet-role],#root .staff-portal[data-cabinet-role]');
-const stamp=()=>data?.version||'—';
+const stamp=()=>sourceMismatch?(loaded||verifiedVersion||'—'):(data?.version||'—');
 function paint(){
  const role=signed()?(owner()?'owner':'staff'):'guest';if(role==='guest'){root.hidden=true;currentRole=role;return}currentRole=role;
- const t=tr[language()],state=loaded?(data?.status||'checking'):'checking',newer=!!loaded&&!!data?.version&&loaded!==data.version;
- const title=newer?t.stale:(t[state]||t.checking);
+ const t=tr[language()],state=sourceMismatch?'checking':(data?.status||'checking'),newer=!sourceMismatch&&state==='released'&&rank(loaded)!==null&&rank(verifiedVersion)>rank(loaded);
+ const title=sourceMismatch?t.mismatch:newer?t.stale:(t[state]||t.checking);
  // A completed deployment is not an ongoing notification. Keep the change history in 'Что нового'.
  if(state==='released'&&!newer){root.hidden=true;root.dataset.state=state;root.innerHTML='';return}
- const notes=role==='owner'&&Array.isArray(data?.changes)?data.changes:[];
+ const notes=!sourceMismatch&&role==='owner'&&Array.isArray(data?.changes)?data.changes:[];
  root.hidden=false;root.dataset.state=state;root.classList.toggle('is-collapsed',collapsed);
  if(collapsed){root.innerHTML='<button type="button" data-release-toggle="open">'+html(t.expand)+' '+html(stamp())+'</button>';return}
  root.innerHTML='<div class="lw-release-header"><strong>'+html(title)+'</strong><button type="button" data-release-toggle="close" aria-label="'+html(t.hide)+'">×</button></div>'+
- '<div class="lw-release-version">'+html(stamp())+(role==='owner'&&data?.ownerVersion?' · '+html(data.ownerVersion):'')+'</div>'+
+ '<div class="lw-release-version">'+html(stamp())+(!sourceMismatch&&role==='owner'&&data?.ownerVersion?' · '+html(data.ownerVersion):'')+'</div>'+
  (role==='owner'&&notes.length?'<div class="lw-release-subtitle">'+html(t.details)+'</div><ul>'+notes.map(n=>'<li>'+html(n)+'</li>').join('')+'</ul>':'')+
  '<div class="lw-release-actions">'+(newer?'<button type="button" data-release-reload="1">'+html(t.reload)+'</button>':'')+
  (role==='owner'?'<a href="#updates">'+html(t.register)+'</a>':'')+'</div>';
@@ -41,14 +44,43 @@ root.addEventListener('click',e=>{
  if(e.target.closest('[data-release-reload]'))location.reload();
 });
 async function load(){
- try{
-  const url=new URL(manifest);url.searchParams.set('t',String(Date.now()));
-  const response=await fetch(url.href,{cache:'no-store'});
+ const seq=++loadSequence;
+ const read=async source=>{
+  const url=new URL(source,base);url.searchParams.set('t',String(Date.now()));
+  const response=await fetch(url.href,{cache:'no-store',redirect:'error'});
   if(!response.ok)throw Error('HTTP '+response.status);
-  const next=await response.json();
-  if(typeof next.version!=='string'||!['updating','checking','released','failed'].includes(next.status))throw Error('INVALID_RELEASE_STATUS');
+  return response.json();
+ };
+ try{
+  const [next,build,stage,receipt,health]=await Promise.all([
+   read(manifest),read('./build-info.json'),read('./staging-manifest.json'),read('./active-runtime-pair.json'),
+   read('https://'+project+'.supabase.co/functions/v1/'+api+'/health')
+  ]);
+  if(seq!==loadSequence)return;
+  const v=receipt?.sourceBusinessVersion, key=loadedAppKey();
+  const valid=receipt?.schemaVersion===1&&receipt.environment==='staging'&&receipt.productionAuthorized===false&&
+    receipt.apiProject===project&&receipt.apiFunction===api&&Number.isSafeInteger(receipt.apiVersion)&&receipt.apiVersion>0&&
+    /^[a-f0-9]{40}$/.test(receipt.frontendSha||'')&&/^[a-f0-9]{40}$/.test(receipt.backendSha||'')&&
+    /^[a-f0-9]{64}$/.test(receipt.apiBundleSha256||'')&&
+    build?.environment==='staging'&&stage?.environment==='staging'&&rank(v)!==null&&
+    build.primaryBusinessVersion===v&&stage.primaryBusinessVersion===v&&
+    /^[a-f0-9]{20}$/.test(receipt.frontendAssetBuild||'')&&receipt.frontendAssetBuild===build.stagingAssetBuildId&&build.version===receipt.frontendAssetBuild&&
+    health?.ok===true&&health.environment==='staging'&&health.projectRef===project&&health.qaRun==='rc20261110'&&
+    health.backendSha===receipt.backendSha&&health.deploymentId===receipt.apiDeploymentId&&
+    receipt.apiDeploymentId?.endsWith('_'+receipt.apiVersion);
+  if(rank(next?.version)===null||!['updating','checking','released','failed'].includes(next.status))throw Error('INVALID_RELEASE_STATUS');
+  const floor=Math.max(rank(loaded)??-1,rank(verifiedVersion)??-1);
+  // A hash identifies the loaded app but has no chronological ordering.
+  // If the loaded app differs without a known version, report uncertainty, never an upgrade.
+  const currentApp=typeof key==='string'&&/^[a-f0-9]{40}$/.test(build?.servedAppBlobSha||'')&&key===build.servedAppBlobSha.slice(0,12);
+  sourceMismatch=!valid||rank(v)<floor||rank(next.version)<floor||
+    (next.status==='released'&&next.version!==v)||(!currentApp&&(rank(loaded)===null||rank(v)<=rank(loaded)));
+  if(!sourceMismatch)verifiedVersion=v;
   data=next;
- }catch(e){if(!data)data={version:loaded||'—',status:'checking',changes:[]}}
+ }catch(_error){
+  if(seq!==loadSequence)return;
+  sourceMismatch=true;if(!data)data={version:loaded||verifiedVersion||'—',status:'checking',changes:[]};
+ }
  paint();
 }
 
