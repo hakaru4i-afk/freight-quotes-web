@@ -109,6 +109,8 @@ jobs:
         run: node --test tests/feedback-archive-single-filter.test.mjs
       - name: Verify monotonic production release notifications
         run: node --test tests/release-banner-monotonic.test.mjs
+      - name: Verify required release notes and history recovery
+        run: node --test tests/release-notes-history.test.mjs
       - name: Validate generated CSS bundle and asset ordering
         run: |
           if [ -f scripts/build-css-bundle.mjs ]; then

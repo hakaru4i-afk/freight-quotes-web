@@ -307,7 +307,11 @@ test('Pages bind the new route while retaining staging and the release history',
   const publication = publicationRecord(proof, actions, evidence, backup);
   assert.throws(() => publicationRecord(proof, actions, {...evidence, e2e: null}, backup), /PRODUCTION_ACTION_RECEIPTS_MISSING/);
   assert.throws(() => publicationRecord({...proof, apiDeploymentId: 'old'}, actions, evidence, backup), /PRODUCTION_API_OR_SCHEMA_RECEIPT_MISSING/);
-  const manifest = bindPages(files, lock, proof, {businessVersion: current}, history, publication);
+  const notes = {schemaVersion:1,restore:[],next:{version,frontendSha:lock.frontendSha,backendSha:lock.backendSha,title:'Reviewed release',changes:['Verified changes']}};
+  assert.throws(() => bindPages(files, lock, proof, {businessVersion: current}, history, publication), /RELEASE_NOTES_CONFIG_INVALID/);
+  const manifest = bindPages(files, lock, proof, {businessVersion: current}, history, publication, new Date(), notes);
+  assert.deepEqual(JSON.parse(files.get('release-status.json')).changes, notes.next.changes);
+  assert.deepEqual(JSON.parse(files.get('site-status.json')).release.changes, notes.next.changes);
   assert.equal(manifest.businessVersion, version);
   assert.equal(manifest.apiFunction, apiFunction);
   assert.equal(manifest.databaseSchemaVersion, proof.schemaVersion);
