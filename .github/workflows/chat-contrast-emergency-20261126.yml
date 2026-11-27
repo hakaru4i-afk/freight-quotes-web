@@ -34,14 +34,14 @@ jobs:
       name: github-pages
       url: https://hakaru4i-afk.github.io/freight-quotes-web/
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: '24'
       - name: Download exact previously deployed staging Pages artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: locked-staging-pages-attempt-1
           run-id: 45778306459
@@ -85,29 +85,29 @@ jobs:
           console.log('CHAT_CONTRAST_BROWSER_FIXTURE_PASS');
           NODE
       - name: Preserve previous verified Pages artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: chat-before
           path: .chat-before/
           include-hidden-files: true
           retention-days: 7
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: .chat-pages
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: deploy
       - name: Verify published chat CSS and preserved staging
         id: verify
         run: node scripts/release/chat-contrast-emergency-20261126.mjs verify
       - name: Prepare rollback artifact if public verification failed
         if: failure() && steps.deploy.outcome == 'success' && steps.verify.outcome == 'failure'
-        uses: actions/upload-pages-artifact@v4
+        uses: actions/upload-pages-artifact@v5
         with:
           name: chat-rollback
           path: .chat-before
       - name: Restore previous verified Pages on readback failure
         if: failure() && steps.deploy.outcome == 'success' && steps.verify.outcome == 'failure'
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         with:
           artifact_name: chat-rollback
