@@ -24,7 +24,9 @@ for(const [name,deps]of [['global-view/globe.mjs',['route-model.mjs']],['global-
 if(status.release?.version!==primaryVersion||status.releases?.[0]?.version!==primaryVersion+' · тестовая')throw Error('STALE_VISIBLE_RELEASE_NOTES');
 const observer=JSON.parse(read('qa-observer.json'));
 if(observer.primaryBusinessVersion!==primaryVersion||observer.versionPair?.ref!=='staging-manifest.json')throw Error('STALE_QA_OBSERVER_VERSION_PAIR');
-const files=[...new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"\s]*)?"/g)].map(x=>x[1]).filter(x=>/\.(?:js|mjs|css)$/.test(x)).concat('staging-api-region.mjs','process-model-graph.mjs','process-model-diff.mjs','alignment-role-help.json','global-view/route-model.mjs','global-view/distance.mjs','global-view/globe.mjs','global-view/map.mjs'))].sort();
+const files=[...new Set([...html.matchAll(/(?:src|href)="\.\/([^"?]+)(?:\?[^"\s]*)?"/g)].map(x=>x[1]).filter(x=>/\.(?:js|mjs|css)$/.test(x)).concat('role-report-charts.mjs','staging-api-region.mjs','process-model-graph.mjs','process-model-diff.mjs','alignment-role-help.json','global-view/route-model.mjs','global-view/distance.mjs','global-view/globe.mjs','global-view/map.mjs'))].sort();
+const reportChartRef='./role-report-charts.mjs?v='+blob('role-report-charts.mjs').slice(0,12);
+if(!app.includes(reportChartRef))throw Error('STALE_MODULE_CACHE:app.js:role-report-charts.mjs');
 const pattern=/currentVersion:"[a-f0-9]{20}"/g;if([...app.matchAll(pattern)].length!==1)throw Error('APP_BUILD_ID_NOT_UNIQUE');
 // Include vendored visual dependencies in the build identity. Generated process
 // SVGs are checked by their model gate and excluded to avoid a hash cycle.
