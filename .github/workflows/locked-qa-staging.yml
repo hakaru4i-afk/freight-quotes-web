@@ -118,7 +118,7 @@ jobs:
           set -euo pipefail
           node scripts/release/locked-staging.mjs prepare-api candidate-backend "$LOCKED_STAGE_DIR/api" "$LOCKED_STAGE_DIR/build-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$LOCKED_STAGE_DIR/root-proof.json"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: |
@@ -126,7 +126,7 @@ jobs:
             ${{ env.LOCKED_STAGE_DIR }}/build-proof.json
           if-no-files-found: error
           retention-days: 2
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@v5
         with:
           name: locked-staging-pages-attempt-${{ github.run_attempt }}
           path: ${{ env.LOCKED_STAGE_DIR }}/pages
@@ -156,13 +156,13 @@ jobs:
         with:
           package-manager-cache: false
           node-version: '24'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: verified-stage
       - name: Confirm unchanged production root immediately before Pages deployment
         run: node scripts/release/locked-staging.mjs verify-root verified-stage/root-proof.json
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v5
         id: pages
         with:
           artifact_name: locked-staging-pages-attempt-${{ github.run_attempt }}
@@ -216,7 +216,7 @@ jobs:
           token: ${{ secrets.BACKEND_QA_READ_TOKEN }}
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v7
         with:
           name: locked-staging-input-proofs-attempt-${{ github.run_attempt }}
           path: verified-stage
@@ -233,7 +233,7 @@ jobs:
           node scripts/release/locked-staging.mjs verify-api candidate-web candidate-backend \
             verified-stage/build-proof.json locked-staging-attestation.json
           echo STAGING_PAIR_ATTESTED_NOT_PRODUCTION_APPROVAL
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: locked-staging-attestation-attempt-${{ github.run_attempt }}
           path: locked-staging-attestation.json
