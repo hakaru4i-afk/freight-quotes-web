@@ -18,7 +18,10 @@ test('archive is the single terminal filter; individual active statuses remain a
  assert.deepEqual(probe('all').ids,['sent','read','evaluated','in_progress','release','completed','denied']);
  const html=probe('archive').html;
  assert.match(html,/<option value="archive" selected>/);
- assert.doesNotMatch(html,/<option value="(?:completed|denied)"/);
+ assert.doesNotMatch(html,/<option value="(?:active|completed|denied)"/);
+ const dropdown=html.match(/<select id="pf-status-filter">([\s\S]*?)<\/select>/)[1];
+ assert.deepEqual([...dropdown.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]),['all','sent','read','evaluated','in_progress','release','archive']);
+ assert.deepEqual(['sent','read','evaluated','in_progress','release','archive'].flatMap(key=>probe(key).ids).sort(),probe('all').ids.sort());
 });
 test('closed tasks do not display old development progress or handoff; published tasks cannot be relaunched from the card',()=>{
  assert.match(source,/const progressPanel=!archived&&execution\?/);
