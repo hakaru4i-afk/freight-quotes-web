@@ -13,7 +13,7 @@ const titleTranslations={
 };
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="active",message="",error="",busy=false,lastRoot=null;
+let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 let publishedTask={taskId:'',evidence:null};
@@ -120,21 +120,35 @@ function form(){
  '<div class="pf-actions"><button type="submit" class="pf-primary" '+(!draftCategory||busy?'disabled':'')+'>'+esc(t().submit)+'</button><button type="button" class="pf-secondary" data-pf="cancel">'+esc(t().cancel)+'</button></div></form>';
 }
 function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':i.status)+'">'+esc(requestStatus(i))+'</span>';}
-function itemsList(){
+const isArchived=item=>['completed','denied'].includes(item?.status);
+// Explicit lifecycle order; labels do not change the persisted status codes.
+function feedbackFilterOptions(lang){
+ const labels={
+  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые','В работе','На этапе выпуска','Архив'],
+  en:['All requests','New (unread)','Read','Evaluated','In progress','Release stage','Archive'],
+  zh:['所有申请','新申请（未读）','已读','已评估','处理中','发布阶段','归档']
+ };
+ return ['all','sent','read','evaluated','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
+}
+function visibleFeedbackItems(){
  let rows=data.items;
  if(data.owner){
   if(registry!=="all"){
    const ids=new Set(data.events.filter(e=>e.journal===registry).map(e=>e.request_id));
    rows=rows.filter(i=>registry==="updates"?ids.has(i.id):i.journal===registry);
   }
-  if(statusFilter==='active')rows=rows.filter(i=>!['completed','denied'].includes(i.status));
-  else if(statusFilter==='archive')rows=rows.filter(i=>['completed','denied'].includes(i.status));
-  else if(statusFilter!=="all")rows=rows.filter(i=>i.status===statusFilter);
+  if(statusFilter==='archive')rows=rows.filter(isArchived);
+  else if(statusFilter==='active')rows=rows.filter(i=>!isArchived(i));
+  else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&i.status===statusFilter);
  }
+ return rows;
+}
+function itemsList(){
+ const rows=visibleFeedbackItems();
  const filters=data.owner?'<div class="pf-filters"><label>'+esc(t().register)+'<select id="pf-register"><option value="all">'+esc(t().all)+'</option>'+
  Object.entries(registerLabels).map(([key,label])=>'<option value="'+key+'"'+(registry===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label>'+
- '<label>'+esc(t().status)+'<select id="pf-status-filter"><option value="active"'+(statusFilter==='active'?' selected':'')+'>'+esc(byLang==='en'?'Active':byLang==='zh'?'进行中':'Активные')+'</option><option value="archive"'+(statusFilter==='archive'?' selected':'')+'>'+esc(byLang==='en'?'Archive':byLang==='zh'?'归档':'Архив')+'</option><option value="all"'+(statusFilter==='all'?' selected':'')+'>'+esc(t().all)+'</option>'+
- Object.entries(statusLabels).map(([k,label])=>'<option value="'+k+'"'+(statusFilter===k?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
+ '<label>'+esc(t().status)+'<select id="pf-status-filter">'+
+ feedbackFilterOptions(byLang).map(([key,label])=>'<option value="'+key+'"'+(statusFilter===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
  return filters+'<div class="pf-list">'+(rows.length?rows.map(i=>'<button type="button" class="pf-item '+(selected===i.id?'pf-selected':'')+'" data-pf-id="'+esc(i.id)+'" aria-label="'+esc(i.code)+'">'+
  '<span class="pf-item-top"><strong>'+esc(i.code)+'</strong>'+badge(i)+'</span><span class="pf-item-type">'+esc(categoryLabels[i.category]||i.category)+' · '+esc(registerLabels[i.journal]||"")+'</span>'+
  '<span class="pf-description">'+esc(i.description)+'</span><span class="pf-item-meta">'+esc(data.owner?i.sender_role+" · "+i.sender_login:formatTime(i.created_at))+'</span>'+
@@ -146,17 +160,19 @@ function detail(){
  if(!item)return '<div class="pf-empty">'+esc(t().clear)+'</div>';
  const execution=executionByFeedback.get(item.id);
  const alreadyPublished=issue173Published(item);
- const handoff=Boolean(data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&
+ const archived=isArchived(item);
+ const publishedProof=publishedTask.taskId===item.id?publishedTask.evidence:null;
+ const handoff=Boolean(!archived&&!publishedProof&&data.owner&&execution&&['new','in_progress'].includes(execution.decision)&&
   (['not_requested','pending'].includes(execution.dispatchStatus)||(execution.dispatchStatus==='failed'&&!String(execution.lastError||'').startsWith('CODEX_'))));
- const githubRegistered=Boolean(data.owner&&execution&&execution.decision==='in_progress'&&
+ const githubRegistered=Boolean(!archived&&!publishedProof&&data.owner&&execution&&execution.decision==='in_progress'&&
   (execution.dispatchStatus==='dispatched'||(execution.dispatchStatus==='failed'&&String(execution.lastError||'').startsWith('CODEX_'))));
  const githubHandoffReady=githubRegistered&&['branch_awaiting_codex','code_committed_pr_required','checks_running','basic_checks_failed','task_e2e_failed','tests_failed','required_tests_missing','scope_incomplete','ready_for_review','codex_failed'].includes(execution?.step);
  const progressText=alreadyPublished?(byLang==='en'?'Deadline fix published in SH64. Historic task-e2e failure belongs to the pre-release PR.':byLang==='zh'?'截止日期修复已随 SH64 发布。旧的 task-e2e 错误属于发布前的 PR。':'Исправление дедлайна опубликовано в SH64. Старая ошибка task-e2e относится к PR до выпуска.'):taskStatusText(execution);
  const developmentLabel=taskStatusLabels[byLang].label;
  const taskRunUrl=typeof execution?.githubRunUrl==='string'&&/^https:\/\/github\.com\/hakaru4i-afk\/freight-quotes-web\/actions\/runs\/[0-9]+$/.test(execution.githubRunUrl)?execution.githubRunUrl:'';
  const deadlineStage=deadlineState(item,execution);
- const deadlinePanel=!alreadyPublished&&deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
- const progressPanel=execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
+ const deadlinePanel=!archived&&!alreadyPublished&&deadlineStage?'<p class="pf-deadline-state" role="status">'+esc(deadlineStage)+'</p>':'';
+ const progressPanel=!archived&&execution?'<section class="pf-codex-progress" aria-label="'+esc(developmentLabel)+'"><strong>'+esc(developmentLabel)+'</strong><p role="status">'+esc(progressText)+'</p>'+
   (!alreadyPublished&&execution.lastError&&!(githubRegistered&&String(execution.lastError).startsWith('CODEX_'))?'<p role="alert">'+esc((codexErrorLabels[byLang]||codexErrorLabels.ru)[execution.lastError]||execution.lastError)+'</p>':'')+
   (taskRunUrl?'<a href="'+esc(taskRunUrl)+'" target="_blank" rel="noopener noreferrer">GitHub Actions</a>':'')+'</section>':'';
  const words=byLang==='en'?{send:'Start development',tip:'Creates a GitHub issue and branch without Codex or paid API. To implement code, paste the copied prompt into ChatGPT.',date:'Completion deadline',copy:'Copy task for ChatGPT',registered:'Task registered in GitHub. To implement the code, paste the task into ChatGPT.',issues:'Open GitHub issues'}:
@@ -167,7 +183,7 @@ function detail(){
  const ev=data.events.filter(e=>e.request_id===item.id).slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at)));
  const choices=(transitions[item.status]||[]).filter(status=>!['completed','release'].includes(status)&&!alreadyPublished&&!['in_progress','review_pending','accepted'].includes(execution?.decision));
  // Completing an item manually is never a substitute for a verified production deployment.
- const releaseEligible=data.owner&&!alreadyPublished&&['in_progress','release'].includes(item.status);
+ const releaseEligible=data.owner&&!publishedProof&&!alreadyPublished&&['in_progress','release'].includes(item.status);
  const releaseReady=isReleaseReady(item,data.owner,releaseReadiness,execution);
  const runState=releaseRun.taskId===item.id?releaseRun:{taskId:item.id,status:'not_started'};
  const isRunning=['queued','in_progress'].includes(runState.status);
@@ -193,7 +209,7 @@ function detail(){
  const acceptedPhase=execution?.decision==='accepted'&&item.status==='release';
  const canSubmit=execution?.decision==='in_progress'&&item.status==='in_progress'&&execution?.checksPassed===true&&execution?.step==='ready_for_review';
  const canArchive=data.owner&&!['completed','denied'].includes(item.status)&&(alreadyPublished||(acceptedPhase&&isConfirmed));
- const workflowPanel=!data.owner?'':canArchive?
+ const workflowPanel=!data.owner||archived||publishedProof?'':canArchive?
   '<section class="pf-workflow-actions"><p>'+esc(l.archiveReady)+'</p><button class="pf-primary" data-pf="archive-published" type="button" '+(busy?'disabled':'')+'>'+esc(l.archive)+'</button></section>':
   reviewPhase||acceptedPhase?
    '<section class="pf-workflow-actions">'+
@@ -203,7 +219,6 @@ function detail(){
    '<button type="submit" class="pf-secondary" '+(busy?'disabled':'')+'>'+esc(l.return)+'</button></form></section>':
   execution?.decision==='in_progress'&&item.status==='in_progress'?
    '<section class="pf-workflow-actions"><p>'+esc(l.waiting)+'</p><button class="pf-primary" data-pf="submit-review" type="button" '+(!canSubmit||busy?'disabled':'')+'>'+esc(l.send)+'</button></section>':'';
- const publishedProof=publishedTask.taskId===item.id?publishedTask.evidence:null;
  const publishedWords=byLang==='en'?{title:'Accept already published result',help:'The release is independently verified on confirmation. This is a personal decision on the published scope and remaining risks, not a new CI PASS or release.',reason:'Describe the accepted scope and remaining risks (at least 10 characters).',confirm:'Confirm acceptance of this exact published version and remaining risks? This archives the task without another release.'}:byLang==='zh'?{title:'接受已发布结果',help:'确认时独立核验发布。此操作仅表示本人接受已发布范围及剩余风险，不代表新的测试通过或发布。',reason:'说明接受的范围及剩余风险（至少10字）。',confirm:'确认接受此确切版本及剩余风险？任务将归档，不会再次发布。'}:{title:'Принять опубликованный результат',help:'При подтверждении сервер проверит выпуск. Это личное решение о фактически опубликованном объёме и остаточных рисках, не новый PASS тестов и не повторный выпуск.',reason:'Укажите принятый объём и остаточные риски (не менее 10 символов).',confirm:'Подтвердить принятие именно этой опубликованной версии и остаточных рисков? Задача будет архивирована без повторного выпуска.'};
  const publishedPanel=data.owner&&publishedProof&&['in_progress','release'].includes(item.status)?'<section class="pf-workflow-actions"><h4>'+esc(publishedWords.title)+'</h4><p>'+esc(publishedProof.version)+' · '+esc(publishedProof.releaseRun)+'</p><small>'+esc(publishedWords.help)+'</small><p><code>'+esc(publishedProof.frontendSha)+'</code><br><code>'+esc(publishedProof.backendSha)+'</code></p><button class="pf-primary" type="button" data-pf="accept-published-result" '+(busy?'disabled':'')+'>'+esc(publishedWords.title)+'</button></section>':'';
  const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
@@ -380,8 +395,8 @@ document.addEventListener("input",ev=>{
 document.addEventListener("change",ev=>{
  if(!root()?.contains(ev.target))return;
  if(ev.target.name==="category"&&ev.target.closest("#pf-create")){draftCategory=ev.target.value;render();root()?.querySelector("#pf-create textarea")?.focus();}
- if(ev.target.id==="pf-register"){registry=ev.target.value;render();}
- if(ev.target.id==="pf-status-filter"){statusFilter=ev.target.value;render();}
+ if(ev.target.id==="pf-register"){registry=ev.target.value;if(!visibleFeedbackItems().some(i=>i.id===selected))selected='';render();}
+ if(ev.target.id==="pf-status-filter"){statusFilter=ev.target.value;if(!visibleFeedbackItems().some(i=>i.id===selected))selected='';render();}
 });
 document.addEventListener("submit",ev=>{
  if(!root()?.contains(ev.target))return;
