@@ -1,0 +1,6 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {REPORT_ROLES,reportChartData} from "../role-report-charts.mjs";
+test("all eight actual roles have localized charts and empty state",()=>{assert.equal(REPORT_ROLES.length,8);for(const role of REPORT_ROLES)for(const lang of ["ru","en","zh"]){const r=reportChartData([],role,lang);assert.ok(r.title&&r.empty&&r.timelineTitle);assert.deepEqual(r.types,[]);assert.deepEqual(r.timeline,[]);}});
+test("quote variants separate, missing dates not fabricated, no mutation",()=>{const rows=Object.freeze([Object.freeze({type:"invitation",created:"2026-11-01T08:00:00Z"}),{type:"offer",created:"2026-11-01T08:00:00Z"},{type:"offer",created:"2026-11-01T08:00:00Z"},{type:"shipment",created:null}]);const r=reportChartData(rows,"carrier");assert.equal(r.types.find(x=>x.key==="offer").value,2);assert.equal(r.timeline[0].value,1);assert.equal(r.missingDate,1);assert.equal(reportChartData(rows,"unknown"),null);});
+test("only supplied records contribute; owner and carrier use their authorized input",()=>{const a=[{type:"shipment",created:"2026-10-01T12:00:00Z"}],b=[{type:"supplier",created:"2026-11-01T12:00:00Z"}];assert.equal(reportChartData(a,"carrier").types.length,1);assert.equal(reportChartData([...a,...b],"owner").types.length,2);});
