@@ -1,6 +1,6 @@
 {
   "version": "20261125-logic-13",
-  "modelSha256": "47463f0a3647abc8645da8309fcd99bf6c911cc48be3be83d422da53a62c9ff0",
+  "modelSha256": "0ef1642c52a8c96977d6705809457adbec463b45bda92ebec42a528cd3ea2ef5",
   "modelSnapshot": {
     "version": "20261125-logic-13",
     "date": "2026-11-25",
@@ -675,7 +675,7 @@
       "test/alignment-help-20261111.js": "279833eb3a91385bd2df8f0410f3ddf8038dcd6ceb8733abcaefcee5cacc3672",
       "test/public-support-20261115.js": "c755a3d31b512622dbac161347b9ea7c5edb9cd85108538b910b12967ce3ed44",
       "test/owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
-      "test/owner-team-users-20261117.js": "c6cb3aaa74aa6ce820e2a0845458a36543ba5b341ac1c6e660ac0e43d683d721",
+      "test/owner-team-users-20261117.js": "61a2159ce5e986be3df70155f073ffb3a5064dbf312d2c324f4ec7c33fb48fbb",
       "test/portal-release-status-20261117.js": "119b5335622e6a19ebc37b16db3f9cf2c0344aca14edb6c335e994a6f5cedf94",
       "test/owner-audit-explanations-20261117.mjs": "e5222affa18df9f2f2241fdba5580cd76315914a82de6443aa0fb9a353f9035e",
       "test/offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
