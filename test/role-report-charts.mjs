@@ -63,3 +63,63 @@ export function reportChartData(rows,role,lang="ru"){
   timeline:[...days].sort(([a],[b])=>a.localeCompare(b)).map(([key,value])=>({key,label:key,value}))
  };
 }
+
+// Carrier counts are derived from already authorized and filtered rows. Round IDs,
+// not order strings or variant counts, are the denominator. No guessed legacy IDs.
+export function carrierReportCounts(rows,sources=[]){
+ const loaded=path=>sources.some(s=>s.path===path&&s.status==="ok");
+ const invitations=new Set(),quoted=new Set(),wins=new Set(),timely=new Set(),late=new Set(),unknown=new Set();
+ const active=new Set(),completed=new Set();
+ let variants=0,unlinked=0,claims=0,documents=0,claimsKnown=true,docsKnown=true;
+ for(const row of Array.isArray(rows)?rows:[]){
+  if(!row)continue;
+  const key=typeof row.sourceKey==="string"&&row.sourceKey?row.sourceKey:null;
+  if(row.type==="invitation"){
+   if(key){invitations.add(key);if(row.roundResult==="winner")wins.add(key);}else unlinked++;
+  }else if(row.type==="offer"){
+   variants++;
+   if(!key){unlinked++;continue;}
+   quoted.add(key);if(row.roundResult==="winner")wins.add(key);
+   if(row.quoteLate===false)timely.add(key);else if(row.quoteLate===true)late.add(key);else unknown.add(key);
+  }else if(row.type==="shipment"){
+   if(key)wins.add(key);
+   if(row.id&&!row.archived&&row.state!=="completed"&&!["failed","annulled"].includes(row.state))active.add(row.id);
+   if(row.id&&row.state==="completed")completed.add(row.id);
+   if(Number.isInteger(row.claimCount)&&row.claimCount>=0)claims+=row.claimCount;else claimsKnown=false;
+   if(Number.isInteger(row.documentCount)&&row.documentCount>=0)documents+=row.documentCount;else docsKnown=false;
+  }
+ }
+ const offersLoaded=loaded("/api/carrier"),shipmentsLoaded=loaded("/api/shipments");
+ return {invitedRounds:offersLoaded?invitations.size:null,quotedRounds:offersLoaded?quoted.size:null,
+  quoteVariants:offersLoaded?variants:null,wonRounds:offersLoaded&&shipmentsLoaded?wins.size:null,
+  timelyQuoteRounds:offersLoaded?timely.size:null,
+  lateOnlyQuoteRounds:offersLoaded?[...late].filter(k=>!timely.has(k)&&!unknown.has(k)).length:null,
+  unknownTimingRounds:offersLoaded?[...unknown].filter(k=>!timely.has(k)).length:null,
+  activeShipments:shipmentsLoaded?active.size:null,completedShipments:shipmentsLoaded?completed.size:null,
+  shipmentClaims:shipmentsLoaded&&loaded("report-shipment-claims")&&claimsKnown?claims:null,
+  shipmentDocuments:shipmentsLoaded&&loaded("report-shipment-documents")&&docsKnown?documents:null,
+  unlinkedRoundRows:offersLoaded?unlinked:null};
+}
+
+const CARRIER_KPIS=Object.freeze({
+ invitedRounds:["Раунды приглашений","Invited rounds","受邀轮次"],
+ quotedRounds:["Раунды со ставками","Quoted rounds","已报价轮次"],
+ quoteVariants:["Варианты ставок","Quote variants","报价方案"],
+ wonRounds:["Выигранные раунды","Won rounds","获胜轮次"],
+ timelyQuoteRounds:["Раунды со ставкой вовремя","Rounds with on-time quotes","及时报价轮次"],
+ lateOnlyQuoteRounds:["Раунды только с поздними ставками","Late-only quote rounds","仅逾期报价轮次"],
+ unknownTimingRounds:["Раунды с неизвестной своевременностью","Rounds with unknown timing","报价时效未知轮次"],
+ activeShipments:["Активные перевозки","Active shipments","在途及进行中运输"],
+ completedShipments:["Завершённые перевозки","Completed shipments","已完成运输"],
+ shipmentClaims:["Претензии по выбранным перевозкам","Claims on selected shipments","所选运输的索赔"],
+ shipmentDocuments:["Документы по выбранным перевозкам","Documents on selected shipments","所选运输的单据"],
+ unlinkedRoundRows:["Записи без идентификатора раунда","Records without a round ID","缺少轮次编号的记录"]
+});
+export function carrierKpiData(rows,sources,currentSL,lang="ru"){
+ const counts=carrierReportCounts(rows,sources);
+ const noData=tr(["Нет данных","No data","无数据"],lang);
+ return {title:tr(["Показатели перевозчика","Carrier performance","承运商绩效"],lang),
+  scope:tr(["Показатели по выбранным записям; SL на момент отчёта, вне фильтра периода. Документы и претензии относятся к выбранным перевозкам.","Metrics on selected records; current SL is outside the period filter. Documents and claims belong to the selected shipments.","按所选记录统计；当前服务等级不受期间筛选影响。单据和索赔属于所选运输。"],lang),
+  items:[...Object.entries(counts).map(([key,value])=>({key,label:tr(CARRIER_KPIS[key],lang),value:value===null?noData:value})),
+    {key:"currentSL",label:tr(["Текущий SL","Current SL","当前服务等级"],lang),value:Number.isFinite(currentSL)?currentSL+"%":noData}]};
+}
