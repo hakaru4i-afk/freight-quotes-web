@@ -35,7 +35,7 @@ test('receipts reject stale SHA, missing, skipped, wrong runtime, duplicate and 
  const p=make([edit('lw-ved-shared-chat-20261109.js')]);
  const receipts=p.required.map(scenario=>({scenario,planId:p.id,runtime:'runtime-a',frontendSha:p.head.frontend,backendSha:p.head.backend,result:'PASS'}));
  assert.equal(checkImpactReceipts(p,receipts,'runtime-a'),'PLAN_RECEIPTS_PASS_NOT_RELEASE_APPROVAL');
- for(const bad of [receipts.slice(1),[...receipts,receipts[0]],[{...receipts[0],result:'SKIPPED'},...receipts.slice(1)],[{...receipts[0],backendSha:c},...receipts.slice(1)]])assert.equal(checkImpactReceipts(p,bad,'runtime-a'),'BLOCKED');
+ for(const bad of [receipts.slice(1),[...receipts,receipts[0]],[{...receipts[0],result:'SKIPPED'},...receipts.slice(1)],[{...receipts[0],backendSha:d},...receipts.slice(1)]])assert.equal(checkImpactReceipts(p,bad,'runtime-a'),'BLOCKED');
  assert.equal(checkImpactReceipts(p,receipts,'runtime-b'),'BLOCKED');
  assert.equal(checkImpactReceipts({...p,required:[]},receipts,'runtime-a'),'BLOCKED');
 });
