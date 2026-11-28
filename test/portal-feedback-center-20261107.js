@@ -13,7 +13,7 @@ const titleTranslations={
 };
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",message="",error="",busy=false,lastRoot=null;
+let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",searchQuery="",message="",error="",busy=false,lastRoot=null;
 let releaseReadiness={taskId:'',ready:false,checks:[],passed:0,total:4,reason:'',message:'Ожидаются тесты'},releaseReadinessRequest=0;
 let releaseRun={taskId:'',status:'not_started',message:''},releaseProgressRequest=0;
 let publishedTask={taskId:'',evidence:null};
@@ -144,6 +144,13 @@ function feedbackFilterOptions(lang){
  };
  return ['all','sent','read','evaluated','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
 }
+const feedbackSearchLabel=()=>({ru:"Поиск по номеру IM",en:"Search by IM number",zh:"按 IM 编号搜索"}[byLang]||"Поиск по номеру IM");
+function matchesFeedbackNumber(item,query){
+ const value=String(query||"").trim().toUpperCase(),code=String(item.code||"").toUpperCase();
+ if(!value)return true;
+ if(/^\d+$/.test(value)){const number=code.match(/^IM-\d{4}-(\d+)$/);return Boolean(number&&Number(number[1])===Number(value));}
+ return code.includes(value);
+}
 function visibleFeedbackItems(){
  let rows=data.items;
  if(data.owner){
@@ -155,7 +162,7 @@ function visibleFeedbackItems(){
   else if(statusFilter==='active')rows=rows.filter(i=>!isArchived(i));
   else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&i.status===statusFilter);
  }
- return rows;
+ return rows.filter(i=>matchesFeedbackNumber(i,searchQuery));
 }
 function itemsList(){
  const rows=visibleFeedbackItems();
@@ -163,7 +170,8 @@ function itemsList(){
  Object.entries(registerLabels).map(([key,label])=>'<option value="'+key+'"'+(registry===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label>'+
  '<label>'+esc(t().status)+'<select id="pf-status-filter">'+
  feedbackFilterOptions(byLang).map(([key,label])=>'<option value="'+key+'"'+(statusFilter===key?' selected':'')+'>'+esc(label)+'</option>').join("")+'</select></label></div>':"";
- return filters+'<div class="pf-list">'+(rows.length?rows.map(i=>'<button type="button" class="pf-item '+(selected===i.id?'pf-selected':'')+'" data-pf-id="'+esc(i.id)+'" aria-label="'+esc(i.code)+'">'+
+ const search='<label class="pf-number-search">'+esc(feedbackSearchLabel())+'<input id="pf-number-search" type="search" value="'+esc(searchQuery)+'" placeholder="IM-2026-000001" aria-label="'+esc(feedbackSearchLabel())+'" maxlength="40"></label>';
+ return filters+search+'<div class="pf-list">'+(rows.length?rows.map(i=>'<button type="button" class="pf-item '+(selected===i.id?'pf-selected':'')+'" data-pf-id="'+esc(i.id)+'" aria-label="'+esc(i.code)+'">'+
  '<span class="pf-item-top"><strong>'+esc(i.code)+'</strong>'+badge(i)+'</span><span class="pf-item-type">'+esc(categoryLabels[i.category]||i.category)+' · '+esc(registerLabels[i.journal]||"")+'</span>'+
  '<span class="pf-description">'+esc(i.description)+'</span><span class="pf-item-meta">'+esc(data.owner?i.sender_role+" · "+i.sender_login:formatTime(i.created_at))+'</span>'+
  (i.release_date?'<span class="pf-release">'+esc(t().date)+': '+esc(i.release_date)+'</span>':'')+
@@ -252,18 +260,36 @@ function detail(){
 }
 function render(){
  const r=root();if(!r)return;
+ const searchInput=r.querySelector("#pf-number-search");
+ const restoreSearchFocus=document.activeElement===searchInput&&searchInput!==null;
+ const caret=restoreSearchFocus?[searchInput.selectionStart,searchInput.selectionEnd]:null;
  lastRoot=r;
  if(!loaded){r.innerHTML='<div class="pf-shell"><p>'+esc(t().refresh)+'…</p></div>';return;}
  const count=data.items.filter(i=>i.status==="sent").length,working=data.items.filter(i=>i.status==="in_progress").length,planned=data.items.filter(i=>i.status==="release").length;
  r.innerHTML='<div class="pf-shell"><header class="pf-header"><div><span class="pf-kicker">Маршрут · Development workflow</span><h1>'+esc(data.owner?t().owner:t().author)+'</h1><p>'+esc(t().intro)+'</p></div><button type="button" class="pf-secondary" data-pf="refresh">'+esc(t().refresh)+'</button></header>'+
  notices()+(data.owner?'<div class="pf-metrics"><div><strong>'+count+'</strong><span>'+esc(statusLabels.sent)+'</span></div><div><strong>'+working+'</strong><span>'+esc(statusLabels.in_progress)+'</span></div><div><strong>'+planned+'</strong><span>'+esc(statusLabels.release)+'</span></div></div>':'<div class="pf-compose">'+form()+'</div>')+
  '<div class="pf-workspace"><section class="pf-requests"><h2>'+esc(data.owner?t().all:t().my)+'</h2>'+itemsList()+'</section><section class="pf-details">'+detail()+'</section></div></div>';
+ if(restoreSearchFocus){const next=r.querySelector("#pf-number-search");if(next){next.focus({preventScroll:true});if(caret)next.setSelectionRange(...caret);}}
+}
+async function loadFeedbackPages(fetchPage){
+ const items=[],events=[],ids=new Set();let offset=0,first=null;
+ for(;;){
+  const page=await fetchPage(offset);
+  if(!page?.ok||!Array.isArray(page.items)||!Array.isArray(page.events))throw Error("INVALID_FEEDBACK_PAGE");
+  if(!first)first=page;
+  if(page.owner!==first.owner||page.role!==first.role)throw Error("FEEDBACK_ACCESS_CHANGED");
+  for(const item of page.items){if(!item?.id||ids.has(item.id))throw Error("FEEDBACK_PAGE_CHANGED_REFRESH");ids.add(item.id);items.push(item);}
+  events.push(...page.events);
+  if(page.hasMore!==true)return {...first,items,events,hasMore:false,nextOffset:null};
+  if(!page.items.length||!Number.isSafeInteger(page.nextOffset)||page.nextOffset!==offset+page.items.length||page.nextOffset>9999999)throw Error("INVALID_FEEDBACK_CURSOR");
+  offset=page.nextOffset;
+ }
 }
 async function apiCall(action,dataToSend){
  const opts=action==="load"?{cache:"no-store"}:{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(dataToSend),cache:"no-store"};
- const res=await fetch(api,opts),out=await res.json().catch(()=>({}));
- if(!res.ok||!out.ok)throw Error(out.error||"HTTP "+res.status);
- return out;
+ const read=async(url)=>{const res=await fetch(url,opts),out=await res.json().catch(()=>({}));if(!res.ok||!out.ok)throw Error(out.error||"HTTP "+res.status);return out;};
+ if(action==="load")return loadFeedbackPages(offset=>read(offset===0?api:api+"?offset="+offset));
+ return read(api);
 }
 async function fetchExecutions(){
  if(!data.owner){executionByFeedback=new Map();return;}
@@ -405,6 +431,7 @@ document.addEventListener("click",ev=>{
 document.addEventListener("input",ev=>{
  if(!root()?.contains(ev.target))return;
  if(ev.target.name==="description"&&ev.target.closest("#pf-create"))draftText=ev.target.value;
+ if(ev.target.id==="pf-number-search"){searchQuery=ev.target.value;if(!visibleFeedbackItems().some(i=>i.id===selected))selected="";render();}
 });
 document.addEventListener("change",ev=>{
  if(!root()?.contains(ev.target))return;
