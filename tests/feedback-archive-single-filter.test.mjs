@@ -5,11 +5,11 @@ import {runInNewContext} from 'node:vm';
 const source=readFileSync(new URL('../test/portal-feedback-center-20261107.js',import.meta.url),'utf8');
 const start=source.indexOf('const isArchived=item=>'),end=source.indexOf('function detail(){',start);
 assert.ok(start>0&&end>start);
-function probe(statusFilter,registry='all',searchQuery='',customItems){
+function probe(statusFilter,registry='all',searchQuery='',customItems,executions=[],owner=true){
  const items=customItems||['sent','read','evaluated','in_progress','release','completed','denied'].map(status=>({id:status,code:status,status,journal:'developments',description:'x',category:'development'}));
- const ctx={data:{owner:true,items,events:[]},statusFilter,registry,searchQuery,selected:'',statusLabels:Object.fromEntries(items.map(i=>[i.status,i.status])),registerLabels:{developments:'Development'},categoryLabels:{development:'Development'},byLang:'ru',esc:String,t:()=>({}),badge:()=>'',formatTime:()=>''};
- runInNewContext(source.slice(start,end)+'\nglobalThis.ids=visibleFeedbackItems().map(x=>x.id);globalThis.html=itemsList();',ctx);
- return {ids:Array.from(ctx.ids),html:ctx.html};
+ const ctx={data:{owner,items,events:[]},executionByFeedback:new Map(executions),statusFilter,registry,searchQuery,selected:'',statusLabels:Object.fromEntries(items.map(i=>[i.status,i.status])),registerLabels:{developments:'Development'},categoryLabels:{development:'Development'},byLang:'ru',esc:String,t:()=>({}),badge:()=>'',formatTime:()=>''};
+ runInNewContext(source.slice(start,end)+'\nglobalThis.ids=visibleFeedbackItems().map(x=>x.id);globalThis.html=itemsList();globalThis.states=items.map(i=>feedbackLifecycle(i));',ctx);
+ return {ids:Array.from(ctx.ids),html:ctx.html,states:Array.from(ctx.states)};
 }
 test('archive is the single terminal filter; individual active statuses remain available',()=>{
  assert.deepEqual(probe('archive').ids,['completed','denied']);
@@ -20,8 +20,8 @@ test('archive is the single terminal filter; individual active statuses remain a
  assert.match(html,/<option value="archive" selected>/);
  assert.doesNotMatch(html,/<option value="(?:active|completed|denied)"/);
  const dropdown=html.match(/<select id="pf-status-filter">([\s\S]*?)<\/select>/)[1];
- assert.deepEqual([...dropdown.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]),['all','sent','read','evaluated','in_progress','release','archive']);
- assert.deepEqual(['sent','read','evaluated','in_progress','release','archive'].flatMap(key=>probe(key).ids).sort(),probe('all').ids.sort());
+ assert.deepEqual([...dropdown.matchAll(/<option value="([^"]+)"/g)].map(m=>m[1]),['all','sent','read','evaluated','awaiting_development','in_progress','release','archive']);
+ assert.deepEqual(['sent','read','evaluated','awaiting_development','in_progress','release','archive'].flatMap(key=>probe(key).ids).sort(),probe('all').ids.sort());
 });
 test('closed tasks do not display old development progress or handoff; published tasks cannot be relaunched from the card',()=>{
  assert.match(source,/const progressPanel=!archived&&execution\?/);
@@ -74,4 +74,16 @@ test('pagination keeps the server role and rejects invalid cursors, duplicate ro
  await assert.rejects(context.loadPages(async offset=>offset?makePage(0):makePage(offset)),/FEEDBACK_PAGE_CHANGED_REFRESH/);
  await assert.rejects(context.loadPages(async offset=>offset?makePage(offset,false):makePage(offset)),/FEEDBACK_ACCESS_CHANGED/);
  await assert.rejects(context.loadPages(async offset=>{if(offset)throw Error('HTTP 503');return makePage(offset)}),/HTTP 503/);
+});
+
+test('Owner intake rows awaiting dispatch are not counted as active development, preserve actual API status and terminal rows',()=>{
+ const items=['queued','working','external','unknown','completed','denied','release','pending'].map(id=>({id,code:id,status:['completed','denied','release'].includes(id)?id:'in_progress',sender_role:id==='external'?'carrier':'owner',journal:'developments',description:'x',category:'development'}));
+ const newTask={decision:'new',dispatchStatus:'not_requested'};
+ const executions=[['queued',newTask],['working',{decision:'in_progress',dispatchStatus:'dispatched'}],['external',newTask],['completed',newTask],['denied',newTask],['release',newTask],['pending',{decision:'new',dispatchStatus:'pending'}]];
+ assert.deepEqual(probe('awaiting_development','all','',items,executions).ids,['queued']);
+ assert.deepEqual(probe('in_progress','all','',items,executions).ids,['working','external','unknown','pending']);
+ assert.deepEqual(probe('archive','all','',items,executions).ids,['completed','denied']);
+ assert.equal(items[0].status,'in_progress');
+ assert.deepEqual(probe('all','all','',items,executions,false).states,items.map(i=>i.status));
+ assert.match(probe('all','all','',items,executions).html,/Ожидает запуска разработки/);
 });

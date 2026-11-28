@@ -119,10 +119,11 @@ const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&item?.
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 // Existing release_date is an execution deadline; it never proves a publication.
-const requestStatus=i=>issue173Published(i)?(byLang==='en'?'Published SH64':byLang==='zh'?'已发布 SH64':'Выпущено SH64'):latestStatus(i.status);
+const requestStatus=i=>issue173Published(i)?(byLang==='en'?'Published SH64':byLang==='zh'?'已发布 SH64':'Выпущено SH64'):feedbackLifecycle(i)==='awaiting_development'?awaitingDevelopmentLabel(byLang):latestStatus(i.status);
 const minskToday=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const deadlineState=(item,execution)=>{
  if(!['in_progress','release'].includes(item?.status))return '';
+ if(feedbackLifecycle(item,execution)==='awaiting_development')return awaitingDevelopmentLabel(byLang);
  const labels=byLang==='en'?{ready:'Ready to release',late:'Overdue',blocked:'Blocked: tests have not passed',working:'In progress'}:byLang==='zh'?{ready:'准备发布',late:'已逾期',blocked:'已阻止：测试未通过',working:'处理中'}:{ready:'Готово к выпуску',late:'Просрочено',blocked:'Заблокировано: тесты не пройдены',working:'В работе'};
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review')return labels.ready;
  if(/^\d{4}-\d{2}-\d{2}$/.test(String(item.release_date||''))&&minskToday()>item.release_date)return labels.late;
@@ -139,16 +140,21 @@ function form(){
  (draftCategory?'<label>'+esc(t().description)+'<textarea name="description" required maxlength="5000" minlength="10" rows="6" placeholder="'+esc(t().prompt)+'">'+esc(draftText)+'</textarea><small>10–5000 '+(byLang==="en"?"characters":byLang==="zh"?"个字符":"символов")+'</small></label>':'')+
  '<div class="pf-actions"><button type="submit" class="pf-primary" '+(!draftCategory||busy?'disabled':'')+'>'+esc(t().submit)+'</button><button type="button" class="pf-secondary" data-pf="cancel">'+esc(t().cancel)+'</button></div></form>';
 }
-function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':i.status)+'">'+esc(requestStatus(i))+'</span>';}
+function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':feedbackLifecycle(i)==='awaiting_development'?'evaluated':i.status)+'">'+esc(requestStatus(i))+'</span>';}
 const isArchived=item=>['completed','denied'].includes(item?.status);
+// An intake feedback row is not proof that development was dispatched. Preserve the persisted status for API transitions and history.
+function feedbackLifecycle(item,execution=executionByFeedback.get(item?.id),isOwner=data.owner){
+ return isOwner&&item?.sender_role==='owner'&&item.status==='in_progress'&&execution?.decision==='new'&&execution?.dispatchStatus==='not_requested'?'awaiting_development':item?.status;
+}
+const awaitingDevelopmentLabel=lang=>({ru:'Ожидает запуска разработки',en:'Awaiting development start',zh:'等待启动开发'}[lang]||'Ожидает запуска разработки');
 // Explicit lifecycle order; labels do not change the persisted status codes.
 function feedbackFilterOptions(lang){
  const labels={
-  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые','В работе','На этапе выпуска','Архив'],
-  en:['All requests','New (unread)','Read','Evaluated','In progress','Release stage','Archive'],
-  zh:['所有申请','新申请（未读）','已读','已评估','处理中','发布阶段','归档']
+  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые',awaitingDevelopmentLabel('ru'),'В работе','На этапе выпуска','Архив'],
+  en:['All requests','New (unread)','Read','Evaluated',awaitingDevelopmentLabel('en'),'In progress','Release stage','Archive'],
+  zh:['所有申请','新申请（未读）','已读','已评估',awaitingDevelopmentLabel('zh'),'处理中','发布阶段','归档']
  };
- return ['all','sent','read','evaluated','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
+ return ['all','sent','read','evaluated','awaiting_development','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
 }
 const feedbackSearchLabel=()=>({ru:"Поиск по номеру IM",en:"Search by IM number",zh:"按 IM 编号搜索"}[byLang]||"Поиск по номеру IM");
 function matchesFeedbackNumber(item,query){
@@ -166,7 +172,7 @@ function visibleFeedbackItems(){
   }
   if(statusFilter==='archive')rows=rows.filter(isArchived);
   else if(statusFilter==='active')rows=rows.filter(i=>!isArchived(i));
-  else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&i.status===statusFilter);
+  else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&feedbackLifecycle(i)===statusFilter);
  }
  return rows.filter(i=>matchesFeedbackNumber(i,searchQuery));
 }
