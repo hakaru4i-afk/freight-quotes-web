@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "175542f29197581c452f2b1f37843f8780de17e2",
+  "frontendCommit": "a7833751444545a8df3b443b92c0169f7bbef74c",
   "assetHashes": {
     ".github/workflows/actions-runtime-policy.yml": "89ee8d3114fdb801c694f4612d9147ef0362f2e991850620c8eab81a957341f6",
     ".github/workflows/carrier-acceptance-singleton.yml": "914f9649e3e3faab1e9c0403305d242ced351427c1937e9aafa0861831813564",
@@ -167,7 +167,7 @@
     "scripts/release/employee-roles-emergency.mjs": "9936217f8998d4a8e335e89cf30833ec81b295fedcfdd64fb056e19638b363ba",
     "scripts/release/employee-roles-production-smoke.mjs": "c265ccc989c838ba2e139d39e5d639590a6ba5c898238357576ed435b391328b",
     "scripts/release/issue173-sh64-publish.mjs": "721c9c2db90ef386eb22b37cb8cc38afcdf5aff5bd07169bd8691d05b05e35f4",
-    "scripts/release/locked-e2e-evidence.mjs": "d0416b41f016c60eb65b30943e7a5573dc15327c1606d790aedae8b1a67a8809",
+    "scripts/release/locked-e2e-evidence.mjs": "4f6facb5f1117d687c331ae57c63494afde4d43d39d05b2f8022e9abc7af4980",
     "scripts/release/locked-evidence-run.mjs": "a0928470462def7061941d3ee5855723c7539b8e0f8114c666e2099a95a045e0",
     "scripts/release/locked-pages-assets.mjs": "22ed7d56a231afdd7fbadf4e145e4e49e99d1bda0fc15a7a0f743a76807838c0",
     "scripts/release/locked-qa-package.mjs": "d7f17731092f6faedec490edafefe8c0486e6dd639f59dad402a8f0163207a59",
@@ -519,8 +519,8 @@
     "tests/release-notes-history.test.mjs": "2777a6030e01dbae09dd609e59432cc62531dcea184240d382c895b9871d40ce",
     "tests/role-help-20261111.test.mjs": "f96ead8316746be2dda0058d47859591134b9b950d682eedbc8d7086c9143b79",
     "tests/role-help-browser.test.mjs": "53784e295fe09f9e92560753c1eb0f7bb16b873465bc88a43f58fe2d5fb7d124",
-    "tests/role-report-charts.test.mjs": "6b6be0008a8ebd857deab29f48e1918b386e844e882979a07b1009264a49435a",
-    "tests/security-gate-real.e2e.mjs": "d9281cb0667c7fbb094b1e5dfd4d2c7ba9910ecc39b141bc4efe27adb439ffe0",
+    "tests/role-report-charts.test.mjs": "f96d90f3145d9b26c1f883a5c5518f36719cb4c2ede91a886c5edceb088fd9fb",
+    "tests/security-gate-real.e2e.mjs": "332a1db841e83419e802bf0b88f4b98dbca49e0b9eb238b4b47f0dbbe12d8661",
     "tests/site-audit-real.e2e.mjs": "cd794c455f4792197019c73f83f8a3d1fb6024796123864178a41bb1d61a39c1",
     "tests/staging-alignment.test.mjs": "6eb2852ec545783df50677f764fba4bce161f5a1456267774ab62a7d493b56d1",
     "tests/staging-api-region.test.mjs": "d2f781e8c066f59cd46a2cde2c5ad4fc99e7e78e0b732ab2ced1cd8a3d4b3fa6",
