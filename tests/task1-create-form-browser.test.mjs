@@ -11,6 +11,9 @@ function server(){
  return createServer(async(req,res)=>{
   try{
    const url=new URL(req.url,"http://127.0.0.1");
+   // The live staging receipt is generated at deployment, not a source asset. A local fixture must stay unattested.
+   if(url.pathname==="/test/active-runtime-pair.json"){res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});res.end(JSON.stringify({environment:"staging",productionAuthorized:false,fixture:"unattested-local-source"}));return;}
+   if(url.pathname==="/favicon.ico"){res.writeHead(204);res.end();return;}
    let p=url.pathname==="/test/"?"/test/index.html":url.pathname;
    if(!p.startsWith("/test/")){res.writeHead(404);res.end();return}
    const file=resolve("."+p);
@@ -18,7 +21,7 @@ function server(){
    const buffer=await readFile(file);
    res.writeHead(200,{"Content-Type":mime[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});
    res.end(buffer);
-  }catch{res.writeHead(404);res.end()}
+  }catch{if(!res.headersSent)res.writeHead(404);res.end()}
  });
 }
 async function fixture(t){
@@ -27,7 +30,7 @@ async function fixture(t){
  t.after(async()=>{await browser.close();await new Promise(ok=>srv.close(ok))});
  const page=await browser.newPage({viewport:{width:1366,height:900}});
  const posted=[],errors=[],failedRequests=[];
- page.on("console",m=>{if(m.type()==="error")errors.push("console: "+m.text().slice(0,300))});
+ page.on("console",m=>{if(m.type()==="error")errors.push("console: "+m.text().slice(0,300)+" "+m.location().url)});
  page.on("requestfailed",r=>failedRequests.push(r.url()+": "+r.failure()?.errorText));
  page.on("pageerror",e=>errors.push(e.message));
  page.on("dialog",d=>d.accept());

@@ -9,10 +9,13 @@ const root=resolve("test"), MIME={".html":"text/html; charset=utf-8",".js":"text
 const roles=["owner","carrier","logistic","supplier","content","designer","purchasing","certification"];
 function appServer(){return createServer(async(req,res)=>{
  const pathname=new URL(req.url,"http://localhost").pathname;
+ // A deployment receipt is absent in a source checkout. Never forge its attestation.
+ if(pathname==="/test/active-runtime-pair.json"){res.writeHead(200,{"Content-Type":"application/json","Cache-Control":"no-store"});res.end(JSON.stringify({environment:"staging",productionAuthorized:false,fixture:"unattested-local-source"}));return;}
+ if(pathname==="/favicon.ico"){res.writeHead(204);res.end();return;}
  const file=resolve("."+ (pathname==="/test/"?"/test/index.html":pathname));
  if(!file.startsWith(root+"/")){res.writeHead(403);res.end();return}
- try{res.writeHead(200,{"Content-Type":MIME[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});res.end(await readFile(file))}
- catch{res.writeHead(404);res.end("Not found")}
+ try{const buffer=await readFile(file);res.writeHead(200,{"Content-Type":MIME[extname(file)]||"application/octet-stream","Cache-Control":"no-store"});res.end(buffer)}
+ catch{if(!res.headersSent)res.writeHead(404);res.end("Not found")}
 })}
 async function withBrowser(t,role,viewport={width:1366,height:900}){
  const server=appServer();
@@ -23,7 +26,7 @@ async function withBrowser(t,role,viewport={width:1366,height:900}){
  const page=await context.newPage();
  const errors=[],requests=[];
  page.on("pageerror",e=>errors.push(e.message));
- page.on("console",e=>{if(e.type()==="error")errors.push(e.text().slice(0,500))});
+ page.on("console",e=>{if(e.type()==="error")errors.push(e.text().slice(0,500)+" "+e.location().url)});
  const respond=(route,status,body)=>route.fulfill({status,contentType:"application/json",body:JSON.stringify(body),headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"*","Access-Control-Allow-Methods":"GET,POST,OPTIONS"}});
  await page.route("https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110/**",async route=>{
    const req=route.request(),path=new URL(req.url()).pathname.split("/freight-api-qa-rc20261110")[1]||"";
