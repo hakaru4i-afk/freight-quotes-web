@@ -250,6 +250,8 @@ jobs:
         env:
           BACKEND_SHA: ${{ needs.verify.outputs.backend }}
         run: git -C candidate-backend merge-base --is-ancestor "$BACKEND_SHA" refs/remotes/origin/main
+      - name: Reject divergent score formula in exact Frontend and API before publication
+        run: node scripts/release/locked-offer-scoring.mjs candidate-web candidate-backend
       - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Preserve the verified production root and current candidate staging
         run: node scripts/release/locked-release-pages.mjs snapshot candidate-web .rollback-pages
