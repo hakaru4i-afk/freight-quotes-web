@@ -26,3 +26,24 @@ for(const file of paths)test('Owner intake preserves disabled state and rejects 
  failed[0].onclick(); await flush(); assert.ok(failed.every(b=>!b.disabled));
 });
 test('Owner intake source parity',()=>assert.equal(readFileSync(paths[0],'utf8'),readFileSync(paths[1],'utf8')));
+
+for(const file of ['portal-feedback-center-20261107.js','test/portal-feedback-center-20261107.js'])test('Owner advanced actions and existing integration diagnostics: '+file,()=>{
+ const source=readFileSync(file,'utf8');
+ assert.match(source,/const updateControls=data\.owner&&choices\.length\?'<details class="pf-owner-advanced">/);
+ assert.ok(source.includes('<summary>'+ "'+esc(ownerExtra[byLang].manual)+'" +'</summary>'));
+ assert.ok(source.includes('</button></form></details>'));
+ assert.ok(source.includes('id="pf-update"'));
+ assert.ok(source.includes('id="pf-development-handoff"'));
+ assert.ok(source.includes('data-pf="release-update"'));
+ assert.ok(source.includes("error=ownerHandoffError(String(e?.message||'UNKNOWN_ERROR'),byLang)"));
+ assert.ok(source.includes("if(failure)error=failure"));
+ const start=source.indexOf('const ownerExtra='),end=source.indexOf('const byLang=',start);
+ const ctx={};runInNewContext(source.slice(start,end)+';globalThis.diagnose=ownerHandoffError;',ctx);
+ for(const lang of ['ru','en','zh']){
+  const msg=ctx.diagnose('GITHUB_TOKEN_NOT_CONFIGURED',lang);
+  assert.ok(msg.length>30);
+  assert.ok(!msg.includes('GITHUB_TOKEN_NOT_CONFIGURED'));
+  assert.ok(!msg.includes('GITHUB_OWNER_REGISTER_TOKEN'));
+  assert.ok(ctx.diagnose('HTTP_403',lang).includes('HTTP_403'));
+ }
+});
