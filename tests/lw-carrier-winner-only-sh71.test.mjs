@@ -103,3 +103,36 @@ test("Owner process-control addition preserves every line of published SH71 carr
  assert.match(source,/async function fetchCarrier\(\)/);
  assert.doesNotMatch(source,/tasks.push\(makeTask\("invite:"/);
 });
+
+
+test("IM-2026-000004: production and staging render the same six authorized stage counters and filters",()=>{
+ const apps=["app.js","test/app.js"].map(path=>readFileSync(path,"utf8"));
+ for(const app of apps){
+   const start=app.indexOf("function issue124CarrierMatches");
+   const end=app.indexOf("function issue47Stage(n,b)",start);
+   assert.ok(start>=0&&end>start,"Native carrier dashboard must exist in both roots");
+   const ctx={r:(tag,props,key)=>({tag,props,key}),o:(tag,props,key)=>({tag,props,key})};
+   vm.runInNewContext(app.slice(start,end)+"\nglobalThis.qa={issue124CarrierCards,issue124CarrierMatches};",ctx);
+   const counts={new:0,viewed:0,preparing:0,review:0,selected:2,execution:0,all:16,requires_response:0,declined:0,lost:14,completed:0,archive:14};
+   const dashboard={version:1,counts,items:[{id:"winner",stage:"selected",filters:["all"]},{id:"archive",stage:"lost",filters:["all","lost","archive"]}]};
+   const selected=[];
+   const tree=ctx.qa.issue124CarrierCards({dashboard,loading:false,error:"",onSelect:k=>selected.push(k),onRefresh:()=>{}});
+   const cards=Array.from(tree.props.children[0].props.children);
+   assert.deepEqual(cards.map(x=>x.props["data-carrier-stage"]),["new","viewed","preparing","review","selected","execution"]);
+   assert.deepEqual(cards.map(x=>x.props.children[0].props.children),[0,0,0,0,2,0]);
+   cards[4].props.onClick();assert.deepEqual(selected,["selected"]);
+   assert.equal(ctx.qa.issue124CarrierMatches({id:"winner"},dashboard,"selected"),true);
+   assert.equal(ctx.qa.issue124CarrierMatches({id:"archive"},dashboard,"selected"),false);
+   assert.equal(ctx.qa.issue124CarrierMatches({id:"archive"},dashboard,"archive"),true);
+   const error=ctx.qa.issue124CarrierCards({dashboard:null,loading:false,error:"unavailable",onSelect:()=>{},onRefresh:()=>{}});
+   assert.equal(error.props.children[1].props.role,"alert");
+   assert.ok(Array.from(error.props.children[0].props.children).every(x=>x.props.disabled&&x.props.children[0].props.children==="…"));
+   assert.match(app,/r\(S0,\{notes:D,bids:b,policy:_,loading:S,updated:u,dashboard,error:N,onSelect:issue124Choose,onRefresh:de\}\)/);
+   assert.match(app,/let j=D\.filter\(x=>issue124CarrierMatches\(x,dashboard,d,b\)/);
+   assert.match(app,/function issue124Choose\(key\)\{g\(key\);m\(""\);c\(""\);location\.hash="#carrier-orders"\}/);
+ }
+ assert.equal(readFileSync("lw2-staging-20261107.js","utf8"),readFileSync("test/lw2-staging-20261107.js","utf8"));
+ assert.match(readFileSync("lw2-staging-20261107.js","utf8"),/querySelector\('\[data-carrier-dashboard\]'\)\?''/);
+ assert.equal(readFileSync("carrier-dashboard-compact-20261107.css","utf8"),readFileSync("test/carrier-dashboard-compact-20261107.css","utf8"));
+ assert.match(readFileSync("bundle.css","utf8"),/\.carrier-stage-cards\{display:grid;grid-template-columns:repeat\(6,minmax\(0,1fr\)\)/);
+});

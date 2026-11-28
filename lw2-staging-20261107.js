@@ -79,12 +79,12 @@
    const pending=sourceCount("Ожидают вашей ставки");
    const docs=info.docs===null?"—":String(info.docs);
    host.innerHTML=
-     '<div class="lw2-kpis" aria-label="Показатели рабочего кабинета">'+
+     (host.closest('.cabinet-panel')?.querySelector('[data-carrier-dashboard]')?'':'<div class="lw2-kpis" aria-label="Показатели рабочего кабинета">'+
        kpi("orders","▱",newVal,"Непрочитанные заявки")+
        kpi("orders","◷",pending===null?"—":String(pending),"Ожидают ставки")+
        kpi("ships","🚚",v,"В пути")+
        kpi("ships","▱",other,"Другие этапы")+
-     '</div>'+
+     '</div>')+
      '<section class="lw2-panel"><div class="lw2-heading"><div><h2>Распределение транспорта</h2><span class="lw2-hint">По выбранным перевозкам этого кабинета · авто, Ж/Д, море, авиа</span></div>'+
        '<div class="lw2-pills"><span class="lw2-hint">'+(info.ready?"Действующих: "+total:"Данные проверяются")+'</span>'+
        '<button class="lw2-tab" type="button" data-lw2-refresh aria-label="Обновить информацию">Обновить ↻</button></div></div>'+
