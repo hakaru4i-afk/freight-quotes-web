@@ -21,3 +21,13 @@ test("period comparison uses equal adjacent dates and the same filter, includes 
  assert.equal(reportPeriodComparison(rows,{from:"2026-02-30",to:"2026-03-01"},filter),null);
  for(const lang of ["ru","en","zh"]){const v=periodComparisonView(c,lang);assert.equal(v.items.length,2);assert.notEqual(v.items[0].label,"offer");assert.ok(v.title&&v.scope);}
 });
+
+import {requireSecurityCheckSet,ROLE_REPORT_SECURITY_ID} from "../scripts/release/locked-e2e-evidence.mjs";
+test("release evidence requires named real reporting security check for reporting candidate, never a skipped or duplicated check",()=>{
+ const base=["fixtures-real-owner-assignments","carrierA-cross-id-list-export-notifications","carrierB-cross-id-list-export-notifications","supplier-cross-supplier-order-files-chat-export","supplierB-cross-supplier-order-files-chat-export","active-tender-minimal-anonymous-exception","closed-and-cancelled-tenders-revoke-exception","finalized-tender-retains-only-own-source-records","addressed-logistic-no-ved-authority-or-unrelated-shipment","supplier-ved-logistic-anonymous-cannot-open-tender-data"].map(id=>({id,result:"PASS"}));
+ requireSecurityCheckSet(base,false);
+ assert.throws(()=>requireSecurityCheckSet(base,true),/SECURITY_REQUIRED_CHECK_SET_MISMATCH/);
+ requireSecurityCheckSet([...base,{id:ROLE_REPORT_SECURITY_ID,result:"PASS"}],true);
+ assert.throws(()=>requireSecurityCheckSet([...base,{id:ROLE_REPORT_SECURITY_ID,result:"SKIPPED"}],true),/SECURITY_REQUIRED_CHECK_FAILED/);
+ assert.throws(()=>requireSecurityCheckSet([...base,base[0]],true),/SECURITY_REQUIRED_CHECK_SET_MISMATCH/);
+});

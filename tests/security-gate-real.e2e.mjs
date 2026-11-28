@@ -1,5 +1,7 @@
 // Real isolated HTTP/Storage proof; no response fixtures and no production URLs.
 import assert from'node:assert/strict';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash,randomUUID}from'node:crypto';
+import {readLock} from '../scripts/release/locked-release.mjs';
+import {candidateRequiresRoleReports,ROLE_REPORT_SECURITY_ID} from '../scripts/release/locked-e2e-evidence.mjs';
 const dir=process.env.QA_SCENARIO_STATE_DIR||'/tmp/freight-rc20261110-private',sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||dir+'/sessions.json','utf8')),actors=JSON.parse(await readFile(process.env.QA_ACTORS_FILE||dir+'/actors.json','utf8'));
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const report={runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,gate:'SECURITY-GATE-12NOV',startedAt:new Date().toISOString(),environment:'isolated-qa-rc20261110',mocks:false,checks:[],calls:[]};
@@ -30,7 +32,7 @@ await check('addressed-logistic-no-ved-authority-or-unrelated-shipment',async()=
 await check('supplier-ved-logistic-anonymous-cannot-open-tender-data',async()=>{for(const actor of ['supplier','supplierB','ved','logistic',null])for(const path of ['/api/tenders','/api/tenders?id='+(market?.id||exclusiveA?.id),'/api/tenders?protocol='+(market?.id||exclusiveA?.id)])denied(await call(actor,path));for(const path of ['/api/requests','/api/supplier-orders','/api/chats','/api/registry'])denied(await call(null,path));});
 // Role reporting acceptance on the exact protected candidate. No production data,
 // mock identities or new credentials. Use the existing synthetic actors and fixtures.
-await check('role-reports-real-authorization-and-export',async()=>{
+if(candidateRequiresRoleReports(readLock().frontendSha))await check(ROLE_REPORT_SECURITY_ID,async()=>{
  const expected={owner:'owner',carrierA:'carrier',carrierB:'carrier',ved:'logistic',logistic:'logistic',supplier:'supplier',supplierB:'supplier',designer:'designer',content:'content',purchasing:'purchasing',certification:'certification'};
  const snapshots=new Map(),reports=new Map();
  denied(await call(null,'/api/reports'));
