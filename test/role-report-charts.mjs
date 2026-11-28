@@ -1,6 +1,9 @@
 // Reporting presentation only. Rows MUST come from the authorized reports endpoint.
 export const REPORT_ROLES=Object.freeze(["owner","carrier","logistic","supplier","designer","content","purchasing","certification"]);
 const TYPES=Object.freeze({
+ content_assignment:["Задачи контента","Content assignments","内容任务"],
+ purchasing_assignment:["Задачи закупок","Purchasing assignments","采购任务"],
+ certification_assignment:["Задачи сертификации","Certification assignments","认证任务"],
  application:["Согласование заявки","Application approval","申请审批"],
  customs_review:["Проверка документов ПТО","Customs document review","清关文件审核"],
  warehouse_review:["Приёмка склада","Warehouse acceptance","仓库验收"],
