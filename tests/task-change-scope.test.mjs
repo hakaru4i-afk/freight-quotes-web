@@ -58,3 +58,6 @@ test('CRM fast path uses syntax and build for known Owner UI module copies',()=>
   assert.equal(fastUiChange(record('portal-feedback-center-20261107.js',{newMode:'100755'})),false);
   assert.equal(fastUiChange(record('style.css')+record('docs/ru-help.md')),true);
 });
+
+// Verify the cross-repository impact planner whenever the existing scope suite runs.
+import './qa-impact-plan.test.mjs';
