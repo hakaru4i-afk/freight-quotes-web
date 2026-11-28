@@ -25,16 +25,28 @@ const TITLES=Object.freeze({
  purchasing:["Аналитика закупок","Purchasing analytics","采购分析"],
  certification:["Аналитика сертификации","Certification analytics","认证分析"]
 });
+const ASSIGNMENT_ROLES=Object.freeze(["content","purchasing","certification"]);
+const ASSIGNMENT_STATES=Object.freeze({
+ assigned:["Назначено","Assigned","已分配"],new:["Новая","New","新建"],in_progress:["В работе","In progress","进行中"],
+ completed:["Выполнено","Completed","已完成"],cancelled:["Отменено","Cancelled","已取消"],
+ deleted:["Удалено","Deleted","已删除"],annulled:["Аннулировано","Annulled","已作废"],superseded:["Заменено","Superseded","已替换"],
+ rejected:["Отклонено","Rejected","已拒绝"],declined:["Отказ","Declined","已拒绝"],pending:["Ожидает","Pending","待处理"],
+ unknown:["Статус не указан","Status not specified","状态未指定"]
+});
 const langIndex=lang=>lang==="zh"?2:lang==="en"?1:0;
 const tr=(a,lang)=>a[langIndex(lang)];
 export function reportChartData(rows,role,lang="ru"){
  if(!REPORT_ROLES.includes(role))return null;
  const valid=Array.isArray(rows)?rows.filter(r=>r&&typeof r==="object"):[];
- const counts=new Map(),days=new Map();
+ const counts=new Map(),days=new Map(),assignmentStates=new Map();
+ const showAssignments=role==="owner"||ASSIGNMENT_ROLES.includes(role);
  let missingDate=0;
  for(const row of valid){
   // Quote variants are not independent workload stages. Do not add them to the timeline.
   const type=String(row.type||"unknown");counts.set(type,(counts.get(type)||0)+1);
+  if(showAssignments&&(role==="owner"?ASSIGNMENT_ROLES.some(x=>type===x+"_assignment"):type===role+"_assignment")){
+   const state=String(row.state||"unknown");assignmentStates.set(state,(assignmentStates.get(state)||0)+1);
+  }
   if(type==="offer")continue;
   if(!row.created||!Number.isFinite(Date.parse(row.created))){missingDate++;continue;}
   const day=new Date(row.created).toLocaleDateString("sv-SE",{timeZone:"Europe/Minsk"}).slice(0,7);
@@ -45,6 +57,8 @@ export function reportChartData(rows,role,lang="ru"){
   timelineTitle:tr(["Этапы по месяцу создания, без вариантов ставок","Stages by creation month, excluding quote variants","按创建月份统计阶段（不含报价方案）"],lang),
   empty:tr(["Нет данных за выбранный период","No data for the selected period","所选期间无数据"],lang),
   missingLabel:tr(["Этапы без даты создания","Stages without creation date","无创建日期的阶段"],lang),missingDate,
+  assignmentStatusTitle:showAssignments?tr(["Назначенные задачи по статусам","Assigned tasks by status","已分配任务状态统计"],lang):null,
+  assignmentStatuses:[...assignmentStates].sort(([a],[b])=>a.localeCompare(b)).map(([key,value])=>({key,label:ASSIGNMENT_STATES[key]?tr(ASSIGNMENT_STATES[key],lang):key,value})),
   types:[...counts].sort(([a],[b])=>a.localeCompare(b)).map(([type,value])=>({key:type,label:TYPES[type]?tr(TYPES[type],lang):type,value})),
   timeline:[...days].sort(([a],[b])=>a.localeCompare(b)).map(([key,value])=>({key,label:key,value}))
  };
