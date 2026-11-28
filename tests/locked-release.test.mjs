@@ -7,6 +7,7 @@ import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
 import {approval, backend, backupRunnerPolicy, backupWorkflow, currentBackupRun, digest, downloadBackupJobLog, parseBackupRestoreProof, evidenceWorkflows, findEvidenceRun, nextVersion, project, qaFunction, qaProject, readLock, stagingUrl, targetFunction, validateLock, verifyBackup, verifyCandidateEvidence, verifyE2eReceipt, verifyEvidenceRun, verifyRegressionReceipt, waitingForBackupGuest, waitForBackupRunIdentity, web} from '../scripts/release/locked-release.mjs';
 import {compileE2e} from '../scripts/release/locked-e2e-evidence.mjs';
+import {verifyScoringBytes,verifyScoringPair,verifyServedScoring} from '../scripts/release/locked-offer-scoring.mjs';
 import {verifyDownloadedPackage,qaPackageFilename,verifyServedAssets} from '../scripts/release/locked-qa-runtime.mjs';
 import {readSchemaVersion, verifyApiEvidence, verifyProductionPackage, verifyAuthContinuity} from '../scripts/release/locked-release-api.mjs';
 import {assertPreservesEntrypoints, bindPages, publicationRecord, validateApiProof} from '../scripts/release/locked-release-pages.mjs';
@@ -587,4 +588,21 @@ test('exact runtime candidate requires reviewed browser-fixture hashes, never su
  assert.throws(()=>verifyFixtureRepair(repairedFrontend,{...proof,revision:'a'.repeat(40)}),/FIXTURE_REPAIR_RECEIPT_MISMATCH/);
  assert.throws(()=>verifyFixtureRepair('a'.repeat(40),proof),/UNEXPECTED_FIXTURE_REPAIR/);
  assert.doesNotThrow(()=>verifyFixtureRepair('a'.repeat(40),null));
+});
+
+test('scoring release gate compares exact bytes and rejects all diverging copies',()=>{
+ const good=Buffer.from('canonical');
+ assert.equal(verifyScoringBytes(good,good,good),digest(good));
+ assert.throws(()=>verifyScoringBytes(good,Buffer.from('old test'),good),/OFFER_SCORING_FRONTEND_STAGING_MISMATCH/);
+ assert.throws(()=>verifyScoringBytes(good,good,Buffer.from('old API')),/OFFER_SCORING_FRONTEND_API_MISMATCH/);
+ assert.throws(()=>verifyScoringBytes(Buffer.alloc(0),good,good),/OFFER_SCORING_SOURCE_MISSING/);
+});
+test('existing protected staging, E2E and production gates enforce scoring parity',()=>{
+ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+ const staging=read('.github/workflows/locked-qa-staging.yml');
+ const production=read('.github/workflows/owner-portal-release.yml');
+ const e2e=read('scripts/release/locked-qa-runtime.mjs');
+ assert.ok(staging.indexOf('locked-offer-scoring.mjs candidate-web candidate-backend')<staging.indexOf('locked-staging.mjs prepare-api'));
+ assert.ok(production.indexOf('locked-offer-scoring.mjs candidate-web candidate-backend')<production.indexOf('locked-release-api.mjs publish'));
+ assert.match(e2e,/await verifyServedScoring\(frontend,backend,lock\)/);
 });

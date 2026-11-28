@@ -11,6 +11,12 @@ const titleTranslations={
  en:{owner:"Improvement center",author:"Suggestions",new:"Create request",category:"Request type",choose:"Select a type",description:"Description",prompt:"Describe the proposed improvement or fix",submit:"Submit",cancel:"Cancel",my:"My requests",all:"All requests",empty:"No requests yet",refresh:"Refresh",status:"Status",register:"Register",created:"Created",authorLabel:"Submitted by",note:"Comment / reason",selectStatus:"Next status",date:"Completion deadline",save:"Update status",history:"History",open:"Details",clear:"Select a request",error:"Action failed",success:"Request submitted",releaseHint:"The deadline is kept across statuses; it is not a publication date",read:"Mark as read",summary:"Submitted / In progress / Release (deadline separate)",noAccess:"Access could not be verified",intro:"Website improvement requests, separate from freight offers."},
  zh:{owner:"改进管理中心",author:"建议",new:"创建申请",category:"申请类型",choose:"选择类型",description:"说明",prompt:"请描述需要改进或修复的内容",submit:"提交",cancel:"取消",my:"我的申请",all:"所有申请",empty:"暂无申请",refresh:"刷新",status:"状态",register:"登记册",created:"创建时间",authorLabel:"提交人",note:"备注 / 原因",selectStatus:"新状态",date:"完成截止日期",save:"更新状态",history:"处理记录",open:"详情",clear:"请选择申请",error:"操作失败",success:"申请已提交",releaseHint:"状态变化不会清除截止日期；截止日期不是发布日期",read:"标记已读",summary:"已提交 / 处理中 / 发布阶段（截止日期单独显示）",noAccess:"无法验证访问权限",intro:"网站改进建议，与运输报价分开。"}
 };
+const ownerExtra={
+ ru:{manual:"Дополнительные действия Владельца",manualHint:"Ручной переход — только для исправления зависших задач. Не подтверждает разработку или публикацию.",githubToken:"Передача в GitHub недоступна: серверная авторизация не настроена. Проверьте существующую интеграцию. Повторный запуск доступен после устранения ошибки. Не вводите токен в карточку.",handoffError:"Передача не выполнена: "},
+ en:{manual:"Advanced Owner actions",manualHint:"Manual transitions are only for recovering stalled tasks. They do not confirm implementation or publication.",githubToken:"GitHub handoff is unavailable: server authorization is not configured. Check the existing integration. Retry after the error is resolved. Never enter a token in this form.",handoffError:"Handoff failed: "},
+ zh:{manual:"所有者高级操作",manualHint:"仅用于恢复卡住的任务；手动切换不代表开发或发布已完成。",githubToken:"GitHub 交接不可用：服务器授权尚未配置。请检查现有集成。解决错误后可以重试。请勿在表单中输入令牌。",handoffError:"交接失败："}
+};
+function ownerHandoffError(raw,lang){const words=ownerExtra[lang]||ownerExtra.ru;return /GITHUB_TOKEN_NOT_CONFIGURED/.test(raw)?words.githubToken:words.handoffError+raw;}
 const byLang=(document.documentElement.lang||"ru").toLowerCase().startsWith("zh")?"zh":(document.documentElement.lang||"ru").toLowerCase().startsWith("en")?"en":"ru";
 const t=()=>titleTranslations[byLang],esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let data={items:[],events:[],owner:false,role:""},loaded=false,showForm=false,draftCategory="",draftText="",selected="",registry="all",statusFilter="all",searchQuery="",message="",error="",busy=false,lastRoot=null;
@@ -113,10 +119,11 @@ const isReleaseReady=(item,isOwner,_readiness,execution)=>isOwner===true&&item?.
 const formatTime=value=>value?new Date(value).toLocaleString(byLang==="zh"?"zh-CN":byLang==="en"?"en-GB":"ru-RU",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Minsk"}):"—";
 const latestStatus=s=>statusLabels[s]||s;
 // Existing release_date is an execution deadline; it never proves a publication.
-const requestStatus=i=>issue173Published(i)?(byLang==='en'?'Published SH64':byLang==='zh'?'已发布 SH64':'Выпущено SH64'):latestStatus(i.status);
+const requestStatus=i=>issue173Published(i)?(byLang==='en'?'Published SH64':byLang==='zh'?'已发布 SH64':'Выпущено SH64'):feedbackLifecycle(i)==='awaiting_development'?awaitingDevelopmentLabel(byLang):latestStatus(i.status);
 const minskToday=()=>{const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Minsk',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const p=Object.fromEntries(parts.filter(x=>x.type!=='literal').map(x=>[x.type,x.value]));return p.year+'-'+p.month+'-'+p.day;};
 const deadlineState=(item,execution)=>{
  if(!['in_progress','release'].includes(item?.status))return '';
+ if(feedbackLifecycle(item,execution)==='awaiting_development')return awaitingDevelopmentLabel(byLang);
  const labels=byLang==='en'?{ready:'Ready to release',late:'Overdue',blocked:'Blocked: tests have not passed',working:'In progress'}:byLang==='zh'?{ready:'准备发布',late:'已逾期',blocked:'已阻止：测试未通过',working:'处理中'}:{ready:'Готово к выпуску',late:'Просрочено',blocked:'Заблокировано: тесты не пройдены',working:'В работе'};
  if(execution?.checksPassed===true&&execution?.step==='ready_for_review')return labels.ready;
  if(/^\d{4}-\d{2}-\d{2}$/.test(String(item.release_date||''))&&minskToday()>item.release_date)return labels.late;
@@ -133,16 +140,21 @@ function form(){
  (draftCategory?'<label>'+esc(t().description)+'<textarea name="description" required maxlength="5000" minlength="10" rows="6" placeholder="'+esc(t().prompt)+'">'+esc(draftText)+'</textarea><small>10–5000 '+(byLang==="en"?"characters":byLang==="zh"?"个字符":"символов")+'</small></label>':'')+
  '<div class="pf-actions"><button type="submit" class="pf-primary" '+(!draftCategory||busy?'disabled':'')+'>'+esc(t().submit)+'</button><button type="button" class="pf-secondary" data-pf="cancel">'+esc(t().cancel)+'</button></div></form>';
 }
-function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':i.status)+'">'+esc(requestStatus(i))+'</span>';}
+function badge(i){return '<span class="pf-status pf-status-'+esc(issue173Published(i)?'completed':feedbackLifecycle(i)==='awaiting_development'?'evaluated':i.status)+'">'+esc(requestStatus(i))+'</span>';}
 const isArchived=item=>['completed','denied'].includes(item?.status);
+// An intake feedback row is not proof that development was dispatched. Preserve the persisted status for API transitions and history.
+function feedbackLifecycle(item,execution=executionByFeedback.get(item?.id),isOwner=data.owner){
+ return isOwner&&item?.sender_role==='owner'&&item.status==='in_progress'&&execution?.decision==='new'&&execution?.dispatchStatus==='not_requested'?'awaiting_development':item?.status;
+}
+const awaitingDevelopmentLabel=lang=>({ru:'Ожидает запуска разработки',en:'Awaiting development start',zh:'等待启动开发'}[lang]||'Ожидает запуска разработки');
 // Explicit lifecycle order; labels do not change the persisted status codes.
 function feedbackFilterOptions(lang){
  const labels={
-  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые','В работе','На этапе выпуска','Архив'],
-  en:['All requests','New (unread)','Read','Evaluated','In progress','Release stage','Archive'],
-  zh:['所有申请','新申请（未读）','已读','已评估','处理中','发布阶段','归档']
+  ru:['Все обращения','Новые (непрочитанные)','Прочитанные','Оценённые',awaitingDevelopmentLabel('ru'),'В работе','На этапе выпуска','Архив'],
+  en:['All requests','New (unread)','Read','Evaluated',awaitingDevelopmentLabel('en'),'In progress','Release stage','Archive'],
+  zh:['所有申请','新申请（未读）','已读','已评估',awaitingDevelopmentLabel('zh'),'处理中','发布阶段','归档']
  };
- return ['all','sent','read','evaluated','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
+ return ['all','sent','read','evaluated','awaiting_development','in_progress','release','archive'].map((key,i)=>[key,(labels[lang]||labels.ru)[i]]);
 }
 const feedbackSearchLabel=()=>({ru:"Поиск по номеру IM",en:"Search by IM number",zh:"按 IM 编号搜索"}[byLang]||"Поиск по номеру IM");
 function matchesFeedbackNumber(item,query){
@@ -160,7 +172,7 @@ function visibleFeedbackItems(){
   }
   if(statusFilter==='archive')rows=rows.filter(isArchived);
   else if(statusFilter==='active')rows=rows.filter(i=>!isArchived(i));
-  else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&i.status===statusFilter);
+  else if(statusFilter!=="all")rows=rows.filter(i=>!isArchived(i)&&feedbackLifecycle(i)===statusFilter);
  }
  return rows.filter(i=>matchesFeedbackNumber(i,searchQuery));
 }
@@ -243,12 +255,12 @@ function detail(){
    '<section class="pf-workflow-actions"><p>'+esc(l.waiting)+'</p><button class="pf-primary" data-pf="submit-review" type="button" '+(!canSubmit||busy?'disabled':'')+'>'+esc(l.send)+'</button></section>':'';
  const publishedWords=byLang==='en'?{title:'Accept already published result',help:'The release is independently verified on confirmation. This is a personal decision on the published scope and remaining risks, not a new CI PASS or release.',reason:'Describe the accepted scope and remaining risks (at least 10 characters).',confirm:'Confirm acceptance of this exact published version and remaining risks? This archives the task without another release.'}:byLang==='zh'?{title:'接受已发布结果',help:'确认时独立核验发布。此操作仅表示本人接受已发布范围及剩余风险，不代表新的测试通过或发布。',reason:'说明接受的范围及剩余风险（至少10字）。',confirm:'确认接受此确切版本及剩余风险？任务将归档，不会再次发布。'}:{title:'Принять опубликованный результат',help:'При подтверждении сервер проверит выпуск. Это личное решение о фактически опубликованном объёме и остаточных рисках, не новый PASS тестов и не повторный выпуск.',reason:'Укажите принятый объём и остаточные риски (не менее 10 символов).',confirm:'Подтвердить принятие именно этой опубликованной версии и остаточных рисков? Задача будет архивирована без повторного выпуска.'};
  const publishedPanel=data.owner&&publishedProof&&['in_progress','release'].includes(item.status)?'<section class="pf-workflow-actions"><h4>'+esc(publishedWords.title)+'</h4><p>'+esc(publishedProof.version)+' · '+esc(publishedProof.releaseRun)+'</p><small>'+esc(publishedWords.help)+'</small><p><code>'+esc(publishedProof.frontendSha)+'</code><br><code>'+esc(publishedProof.backendSha)+'</code></p><button class="pf-primary" type="button" data-pf="accept-published-result" '+(busy?'disabled':'')+'>'+esc(publishedWords.title)+'</button></section>':'';
- const updateControls=data.owner&&choices.length?'<form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
+ const updateControls=data.owner&&choices.length?'<details class="pf-owner-advanced"><summary>'+esc(ownerExtra[byLang].manual)+'</summary><p>'+esc(ownerExtra[byLang].manualHint)+'</p><form id="pf-update" data-id="'+esc(item.id)+'" class="pf-form">'+
  '<label>'+esc(t().selectStatus)+'<select name="status" required><option value="">'+esc(t().choose)+'</option>'+
  choices.map(s=>'<option value="'+s+'">'+esc(statusLabels[s])+'</option>').join("")+'</select></label>'+
  '<label>'+esc(t().note)+'<textarea rows="3" name="note" maxlength="2000" placeholder="'+esc(t().note)+'"></textarea></label>'+
  '<label class="pf-date-field">'+esc(t().date)+'<input type="date" name="releaseDate" value="'+esc(item.release_date||'')+'"/><small>'+esc(t().releaseHint)+'</small></label>'+
- '<button class="pf-primary" type="submit" '+(busy?'disabled':'')+'>'+esc(t().save)+'</button></form>':"";
+ '<button class="pf-primary" type="submit" '+(busy?'disabled':'')+'>'+esc(t().save)+'</button></form></details>':"";
  return '<article class="pf-detail"><div class="pf-item-top"><h3>'+esc(item.code)+'</h3>'+badge(item)+'</div>'+
  '<p class="pf-type">'+esc(categoryLabels[item.category])+' · '+esc(registerLabels[item.journal])+'</p>'+
  '<p class="pf-body">'+esc(item.description)+'</p>'+
@@ -346,7 +358,7 @@ async function runGithubHandoff(item,deadline){
   const result=await call('dispatch');
   message=byLang==='en'?'Development request sent to GitHub; code writing requires a ChatGPT chat.':byLang==='zh'?'开发任务已发送至 GitHub；请在 ChatGPT 对话中发送任务以编写代码。':'Разработка зарегистрирована в GitHub. Для написания кода отправьте задание в ChatGPT.';
   if(result.already)message=byLang==='en'?'Already registered on GitHub.':byLang==='zh'?'已在 GitHub 登记。':'Задача уже передана в GitHub.';
- }catch(e){error='Передача не выполнена: '+(e?.message||'Неизвестная ошибка');}
+ }catch(e){error=ownerHandoffError(String(e?.message||'UNKNOWN_ERROR'),byLang);}
  finally{const failure=error;handoffBusy=false;await load();if(failure)error=failure;render();}
 }
 function developmentChatPrompt(execution){

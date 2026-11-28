@@ -58,3 +58,37 @@ test('both bundles pass the actual route and observed details to the existing Ow
   assert.ok(app.includes('S.status===202?"Ожидает завершения"'));
  }
 });
+
+
+test("all specifically required HTTP codes are explained without inferring intent",()=>{
+ for(const [status,title] of [[424,/зависимая/],[431,/заголовки/],[501,/не реализована/],[507,/Недостаточно/],[508,/цикл/]]){
+ const event=explainAuditEvent({source:"server",path:"/api/task2",status});
+ assert.match(event.title,title);
+ assert.match(event.origin,/нельзя установить/);
+ }
+});
+test("root and staging use same server filter controls and preserve pagination query",()=>{
+ for(const path of ["app.js","test/app.js"]){
+ const app=readFileSync(path,"utf8");
+ assert.match(app,/function issue1AuditFilters\(state,setState\)/);
+ for(const key of ["role","cabinet","http","target","source","outcome","path"])assert.ok(app.includes('["'+key+'",'),key);
+ assert.match(app,/actor:_,kind:b,\.\.\.advanced\}\);N.current=W.toString\(\)/);
+ assert.ok(app.includes("...issue1AuditFilters(advanced,setAdvanced)"));
+ assert.ok(app.includes('N.current+(S?"&cursor="'));
+ }
+});
+
+test('Native audit events are distinguished from HTTP responses and browser reports',()=>{
+ const e={source:'server',phase:'domain_commit',serverCode:'DOMAIN_EVENT_CONFIRMED',status:0,kind:'action',path:'/api/auth',action:'native_auth_failed_three_times'};
+ const r=explainAuditEvent(e);assert.match(r.title,/Три неудачные/);assert.match(r.outcome,/HTTP-код не присваивается/);
+ assert.doesNotMatch(explainAuditEvent({...e,source:'client'}).title,/Три неудачные/);
+ assert.doesNotMatch(explainAuditEvent({...e,status:403}).title,/Три неудачные/);
+ assert.match(explainAuditEvent({...e,action:'native_execution_application_submit',path:'/api/shipment-execution'}).title,/отправлена/);
+});
+
+test('Native SL shows actual subject and does not expose unvalidated values',()=>{
+ const e={source:'server',phase:'domain_commit',serverCode:'DOMAIN_EVENT_CONFIRMED',status:0,kind:'action',path:'/api/service-level',action:'native_sl_document_error',subjectLogin:'carrier1'};
+ const r=explainAuditEvent(e);assert.match(r.title,/Ошибка документов/);assert.match(r.what,/carrier1/);
+ assert.doesNotMatch(explainAuditEvent({...e,subjectLogin:'private token'}).what,/private token/);
+ for(const path of ['app.js','test/app.js'])assert.match(readFileSync(path,'utf8'),/data-site-audit-subject-login/);
+});

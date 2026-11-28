@@ -1,5 +1,7 @@
 // Real isolated HTTP/Storage proof; no response fixtures and no production URLs.
 import assert from'node:assert/strict';import{readFile,writeFile,mkdir}from'node:fs/promises';import{createHash,randomUUID}from'node:crypto';
+import {readLock} from '../scripts/release/locked-release.mjs';
+import {candidateRequiresRoleReports,ROLE_REPORT_SECURITY_ID} from '../scripts/release/locked-e2e-evidence.mjs';
 const dir=process.env.QA_SCENARIO_STATE_DIR||'/tmp/freight-rc20261110-private',sessions=JSON.parse(await readFile(process.env.QA_SESSIONS_FILE||dir+'/sessions.json','utf8')),actors=JSON.parse(await readFile(process.env.QA_ACTORS_FILE||dir+'/actors.json','utf8'));
 const base='https://ibclzdkxiozbzmniiygv.supabase.co/functions/v1/freight-api-qa-rc20261110';
 const report={runId:process.env.GITHUB_RUN_ID,runAttempt:process.env.GITHUB_RUN_ATTEMPT,gate:'SECURITY-GATE-12NOV',startedAt:new Date().toISOString(),environment:'isolated-qa-rc20261110',mocks:false,checks:[],calls:[]};
@@ -28,4 +30,67 @@ await check('addressed-logistic-no-ved-authority-or-unrelated-shipment',async()=
  const all=await call('owner','/api/task2');assert.equal(all.status,200);const foreign=all.data.items.find(i=>!list.data.items.some(o=>o.order_code===i.order_code));assert.ok(foreign,'Unassigned shipment fixture required');denied(await call('logistic','/api/task2?order='+encodeURIComponent(foreign.order_code)));denied(await call('logistic','/api/task2',{order:foreign.order_code,action:'manual_pto_review',reason:'Must never create a VED review',evidence:'Not authorized'}));for(const path of ['/api/chats','/api/requests','/api/registry','/api/task2?logistic_recipients=1'])denied(await call('logistic',path));const feed=await call('logistic','/api/pending-tasks');assert.equal(feed.status,200);assert.ok(feed.data.items.every(t=>t.assigned_login===actors.logistic.login));
 });
 await check('supplier-ved-logistic-anonymous-cannot-open-tender-data',async()=>{for(const actor of ['supplier','supplierB','ved','logistic',null])for(const path of ['/api/tenders','/api/tenders?id='+(market?.id||exclusiveA?.id),'/api/tenders?protocol='+(market?.id||exclusiveA?.id)])denied(await call(actor,path));for(const path of ['/api/requests','/api/supplier-orders','/api/chats','/api/registry'])denied(await call(null,path));});
+// Role reporting acceptance on the exact protected candidate. No production data,
+// mock identities or new credentials. Use the existing synthetic actors and fixtures.
+if(candidateRequiresRoleReports(readLock().frontendSha))await check(ROLE_REPORT_SECURITY_ID,async()=>{
+ const expected={owner:'owner',carrierA:'carrier',carrierB:'carrier',ved:'logistic',logistic:'logistic',supplier:'supplier',supplierB:'supplier',designer:'designer',content:'content',purchasing:'purchasing',certification:'certification'};
+ const snapshots=new Map(),reports=new Map();
+ denied(await call(null,'/api/reports'));
+ for(const [actor,role] of Object.entries(expected)){
+  assert.ok(sessions[actor]&&actors[actor],'REPORT_ACTOR_MISSING:'+actor);
+  const access=await call(actor,'/api/access');assert.equal(access.status,200,'REPORT_ACCESS_READ:'+actor);
+  const allowed=actor==='owner'||access.data.access.permissions.includes('reports.read');
+  const res=await call(actor,'/api/reports');
+  if(!allowed){
+   denied(res);
+   denied(await call(actor,'/api/reports',{action:'snapshot',filters:{archive:true}}));
+   // Only the deliberately restricted addressed Logistic profile is expected to lack this permission.
+   assert.equal(actor,'logistic','REPORT_PERMISSION_MISSING:'+actor);
+   continue;
+  }
+  assert.equal(res.status,200,'REPORT_READ:'+actor);
+  const d=res.data;assert.equal(d.role,role);assert.equal(d.viewer,actors[actor].login);
+  assert.equal(d.owner,actor==='owner');assert.ok(Array.isArray(d.rows)&&Array.isArray(d.sources));
+  assert.equal(new Set(d.rows.map(row=>row.id)).size,d.rows.length,'REPORT_DUPLICATE_ID:'+actor);
+  if(actor!=='owner')assert.deepEqual(d.users,[]);
+  if(['carrier','supplier'].includes(role))assert.ok(d.rows.every(row=>row.person===actors[actor].login),'REPORT_FOREIGN_PERSON:'+actor);
+  if(['designer','content','purchasing','certification'].includes(role)){
+   const type=role==='designer'?'designer':role+'_assignment';
+   assert.ok(d.rows.every(row=>row.type===type&&(row.person===actors[actor].login||!row.person)),'REPORT_FOREIGN_ROLE_OR_PERSON:'+actor);
+  }
+  const created=await call(actor,'/api/reports',{action:'snapshot',filters:{archive:true}});
+  assert.equal(created.status,200,'REPORT_SNAPSHOT_CREATE:'+actor);
+  assert.match(created.data.id,/^[a-f0-9-]{36}$/i);
+  assert.deepEqual(created.data.rows.map(row=>row.id).sort(),d.rows.map(row=>row.id).sort(),'REPORT_SNAPSHOT_ROWS:'+actor);
+  const q='/api/reports?snapshot='+encodeURIComponent(created.data.id);
+  const saved=await call(actor,q);assert.equal(saved.status,200,'REPORT_SNAPSHOT_READ:'+actor);
+  assert.deepEqual(saved.data.rows,created.data.rows,'REPORT_SNAPSHOT_DATA:'+actor);
+  const pdf=await call(actor,q+'&format=pdf');assert.equal(pdf.status,200,'REPORT_PDF:'+actor);
+  assert.equal(pdf.bytes.subarray(0,5).toString(),'%PDF-','REPORT_PDF_MAGIC:'+actor);
+  snapshots.set(actor,q);reports.set(actor,d);
+ }
+ // Cross-company pairs plus every actor against a different Owner/non-Owner snapshot.
+ // Bound the number of HTTP requests to keep the existing protected run within its lease.
+ const cross=new Set();
+ const pair=(a,b)=>{if(snapshots.has(a)&&snapshots.has(b)&&a!==b)cross.add(a+':'+b);};
+ for(const actor of snapshots.keys()){pair(actor,'owner');pair('owner',actor);}
+ for(const [a,b] of [['carrierA','carrierB'],['supplier','supplierB'],['content','purchasing'],['purchasing','certification'],['designer','content']]){pair(a,b);pair(b,a);}
+ for(const key of cross){const [actor,other]=key.split(':'),foreign=snapshots.get(other);denied(await call(actor,foreign));denied(await call(actor,foreign+'&format=pdf'));}
+
+ if(supplyA&&supplyB)for(const [actor,mine,foreign]of [['supplier',supplyA,supplyB],['supplierB',supplyB,supplyA]]){
+  const d=reports.get(actor);assert.ok(d.rows.some(row=>row.order===mine.order),'REPORT_OWN_SUPPLIER_FIXTURE:'+actor);
+  assertPrivate(d,[foreign.order,foreign.id]);
+ }
+ for(const [actor,foreign] of [['carrierA',exclusiveB],['carrierB',exclusiveA]]){
+  const d=reports.get(actor);assert.ok(d.rows.length,'REPORT_OWN_CARRIER_FIXTURE:'+actor);
+  if(foreign)assertPrivate(d,[foreign.id,foreign.order]);
+ }
+ const all=reports.get('owner');assert.ok(all?.users?.length&&all.rows.length,'OWNER_REPORT_GLOBAL_FIXTURE');
+ for(const actor of ['content','purchasing','certification']){
+  const d=reports.get(actor),type=actor+'_assignment';
+  const visible=new Set(all.rows.filter(row=>row.type===type&&(row.person===actors[actor].login||!row.person)).map(row=>row.id));
+  assert.ok(d.rows.every(row=>visible.has(row.id)),'REPORT_ASSIGNMENT_OUTSIDE_OWNER_SOURCE:'+actor);
+ }
+ console.log('ROLE_REPORT_REAL_EXPORT_SCOPE_PASS',snapshots.size);
+});
 await mkdir('reports/isolated-rc',{recursive:true});report.completedAt=new Date().toISOString();report.result=report.checks.some(x=>x.result==='FAIL')?'FAIL':'PASS';await writeFile('reports/isolated-rc/security-gate-real.json',JSON.stringify(report,null,2)+'\n');if(report.result!=='PASS')process.exitCode=1;

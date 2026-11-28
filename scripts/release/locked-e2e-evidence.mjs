@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
 import {join, resolve} from 'node:path';
 import {readJson, runReceipt} from './locked-evidence-run.mjs';
@@ -12,7 +13,33 @@ import {
   stagingUrl,
 } from './locked-release.mjs';
 
-export function compileE2e(lock, runtime, after, reports, run, startedAt, now = Date.now()) {
+
+const SECURITY_BASE_IDS=Object.freeze([
+ 'fixtures-real-owner-assignments','carrierA-cross-id-list-export-notifications','carrierB-cross-id-list-export-notifications',
+ 'supplier-cross-supplier-order-files-chat-export','supplierB-cross-supplier-order-files-chat-export',
+ 'active-tender-minimal-anonymous-exception','closed-and-cancelled-tenders-revoke-exception',
+ 'finalized-tender-retains-only-own-source-records','addressed-logistic-no-ved-authority-or-unrelated-shipment',
+ 'supplier-ved-logistic-anonymous-cannot-open-tender-data'
+]);
+export const ROLE_REPORT_SECURITY_ID='role-reports-real-authorization-and-export';
+// Resolve the actual locked source, not a feature flag or the current workflow's checkout.
+export function candidateRequiresRoleReports(sha){
+ assert.match(sha,/^[a-f0-9]{40}$/,'INVALID_REPORT_CANDIDATE_SHA');
+ execFileSync('git',['cat-file','-e',sha+'^{commit}']);
+ const path='test/role-report-charts.mjs';
+ const listing=execFileSync('git',['ls-tree',sha,'--',path],{encoding:'utf8'}).trim();
+ if(!listing)return false;
+ const source=execFileSync('git',['show',sha+':'+path],{encoding:'utf8'});
+ return source.includes('export function reportPeriodComparison(');
+}
+export function requireSecurityCheckSet(checks,roleReportsRequired){
+ assert.ok(Array.isArray(checks),'SECURITY_CHECKS_MISSING');
+ const required=[...SECURITY_BASE_IDS,...(roleReportsRequired?[ROLE_REPORT_SECURITY_ID]:[])];
+ assert.deepEqual(checks.map(check=>check.id).sort(),required.sort(),'SECURITY_REQUIRED_CHECK_SET_MISMATCH');
+ assert.ok(checks.every(check=>check.result==='PASS'),'SECURITY_REQUIRED_CHECK_FAILED');
+}
+
+export function compileE2e(lock, runtime, after, reports, run, startedAt, now = Date.now(), roleReportsRequired = false) {
   const {observedAt: beforeTime, ...beforeIdentity} = runtime;
   const {observedAt: afterTime, ...afterIdentity} = after;
   assert.deepEqual(afterIdentity, beforeIdentity, 'STAGING_RUNTIME_CHANGED_DURING_E2E');
@@ -115,8 +142,7 @@ export function compileE2e(lock, runtime, after, reports, run, startedAt, now = 
     assert.deepEqual(evidence.runtime, runtime);
     assert.equal(evidence.mocks, false);
     assert.equal(evidence.result, 'PASS');
-    assert.equal(evidence.checks.length, 10);
-    assert.ok(evidence.checks.every((check) => check.result === 'PASS'));
+    requireSecurityCheckSet(evidence.checks,roleReportsRequired);
   }
 
   function matrix() {
@@ -623,6 +649,8 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
     reports,
     run,
     Date.parse(runtime.observedAt),
+    Date.now(),
+    candidateRequiresRoleReports(lock.frontendSha),
   );
   mkdirSync(output);
   writeFileSync(join(output, 'private-authenticated-e2e.json'), report, {flag: 'wx', mode: 0o600});
