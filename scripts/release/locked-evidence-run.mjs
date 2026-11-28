@@ -1,6 +1,7 @@
 import {execFileSync} from 'node:child_process';
 import {readFileSync, writeFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {fixtureRepair} from './locked-browser-fixtures.mjs';
 import {digest, readLock, requireCheck, sha40, validId, web} from './locked-release.mjs';
 
 export const readJson = path => JSON.parse(readFileSync(path, 'utf8'));
@@ -33,6 +34,7 @@ async function main() {
   const sourceSha = checkoutSha(candidate, lock[field], {ancestor: kind === 'backend'});
   const report = readFileSync(reportPath);
   const receipt = {...runReceipt(lock, kind), sourceSha, generatedAt: new Date().toISOString(), reportSha256: digest(report)};
+  if (kind === 'frontend') receipt.fixtureRepair = fixtureRepair('verify',candidate,sourceSha);
   if (kind === 'backend') {
     const {qaInputSha256} = await import('./locked-qa-package.mjs');
     receipt.qaInputSha256 = qaInputSha256(candidate, lock);

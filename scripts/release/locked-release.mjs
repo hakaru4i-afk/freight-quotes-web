@@ -3,6 +3,7 @@ import {execFileSync} from 'node:child_process';
 import {appendFileSync, mkdtempSync, readFileSync, readdirSync, rmSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {verifyFixtureRepair} from './locked-browser-fixtures.mjs';
 
 export const web = 'hakaru4i-afk/freight-quotes-web';
 export const backend = 'hakaru4i-afk/freight-quotes';
@@ -150,6 +151,7 @@ export function verifyRegressionReceipt(lock, kind, receipt, run, bytes) {
   verifyRunReceipt(lock, kind, receipt, run);
   const expected = kind === 'frontend' ? lock.frontendSha : lock.backendSha;
   requireCheck(receipt.sourceSha === expected && receipt.reportSha256 === digest(bytes), 'REGRESSION_SOURCE_OR_REPORT_MISMATCH:' + kind);
+  if (kind === 'frontend') verifyFixtureRepair(lock.frontendSha,receipt.fixtureRepair);
 }
 
 // A dispatch can run a newer workflow than the immutable candidate it tests.

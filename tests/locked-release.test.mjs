@@ -577,3 +577,14 @@ test('published staging QA and production/staging deploy share one non-preemptiv
     assert.doesNotMatch(block,/group: task12-staging-observer/,name);
   }
 });
+
+test('exact runtime candidate requires reviewed browser-fixture hashes, never substitutes a runtime SHA',async()=>{
+ const {expectedFixtureRepair,verifyFixtureRepair,repairedFrontend}=await import('../scripts/release/locked-browser-fixtures.mjs');
+ const proof=expectedFixtureRepair(repairedFrontend);
+ assert.doesNotThrow(()=>verifyFixtureRepair(repairedFrontend,proof));
+ assert.throws(()=>verifyFixtureRepair(repairedFrontend,undefined),/FIXTURE_REPAIR_RECEIPT_MISMATCH/);
+ assert.throws(()=>verifyFixtureRepair(repairedFrontend,{...proof,files:{...proof.files,'test/app.js':'a'.repeat(40)}}),/FIXTURE_REPAIR_RECEIPT_MISMATCH/);
+ assert.throws(()=>verifyFixtureRepair(repairedFrontend,{...proof,revision:'a'.repeat(40)}),/FIXTURE_REPAIR_RECEIPT_MISMATCH/);
+ assert.throws(()=>verifyFixtureRepair('a'.repeat(40),proof),/UNEXPECTED_FIXTURE_REPAIR/);
+ assert.doesNotThrow(()=>verifyFixtureRepair('a'.repeat(40),null));
+});

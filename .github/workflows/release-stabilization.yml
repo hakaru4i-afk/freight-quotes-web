@@ -37,6 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
@@ -77,6 +78,7 @@ jobs:
           LOCKED_FRONTEND_SHA: ${{ needs.lock.outputs.frontend }}
         run: |
           test "$(git rev-parse HEAD)" = "$LOCKED_FRONTEND_SHA"
+          node ../scripts/release/locked-browser-fixtures.mjs apply . "$LOCKED_FRONTEND_SHA" ..
           rm -rf reports
           GITHUB_SHA="$LOCKED_FRONTEND_SHA" node tests/task12-robot-runner.mjs
       - name: Bind the fresh robot report to the candidate and dispatch attempt
@@ -103,6 +105,7 @@ jobs:
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
@@ -150,10 +153,13 @@ jobs:
           # Candidate tests read this file from their working directory. Use the
           # authoritative dispatch lock as temporary test configuration.
           trap 'git restore --source=HEAD --worktree -- release-lock.json' EXIT
+          node ../scripts/release/locked-browser-fixtures.mjs apply . "$LOCKED_FRONTEND_SHA" ..
           git -C .. show "$GITHUB_SHA:release-lock.json" > release-lock.json
           rm -rf reports
           mkdir -p reports
           node --test --test-concurrency=3 --test-reporter=spec --test-reporter=junit --test-reporter-destination=stdout --test-reporter-destination=reports/full-regression.xml tests/*.test.mjs
+          git restore --source=HEAD --worktree -- release-lock.json
+          node ../scripts/release/locked-browser-fixtures.mjs verify . "$LOCKED_FRONTEND_SHA" ..
       - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         if: always()
         with:
