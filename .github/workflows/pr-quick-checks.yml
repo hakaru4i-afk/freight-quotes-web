@@ -105,6 +105,8 @@ jobs:
             tests/owner-process-control-ui.test.mjs \
             tests/owner-offer-status-clarity-sh70.test.mjs \
             tests/owner-offer-scoring-r3.test.mjs
+      - name: Verify role report charts, date handling and localization
+        run: node --test tests/role-report-charts.test.mjs
       - name: Verify feedback archive filters and terminal controls
         run: node --test tests/feedback-archive-single-filter.test.mjs
       - name: Verify monotonic production release notifications
