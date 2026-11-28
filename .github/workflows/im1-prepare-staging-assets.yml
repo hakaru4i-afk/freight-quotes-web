@@ -40,7 +40,7 @@ jobs:
           done
       - name: Verify staging asset metadata and Owner process controls
         run: node --test tests/owner-audit-explanations-20261117.test.mjs tests/lw2-transport-classification.test.mjs tests/offer-scoring-r2-nov17.test.mjs tests/owner-offer-scoring-r3.test.mjs tests/locked-release.test.mjs tests/role-report-charts.test.mjs tests/owner-register-action-lock-regression.test.mjs tests/feedback-deadline-issue173.test.mjs tests/feedback-archive-single-filter.test.mjs
-        # Issue 94 Owner advanced controls, reporting, audit and scoring: the test app has just been stamped; never change release-lock or publish.
+        # Issue 94 Owner intake status, advanced controls, reporting, audit and scoring: the test app has just been stamped; never change release-lock or publish.
       - name: Commit only reviewed staging output and refresh candidate source provenance
         shell: bash
         run: |

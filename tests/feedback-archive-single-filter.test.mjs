@@ -8,7 +8,7 @@ assert.ok(start>0&&end>start);
 function probe(statusFilter,registry='all',searchQuery='',customItems,executions=[],owner=true){
  const items=customItems||['sent','read','evaluated','in_progress','release','completed','denied'].map(status=>({id:status,code:status,status,journal:'developments',description:'x',category:'development'}));
  const ctx={data:{owner,items,events:[]},executionByFeedback:new Map(executions),statusFilter,registry,searchQuery,selected:'',statusLabels:Object.fromEntries(items.map(i=>[i.status,i.status])),registerLabels:{developments:'Development'},categoryLabels:{development:'Development'},byLang:'ru',esc:String,t:()=>({}),badge:()=>'',formatTime:()=>''};
- runInNewContext(source.slice(start,end)+'\nglobalThis.ids=visibleFeedbackItems().map(x=>x.id);globalThis.html=itemsList();globalThis.states=items.map(i=>feedbackLifecycle(i));',ctx);
+ runInNewContext(source.slice(start,end)+'\nglobalThis.ids=visibleFeedbackItems().map(x=>x.id);globalThis.html=itemsList();globalThis.states=data.items.map(i=>feedbackLifecycle(i));',ctx);
  return {ids:Array.from(ctx.ids),html:ctx.html,states:Array.from(ctx.states)};
 }
 test('archive is the single terminal filter; individual active statuses remain available',()=>{
