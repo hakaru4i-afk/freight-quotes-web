@@ -65,8 +65,80 @@ const actionNames={
   logout:'выход из кабинета',view:'открытие раздела',start:'начало работы',
   submit:'отправка данных',save:'сохранение',send:'отправка сообщения',
   create:'создание',update:'изменение',approve:'подтверждение',
-  reject:'отклонение',cancel:'отмена',take:'взятие в работу'
+  reject:'отклонение',cancel:'отмена',take:'взятие в работу',open_request:'получение конкретной заявки',read_protocol:'получение протокола тендера'
 };
+const nativeLabels=Object.freeze({
+  "native_auth_failed_three_times": "Три неудачные попытки входа",
+  "native_auth_recovery_requested": "Запрос восстановления пароля",
+  "native_auth_recovery_completed": "Сброс пароля",
+  "native_auth_parallel_session_started": "Создан параллельный сеанс",
+  "native_auth_session_limit_pruned": "Лишние сеансы отозваны",
+  "native_auth_expired_sessions_cleaned": "Истёкшие сеансы удалены",
+  "native_auth_session_expired": "Срок действия сеанса истёк",
+  "native_tender_created": "Тендер создан",
+  "native_tender_initial": "Начальная ставка тендера",
+  "native_tender_offer_review": "Ставка тендера рассмотрена",
+  "native_tender_extended": "Тендер продлён",
+  "native_tender_offer": "Ставка тендера зарегистрирована",
+  "native_tender_closed_early": "Тендер закрыт досрочно",
+  "native_tender_closed": "Тендер закрыт",
+  "native_tender_finalized": "Результат тендера зафиксирован",
+  "native_tender_cancelled": "Тендер отменён",
+  "native_sl_winner_failure": "SL: срыв перевозки",
+  "native_sl_winner_failure_after": "SL: срыв после начала перевозки",
+  "native_sl_owner_annulment": "SL: отмена начисления",
+  "native_sl_no_response": "SL: отсутствие ответа",
+  "native_sl_timely_response": "SL: ответ в срок",
+  "native_sl_late_response_after_no_response": "SL: поздний ответ",
+  "native_sl_completed_on_time": "SL: выполнение в срок",
+  "native_sl_completion_revoked": "SL: бонус отозван",
+  "native_sl_incident_resolved": "SL: инцидент урегулирован",
+  "native_sl_incident_void": "SL: инцидент аннулирован",
+  "native_sl_completion_restored": "SL: бонус восстановлен",
+  "native_sl_owner_unlock": "SL: разблокировка",
+  "native_shipment_owner_data": "Данные перевозки изменены",
+  "native_shipment_route": "Маршрут сохранён",
+  "native_shipment_progress": "Трекинг обновлён",
+  "native_execution_application_take": "Транспортная заявка взята в работу",
+  "native_execution_application_correction_request": "Запрошена корректировка",
+  "native_execution_application_save": "Транспортная заявка сохранена",
+  "native_execution_application_submit": "Транспортная заявка отправлена",
+  "native_execution_application_edit": "Транспортная заявка изменена",
+  "native_execution_application_review": "Транспортная заявка рассмотрена",
+  "native_execution_application_approve": "Транспортная заявка согласована",
+  "native_execution_application_change": "Условия заявки изменены",
+  "native_execution_application_reject": "Транспортная заявка отклонена",
+  "native_execution_transport_files": "Транспортные файлы зарегистрированы",
+  "native_execution_execution_progress": "Этап исполнения обновлён",
+  "native_execution_execution_waiver": "Исключение в исполнении",
+  "native_execution_execution_departure_approve": "Отправление согласовано",
+  "native_execution_execution_customs_approve": "Таможенные документы согласованы",
+  "native_execution_execution_customs_return": "Таможенные документы возвращены",
+  "native_execution_execution_clearance": "Таможенное оформление зафиксировано",
+  "native_execution_execution_warehouse": "Прибытие на склад",
+  "native_execution_execution_complete": "Исполнение завершено",
+  "native_execution_claim_open": "Претензия открыта",
+  "native_execution_claim_save": "Претензия сохранена",
+  "native_execution_claim_send": "Претензия отправлена",
+  "native_execution_claim_accept": "Претензия принята",
+  "native_execution_claim_partial": "Претензия частично принята",
+  "native_execution_claim_dispute": "Претензия оспорена",
+  "native_execution_claim_propose": "Решение по претензии предложено",
+  "native_execution_claim_approve": "Решение согласовано",
+  "native_execution_claim_return": "Претензия возвращена",
+  "native_execution_claim_reject": "Решение отклонено",
+  "native_execution_claim_fulfill": "Исполнение претензии",
+  "native_execution_claim_resolve": "Претензия урегулирована",
+  "native_execution_claim_route": "Способ урегулирования зафиксирован",
+  "native_completion_close": "Закрытие перевозки",
+  "native_completion_reopen": "Возобновление перевозки",
+  "native_completion_complete": "Завершение перевозки",
+  "native_completion_confirm": "Подтверждение завершения",
+  "native_completion_submit": "Отправка на приёмку",
+  "native_completion_approve": "Приёмка согласована",
+  "native_completion_reject": "Приёмка отклонена",
+  "native_completion_review": "Приёмка рассмотрена"
+});
 const kindLabels={
   'Отказ в доступе':'denied','Ошибка проверки данных':'validation',
   'Ошибка сервера':'server_error','Ошибка интерфейса':'client_error',
@@ -105,7 +177,7 @@ const httpMeanings={
   508:['Обнаружен цикл обработки запроса','Сервер прервал повторяющуюся обработку.']
 };
 const knownEventFamilies=[
-  ['Вход и сеансы','Успешный/неудачный вход, выход, истечение сеанса, блокировка после ошибок, сброс пароля, параллельные сеансы'],
+  ['Вход и сеансы','Успешный/неудачный вход, выход, истечение сеанса, три неудачные попытки входа, запрос восстановления, сброс пароля, параллельные сеансы'],
   ['Права и безопасность','Создание/удаление пользователя, изменение роли, разрешение/запрет доступа, RLS, изменение полномочий, превышение лимита'],
   ['Заявки','Создание, изменение, удаление, публикация, архив, изменение дедлайна, вложения'],
   ['Ставки и тендеры','Черновик, поздняя ставка, отказ с причиной, подача, правка, рассмотрение, блокировка выбора, победитель, тендер, протокол'],
@@ -135,7 +207,7 @@ const serverReasons={
  METHOD_NOT_ALLOWED:'Этот HTTP-метод не разрешён.',
  REGIONAL_EXECUTION_UNAVAILABLE:'Не удалось выполнить запрос в требуемом регионе.'
 };
-const phaseNames={handler:'Обработка запроса',access_denied:'Проверка доступа',early_denial:'Отказ до обработчика',transaction_rollback:'Откат транзакции',post_commit_error:'Ошибка после сохранения',post_commit_pending:'Ожидается завершение после сохранения'};
+const phaseNames={handler:'Обработка запроса',access_denied:'Проверка доступа',early_denial:'Отказ до обработчика',transaction_rollback:'Откат транзакции',post_commit_error:'Ошибка после сохранения',post_commit_pending:'Ожидается завершение после сохранения',domain_commit:'Серверное бизнес-событие'};
 function applyObservedDetails(result,event){
  if(event.source!=='server')return result;
  const code=safe(event.serverCode),phase=safe(event.phase);
@@ -155,6 +227,14 @@ export function explainAuditEvent(event){
  const operation=actionNames[action]||('операция «'+(action||'не указана')+'»');
  const targetText=target?' по заявке/объекту '+target:'';
  const result={title:'Обращение к разделу «'+service+'»',where:'Раздел: '+service,what:'Запрос: '+operation+targetText,why:'Точная причина не указана в сохранённой записи.',outcome:'Результат требует проверки.',origin:'По этой записи нельзя установить, нажимал ли пользователь кнопку вручную.'};
+ if(isNativeEvent(event)){
+   result.title=nativeLabels[action];
+   result.what='Событие: '+nativeLabels[action]+targetText;
+   result.why='Запись сформирована сервером вместе с бизнес-операцией, а не браузером.';
+   result.outcome='Серверное событие зафиксировано. Отдельный HTTP-код не присваивается; ответ ищите по общему ID запроса.';
+   result.origin='Источник — серверный обработчик. Нажатие кнопки и намерения пользователя по этой записи не устанавливаются.';
+   return result;
+ }
  if(path==='/api/test-cabinets'&&status===403&&!event.reasonCode){
    result.title='Автоматический запрос списка кабинетов владельца';
    result.what='При загрузке страницы прежний интерфейс запросил служебный список кабинетов, доступный только владельцу.';
@@ -228,6 +308,7 @@ export function explainAuditEvent(event){
  }
  return applyObservedDetails(result,event);
 }
+const isNativeEvent=e=>e.source==='server'&&e.phase==='domain_commit'&&e.serverCode==='DOMAIN_EVENT_CONFIRMED'&&Number(e.status||0)===0&&Object.hasOwn(nativeLabels,safe(e.action).toLowerCase());
 function logRow(row){
  if(row.dataset.ownerAuditExplained==='1')return;
  const cells=row.querySelectorAll(':scope > td');
@@ -251,6 +332,7 @@ function logRow(row){
  const reason=document.createElement('div');
  reason.className='ow-audit-explanation-result';
  reason.textContent=note.outcome;
+ if(isNativeEvent(event))cells[3].textContent='Событие сервера';
  cells[3].append(reason);
  const long=document.createElement('div');
  long.className='ow-audit-explanation-detail';

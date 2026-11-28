@@ -77,3 +77,11 @@ test("root and staging use same server filter controls and preserve pagination q
  assert.ok(app.includes('N.current+(S?"&cursor="'));
  }
 });
+
+test('Native audit events are distinguished from HTTP responses and browser reports',()=>{
+ const e={source:'server',phase:'domain_commit',serverCode:'DOMAIN_EVENT_CONFIRMED',status:0,kind:'action',path:'/api/auth',action:'native_auth_failed_three_times'};
+ const r=explainAuditEvent(e);assert.match(r.title,/Три неудачные/);assert.match(r.outcome,/HTTP-код не присваивается/);
+ assert.doesNotMatch(explainAuditEvent({...e,source:'client'}).title,/Три неудачные/);
+ assert.doesNotMatch(explainAuditEvent({...e,status:403}).title,/Три неудачные/);
+ assert.match(explainAuditEvent({...e,action:'native_execution_application_submit',path:'/api/shipment-execution'}).title,/отправлена/);
+});
