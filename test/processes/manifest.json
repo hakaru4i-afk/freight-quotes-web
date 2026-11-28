@@ -1,6 +1,6 @@
 {
   "version": "20261125-logic-13",
-  "modelSha256": "959c1b0ede9fb26e1800a6178025439eabe1ce6ae517192ef323fbc7f5f8605f",
+  "modelSha256": "9759f03453beaab2ddb18ae38bd8d3fbb9b32d0ab613ab58e3e03b4438bfb86d",
   "modelSnapshot": {
     "version": "20261125-logic-13",
     "date": "2026-11-25",
@@ -677,7 +677,7 @@
       "test/owner-ui-unification-20261117.js": "ed87c855828b3630d29df40a3498dbcd90224a06d9129a39337b809f503e4aa3",
       "test/owner-team-users-20261117.js": "61a2159ce5e986be3df70155f073ffb3a5064dbf312d2c324f4ec7c33fb48fbb",
       "test/portal-release-status-20261117.js": "5a205907ff23b8279a2fde24f2b26c619c8e662920b810cedb74fcd29bc2fab5",
-      "test/owner-audit-explanations-20261117.mjs": "8e7517183f1fa7a2c25c388e15e74611662727ab20b3bdfc3300544bcdc52f71",
+      "test/owner-audit-explanations-20261117.mjs": "1dac3205db97284548f9c678122d606b5c7800c2d9ef3df753f25cb03cedd375",
       "test/offer-score-methodology-20261117.js": "f9c6988fabd6b11f75094e565f9b1b5c029e4e4afa69c61e52f83eac4db3bb48",
       "test/index.html": "79349bd65b7f02bbd18b96d9b36b89996b4be8deaab378ed60c5c949daf77d7b",
       "test/offer-scoring.mjs": "6e4955df1bc4463a3049bf691bf09469a248f39424408581a417d6fed8f07654",
