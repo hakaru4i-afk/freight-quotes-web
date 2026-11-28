@@ -27,7 +27,8 @@ for(const file of paths)test('Owner intake preserves disabled state and rejects 
 });
 test('Owner intake source parity',()=>assert.equal(readFileSync(paths[0],'utf8'),readFileSync(paths[1],'utf8')));
 
-for(const file of ['portal-feedback-center-20261107.js','test/portal-feedback-center-20261107.js'])test('Owner advanced actions and existing integration diagnostics: '+file,()=>{
+test('Owner candidate advanced actions and existing integration diagnostics',()=>{
+ const file='test/portal-feedback-center-20261107.js';
  const source=readFileSync(file,'utf8');
  assert.match(source,/const updateControls=data\.owner&&choices\.length\?'<details class="pf-owner-advanced">/);
  assert.ok(source.includes('<summary>'+ "'+esc(ownerExtra[byLang].manual)+'" +'</summary>'));
@@ -47,3 +48,5 @@ for(const file of ['portal-feedback-center-20261107.js','test/portal-feedback-ce
   assert.ok(ctx.diagnose('HTTP_403',lang).includes('HTTP_403'));
  }
 });
+
+test('Owner production snapshot is preserved until protected promotion',()=>assert.equal(readFileSync('portal-feedback-center-20261107.js','utf8'),readFileSync('release/owner-portal-feedback-center-20261122.js','utf8')));

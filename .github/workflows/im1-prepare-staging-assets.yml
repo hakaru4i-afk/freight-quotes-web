@@ -39,7 +39,7 @@ jobs:
             esac
           done
       - name: Verify staging asset metadata and Owner process controls
-        run: node --test tests/owner-audit-explanations-20261117.test.mjs tests/lw2-transport-classification.test.mjs tests/offer-scoring-r2-nov17.test.mjs tests/owner-offer-scoring-r3.test.mjs tests/locked-release.test.mjs tests/role-report-charts.test.mjs tests/owner-register-action-lock-regression.test.mjs
+        run: node --test tests/owner-audit-explanations-20261117.test.mjs tests/lw2-transport-classification.test.mjs tests/offer-scoring-r2-nov17.test.mjs tests/owner-offer-scoring-r3.test.mjs tests/locked-release.test.mjs tests/role-report-charts.test.mjs tests/owner-register-action-lock-regression.test.mjs tests/feedback-deadline-issue173.test.mjs
         # Issue 94 Owner advanced controls, reporting, audit and scoring: the test app has just been stamped; never change release-lock or publish.
       - name: Commit only reviewed staging output and refresh candidate source provenance
         shell: bash
@@ -51,7 +51,7 @@ jobs:
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- test
           git diff --cached --check
-          git commit -m 'build(staging): regenerate Issue 94 candidate assets and diagrams'
+          if ! git diff --cached --quiet; then git commit -m 'build(staging): regenerate Issue 94 candidate assets and diagrams'; fi
           test -z "$(git status --porcelain --untracked-files=no)"
           # npm/browser artifacts must never enter the source attestation.
           clean=$(mktemp -d)
@@ -62,5 +62,5 @@ jobs:
           cp $RUNNER_TEMP/im1-manifest.json test/staging-manifest.json
           node --input-type=module -e 'import {readFileSync} from "node:fs";const m=JSON.parse(readFileSync("test/staging-manifest.json"));if(m.releaseStatus!=="RELEASE_BLOCKED"||m.runtimePairStatus!=="UNVERIFIED"||m.apiSourceCommit!==null||m.apiBundleSha256!==null)throw Error("UNSAFE_CANDIDATE_PROVENANCE");'
           git add -- test/staging-manifest.json
-          git commit -m 'chore(staging): attest source assets without claiming new API evidence'
+          if ! git diff --cached --quiet; then git commit -m 'chore(staging): attest source assets without claiming new API evidence'; fi
           git push origin HEAD:refs/heads/integration/issue94-legacy
