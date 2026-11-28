@@ -51,7 +51,7 @@
   reasonLabel.append(textarea);reasonPanel.append(reasonLabel);
   const reasonButtons=make('div','ow-task-reason-buttons');
   const apply=make('button','ow-task-reason-apply',w.apply),cancel=make('button','ow-task-reason-cancel',w.cancel);
-  apply.type=cancel.type='button';reasonButtons.append(apply,cancel);reasonPanel.append(reasonButtons);root.append(reasonPanel);
+  apply.type=cancel.type='button';apply.disabled=locked||busy;reasonButtons.append(apply,cancel);reasonPanel.append(reasonButtons);root.append(reasonPanel);
   const info=make('p','ow-task-inline-info');info.hidden=true;info.setAttribute('role','status');root.append(info);
   const notice=make('p','ow-task-preview-notice',execution?.lastError?'GitHub: '+execution.lastError:locked?w.closed:w.notice);root.append(notice);
   const progress=make('div','ow-task-universal-progress'),percent=Number(execution?.progress);
@@ -65,15 +65,16 @@
   const show=(message,error=false)=>{info.hidden=false;info.textContent=message;info.classList.toggle('ow-task-info-error',error);};
   let sending=false,selectedAction='';
   const send=async(action,extra={})=>{
-   if(sending||typeof onAction!=='function'){show(w.error,true);return;}
+   if(sending||typeof onAction!=='function'||((locked||busy)&&['transfer','defer','reject'].includes(action))){show(w.error,true);return;}
    sending=true;
-   for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=true;
+   const prior=[start,postpone,reject,apply,acceptButton,rejectButton,reviewButton].filter(Boolean).map(b=>[b,b.disabled]);
+   for(const [b] of prior)b.disabled=true;
    try{await onAction({action,register,recordId:row.id,...extra});show(w.done);}
    catch(e){show((e?.message||w.error),true);}
-   finally{sending=false;for(const b of [start,postpone,reject,apply,acceptButton,rejectButton,reviewButton])if(b)b.disabled=false;}
+   finally{sending=false;for(const [b,wasDisabled] of prior)b.disabled=wasDisabled;}
   };
   start.onclick=()=>void send('transfer');
-  const choose=action=>{selectedAction=action;reasonPanel.hidden=false;textarea.focus();show(action==='defer'?w.postpone+' · '+w.reason:w.reject+' · '+w.reason);};
+  const choose=action=>{if(locked||busy||sending)return;selectedAction=action;reasonPanel.hidden=false;textarea.focus();show(action==='defer'?w.postpone+' · '+w.reason:w.reject+' · '+w.reason);};
   postpone.onclick=()=>choose('defer');reject.onclick=()=>choose('reject');cancel.onclick=()=>{reasonPanel.hidden=true;info.hidden=true;};
   apply.onclick=()=>{draft.reason=textarea.value.trim();if(draft.reason.length<10){textarea.focus();show(w.missingReason,true);return;}reasonPanel.hidden=true;void send(selectedAction,{reason:draft.reason});};
   let reviewButton=null,acceptButton=null,rejectButton=null;

@@ -111,6 +111,8 @@ jobs:
         run: node --test tests/lw2-transport-classification.test.mjs
       - name: Verify role report charts, date handling and localization
         run: node --test tests/role-report-charts.test.mjs
+      - name: Verify Owner intake action locks and async retries
+        run: node --test tests/owner-register-action-lock-regression.test.mjs
       - name: Verify feedback archive filters and terminal controls
         run: node --test tests/feedback-archive-single-filter.test.mjs
       - name: Verify monotonic production release notifications
