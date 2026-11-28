@@ -3,6 +3,7 @@ import {join, resolve} from 'node:path';
 import {checkoutSha, readJson, runReceipt} from './locked-evidence-run.mjs';
 import {qaInputSha256, verifyQaPackageProof} from './locked-qa-package.mjs';
 import {findStagingProof, verifyExpectedDeployment} from './locked-qa-provenance.mjs';
+import {verifyServedScoring} from './locked-offer-scoring.mjs';
 import {digest, qaFunction, qaProject, qaRun, readLock, requireCheck, sha64, stagingUrl} from './locked-release.mjs';
 
 async function request(url, headers) {
@@ -141,6 +142,8 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   const lock = readLock();
   runReceipt(lock, 'e2e');
   const input = qaInputSha256(backend, lock);
+  checkoutSha(frontend, lock.frontendSha, {cleanPath: 'test'});
+  console.log('OFFER_SCORING_SERVED_PAIR_PASS',await verifyServedScoring(frontend,backend,lock));
   let staging;
   if (mode === 'select-and-attest') {
     staging = findStagingProof(lock, input, process.env.GH_TOKEN);

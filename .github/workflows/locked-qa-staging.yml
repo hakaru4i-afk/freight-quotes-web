@@ -108,6 +108,7 @@ jobs:
           done
           work=$(mktemp -d "$RUNNER_TEMP/locked-staging.XXXXXX")
           echo "LOCKED_STAGE_DIR=$work" >> "$GITHUB_ENV"
+          node scripts/release/locked-offer-scoring.mjs candidate-web candidate-backend
           node scripts/release/locked-staging.mjs package candidate-web "$work/pages" "$work/root-proof.json"
           node scripts/release/locked-staging.mjs verify-root "$work/root-proof.json"
       - name: Reuse or build and independently read back the existing isolated QA function
