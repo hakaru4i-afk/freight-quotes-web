@@ -40,7 +40,7 @@ jobs:
           done
       - name: Verify staging asset metadata and Owner process controls
         run: node --test tests/owner-audit-explanations-20261117.test.mjs
-        # IM1 native audit: the test app has just been stamped; never change release-lock or publish.
+        # IM1 native audit and SL subject: the test app has just been stamped; never change release-lock or publish.
       - name: Commit only reviewed staging output and refresh candidate source provenance
         shell: bash
         run: |

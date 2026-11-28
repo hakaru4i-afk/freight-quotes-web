@@ -85,3 +85,10 @@ test('Native audit events are distinguished from HTTP responses and browser repo
  assert.doesNotMatch(explainAuditEvent({...e,status:403}).title,/Три неудачные/);
  assert.match(explainAuditEvent({...e,action:'native_execution_application_submit',path:'/api/shipment-execution'}).title,/отправлена/);
 });
+
+test('Native SL shows actual subject and does not expose unvalidated values',()=>{
+ const e={source:'server',phase:'domain_commit',serverCode:'DOMAIN_EVENT_CONFIRMED',status:0,kind:'action',path:'/api/service-level',action:'native_sl_document_error',subjectLogin:'carrier1'};
+ const r=explainAuditEvent(e);assert.match(r.title,/Ошибка документов/);assert.match(r.what,/carrier1/);
+ assert.doesNotMatch(explainAuditEvent({...e,subjectLogin:'private token'}).what,/private token/);
+ for(const path of ['app.js','test/app.js'])assert.match(readFileSync(path,'utf8'),/data-site-audit-subject-login/);
+});

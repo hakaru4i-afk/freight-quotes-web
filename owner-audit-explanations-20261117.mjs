@@ -137,7 +137,38 @@ const nativeLabels=Object.freeze({
   "native_completion_submit": "Отправка на приёмку",
   "native_completion_approve": "Приёмка согласована",
   "native_completion_reject": "Приёмка отклонена",
-  "native_completion_review": "Приёмка рассмотрена"
+  "native_completion_review": "Приёмка рассмотрена",
+  "native_sl_pickup_late_6": "SL: Подача транспорта с опозданием до 6 часов",
+  "native_sl_pickup_late_24": "SL: Подача транспорта с опозданием до суток",
+  "native_sl_pickup_late_long": "SL: Подача транспорта с опозданием более суток",
+  "native_sl_vehicle_no_show": "SL: Транспорт не подан",
+  "native_sl_delivery_late": "SL: Доставка задержана до суток",
+  "native_sl_delivery_late_3": "SL: Доставка задержана до трёх суток",
+  "native_sl_delivery_late_long": "SL: Доставка задержана более трёх суток",
+  "native_sl_document_error": "SL: Ошибка документов",
+  "native_sl_document_error_delay": "SL: Ошибка документов с задержкой",
+  "native_sl_document_error_cost": "SL: Ошибка документов с расходами",
+  "native_sl_document_late_1": "SL: Документы переданы с задержкой до суток",
+  "native_sl_document_late_3": "SL: Документы переданы с задержкой до трёх суток",
+  "native_sl_document_late_long": "SL: Документы переданы с задержкой более трёх суток",
+  "native_sl_status_missing": "SL: Пропущено обновление статуса",
+  "native_sl_incident_notice_late": "SL: Позднее сообщение об инциденте",
+  "native_sl_incident_notice_missing": "SL: Отсутствует сообщение об инциденте",
+  "native_sl_route_change": "SL: Изменение маршрута",
+  "native_sl_route_change_cost": "SL: Изменение маршрута с расходами",
+  "native_sl_conditions_breach": "SL: Нарушение условий",
+  "native_sl_conditions_breach_damage": "SL: Нарушение условий с ущербом",
+  "native_sl_cargo_packaging": "SL: Нарушение упаковки",
+  "native_sl_cargo_damage": "SL: Повреждение груза",
+  "native_sl_cargo_unusable": "SL: Груз непригоден",
+  "native_sl_cargo_shortage": "SL: Недостача груза",
+  "native_sl_cargo_lost": "SL: Утрата груза",
+  "native_sl_price_increase": "SL: Повышение ставки",
+  "native_sl_false_tracking": "SL: Недостоверный трекинг",
+  "native_sl_document_forgery": "SL: Подделка документов",
+  "native_sl_other_minor": "SL: Незначительный инцидент",
+  "native_sl_other_incident": "SL: Инцидент",
+  "native_sl_other_major": "SL: Серьёзный инцидент"
 });
 const kindLabels={
   'Отказ в доступе':'denied','Ошибка проверки данных':'validation',
@@ -229,7 +260,7 @@ export function explainAuditEvent(event){
  const result={title:'Обращение к разделу «'+service+'»',where:'Раздел: '+service,what:'Запрос: '+operation+targetText,why:'Точная причина не указана в сохранённой записи.',outcome:'Результат требует проверки.',origin:'По этой записи нельзя установить, нажимал ли пользователь кнопку вручную.'};
  if(isNativeEvent(event)){
    result.title=nativeLabels[action];
-   result.what='Событие: '+nativeLabels[action]+targetText;
+   result.what='Событие: '+nativeLabels[action]+targetText+(/^[a-z0-9._-]{3,60}$/i.test(event.subjectLogin||'')?' · Учётная запись: '+event.subjectLogin:'');
    result.why='Запись сформирована сервером вместе с бизнес-операцией, а не браузером.';
    result.outcome='Серверное событие зафиксировано. Отдельный HTTP-код не присваивается; ответ ищите по общему ID запроса.';
    result.origin='Источник — серверный обработчик. Нажатие кнопки и намерения пользователя по этой записи не устанавливаются.';
@@ -322,7 +353,7 @@ function logRow(row){
  const target=details.querySelector('[data-site-audit-target]')?.textContent||((paras[1]?.textContent&&!/^(?:HTTP \d{3}$|ID:)/.test(paras[1].textContent))?paras[1].textContent:'');
  const event={kind,path,action:safe(paras[0]?.textContent),status:http?Number(http.slice(5)):0,target:safe(target),
   source:row.dataset.siteAuditSource,role:row.dataset.siteAuditRole,effectiveRole:row.dataset.siteAuditEffectiveRole,
-  reasonCode:row.dataset.siteAuditReasonCode,serverCode:row.dataset.siteAuditServerCode,phase:row.dataset.siteAuditPhase};
+  reasonCode:row.dataset.siteAuditReasonCode,serverCode:row.dataset.siteAuditServerCode,phase:row.dataset.siteAuditPhase,subjectLogin:row.dataset.siteAuditSubjectLogin};
  // The original row (including method, HTTP code, ID and raw path) remains intact.
  const note=explainAuditEvent(event);
  const summary=document.createElement('div');
