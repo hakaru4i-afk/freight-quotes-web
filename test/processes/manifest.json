@@ -1,6 +1,6 @@
 {
   "version": "20261125-logic-13",
-  "modelSha256": "820ffa46aad9266cc684b42b968e63edb8fee0613080ad8675cc08ee39094ca9",
+  "modelSha256": "e9d3d786d06a7daf4c7be2a6e12e9ef9faed976e660a86956cc3e8357bcffbbc",
   "modelSnapshot": {
     "version": "20261125-logic-13",
     "date": "2026-11-25",
@@ -664,7 +664,7 @@
       "test/current-workspace-help-20261108.js": "4dc70a322656204be10f2766a2675cbcf31e832c2e4f9effd0bd03a18de8d911",
       "test/owner-workspace-compact-20261108.js": "1ec238e021ef492a0ab25530f1c5df415049dcdb97618ba89a5cd6a8b486dedc",
       "test/owner-command-center-20261108.js": "6885c6a8be37e1c4e1caf0e38a21b4e4f7d0c44b460d510f325e14365f2031bb",
-      "test/owner-register-task-actions-20261121.js": "fd2f350bf60cf96cb0089a5baea258ca135f457e155524d27fdf92ea2142b5ae",
+      "test/owner-register-task-actions-20261121.js": "e2e88e336d85472baae66b60f842a6f3eb5114b19f28bfc3d14240a902d80217",
       "test/owner-registers-20261111.js": "a283a150311f4a91d69d73b48b4425fb1c0307eb78bce3b419f838727c6264f0",
       "test/role-help-20261111.js": "87c1d1b6d09b144c40ea56901b960be4b60c51c23e493b6d57187eaa5df61efa",
       "test/global-view/view.mjs": "b0490ef5a0cc20f7b85b89725b499d52cd69ae63006f36aa88d522bff2c08d48",
