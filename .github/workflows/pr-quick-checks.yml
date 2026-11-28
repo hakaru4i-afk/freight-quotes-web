@@ -105,6 +105,8 @@ jobs:
             tests/owner-process-control-ui.test.mjs \
             tests/owner-offer-status-clarity-sh70.test.mjs \
             tests/owner-offer-scoring-r3.test.mjs
+      - name: Verify transport dashboard mode classification
+        run: node --test tests/lw2-transport-classification.test.mjs
       - name: Verify feedback archive filters and terminal controls
         run: node --test tests/feedback-archive-single-filter.test.mjs
       - name: Verify monotonic production release notifications
