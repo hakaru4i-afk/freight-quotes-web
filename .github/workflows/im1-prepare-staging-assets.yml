@@ -1,16 +1,16 @@
-name: IM1 regenerate staging asset provenance (branch only)
+name: Regenerate reviewed #93 staging assets (branch only)
 on:
   push:
-    branches: [owner-task/a17243dc-5620-465d-87f6-d6989ebe2c1d]
+    branches: [fix/issue93-canonical-scoring]
     paths: [.github/workflows/im1-prepare-staging-assets.yml]
 permissions:
   contents: write
 concurrency:
-  group: im1-audit-assets
+  group: issue93-score-assets
   cancel-in-progress: false
 jobs:
   prepare:
-    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/owner-task/a17243dc-5620-465d-87f6-d6989ebe2c1d'
+    if: github.repository == 'hakaru4i-afk/freight-quotes-web' && github.actor == 'hakaru4i-afk' && github.ref == 'refs/heads/fix/issue93-canonical-scoring'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -26,7 +26,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git branch --show-current)" = owner-task/a17243dc-5620-465d-87f6-d6989ebe2c1d
+          test "$(git branch --show-current)" = fix/issue93-canonical-scoring
           node scripts/stamp-staging-rc.mjs --write
           node scripts/build-process-maps.mjs --record-reviewed-sources
           node scripts/stamp-staging-rc.mjs --check
@@ -39,18 +39,18 @@ jobs:
             esac
           done
       - name: Verify staging asset metadata and Owner process controls
-        run: node --test tests/owner-audit-explanations-20261117.test.mjs
+        run: node --test tests/owner-offer-scoring-r3.test.mjs tests/offer-scoring-r2-nov17.test.mjs
         # The test app has just been stamped; never change release-lock or publish.
       - name: Commit only reviewed staging output and refresh candidate source provenance
         shell: bash
         run: |
           set -euo pipefail
-          test "$GITHUB_REF" = refs/heads/owner-task/a17243dc-5620-465d-87f6-d6989ebe2c1d
+          test "$GITHUB_REF" = refs/heads/fix/issue93-canonical-scoring
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -- test
           git diff --cached --check
-          git commit -m 'build(staging): regenerate IM1 candidate assets and diagrams'
+          git commit -m 'build(staging): regenerate #93 candidate assets and diagrams'
           test -z "$(git status --porcelain --untracked-files=no)"
           # npm/browser artifacts must never enter the source attestation.
           clean=$(mktemp -d)
@@ -62,4 +62,4 @@ jobs:
           node --input-type=module -e 'import {readFileSync} from "node:fs";const m=JSON.parse(readFileSync("test/staging-manifest.json"));if(m.releaseStatus!=="RELEASE_BLOCKED"||m.runtimePairStatus!=="UNVERIFIED"||m.apiSourceCommit!==null||m.apiBundleSha256!==null)throw Error("UNSAFE_CANDIDATE_PROVENANCE");'
           git add -- test/staging-manifest.json
           git commit -m 'chore(staging): attest source assets without claiming new API evidence'
-          git push origin HEAD:refs/heads/owner-task/a17243dc-5620-465d-87f6-d6989ebe2c1d
+          git push origin HEAD:refs/heads/fix/issue93-canonical-scoring
