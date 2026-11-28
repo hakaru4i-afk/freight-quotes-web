@@ -109,7 +109,7 @@ jobs:
             tests/owner-offer-scoring-r3.test.mjs
       - name: Consolidated legacy candidate VED document and chat regression (offline)
         if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
-        run: node --test tests/qa014-017-behavior.test.mjs tests/ved-shared-chat-and-requests.test.mjs tests/chat-unread-contrast.test.mjs
+        run: node --test tests/qa014-017-behavior.test.mjs tests/ved-shared-chat-and-requests.test.mjs
       - name: Verify transport dashboard mode classification
         run: node --test tests/lw2-transport-classification.test.mjs
       - name: Verify role report charts, date handling and localization
@@ -196,4 +196,4 @@ jobs:
         run: node --test tests/lw2-dashboard-browser.test.mjs
       - name: Consolidated legacy candidate staff and shared chat browser fixtures
         if: github.head_ref == 'integration/issue94-legacy' && (steps.changed.outputs.run == 'true' || steps.changed.outputs.transport == 'true')
-        run: node --test --test-concurrency=2 tests/owner-team-users-browser.test.mjs tests/emergency-chat-preservation-browser.test.mjs
+        run: node --test --test-concurrency=2 tests/owner-team-users-browser.test.mjs tests/emergency-chat-preservation-browser.test.mjs tests/chat-unread-contrast.test.mjs
