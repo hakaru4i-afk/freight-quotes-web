@@ -33,7 +33,7 @@
       "sourceCommit": "344e8fc4c3cd06dd2453813cbcd9ddf1c4a5d3b7"
     }
   ],
-  "frontendCommit": "180c077ca58752913e416355b37b2ede926a3f9f",
+  "frontendCommit": "3a210bca36f6502ac300f25b6afaecf2fbd2e995",
   "assetHashes": {
     ".github/workflows/actions-runtime-policy.yml": "89ee8d3114fdb801c694f4612d9147ef0362f2e991850620c8eab81a957341f6",
     ".github/workflows/carrier-acceptance-singleton.yml": "914f9649e3e3faab1e9c0403305d242ced351427c1937e9aafa0861831813564",
@@ -520,7 +520,7 @@
     "tests/role-help-20261111.test.mjs": "f96ead8316746be2dda0058d47859591134b9b950d682eedbc8d7086c9143b79",
     "tests/role-help-browser.test.mjs": "53784e295fe09f9e92560753c1eb0f7bb16b873465bc88a43f58fe2d5fb7d124",
     "tests/role-report-charts.test.mjs": "8d48454fbdb1c619862bb87ce65a98e97170532ff26d666c27f844d11a0f1a5f",
-    "tests/security-gate-real.e2e.mjs": "879e8c42b927e48e903d327bc52f1aaa1a038fadd8b7fa57a18aa46ff73c4594",
+    "tests/security-gate-real.e2e.mjs": "76df957264c472a6594f32f54a71ac5fda94e37044dc6a8b233d60db0c06063f",
     "tests/site-audit-real.e2e.mjs": "cd794c455f4792197019c73f83f8a3d1fb6024796123864178a41bb1d61a39c1",
     "tests/staging-alignment.test.mjs": "6eb2852ec545783df50677f764fba4bce161f5a1456267774ab62a7d493b56d1",
     "tests/staging-api-region.test.mjs": "d2f781e8c066f59cd46a2cde2c5ad4fc99e7e78e0b732ab2ced1cd8a3d4b3fa6",
