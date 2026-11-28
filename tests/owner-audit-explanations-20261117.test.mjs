@@ -58,3 +58,22 @@ test('both bundles pass the actual route and observed details to the existing Ow
   assert.ok(app.includes('S.status===202?"Ожидает завершения"'));
  }
 });
+
+
+test("all specifically required HTTP codes are explained without inferring intent",()=>{
+ for(const [status,title] of [[424,/зависимая/],[431,/заголовки/],[501,/не реализована/],[507,/Недостаточно/],[508,/цикл/]]){
+ const event=explainAuditEvent({source:"server",path:"/api/task2",status});
+ assert.match(event.title,title);
+ assert.match(event.origin,/нельзя установить/);
+ }
+});
+test("root and staging use same server filter controls and preserve pagination query",()=>{
+ for(const path of ["app.js","test/app.js"]){
+ const app=readFileSync(path,"utf8");
+ assert.match(app,/function issue1AuditFilters\(state,setState\)/);
+ for(const key of ["role","cabinet","http","target","source","outcome","path"])assert.ok(app.includes('["'+key+'",'),key);
+ assert.match(app,/actor:_,kind:b,\.\.\.advanced\}\);N.current=W.toString\(\)/);
+ assert.ok(app.includes("...issue1AuditFilters(advanced,setAdvanced)"));
+ assert.ok(app.includes('N.current+(S?"&cursor="'));
+ }
+});

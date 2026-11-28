@@ -192,8 +192,7 @@ export function explainAuditEvent(event){
    result.why='Сработало ограничение частоты запросов.';
    result.outcome='Запрос временно отклонён.';
  }else if(status>=500||(kind==='server_error'&&!status)){
-   if(httpMeanings[status])result.title=httpMeanings[status][0]+' — «'+service+'»';
-   result.title='Сбой сервера при обращении к разделу «'+service+'»';
+   result.title=status!==500&&httpMeanings[status]?httpMeanings[status][0]+' — «'+service+'»':'Сбой сервера при обращении к разделу «'+service+'»';
    result.why=httpMeanings[status]?.[1]||'Произошла серверная ошибка; подробная техническая причина в этой записи отсутствует.';
    result.outcome='Успешное выполнение операции не подтверждено.';
  }else if(kind==='client_error'){
