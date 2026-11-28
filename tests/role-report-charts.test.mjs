@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {REPORT_ROLES,reportChartData,carrierReportCounts,carrierKpiData} from "../role-report-charts.mjs";
+import {REPORT_ROLES,reportChartData,carrierReportCounts,carrierKpiData,reportPeriodComparison,periodComparisonView} from "../role-report-charts.mjs";
 test("all eight actual roles have localized charts and empty state",()=>{assert.equal(REPORT_ROLES.length,8);for(const role of REPORT_ROLES)for(const lang of ["ru","en","zh"]){const r=reportChartData([],role,lang);assert.ok(r.title&&r.empty&&r.timelineTitle);assert.deepEqual(r.types,[]);assert.deepEqual(r.timeline,[]);}});
 test("quote variants separate, missing dates not fabricated, no mutation",()=>{const rows=Object.freeze([Object.freeze({type:"invitation",created:"2026-11-01T08:00:00Z"}),{type:"offer",created:"2026-11-01T08:00:00Z"},{type:"offer",created:"2026-11-01T08:00:00Z"},{type:"shipment",created:null}]);const r=reportChartData(rows,"carrier");assert.equal(r.types.find(x=>x.key==="offer").value,2);assert.equal(r.timeline[0].value,1);assert.equal(r.missingDate,1);assert.equal(reportChartData(rows,"unknown"),null);});
 test("only supplied records contribute; owner and carrier use their authorized input",()=>{const a=[{type:"shipment",created:"2026-10-01T12:00:00Z"}],b=[{type:"supplier",created:"2026-11-01T12:00:00Z"}];assert.equal(reportChartData(a,"carrier").types.length,1);assert.equal(reportChartData([...a,...b],"owner").types.length,2);});
@@ -10,3 +10,14 @@ test("server assignment types are localized in every supported language",()=>{co
 test("assignment status counts use only authorized input, exclude offers and keep cancelled distinct",()=>{const rows=[{type:"content_assignment",state:"completed"},{type:"content_assignment",state:"cancelled"},{type:"purchasing_assignment",state:"assigned"},{type:"offer",state:"completed"}];for(const lang of ["ru","en","zh"]){const c=reportChartData(rows,"content",lang);assert.equal(c.assignmentStatuses.reduce((n,x)=>n+x.value,0),2);assert.equal(c.assignmentStatuses.find(x=>x.key==="cancelled").value,1);assert.ok(c.assignmentStatusTitle);assert.equal(reportChartData(rows,"owner",lang).assignmentStatuses.reduce((n,x)=>n+x.value,0),3);assert.equal(reportChartData(rows,"carrier",lang).assignmentStatusTitle,null);}});
 
 test("carrier KPIs distinguish quote variants and unique rounds and never invent denied data",()=>{const rows=[{type:"invitation",sourceKey:"request:a",roundResult:"winner"},{type:"offer",sourceKey:"request:a",quoteLate:false},{type:"offer",sourceKey:"request:a",quoteLate:true},{type:"offer",sourceKey:"request:b",quoteLate:true},{type:"shipment",id:"s",sourceKey:"request:a",state:"in_transit",claimCount:1,documentCount:2}];const sources=["/api/carrier","/api/shipments","report-shipment-claims","report-shipment-documents"].map(path=>({path,status:"ok"}));const k=carrierReportCounts(rows,sources);assert.equal(k.quotedRounds,2);assert.equal(k.quoteVariants,3);assert.equal(k.wonRounds,1);assert.equal(k.timelyQuoteRounds,1);assert.equal(k.lateOnlyQuoteRounds,1);assert.equal(k.shipmentClaims,1);assert.equal(carrierReportCounts(rows,[]).quotedRounds,null);for(const lang of ["ru","en","zh"]){const v=carrierKpiData(rows,sources,82,lang);assert.equal(v.items.find(x=>x.key==="currentSL").value,"82%");assert.ok(v.scope);}});
+
+test("period comparison uses equal adjacent dates and the same filter, includes separate quote variants",()=>{
+ const rows=[{id:"p",type:"supplier",created:"2026-10-31",person:"a"},{id:"c",type:"supplier",created:"2026-11-02",person:"a"},{id:"q",type:"offer",created:"2026-11-02",person:"a"},{id:"foreign",type:"supplier",created:"2026-11-01",person:"b"}];
+ const filter=(rows,f)=>rows.filter(r=>r.person===f.person&&r[f.dateBy]>=f.from&&r[f.dateBy]<=f.to);
+ const c=reportPeriodComparison(rows,{person:"a",from:"2026-11-01",to:"2026-11-02",dateBy:"created"},filter);
+ assert.deepEqual(c.previous,{from:"2026-10-30",to:"2026-10-31"});
+ assert.deepEqual(c.items,[{key:"offer",current:1,previous:0,delta:1},{key:"supplier",current:1,previous:1,delta:0}]);
+ assert.deepEqual(c.rowIds,["p","c","q"]);
+ assert.equal(reportPeriodComparison(rows,{from:"2026-02-30",to:"2026-03-01"},filter),null);
+ for(const lang of ["ru","en","zh"]){const v=periodComparisonView(c,lang);assert.equal(v.items.length,2);assert.notEqual(v.items[0].label,"offer");assert.ok(v.title&&v.scope);}
+});

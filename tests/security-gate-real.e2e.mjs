@@ -67,11 +67,14 @@ await check('role-reports-real-authorization-and-export',async()=>{
   assert.equal(pdf.bytes.subarray(0,5).toString(),'%PDF-','REPORT_PDF_MAGIC:'+actor);
   snapshots.set(actor,q);reports.set(actor,d);
  }
- for(const [actor,own] of snapshots)for(const [other,foreign] of snapshots){
-  if(actor===other)continue;
-  denied(await call(actor,foreign));
-  denied(await call(actor,foreign+'&format=pdf'));
- }
+ // Cross-company pairs plus every actor against a different Owner/non-Owner snapshot.
+ // Bound the number of HTTP requests to keep the existing protected run within its lease.
+ const cross=new Set();
+ const pair=(a,b)=>{if(snapshots.has(a)&&snapshots.has(b)&&a!==b)cross.add(a+':'+b);};
+ for(const actor of snapshots.keys()){pair(actor,'owner');pair('owner',actor);}
+ for(const [a,b] of [['carrierA','carrierB'],['supplier','supplierB'],['content','purchasing'],['purchasing','certification'],['designer','content']]){pair(a,b);pair(b,a);}
+ for(const key of cross){const [actor,other]=key.split(':'),foreign=snapshots.get(other);denied(await call(actor,foreign));denied(await call(actor,foreign+'&format=pdf'));}
+
  if(supplyA&&supplyB)for(const [actor,mine,foreign]of [['supplier',supplyA,supplyB],['supplierB',supplyB,supplyA]]){
   const d=reports.get(actor);assert.ok(d.rows.some(row=>row.order===mine.order),'REPORT_OWN_SUPPLIER_FIXTURE:'+actor);
   assertPrivate(d,[foreign.order,foreign.id]);

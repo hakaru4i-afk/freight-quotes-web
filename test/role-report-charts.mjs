@@ -123,3 +123,41 @@ export function carrierKpiData(rows,sources,currentSL,lang="ru"){
   items:[...Object.entries(counts).map(([key,value])=>({key,label:tr(CARRIER_KPIS[key],lang),value:value===null?noData:value})),
     {key:"currentSL",label:tr(["Текущий SL","Current SL","当前服务等级"],lang),value:Number.isFinite(currentSL)?currentSL+"%":noData}]};
 }
+// Equal-length adjacent calendar periods, using the existing report filter
+// for both intervals (including assignment, archive and Minsk date field).
+// These are counts of records by selected date, not historical status snapshots.
+export function reportPeriodComparison(rows,filters,filterRows){
+ const date=value=>{
+  if(typeof value!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  const ms=Date.parse(value+"T00:00:00Z");
+  return Number.isFinite(ms)&&new Date(ms).toISOString().slice(0,10)===value?ms:null;
+ };
+ const a=date(filters?.from),b=date(filters?.to);
+ if(a===null||b===null||b<a)return null;
+ const day=86400000,length=(b-a)/day+1;
+ const iso=ms=>new Date(ms).toISOString().slice(0,10);
+ const previous={from:iso(a-length*day),to:iso(a-day)};
+ const current={from:filters.from,to:filters.to};
+ const left=filterRows(rows,{...filters,...previous}),right=filterRows(rows,{...filters,...current});
+ const count=list=>{
+  const groups=new Map();
+  for(const row of list){
+   const key=String(row.type||"unknown");
+   groups.set(key,(groups.get(key)||0)+1);
+  }
+  return groups;
+ };
+ const p=count(left),c=count(right),keys=[...new Set([...p.keys(),...c.keys()])].sort();
+ return {current,previous,dateBy:filters.dateBy||"created",
+  items:keys.map(key=>({key,current:c.get(key)||0,previous:p.get(key)||0,delta:(c.get(key)||0)-(p.get(key)||0)})),
+  rowIds:[...new Set([...left,...right].map(row=>row.id))]};
+}
+
+export function periodComparisonView(comparison,lang="ru"){
+ if(!comparison)return null;
+ return {title:tr(["Сравнение с предыдущим равным периодом","Comparison with previous equal period","与上一等长期间比较"],lang),
+  scope:tr(["Записи по выбранной дате; варианты ставок отдельно. Это не исторический снимок статусов.","Records by selected date; quote variants separate. This is not a historical status snapshot.","按所选日期统计；报价方案单列。这不是历史状态快照。"],lang),
+  labels:[tr(["Тип записи","Record type","记录类型"],lang),tr(["Текущий","Current","本期"],lang),tr(["Предыдущий","Previous","上期"],lang),tr(["Разница","Change","变化"],lang)],
+  current:comparison.current,previous:comparison.previous,dateBy:comparison.dateBy,
+  items:comparison.items.map(x=>({...x,label:TYPES[x.key]?tr(TYPES[x.key],lang):x.key}))};
+}
