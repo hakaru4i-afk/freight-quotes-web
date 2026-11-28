@@ -135,3 +135,42 @@ jobs:
           }
           console.log('HEAVY_PR_TRIGGER_GUARD_PASS; manual/scheduled browser runs only');
           JS
+
+  browser-fixture-regression:
+    name: Targeted browser fixture regression
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == 'hakaru4i-afk'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Identify changes to browser fixtures
+        id: changed
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          git diff --name-only "$BASE_SHA...$HEAD_SHA" > /tmp/fixture-diff.txt
+          if grep -Eq '^tests/(public-entry-browser|task1-create-form-browser|task12-role-robots)\.test\.mjs$' /tmp/fixture-diff.txt; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        if: steps.changed.outputs.run == 'true'
+        with:
+          package-manager-cache: false
+          node-version: '24'
+      - name: Install existing browser test toolchain
+        if: steps.changed.outputs.run == 'true'
+        run: |
+          npm install --no-save --ignore-scripts playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Run three affected browser files with unchanged assertions
+        if: steps.changed.outputs.run == 'true'
+        run: |
+          mkdir -p reports
+          node --test --test-concurrency=2 tests/public-entry-browser.test.mjs tests/task1-create-form-browser.test.mjs tests/task12-role-robots.test.mjs
