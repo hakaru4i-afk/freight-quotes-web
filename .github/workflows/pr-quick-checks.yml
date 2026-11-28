@@ -110,6 +110,18 @@ jobs:
       - name: Consolidated legacy candidate VED document and chat regression (offline)
         if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
         run: node --test tests/qa014-017-behavior.test.mjs tests/ved-shared-chat-and-requests.test.mjs
+      - name: Legacy consolidated offline Carrier round and spreadsheet contracts
+        if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
+        run: node --test --test-concurrency=2 tests/issue47-bid-edit-route.test.mjs tests/issue47-carrier-round-status.test.mjs tests/issue47-carrier-workspace-deadlines.test.mjs tests/issue47-carrier-xlsx.test.mjs tests/issue47-insurance-excel-import.test.mjs tests/issue47-legacy-csv-integrity.test.mjs
+      - name: Legacy consolidated offline Document model and execution
+        if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
+        run: node --test --test-concurrency=2 tests/issue17-model.test.mjs tests/issue28-document-only.test.mjs tests/owner-permanent-delete.test.mjs tests/owner-pto-review-task-order.test.mjs tests/qa015-016-018-consolidated.test.mjs
+      - name: Legacy consolidated offline Role help and maps
+        if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
+        run: node --test --test-concurrency=2 tests/current-workspace-help.test.mjs tests/issue47-help-locales.test.mjs tests/lw-ved-faq-20261109.test.mjs tests/role-help-20261111.test.mjs tests/qa014-017-faq-coherence.test.mjs tests/global-view-route.test.mjs tests/map-geocode-fallback.test.mjs tests/zbk-zabaikalsk-geocode.test.mjs tests/owner-cabinet-preview-no-carrier-403.test.mjs tests/lw-pending-tasks-all-roles.test.mjs
+      - name: Legacy consolidated offline Owner lifecycle and process history
+        if: github.event_name == 'pull_request' && github.head_ref == 'integration/issue94-legacy'
+        run: node --test --test-concurrency=2 tests/owner-all-registers-lifecycle.test.mjs tests/owner-answer-filters.test.mjs tests/owner-chatgpt-handoff.test.mjs tests/owner-register-publication.test.mjs tests/owner-workflow-lifecycle.test.mjs tests/process-model-diff.test.mjs tests/qa019-owner-registers-readable.test.mjs
       - name: Verify transport dashboard mode classification
         run: node --test tests/lw2-transport-classification.test.mjs
       - name: Verify role report charts, date handling and localization
